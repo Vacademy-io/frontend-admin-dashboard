@@ -353,9 +353,9 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
 
     // Calculate totals
     const totalTokens =
-        activityLogs?.records.reduce((sum, record) => sum + record.total_tokens, 0) || 0;
+        activityLogs?.records?.reduce((sum, record) => sum + (record.total_tokens || 0), 0) || 0;
     const totalPrice =
-        activityLogs?.records.reduce((sum, record) => sum + record.total_price, 0) || 0;
+        activityLogs?.records?.reduce((sum, record) => sum + (record.total_price || 0), 0) || 0;
 
     // Get unique models from activity logs
     const uniqueModels = Array.from(
@@ -667,7 +667,7 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                                             {record.total_tokens.toLocaleString()}
                                                         </TableCell>
                                                         <TableCell className="text-right text-xs">
-                                                            ${record.total_price.toFixed(4)}
+                                                            ${(record.total_price || 0).toFixed(4)}
                                                         </TableCell>
                                                     </TableRow>
                                                 );

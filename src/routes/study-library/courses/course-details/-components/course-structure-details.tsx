@@ -45,6 +45,7 @@ import {
     PencilSimple,
     DotsThree,
     Info,
+    DotsSixVertical,
 } from 'phosphor-react';
 import {
     DropdownMenu,
@@ -68,7 +69,12 @@ import { ChapterWithSlides } from '../../-services/getAllSlides';
 import { TabType, tabs } from '../subjects/-constants/constant';
 import { useDeleteModule } from '../subjects/modules/-services/delete-module';
 import { useDeleteChapter } from '../subjects/modules/chapters/-services/delete-chapter';
+import { useUpdateModuleOrder } from '../subjects/modules/-services/update-modules-order';
+import { useUpdateChapterOrder } from '../subjects/modules/chapters/-services/update-chapter-order';
 import { fetchModulesWithChapters } from '../../-services/getModulesWithChapters';
+import { Sortable, SortableItem, SortableDragHandle } from '@/components/ui/sortable';
+import { rectSortingStrategy } from '@dnd-kit/sortable';
+import { toast } from 'sonner';
 import {
     UseSlidesFromModulesInput,
     fetchChaptersWithSlides,
@@ -480,6 +486,8 @@ export const CourseStructureDetails = ({
     const updateSubjectMutation = useUpdateSubject();
     const deleteSubjectMutation = useDeleteSubject();
     const updateSubjectOrderMutation = useUpdateSubjectOrder();
+    const updateModuleOrderMutation = useUpdateModuleOrder();
+    const updateChapterOrderMutation = useUpdateChapterOrder();
     const updateModuleMutation = useUpdateModule();
     const updateChapterMutation = useUpdateChapter();
     const deleteModuleMutation = useDeleteModule();
@@ -869,6 +877,127 @@ export const CourseStructureDetails = ({
 
     // Removed unused handleEditChapter to satisfy linter
 
+    // ===== REORDER HANDLERS =====
+
+    // Handle subject reordering
+    const handleSubjectReorder = (reorderedSubjects: SubjectType[]) => {
+        if (!canEditStructure || !packageSessionIds?.length) {
+            console.warn('Cannot reorder: missing permissions or package session IDs');
+            return;
+        }
+
+        // Save previous state for rollback
+        const previousSubjects = [...subjects];
+
+        // Optimistic update
+        setSubjects(reorderedSubjects);
+
+        // Build payload for API
+        const orderedSubjects = reorderedSubjects.map((subject, index) => ({
+            subject_id: subject.id,
+            package_session_id: packageSessionIds || '',
+            subject_order: index + 1, // 1-based index
+        }));
+
+        updateSubjectOrderMutation.mutate(
+            { orderedSubjects },
+            {
+                onError: (error) => {
+                    console.error('Failed to update subject order:', error);
+                    setSubjects(previousSubjects);
+                    toast.error('Failed to reorder subjects. Changes have been reverted.');
+                },
+            }
+        );
+    };
+
+    // Handle module reordering (within a subject)
+    const handleModuleReorder = (
+        subjectId: string,
+        reorderedModules: { module: Module; chapters: ChapterWithSlidesStore[] }[]
+    ) => {
+        if (!canEditStructure) {
+            console.warn('Cannot reorder: missing permissions');
+            return;
+        }
+
+        // Save previous state for rollback
+        const previousModulesMap = { ...subjectModulesMap };
+
+        // Optimistic update
+        setSubjectModulesMap((prev) => ({
+            ...prev,
+            [subjectId]: reorderedModules,
+        }));
+
+        // Build payload for API
+        const updatedModules = reorderedModules.map((mod, index) => ({
+            subject_id: subjectId,
+            module_id: mod.module.id,
+            module_order: index + 1, // 1-based index
+        }));
+
+        updateModuleOrderMutation.mutate(
+            { updatedModules },
+            {
+                onError: (error) => {
+                    console.error('Failed to update module order:', error);
+                    setSubjectModulesMap(previousModulesMap);
+                    toast.error('Failed to reorder modules. Changes have been reverted.');
+                },
+            }
+        );
+    };
+
+    // Handle chapter reordering (within a module)
+    const handleChapterReorder = (
+        moduleId: string,
+        reorderedChapters: ChapterWithSlidesStore[]
+    ) => {
+        if (!canEditStructure || !packageSessionIds?.length) {
+            console.warn('Cannot reorder: missing permissions or package session IDs');
+            return;
+        }
+
+        // Save previous state for rollback
+        const previousModulesMap = { ...subjectModulesMap };
+
+        // Optimistic update - find and update the correct module
+        setSubjectModulesMap((prev) => {
+            const updated = { ...prev };
+            for (const subjectId of Object.keys(updated)) {
+                const modules = updated[subjectId];
+                if (modules) {
+                    const moduleIndex = modules.findIndex((m) => m.module.id === moduleId);
+                    if (moduleIndex !== -1) {
+                        updated[subjectId] = [
+                            ...modules.slice(0, moduleIndex),
+                            { ...modules[moduleIndex], chapters: reorderedChapters } as any,
+                            ...modules.slice(moduleIndex + 1),
+                        ];
+                        break;
+                    }
+                }
+            }
+            return updated;
+        });
+
+        // Build payload for API
+        const orderPayload = reorderedChapters.map((ch, index) => ({
+            chapter_id: ch.chapter.id,
+            package_session_id: packageSessionIds || '',
+            chapter_order: index + 1, // 1-based index
+        }));
+
+        updateChapterOrderMutation.mutate(orderPayload, {
+            onError: (error) => {
+                console.error('Failed to update chapter order:', error);
+                setSubjectModulesMap(previousModulesMap);
+                toast.error('Failed to reorder chapters. Changes have been reverted.');
+            },
+        });
+    };
+
     const handleConfirmDelete = () => {
         if (!deleteConfirmation.item || !packageSessionIds) {
             console.error('Missing confirmation item or package session IDs');
@@ -1161,1433 +1290,1846 @@ export const CourseStructureDetails = ({
                         {courseStructure === 5 && canEditStructure && (
                             <AddSubjectButton isTextButton onAddSubject={handleAddSubject} />
                         )}
-                        {courseStructure === 5 &&
-                            subjects.map((subject, idx) => {
-                                const isSubjectOpen = openSubjects.has(subject.id);
+                        {courseStructure === 5 && (
+                            <Sortable
+                                value={subjects}
+                                onValueChange={handleSubjectReorder}
+                                orientation="vertical"
+                            >
+                                {subjects.map((subject, idx) => {
+                                    const isSubjectOpen = openSubjects.has(subject.id);
 
-                                return (
-                                    <Collapsible
-                                        key={subject.id}
-                                        open={isSubjectOpen}
-                                        onOpenChange={
-                                            readOnly ? undefined : () => toggleSubject(subject.id)
-                                        }
-                                        className="group"
-                                    >
-                                        <CollapsibleTrigger
-                                            className={`group/subject-trigger flex w-full items-center rounded-md p-2 text-left text-sm font-semibold text-gray-800 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${readOnly ? 'pointer-events-none' : ''}`}
-                                        >
-                                            <div className="flex flex-1 items-center gap-2.5">
-                                                {isSubjectOpen ? (
-                                                    <CaretDown
-                                                        size={18}
-                                                        weight="bold"
-                                                        className="shrink-0 text-gray-500"
-                                                    />
-                                                ) : (
-                                                    <CaretRight
-                                                        size={18}
-                                                        weight="bold"
-                                                        className="shrink-0 text-gray-500"
-                                                    />
-                                                )}
-                                                <Folder
-                                                    size={20}
-                                                    weight="duotone"
-                                                    className="shrink-0 text-primary-500"
-                                                />
-                                                {roleDisplay?.coursePage?.viewContentNumbering !==
-                                                    false && (
-                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-600 group-hover:bg-white">
-                                                        S{idx + 1}
-                                                    </span>
-                                                )}
-                                                <span
-                                                    className="truncate"
-                                                    title={subject.subject_name}
+                                    return (
+                                        <SortableItem key={subject.id} value={subject.id} asChild>
+                                            <div className="group/subject-item relative">
+                                                <Collapsible
+                                                    open={isSubjectOpen}
+                                                    onOpenChange={
+                                                        readOnly
+                                                            ? undefined
+                                                            : () => toggleSubject(subject.id)
+                                                    }
+                                                    className="group"
                                                 >
-                                                    {convertCapitalToTitleCase(
-                                                        subject.subject_name
-                                                    )}
-                                                </span>
-                                            </div>
-                                            {canEditStructure && (
-                                                <div className="flex gap-1">
-                                                    <MyButton
-                                                        buttonType="secondary"
-                                                        layoutVariant="icon"
-                                                        scale="small"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openEditDialog('subject', subject);
-                                                        }}
-                                                        className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/subject-trigger:opacity-100"
+                                                    <CollapsibleTrigger
+                                                        className={`group/subject-trigger flex w-full items-center rounded-md p-2 text-left text-sm font-semibold text-gray-800 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${readOnly ? 'pointer-events-none' : ''}`}
                                                     >
-                                                        <PencilSimple size={16} />
-                                                    </MyButton>
-                                                    <MyButton
-                                                        buttonType="secondary"
-                                                        layoutVariant="icon"
-                                                        scale="small"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openDeleteConfirmation('subject', {
-                                                                id: subject.id,
-                                                                name: subject.subject_name,
-                                                            });
-                                                        }}
-                                                        className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/subject-trigger:opacity-100"
-                                                    >
-                                                        <Trash size={16} />
-                                                    </MyButton>
-                                                </div>
-                                            )}
-                                        </CollapsibleTrigger>
-                                        <CollapsibleContent className="py-1 pl-11">
-                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                <div className="absolute -left-[13px] top-0 h-full">
-                                                    <div className="sticky top-0 flex h-full flex-col items-center" />
-                                                </div>
-
-                                                {canEditStructure && (
-                                                    <AddModulesButton
-                                                        isTextButton
-                                                        subjectId={subject.id}
-                                                        onAddModuleBySubjectId={handleAddModule}
-                                                    />
-                                                )}
-                                                {(subjectModulesMap[subject.id] ?? []).map(
-                                                    (mod, modIdx) => {
-                                                        const isModuleOpen = openModules.has(
-                                                            mod.module.id
-                                                        );
-
-                                                        return (
-                                                            <Collapsible
-                                                                key={mod.module.id}
-                                                                open={isModuleOpen}
-                                                                onOpenChange={
-                                                                    readOnly
-                                                                        ? undefined
-                                                                        : () =>
-                                                                              toggleModule(
-                                                                                  mod.module.id
-                                                                              )
-                                                                }
-                                                                className="group/module"
+                                                        <div className="flex flex-1 items-center gap-2.5">
+                                                            {isSubjectOpen ? (
+                                                                <CaretDown
+                                                                    size={18}
+                                                                    weight="bold"
+                                                                    className="shrink-0 text-gray-500"
+                                                                />
+                                                            ) : (
+                                                                <CaretRight
+                                                                    size={18}
+                                                                    weight="bold"
+                                                                    className="shrink-0 text-gray-500"
+                                                                />
+                                                            )}
+                                                            <Folder
+                                                                size={20}
+                                                                weight="duotone"
+                                                                className="shrink-0 text-primary-500"
+                                                            />
+                                                            {roleDisplay?.coursePage
+                                                                ?.viewContentNumbering !==
+                                                                false && (
+                                                                <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-600 group-hover:bg-white">
+                                                                    S{idx + 1}
+                                                                </span>
+                                                            )}
+                                                            <span
+                                                                className="truncate"
+                                                                title={subject.subject_name}
                                                             >
-                                                                <CollapsibleTrigger
-                                                                    className={`group/module-trigger flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${readOnly ? 'pointer-events-none' : ''}`}
+                                                                {convertCapitalToTitleCase(
+                                                                    subject.subject_name
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        {canEditStructure && (
+                                                            <div className="flex gap-1">
+                                                                <SortableDragHandle className="inline-flex size-6 cursor-grab items-center justify-center rounded-md border border-neutral-300 opacity-0 transition-opacity hover:bg-gray-100 group-hover/subject-trigger:opacity-100">
+                                                                    <DotsSixVertical size={14} />
+                                                                </SortableDragHandle>
+                                                                <MyButton
+                                                                    buttonType="secondary"
+                                                                    layoutVariant="icon"
+                                                                    scale="small"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openEditDialog(
+                                                                            'subject',
+                                                                            subject
+                                                                        );
+                                                                    }}
+                                                                    className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/subject-trigger:opacity-100"
                                                                 >
-                                                                    <div className="flex flex-1 items-center gap-2.5">
-                                                                        {isModuleOpen ? (
-                                                                            <CaretDown
-                                                                                size={16}
-                                                                                className="shrink-0 text-gray-500"
-                                                                            />
-                                                                        ) : (
-                                                                            <CaretRight
-                                                                                size={16}
-                                                                                className="shrink-0 text-gray-500"
-                                                                            />
-                                                                        )}
-                                                                        <FileText
-                                                                            size={18}
-                                                                            weight="duotone"
-                                                                            className="shrink-0 text-blue-600"
-                                                                        />
-                                                                        {roleDisplay?.coursePage
-                                                                            ?.viewContentNumbering !==
-                                                                            false && (
-                                                                            <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
-                                                                                M{modIdx + 1}
-                                                                            </span>
-                                                                        )}
-                                                                        <span
-                                                                            className="truncate"
-                                                                            title={
-                                                                                mod.module
-                                                                                    .module_name
+                                                                    <PencilSimple size={16} />
+                                                                </MyButton>
+                                                                <MyButton
+                                                                    buttonType="secondary"
+                                                                    layoutVariant="icon"
+                                                                    scale="small"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openDeleteConfirmation(
+                                                                            'subject',
+                                                                            {
+                                                                                id: subject.id,
+                                                                                name: subject.subject_name,
                                                                             }
-                                                                        >
-                                                                            {convertCapitalToTitleCase(
-                                                                                mod.module
-                                                                                    .module_name
-                                                                            )}
-                                                                        </span>
-                                                                    </div>
-                                                                    {canEditStructure && (
-                                                                        <div className="flex gap-1">
-                                                                            <MyButton
-                                                                                buttonType="secondary"
-                                                                                layoutVariant="icon"
-                                                                                scale="small"
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    openEditDialog(
-                                                                                        'module',
-                                                                                        {
-                                                                                            ...mod.module,
-                                                                                            subjectId:
-                                                                                                subject.id,
-                                                                                        }
-                                                                                    );
-                                                                                }}
-                                                                                className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/module-trigger:opacity-100"
-                                                                            >
-                                                                                <PencilSimple
-                                                                                    size={14}
-                                                                                />
-                                                                            </MyButton>
-                                                                            <MyButton
-                                                                                buttonType="secondary"
-                                                                                layoutVariant="icon"
-                                                                                scale="small"
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    openDeleteConfirmation(
-                                                                                        'module',
-                                                                                        {
-                                                                                            id: mod
-                                                                                                .module
-                                                                                                .id,
-                                                                                            name: mod
-                                                                                                .module
-                                                                                                .module_name,
-                                                                                            subjectId:
-                                                                                                subject.id,
-                                                                                        }
-                                                                                    );
-                                                                                }}
-                                                                                className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/module-trigger:opacity-100"
-                                                                            >
-                                                                                <Trash size={14} />
-                                                                            </MyButton>
-                                                                        </div>
-                                                                    )}
-                                                                </CollapsibleTrigger>
-                                                                <CollapsibleContent className="py-1 pl-10">
-                                                                    <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                                        <AddChapterButton
-                                                                            moduleId={mod.module.id}
-                                                                            sessionId={
-                                                                                selectedSession
-                                                                            }
-                                                                            levelId={selectedLevel}
-                                                                            subjectId={subject.id}
-                                                                            isTextButton
-                                                                        />
-                                                                        {(mod.chapters ?? []).map(
-                                                                            (ch, chIdx) => {
-                                                                                const isChapterOpen =
-                                                                                    openChapters.has(
-                                                                                        ch.chapter
-                                                                                            .id
-                                                                                    );
-                                                                                return (
-                                                                                    <Collapsible
-                                                                                        key={
-                                                                                            ch
-                                                                                                .chapter
-                                                                                                .id
-                                                                                        }
-                                                                                        open={
-                                                                                            isChapterOpen
-                                                                                        }
-                                                                                        onOpenChange={() =>
-                                                                                            toggleChapter(
-                                                                                                ch
-                                                                                                    .chapter
-                                                                                                    .id
-                                                                                            )
-                                                                                        }
-                                                                                        className="group/chapter"
-                                                                                    >
-                                                                                        <CollapsibleTrigger className="group/chapter-trigger flex w-full items-center rounded-md px-2 py-1 text-left text-xs font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-                                                                                            <div className="flex flex-1 items-center gap-2">
-                                                                                                {isChapterOpen ? (
-                                                                                                    <CaretDown
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        className="shrink-0 text-gray-500"
-                                                                                                    />
-                                                                                                ) : (
-                                                                                                    <CaretRight
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        className="shrink-0 text-gray-500"
-                                                                                                    />
-                                                                                                )}
-                                                                                                <PresentationChart
-                                                                                                    size={
-                                                                                                        16
-                                                                                                    }
-                                                                                                    weight="duotone"
-                                                                                                    className="shrink-0 text-green-600"
-                                                                                                />
-                                                                                                {roleDisplay
-                                                                                                    ?.coursePage
-                                                                                                    ?.viewContentNumbering !==
-                                                                                                    false && (
-                                                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
-                                                                                                        C
-                                                                                                        {chIdx +
-                                                                                                            1}
-                                                                                                    </span>
-                                                                                                )}
-                                                                                                <span
-                                                                                                    className="truncate"
-                                                                                                    title={
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    }
-                                                                                                >
-                                                                                                    {convertCapitalToTitleCase(
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    )}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                            {!readOnly && (
-                                                                                                <DropdownMenu>
-                                                                                                    <DropdownMenuTrigger
-                                                                                                        asChild
-                                                                                                    >
-                                                                                                        <MyButton
-                                                                                                            buttonType="secondary"
-                                                                                                            layoutVariant="icon"
-                                                                                                            scale="small"
-                                                                                                            onClick={(
-                                                                                                                e
-                                                                                                            ) => {
-                                                                                                                e.stopPropagation();
-                                                                                                            }}
-                                                                                                            className="opacity-0 transition-opacity group-hover/chapter-trigger:opacity-100"
-                                                                                                        >
-                                                                                                            <DotsThree
-                                                                                                                size={
-                                                                                                                    16
-                                                                                                                }
-                                                                                                                weight="bold"
-                                                                                                            />
-                                                                                                        </MyButton>
-                                                                                                    </DropdownMenuTrigger>
-                                                                                                    <DropdownMenuContent
-                                                                                                        align="end"
-                                                                                                        onClick={(
-                                                                                                            e
-                                                                                                        ) =>
-                                                                                                            e.stopPropagation()
-                                                                                                        }
-                                                                                                    >
-                                                                                                        <DropdownMenuItem
-                                                                                                            onClick={(
-                                                                                                                e
-                                                                                                            ) => {
-                                                                                                                e.stopPropagation();
-                                                                                                                openEditDialog(
-                                                                                                                    'chapter',
-                                                                                                                    {
-                                                                                                                        ...ch.chapter,
-                                                                                                                        subjectId:
-                                                                                                                            subject.id,
-                                                                                                                        moduleId:
-                                                                                                                            mod
-                                                                                                                                .module
-                                                                                                                                .id,
-                                                                                                                    }
-                                                                                                                );
-                                                                                                            }}
-                                                                                                        >
-                                                                                                            <PencilSimple
-                                                                                                                size={
-                                                                                                                    16
-                                                                                                                }
-                                                                                                                className="mr-2"
-                                                                                                            />
-                                                                                                            Edit
-                                                                                                        </DropdownMenuItem>
-                                                                                                        <DropdownMenuItem
-                                                                                                            onClick={(
-                                                                                                                e
-                                                                                                            ) => {
-                                                                                                                e.stopPropagation();
-                                                                                                                openDeleteConfirmation(
-                                                                                                                    'chapter',
-                                                                                                                    {
-                                                                                                                        id: ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        name: ch
-                                                                                                                            .chapter
-                                                                                                                            .chapter_name,
-                                                                                                                        subjectId:
-                                                                                                                            subject.id,
-                                                                                                                        moduleId:
-                                                                                                                            mod
-                                                                                                                                .module
-                                                                                                                                .id,
-                                                                                                                    }
-                                                                                                                );
-                                                                                                            }}
-                                                                                                            className="text-red-600 focus:text-red-600"
-                                                                                                        >
-                                                                                                            <Trash
-                                                                                                                size={
-                                                                                                                    16
-                                                                                                                }
-                                                                                                                className="mr-2"
-                                                                                                            />
-                                                                                                            Delete
-                                                                                                        </DropdownMenuItem>
-                                                                                                        {dripConditionsEnabled && (
-                                                                                                            <DropdownMenuItem
-                                                                                                                onClick={(
-                                                                                                                    e
-                                                                                                                ) => {
-                                                                                                                    e.stopPropagation();
-                                                                                                                    handleOpenChapterDripDialog(
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .chapter_name
-                                                                                                                    );
-                                                                                                                }}
-                                                                                                            >
-                                                                                                                <Info
-                                                                                                                    size={
-                                                                                                                        16
-                                                                                                                    }
-                                                                                                                    className="mr-2"
-                                                                                                                />
-                                                                                                                Drip
-                                                                                                                Condition
-                                                                                                            </DropdownMenuItem>
-                                                                                                        )}
-                                                                                                    </DropdownMenuContent>
-                                                                                                </DropdownMenu>
-                                                                                            )}
-                                                                                        </CollapsibleTrigger>
-                                                                                        <CollapsibleContent className="py-1 pl-9">
-                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                                                                {!readOnly && (
-                                                                                                    <MyButton
-                                                                                                        buttonType="text"
-                                                                                                        onClick={(
-                                                                                                            e
-                                                                                                        ) => {
-                                                                                                            e.stopPropagation();
-                                                                                                            handleChapterNavigation(
-                                                                                                                subject.id,
-                                                                                                                mod
-                                                                                                                    .module
-                                                                                                                    .id,
-                                                                                                                ch
-                                                                                                                    .chapter
-                                                                                                                    .id
-                                                                                                            );
-                                                                                                        }}
-                                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
-                                                                                                    >
-                                                                                                        <Plus
-                                                                                                            size={
-                                                                                                                14
-                                                                                                            }
-                                                                                                            weight="bold"
-                                                                                                            className="text-primary-400 group-hover:text-primary-500"
-                                                                                                        />
-                                                                                                        <span className="font-medium">
-                                                                                                            Add{' '}
-                                                                                                            {getTerminology(
-                                                                                                                ContentTerms.Slides,
-                                                                                                                SystemTerms.Slides
-                                                                                                            )}
-                                                                                                        </span>
-                                                                                                    </MyButton>
-                                                                                                )}
+                                                                        );
+                                                                    }}
+                                                                    className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/subject-trigger:opacity-100"
+                                                                >
+                                                                    <Trash size={16} />
+                                                                </MyButton>
+                                                            </div>
+                                                        )}
+                                                    </CollapsibleTrigger>
+                                                    <CollapsibleContent className="py-1 pl-11">
+                                                        <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                            <div className="absolute -left-[13px] top-0 h-full">
+                                                                <div className="sticky top-0 flex h-full flex-col items-center" />
+                                                            </div>
 
-                                                                                                {(
-                                                                                                    chapterSlidesMap[
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .id
-                                                                                                    ] ??
-                                                                                                    []
-                                                                                                )
-                                                                                                    .length ===
-                                                                                                0 ? (
-                                                                                                    <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                        No{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}{' '}
-                                                                                                        in
-                                                                                                        this
-                                                                                                        chapter.
-                                                                                                    </div>
-                                                                                                ) : (
-                                                                                                    (
-                                                                                                        chapterSlidesMap[
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
-                                                                                                        ] ??
-                                                                                                        []
-                                                                                                    ).map(
-                                                                                                        (
-                                                                                                            slide,
-                                                                                                            sIdx
-                                                                                                        ) => (
-                                                                                                            <div
-                                                                                                                key={
-                                                                                                                    slide.id
-                                                                                                                }
-                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                                                                                                                onClick={() => {
-                                                                                                                    if (
-                                                                                                                        readOnly
-                                                                                                                    )
-                                                                                                                        return;
-                                                                                                                    handleSlideNavigation(
-                                                                                                                        subject.id,
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        slide.id
-                                                                                                                    );
-                                                                                                                }}
-                                                                                                            >
-                                                                                                                {roleDisplay
-                                                                                                                    ?.coursePage
-                                                                                                                    ?.viewContentNumbering !==
-                                                                                                                    false && (
-                                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                                                                                        S
-                                                                                                                        {sIdx +
-                                                                                                                            1}
-                                                                                                                    </span>
-                                                                                                                )}
-                                                                                                                {getIcon(
-                                                                                                                    (
-                                                                                                                        slide as any
-                                                                                                                    )
-                                                                                                                        .html_video_slide
-                                                                                                                        ? 'HTML_VIDEO'
-                                                                                                                        : slide.source_type,
-                                                                                                                    slide
-                                                                                                                        .document_slide
-                                                                                                                        ?.type,
-                                                                                                                    '3'
-                                                                                                                )}
-                                                                                                                <span
-                                                                                                                    className="truncate"
-                                                                                                                    title={
-                                                                                                                        slide.title
-                                                                                                                    }
-                                                                                                                >
-                                                                                                                    {
-                                                                                                                        slide.title
-                                                                                                                    }
-                                                                                                                </span>
-                                                                                                            </div>
-                                                                                                        )
-                                                                                                    )
-                                                                                                )}
-                                                                                            </div>
-                                                                                        </CollapsibleContent>
-                                                                                    </Collapsible>
-                                                                                );
-                                                                            }
-                                                                        )}
-                                                                    </div>
-                                                                </CollapsibleContent>
-                                                            </Collapsible>
-                                                        );
-                                                    }
-                                                )}
-                                            </div>
-                                        </CollapsibleContent>
-                                    </Collapsible>
-                                );
-                            })}
-                        {courseStructure === 4 &&
-                            subjects.map((subject) => {
-                                const isSubjectOpen = openSubjects.has(subject.id);
-
-                                return (
-                                    <Collapsible
-                                        key={subject.id}
-                                        open={isSubjectOpen}
-                                        onOpenChange={
-                                            readOnly ? undefined : () => toggleSubject(subject.id)
-                                        }
-                                        className="group"
-                                    >
-                                        <CollapsibleContent className="py-1">
-                                            <div className="relative space-y-1.5 border-gray-200">
-                                                <div className="absolute -left-[13px] top-0 h-full">
-                                                    <div className="sticky top-0 flex h-full flex-col items-center" />
-                                                </div>
-
-                                                {canEditStructure && (
-                                                    <AddModulesButton
-                                                        isTextButton
-                                                        subjectId={subject.id}
-                                                        onAddModuleBySubjectId={handleAddModule}
-                                                    />
-                                                )}
-                                                {(subjectModulesMap[subject.id] ?? []).map(
-                                                    (mod, modIdx) => {
-                                                        const isModuleOpen = openModules.has(
-                                                            mod.module.id
-                                                        );
-
-                                                        return (
-                                                            <Collapsible
-                                                                key={mod.module.id}
-                                                                open={isModuleOpen}
-                                                                onOpenChange={() =>
-                                                                    toggleModule(mod.module.id)
+                                                            {canEditStructure && (
+                                                                <AddModulesButton
+                                                                    isTextButton
+                                                                    subjectId={subject.id}
+                                                                    onAddModuleBySubjectId={
+                                                                        handleAddModule
+                                                                    }
+                                                                />
+                                                            )}
+                                                            <Sortable
+                                                                value={(
+                                                                    subjectModulesMap[subject.id] ??
+                                                                    []
+                                                                ).map((m) => ({
+                                                                    ...m,
+                                                                    id: m.module.id,
+                                                                }))}
+                                                                onValueChange={(reorderedModules) =>
+                                                                    handleModuleReorder(
+                                                                        subject.id,
+                                                                        reorderedModules as unknown as {
+                                                                            module: Module;
+                                                                            chapters: ChapterWithSlidesStore[];
+                                                                        }[]
+                                                                    )
                                                                 }
-                                                                className="group/module"
+                                                                orientation="vertical"
                                                             >
-                                                                <CollapsibleTrigger className="group/module-trigger flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-                                                                    <div className="flex flex-1 items-center gap-2.5">
-                                                                        {isModuleOpen ? (
-                                                                            <CaretDown
-                                                                                size={16}
-                                                                                className="shrink-0 text-gray-500"
-                                                                            />
-                                                                        ) : (
-                                                                            <CaretRight
-                                                                                size={16}
-                                                                                className="shrink-0 text-gray-500"
-                                                                            />
-                                                                        )}
-                                                                        <FileText
-                                                                            size={18}
-                                                                            weight="duotone"
-                                                                            className="shrink-0 text-blue-600"
-                                                                        />
-                                                                        {roleDisplay?.coursePage
-                                                                            ?.viewContentNumbering !==
-                                                                            false && (
-                                                                            <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
-                                                                                M{modIdx + 1}
-                                                                            </span>
-                                                                        )}
-                                                                        <span
-                                                                            className="truncate"
-                                                                            title={
-                                                                                mod.module
-                                                                                    .module_name
-                                                                            }
+                                                                {(
+                                                                    subjectModulesMap[subject.id] ??
+                                                                    []
+                                                                ).map((mod, modIdx) => {
+                                                                    const isModuleOpen =
+                                                                        openModules.has(
+                                                                            mod.module.id
+                                                                        );
+
+                                                                    return (
+                                                                        <SortableItem
+                                                                            key={mod.module.id}
+                                                                            value={mod.module.id}
+                                                                            asChild
                                                                         >
-                                                                            {convertCapitalToTitleCase(
-                                                                                mod.module
-                                                                                    .module_name
-                                                                            )}
-                                                                        </span>
-                                                                    </div>
-                                                                    {canEditStructure && (
-                                                                        <div className="flex gap-1">
-                                                                            <MyButton
-                                                                                buttonType="secondary"
-                                                                                layoutVariant="icon"
-                                                                                scale="small"
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    openEditDialog(
-                                                                                        'module',
-                                                                                        {
-                                                                                            ...mod.module,
-                                                                                            subjectId:
-                                                                                                subject.id,
-                                                                                        }
-                                                                                    );
-                                                                                }}
-                                                                                className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/module-trigger:opacity-100"
-                                                                            >
-                                                                                <PencilSimple
-                                                                                    size={14}
-                                                                                />
-                                                                            </MyButton>
-                                                                            <MyButton
-                                                                                buttonType="secondary"
-                                                                                layoutVariant="icon"
-                                                                                scale="small"
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    openDeleteConfirmation(
-                                                                                        'module',
-                                                                                        {
-                                                                                            id: mod
-                                                                                                .module
-                                                                                                .id,
-                                                                                            name: mod
-                                                                                                .module
-                                                                                                .module_name,
-                                                                                            subjectId:
-                                                                                                subject.id,
-                                                                                        }
-                                                                                    );
-                                                                                }}
-                                                                                className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/module-trigger:opacity-100"
-                                                                            >
-                                                                                <Trash size={14} />
-                                                                            </MyButton>
-                                                                        </div>
-                                                                    )}
-                                                                </CollapsibleTrigger>
-                                                                <CollapsibleContent className="py-1 pl-10">
-                                                                    <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                                        <AddChapterButton
-                                                                            moduleId={mod.module.id}
-                                                                            sessionId={
-                                                                                selectedSession
-                                                                            }
-                                                                            levelId={selectedLevel}
-                                                                            subjectId={subject.id}
-                                                                            isTextButton
-                                                                        />
-                                                                        {(mod.chapters ?? []).map(
-                                                                            (ch, chIdx) => {
-                                                                                const isChapterOpen =
-                                                                                    openChapters.has(
-                                                                                        ch.chapter
-                                                                                            .id
-                                                                                    );
-                                                                                return (
-                                                                                    <Collapsible
-                                                                                        key={
-                                                                                            ch
-                                                                                                .chapter
-                                                                                                .id
-                                                                                        }
-                                                                                        open={
-                                                                                            isChapterOpen
-                                                                                        }
-                                                                                        onOpenChange={() =>
-                                                                                            toggleChapter(
-                                                                                                ch
-                                                                                                    .chapter
-                                                                                                    .id
-                                                                                            )
-                                                                                        }
-                                                                                        className="group/chapter"
+                                                                            <div className="group/module-item relative">
+                                                                                <Collapsible
+                                                                                    open={
+                                                                                        isModuleOpen
+                                                                                    }
+                                                                                    onOpenChange={
+                                                                                        readOnly
+                                                                                            ? undefined
+                                                                                            : () =>
+                                                                                                  toggleModule(
+                                                                                                      mod
+                                                                                                          .module
+                                                                                                          .id
+                                                                                                  )
+                                                                                    }
+                                                                                    className="group/module"
+                                                                                >
+                                                                                    <CollapsibleTrigger
+                                                                                        className={`group/module-trigger flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${readOnly ? 'pointer-events-none' : ''}`}
                                                                                     >
-                                                                                        <CollapsibleTrigger className="group/chapter-trigger flex w-full items-center rounded-md px-2 py-1 text-left text-xs font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-                                                                                            <div className="flex flex-1 items-center gap-2">
-                                                                                                {isChapterOpen ? (
-                                                                                                    <CaretDown
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        className="shrink-0 text-gray-500"
-                                                                                                    />
-                                                                                                ) : (
-                                                                                                    <CaretRight
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        className="shrink-0 text-gray-500"
-                                                                                                    />
-                                                                                                )}
-                                                                                                <PresentationChart
+                                                                                        <div className="flex flex-1 items-center gap-2.5">
+                                                                                            {isModuleOpen ? (
+                                                                                                <CaretDown
                                                                                                     size={
                                                                                                         16
                                                                                                     }
-                                                                                                    weight="duotone"
-                                                                                                    className="shrink-0 text-green-600"
+                                                                                                    className="shrink-0 text-gray-500"
                                                                                                 />
-                                                                                                {roleDisplay
-                                                                                                    ?.coursePage
-                                                                                                    ?.viewContentNumbering !==
-                                                                                                    false && (
-                                                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
-                                                                                                        C
-                                                                                                        {chIdx +
-                                                                                                            1}
-                                                                                                    </span>
-                                                                                                )}
-                                                                                                <span
-                                                                                                    className="truncate"
-                                                                                                    title={
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    }
-                                                                                                >
-                                                                                                    {convertCapitalToTitleCase(
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    )}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                            {canEditStructure && (
-                                                                                                <DropdownMenu>
-                                                                                                    <DropdownMenuTrigger
-                                                                                                        asChild
-                                                                                                    >
-                                                                                                        <MyButton
-                                                                                                            buttonType="secondary"
-                                                                                                            layoutVariant="icon"
-                                                                                                            scale="small"
-                                                                                                            onClick={(
-                                                                                                                e
-                                                                                                            ) => {
-                                                                                                                e.stopPropagation();
-                                                                                                            }}
-                                                                                                            className="opacity-0 transition-opacity group-hover/chapter-trigger:opacity-100"
-                                                                                                        >
-                                                                                                            <DotsThree
-                                                                                                                size={
-                                                                                                                    16
-                                                                                                                }
-                                                                                                                weight="bold"
-                                                                                                            />
-                                                                                                        </MyButton>
-                                                                                                    </DropdownMenuTrigger>
-                                                                                                    <DropdownMenuContent
-                                                                                                        align="end"
-                                                                                                        onClick={(
-                                                                                                            e
-                                                                                                        ) =>
-                                                                                                            e.stopPropagation()
-                                                                                                        }
-                                                                                                    >
-                                                                                                        <DropdownMenuItem
-                                                                                                            onClick={(
-                                                                                                                e
-                                                                                                            ) => {
-                                                                                                                e.stopPropagation();
-                                                                                                                openEditDialog(
-                                                                                                                    'chapter',
-                                                                                                                    {
-                                                                                                                        ...ch.chapter,
-                                                                                                                        subjectId:
-                                                                                                                            subject.id,
-                                                                                                                        moduleId:
-                                                                                                                            mod
-                                                                                                                                .module
-                                                                                                                                .id,
-                                                                                                                    }
-                                                                                                                );
-                                                                                                            }}
-                                                                                                        >
-                                                                                                            <PencilSimple
-                                                                                                                size={
-                                                                                                                    16
-                                                                                                                }
-                                                                                                                className="mr-2"
-                                                                                                            />
-                                                                                                            Edit
-                                                                                                        </DropdownMenuItem>
-                                                                                                        <DropdownMenuItem
-                                                                                                            onClick={(
-                                                                                                                e
-                                                                                                            ) => {
-                                                                                                                e.stopPropagation();
-                                                                                                                openDeleteConfirmation(
-                                                                                                                    'chapter',
-                                                                                                                    {
-                                                                                                                        id: ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        name: ch
-                                                                                                                            .chapter
-                                                                                                                            .chapter_name,
-                                                                                                                        subjectId:
-                                                                                                                            subject.id,
-                                                                                                                        moduleId:
-                                                                                                                            mod
-                                                                                                                                .module
-                                                                                                                                .id,
-                                                                                                                    }
-                                                                                                                );
-                                                                                                            }}
-                                                                                                            className="text-red-600 focus:text-red-600"
-                                                                                                        >
-                                                                                                            <Trash
-                                                                                                                size={
-                                                                                                                    16
-                                                                                                                }
-                                                                                                                className="mr-2"
-                                                                                                            />
-                                                                                                            Delete
-                                                                                                        </DropdownMenuItem>
-                                                                                                        {dripConditionsEnabled && (
-                                                                                                            <DropdownMenuItem
-                                                                                                                onClick={(
-                                                                                                                    e
-                                                                                                                ) => {
-                                                                                                                    e.stopPropagation();
-                                                                                                                    handleOpenChapterDripDialog(
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .chapter_name
-                                                                                                                    );
-                                                                                                                }}
-                                                                                                            >
-                                                                                                                <Info
-                                                                                                                    size={
-                                                                                                                        16
-                                                                                                                    }
-                                                                                                                    className="mr-2"
-                                                                                                                />
-                                                                                                                Drip
-                                                                                                                Condition
-                                                                                                            </DropdownMenuItem>
-                                                                                                        )}
-                                                                                                    </DropdownMenuContent>
-                                                                                                </DropdownMenu>
-                                                                                            )}
-                                                                                        </CollapsibleTrigger>
-                                                                                        <CollapsibleContent className="py-1 pl-9">
-                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                                                                {!readOnly && (
-                                                                                                    <MyButton
-                                                                                                        buttonType="text"
-                                                                                                        onClick={(
-                                                                                                            e
-                                                                                                        ) => {
-                                                                                                            e.stopPropagation();
-                                                                                                            handleChapterNavigation(
-                                                                                                                subject.id,
-                                                                                                                mod
-                                                                                                                    .module
-                                                                                                                    .id,
-                                                                                                                ch
-                                                                                                                    .chapter
-                                                                                                                    .id
-                                                                                                            );
-                                                                                                        }}
-                                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
-                                                                                                    >
-                                                                                                        <Plus
-                                                                                                            size={
-                                                                                                                14
-                                                                                                            }
-                                                                                                            weight="bold"
-                                                                                                            className="text-primary-400 group-hover:text-primary-500"
-                                                                                                        />
-                                                                                                        <span className="font-medium">
-                                                                                                            Add{' '}
-                                                                                                            {getTerminology(
-                                                                                                                ContentTerms.Slides,
-                                                                                                                SystemTerms.Slides
-                                                                                                            )}
-                                                                                                        </span>
-                                                                                                    </MyButton>
-                                                                                                )}
-
-                                                                                                {(
-                                                                                                    chapterSlidesMap[
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .id
-                                                                                                    ] ??
-                                                                                                    []
-                                                                                                )
-                                                                                                    .length ===
-                                                                                                0 ? (
-                                                                                                    <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                        No{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}{' '}
-                                                                                                        in
-                                                                                                        this
-                                                                                                        chapter.
-                                                                                                    </div>
-                                                                                                ) : (
-                                                                                                    (
-                                                                                                        chapterSlidesMap[
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
-                                                                                                        ] ??
-                                                                                                        []
-                                                                                                    ).map(
-                                                                                                        (
-                                                                                                            slide,
-                                                                                                            sIdx
-                                                                                                        ) => (
-                                                                                                            <div
-                                                                                                                key={
-                                                                                                                    slide.id
-                                                                                                                }
-                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                                                                                                                onClick={() => {
-                                                                                                                    if (
-                                                                                                                        readOnly
-                                                                                                                    )
-                                                                                                                        return;
-                                                                                                                    handleSlideNavigation(
-                                                                                                                        subject.id,
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        slide.id
-                                                                                                                    );
-                                                                                                                }}
-                                                                                                            >
-                                                                                                                {roleDisplay
-                                                                                                                    ?.coursePage
-                                                                                                                    ?.viewContentNumbering !==
-                                                                                                                    false && (
-                                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                                                                                        S
-                                                                                                                        {sIdx +
-                                                                                                                            1}
-                                                                                                                    </span>
-                                                                                                                )}
-                                                                                                                {getIcon(
-                                                                                                                    (
-                                                                                                                        slide as any
-                                                                                                                    )
-                                                                                                                        .html_video_slide
-                                                                                                                        ? 'HTML_VIDEO'
-                                                                                                                        : slide.source_type,
-                                                                                                                    slide
-                                                                                                                        .document_slide
-                                                                                                                        ?.type,
-                                                                                                                    '3'
-                                                                                                                )}
-                                                                                                                <span
-                                                                                                                    className="truncate"
-                                                                                                                    title={
-                                                                                                                        slide.title
-                                                                                                                    }
-                                                                                                                >
-                                                                                                                    {
-                                                                                                                        slide.title
-                                                                                                                    }
-                                                                                                                </span>
-                                                                                                            </div>
-                                                                                                        )
-                                                                                                    )
-                                                                                                )}
-                                                                                            </div>
-                                                                                        </CollapsibleContent>
-                                                                                    </Collapsible>
-                                                                                );
-                                                                            }
-                                                                        )}
-                                                                    </div>
-                                                                </CollapsibleContent>
-                                                            </Collapsible>
-                                                        );
-                                                    }
-                                                )}
-                                            </div>
-                                        </CollapsibleContent>
-                                    </Collapsible>
-                                );
-                            })}
-                        {courseStructure === 3 &&
-                            subjects.map((subject) => {
-                                const isSubjectOpen = openSubjects.has(subject.id);
-
-                                return (
-                                    <Collapsible
-                                        key={subject.id}
-                                        open={isSubjectOpen}
-                                        onOpenChange={
-                                            readOnly ? undefined : () => toggleSubject(subject.id)
-                                        }
-                                        className="group"
-                                    >
-                                        <CollapsibleContent className="py-1">
-                                            <div className="relative space-y-1.5 border-gray-200">
-                                                <div className="absolute -left-[13px] top-0 h-full">
-                                                    <div className="sticky top-0 flex h-full flex-col items-center" />
-                                                </div>
-
-                                                {(subjectModulesMap[subject.id] ?? []).map(
-                                                    (mod) => {
-                                                        const isModuleOpen = openModules.has(
-                                                            mod.module.id
-                                                        );
-                                                        return (
-                                                            <Collapsible
-                                                                key={mod.module.id}
-                                                                open={isModuleOpen}
-                                                                onOpenChange={() =>
-                                                                    toggleModule(mod.module.id)
-                                                                }
-                                                                className="group/module"
-                                                            >
-                                                                <CollapsibleContent className="py-1">
-                                                                    <div className="relative space-y-1.5  border-gray-200">
-                                                                        <AddChapterButton
-                                                                            moduleId={mod.module.id}
-                                                                            sessionId={
-                                                                                selectedSession
-                                                                            }
-                                                                            levelId={selectedLevel}
-                                                                            subjectId={subject.id}
-                                                                            isTextButton
-                                                                        />
-                                                                        {(mod.chapters ?? []).map(
-                                                                            (ch, chIdx) => {
-                                                                                const isChapterOpen =
-                                                                                    openChapters.has(
-                                                                                        ch.chapter
-                                                                                            .id
-                                                                                    );
-                                                                                return (
-                                                                                    <Collapsible
-                                                                                        key={
-                                                                                            ch
-                                                                                                .chapter
-                                                                                                .id
-                                                                                        }
-                                                                                        open={
-                                                                                            isChapterOpen
-                                                                                        }
-                                                                                        onOpenChange={() =>
-                                                                                            toggleChapter(
-                                                                                                ch
-                                                                                                    .chapter
-                                                                                                    .id
-                                                                                            )
-                                                                                        }
-                                                                                        className="group/chapter"
-                                                                                    >
-                                                                                        <CollapsibleTrigger className="group/chapter-trigger flex w-full items-center rounded-md px-2 py-1 text-left text-xs font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-                                                                                            <div className="flex flex-1 items-center gap-2">
-                                                                                                {isChapterOpen ? (
-                                                                                                    <CaretDown
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        className="shrink-0 text-gray-500"
-                                                                                                    />
-                                                                                                ) : (
-                                                                                                    <CaretRight
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        className="shrink-0 text-gray-500"
-                                                                                                    />
-                                                                                                )}
-                                                                                                <PresentationChart
+                                                                                            ) : (
+                                                                                                <CaretRight
                                                                                                     size={
                                                                                                         16
                                                                                                     }
-                                                                                                    weight="duotone"
-                                                                                                    className="shrink-0 text-green-600"
+                                                                                                    className="shrink-0 text-gray-500"
                                                                                                 />
-                                                                                                {roleDisplay
-                                                                                                    ?.coursePage
-                                                                                                    ?.viewContentNumbering !==
-                                                                                                    false && (
-                                                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
-                                                                                                        C
-                                                                                                        {chIdx +
-                                                                                                            1}
-                                                                                                    </span>
-                                                                                                )}
-                                                                                                <span
-                                                                                                    className="truncate"
-                                                                                                    title={
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    }
-                                                                                                >
-                                                                                                    {convertCapitalToTitleCase(
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    )}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                            {canEditStructure && (
-                                                                                                <DropdownMenu>
-                                                                                                    <DropdownMenuTrigger
-                                                                                                        asChild
-                                                                                                    >
-                                                                                                        <MyButton
-                                                                                                            buttonType="secondary"
-                                                                                                            layoutVariant="icon"
-                                                                                                            scale="small"
-                                                                                                            onClick={(
-                                                                                                                e
-                                                                                                            ) => {
-                                                                                                                e.stopPropagation();
-                                                                                                            }}
-                                                                                                            className="opacity-0 transition-opacity group-hover/chapter-trigger:opacity-100"
-                                                                                                        >
-                                                                                                            <DotsThree
-                                                                                                                size={
-                                                                                                                    16
-                                                                                                                }
-                                                                                                                weight="bold"
-                                                                                                            />
-                                                                                                        </MyButton>
-                                                                                                    </DropdownMenuTrigger>
-                                                                                                    <DropdownMenuContent
-                                                                                                        align="end"
-                                                                                                        onClick={(
-                                                                                                            e
-                                                                                                        ) =>
-                                                                                                            e.stopPropagation()
-                                                                                                        }
-                                                                                                    >
-                                                                                                        <DropdownMenuItem
-                                                                                                            onClick={(
-                                                                                                                e
-                                                                                                            ) => {
-                                                                                                                e.stopPropagation();
-                                                                                                                openEditDialog(
-                                                                                                                    'chapter',
-                                                                                                                    {
-                                                                                                                        ...ch.chapter,
-                                                                                                                        subjectId:
-                                                                                                                            subject.id,
-                                                                                                                        moduleId:
-                                                                                                                            mod
-                                                                                                                                .module
-                                                                                                                                .id,
-                                                                                                                    }
-                                                                                                                );
-                                                                                                            }}
-                                                                                                        >
-                                                                                                            <PencilSimple
-                                                                                                                size={
-                                                                                                                    16
-                                                                                                                }
-                                                                                                                className="mr-2"
-                                                                                                            />
-                                                                                                            Edit
-                                                                                                        </DropdownMenuItem>
-                                                                                                        <DropdownMenuItem
-                                                                                                            onClick={(
-                                                                                                                e
-                                                                                                            ) => {
-                                                                                                                e.stopPropagation();
-                                                                                                                openDeleteConfirmation(
-                                                                                                                    'chapter',
-                                                                                                                    {
-                                                                                                                        id: ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        name: ch
-                                                                                                                            .chapter
-                                                                                                                            .chapter_name,
-                                                                                                                        subjectId:
-                                                                                                                            subject.id,
-                                                                                                                        moduleId:
-                                                                                                                            mod
-                                                                                                                                .module
-                                                                                                                                .id,
-                                                                                                                    }
-                                                                                                                );
-                                                                                                            }}
-                                                                                                            className="text-red-600 focus:text-red-600"
-                                                                                                        >
-                                                                                                            <Trash
-                                                                                                                size={
-                                                                                                                    16
-                                                                                                                }
-                                                                                                                className="mr-2"
-                                                                                                            />
-                                                                                                            Delete
-                                                                                                        </DropdownMenuItem>
-                                                                                                        {dripConditionsEnabled && (
-                                                                                                            <DropdownMenuItem
-                                                                                                                onClick={(
-                                                                                                                    e
-                                                                                                                ) => {
-                                                                                                                    e.stopPropagation();
-                                                                                                                    handleOpenChapterDripDialog(
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .chapter_name
-                                                                                                                    );
-                                                                                                                }}
-                                                                                                            >
-                                                                                                                <Info
-                                                                                                                    size={
-                                                                                                                        16
-                                                                                                                    }
-                                                                                                                    className="mr-2"
-                                                                                                                />
-                                                                                                                Drip
-                                                                                                                Condition
-                                                                                                            </DropdownMenuItem>
-                                                                                                        )}
-                                                                                                    </DropdownMenuContent>
-                                                                                                </DropdownMenu>
                                                                                             )}
-                                                                                        </CollapsibleTrigger>
-                                                                                        <CollapsibleContent className="py-1 pl-9">
-                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                            <FileText
+                                                                                                size={
+                                                                                                    18
+                                                                                                }
+                                                                                                weight="duotone"
+                                                                                                className="shrink-0 text-blue-600"
+                                                                                            />
+                                                                                            {roleDisplay
+                                                                                                ?.coursePage
+                                                                                                ?.viewContentNumbering !==
+                                                                                                false && (
+                                                                                                <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
+                                                                                                    M
+                                                                                                    {modIdx +
+                                                                                                        1}
+                                                                                                </span>
+                                                                                            )}
+                                                                                            <span
+                                                                                                className="truncate"
+                                                                                                title={
+                                                                                                    mod
+                                                                                                        .module
+                                                                                                        .module_name
+                                                                                                }
+                                                                                            >
+                                                                                                {convertCapitalToTitleCase(
+                                                                                                    mod
+                                                                                                        .module
+                                                                                                        .module_name
+                                                                                                )}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        {canEditStructure && (
+                                                                                            <div className="flex gap-1">
+                                                                                                <SortableDragHandle className="inline-flex size-6 cursor-grab items-center justify-center rounded-md border border-neutral-300 opacity-0 transition-opacity hover:bg-gray-100 group-hover/module-trigger:opacity-100">
+                                                                                                    <DotsSixVertical
+                                                                                                        size={
+                                                                                                            14
+                                                                                                        }
+                                                                                                    />
+                                                                                                </SortableDragHandle>
                                                                                                 <MyButton
-                                                                                                    buttonType="text"
+                                                                                                    buttonType="secondary"
+                                                                                                    layoutVariant="icon"
+                                                                                                    scale="small"
                                                                                                     onClick={(
                                                                                                         e
                                                                                                     ) => {
                                                                                                         e.stopPropagation();
-                                                                                                        handleChapterNavigation(
-                                                                                                            subject.id,
-                                                                                                            mod
-                                                                                                                .module
-                                                                                                                .id,
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
+                                                                                                        openEditDialog(
+                                                                                                            'module',
+                                                                                                            {
+                                                                                                                ...mod.module,
+                                                                                                                subjectId:
+                                                                                                                    subject.id,
+                                                                                                            }
                                                                                                         );
                                                                                                     }}
-                                                                                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                    className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/module-trigger:opacity-100"
                                                                                                 >
-                                                                                                    <Plus
+                                                                                                    <PencilSimple
                                                                                                         size={
                                                                                                             14
                                                                                                         }
-                                                                                                        weight="bold"
-                                                                                                        className="text-primary-400 group-hover:text-primary-500"
                                                                                                     />
-                                                                                                    <span className="font-medium">
-                                                                                                        Add{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}
-                                                                                                    </span>
                                                                                                 </MyButton>
-
-                                                                                                {(
-                                                                                                    chapterSlidesMap[
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .id
-                                                                                                    ] ??
-                                                                                                    []
-                                                                                                )
-                                                                                                    .length ===
-                                                                                                0 ? (
-                                                                                                    <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                        No{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}{' '}
-                                                                                                        in
-                                                                                                        this
-                                                                                                        chapter.
-                                                                                                    </div>
-                                                                                                ) : (
-                                                                                                    (
-                                                                                                        chapterSlidesMap[
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
-                                                                                                        ] ??
-                                                                                                        []
-                                                                                                    ).map(
-                                                                                                        (
-                                                                                                            slide,
-                                                                                                            sIdx
-                                                                                                        ) => (
-                                                                                                            <div
-                                                                                                                key={
-                                                                                                                    slide.id
-                                                                                                                }
-                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                                                                                                                onClick={() => {
-                                                                                                                    if (
-                                                                                                                        readOnly
-                                                                                                                    )
-                                                                                                                        return;
-                                                                                                                    handleSlideNavigation(
-                                                                                                                        subject.id,
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        slide.id
-                                                                                                                    );
-                                                                                                                }}
-                                                                                                            >
-                                                                                                                {roleDisplay
-                                                                                                                    ?.coursePage
-                                                                                                                    ?.viewContentNumbering !==
-                                                                                                                    false && (
-                                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                                                                                        S
-                                                                                                                        {sIdx +
-                                                                                                                            1}
-                                                                                                                    </span>
-                                                                                                                )}
-                                                                                                                {getIcon(
-                                                                                                                    (
-                                                                                                                        slide as any
-                                                                                                                    )
-                                                                                                                        .html_video_slide
-                                                                                                                        ? 'HTML_VIDEO'
-                                                                                                                        : slide.source_type,
-                                                                                                                    slide
-                                                                                                                        .document_slide
-                                                                                                                        ?.type,
-                                                                                                                    '3'
-                                                                                                                )}
-                                                                                                                <span
-                                                                                                                    className="truncate"
-                                                                                                                    title={
-                                                                                                                        slide.title
-                                                                                                                    }
-                                                                                                                >
-                                                                                                                    {
-                                                                                                                        slide.title
-                                                                                                                    }
-                                                                                                                </span>
-                                                                                                            </div>
-                                                                                                        )
-                                                                                                    )
-                                                                                                )}
+                                                                                                <MyButton
+                                                                                                    buttonType="secondary"
+                                                                                                    layoutVariant="icon"
+                                                                                                    scale="small"
+                                                                                                    onClick={(
+                                                                                                        e
+                                                                                                    ) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        openDeleteConfirmation(
+                                                                                                            'module',
+                                                                                                            {
+                                                                                                                id: mod
+                                                                                                                    .module
+                                                                                                                    .id,
+                                                                                                                name: mod
+                                                                                                                    .module
+                                                                                                                    .module_name,
+                                                                                                                subjectId:
+                                                                                                                    subject.id,
+                                                                                                            }
+                                                                                                        );
+                                                                                                    }}
+                                                                                                    className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/module-trigger:opacity-100"
+                                                                                                >
+                                                                                                    <Trash
+                                                                                                        size={
+                                                                                                            14
+                                                                                                        }
+                                                                                                    />
+                                                                                                </MyButton>
                                                                                             </div>
-                                                                                        </CollapsibleContent>
-                                                                                    </Collapsible>
-                                                                                );
-                                                                            }
-                                                                        )}
-                                                                    </div>
-                                                                </CollapsibleContent>
-                                                            </Collapsible>
-                                                        );
-                                                    }
-                                                )}
+                                                                                        )}
+                                                                                    </CollapsibleTrigger>
+                                                                                    <CollapsibleContent className="py-1 pl-10">
+                                                                                        <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                            <AddChapterButton
+                                                                                                moduleId={
+                                                                                                    mod
+                                                                                                        .module
+                                                                                                        .id
+                                                                                                }
+                                                                                                sessionId={
+                                                                                                    selectedSession
+                                                                                                }
+                                                                                                levelId={
+                                                                                                    selectedLevel
+                                                                                                }
+                                                                                                subjectId={
+                                                                                                    subject.id
+                                                                                                }
+                                                                                                isTextButton
+                                                                                            />
+                                                                                            <Sortable
+                                                                                                value={(
+                                                                                                    mod.chapters ??
+                                                                                                    []
+                                                                                                ).map(
+                                                                                                    (
+                                                                                                        ch
+                                                                                                    ) => ({
+                                                                                                        ...ch,
+                                                                                                        id: ch
+                                                                                                            .chapter
+                                                                                                            .id,
+                                                                                                    })
+                                                                                                )}
+                                                                                                onValueChange={(
+                                                                                                    reorderedChapters
+                                                                                                ) =>
+                                                                                                    handleChapterReorder(
+                                                                                                        mod
+                                                                                                            .module
+                                                                                                            .id,
+                                                                                                        reorderedChapters as unknown as ChapterWithSlidesStore[]
+                                                                                                    )
+                                                                                                }
+                                                                                                orientation="vertical"
+                                                                                            >
+                                                                                                {(
+                                                                                                    mod.chapters ??
+                                                                                                    []
+                                                                                                ).map(
+                                                                                                    (
+                                                                                                        ch,
+                                                                                                        chIdx
+                                                                                                    ) => {
+                                                                                                        const isChapterOpen =
+                                                                                                            openChapters.has(
+                                                                                                                ch
+                                                                                                                    .chapter
+                                                                                                                    .id
+                                                                                                            );
+                                                                                                        return (
+                                                                                                            <SortableItem
+                                                                                                                key={
+                                                                                                                    ch
+                                                                                                                        .chapter
+                                                                                                                        .id
+                                                                                                                }
+                                                                                                                value={
+                                                                                                                    ch
+                                                                                                                        .chapter
+                                                                                                                        .id
+                                                                                                                }
+                                                                                                                asChild
+                                                                                                            >
+                                                                                                                <div className="group/chapter-item relative">
+                                                                                                                    <Collapsible
+                                                                                                                        key={
+                                                                                                                            ch
+                                                                                                                                .chapter
+                                                                                                                                .id
+                                                                                                                        }
+                                                                                                                        open={
+                                                                                                                            isChapterOpen
+                                                                                                                        }
+                                                                                                                        onOpenChange={() =>
+                                                                                                                            toggleChapter(
+                                                                                                                                ch
+                                                                                                                                    .chapter
+                                                                                                                                    .id
+                                                                                                                            )
+                                                                                                                        }
+                                                                                                                        className="group/chapter"
+                                                                                                                    >
+                                                                                                                        <CollapsibleTrigger className="group/chapter-trigger flex w-full items-center rounded-md px-2 py-1 text-left text-xs font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                                                                            <div className="flex flex-1 items-center gap-2">
+                                                                                                                                {isChapterOpen ? (
+                                                                                                                                    <CaretDown
+                                                                                                                                        size={
+                                                                                                                                            14
+                                                                                                                                        }
+                                                                                                                                        className="shrink-0 text-gray-500"
+                                                                                                                                    />
+                                                                                                                                ) : (
+                                                                                                                                    <CaretRight
+                                                                                                                                        size={
+                                                                                                                                            14
+                                                                                                                                        }
+                                                                                                                                        className="shrink-0 text-gray-500"
+                                                                                                                                    />
+                                                                                                                                )}
+                                                                                                                                <PresentationChart
+                                                                                                                                    size={
+                                                                                                                                        16
+                                                                                                                                    }
+                                                                                                                                    weight="duotone"
+                                                                                                                                    className="shrink-0 text-green-600"
+                                                                                                                                />
+                                                                                                                                {roleDisplay
+                                                                                                                                    ?.coursePage
+                                                                                                                                    ?.viewContentNumbering !==
+                                                                                                                                    false && (
+                                                                                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
+                                                                                                                                        C
+                                                                                                                                        {chIdx +
+                                                                                                                                            1}
+                                                                                                                                    </span>
+                                                                                                                                )}
+                                                                                                                                <span
+                                                                                                                                    className="truncate"
+                                                                                                                                    title={
+                                                                                                                                        ch
+                                                                                                                                            .chapter
+                                                                                                                                            .chapter_name
+                                                                                                                                    }
+                                                                                                                                >
+                                                                                                                                    {convertCapitalToTitleCase(
+                                                                                                                                        ch
+                                                                                                                                            .chapter
+                                                                                                                                            .chapter_name
+                                                                                                                                    )}
+                                                                                                                                </span>
+                                                                                                                            </div>
+                                                                                                                            {!readOnly && (
+                                                                                                                                <div className="flex items-center gap-1">
+                                                                                                                                    {canEditStructure && (
+                                                                                                                                        <SortableDragHandle className="inline-flex size-6 cursor-grab items-center justify-center rounded-md border border-neutral-300 opacity-0 transition-opacity hover:bg-gray-100 group-hover/chapter-trigger:opacity-100">
+                                                                                                                                            <DotsSixVertical
+                                                                                                                                                size={
+                                                                                                                                                    14
+                                                                                                                                                }
+                                                                                                                                            />
+                                                                                                                                        </SortableDragHandle>
+                                                                                                                                    )}
+                                                                                                                                    <DropdownMenu>
+                                                                                                                                        <DropdownMenuTrigger
+                                                                                                                                            asChild
+                                                                                                                                        >
+                                                                                                                                            <MyButton
+                                                                                                                                                buttonType="secondary"
+                                                                                                                                                layoutVariant="icon"
+                                                                                                                                                scale="small"
+                                                                                                                                                onClick={(
+                                                                                                                                                    e
+                                                                                                                                                ) => {
+                                                                                                                                                    e.stopPropagation();
+                                                                                                                                                }}
+                                                                                                                                                className="opacity-0 transition-opacity group-hover/chapter-trigger:opacity-100"
+                                                                                                                                            >
+                                                                                                                                                <DotsThree
+                                                                                                                                                    size={
+                                                                                                                                                        16
+                                                                                                                                                    }
+                                                                                                                                                    weight="bold"
+                                                                                                                                                />
+                                                                                                                                            </MyButton>
+                                                                                                                                        </DropdownMenuTrigger>
+                                                                                                                                        <DropdownMenuContent
+                                                                                                                                            align="end"
+                                                                                                                                            onClick={(
+                                                                                                                                                e
+                                                                                                                                            ) =>
+                                                                                                                                                e.stopPropagation()
+                                                                                                                                            }
+                                                                                                                                        >
+                                                                                                                                            <DropdownMenuItem
+                                                                                                                                                onClick={(
+                                                                                                                                                    e
+                                                                                                                                                ) => {
+                                                                                                                                                    e.stopPropagation();
+                                                                                                                                                    openEditDialog(
+                                                                                                                                                        'chapter',
+                                                                                                                                                        {
+                                                                                                                                                            ...ch.chapter,
+                                                                                                                                                            subjectId:
+                                                                                                                                                                subject.id,
+                                                                                                                                                            moduleId:
+                                                                                                                                                                mod
+                                                                                                                                                                    .module
+                                                                                                                                                                    .id,
+                                                                                                                                                        }
+                                                                                                                                                    );
+                                                                                                                                                }}
+                                                                                                                                            >
+                                                                                                                                                <PencilSimple
+                                                                                                                                                    size={
+                                                                                                                                                        16
+                                                                                                                                                    }
+                                                                                                                                                    className="mr-2"
+                                                                                                                                                />
+                                                                                                                                                Edit
+                                                                                                                                            </DropdownMenuItem>
+                                                                                                                                            <DropdownMenuItem
+                                                                                                                                                onClick={(
+                                                                                                                                                    e
+                                                                                                                                                ) => {
+                                                                                                                                                    e.stopPropagation();
+                                                                                                                                                    openDeleteConfirmation(
+                                                                                                                                                        'chapter',
+                                                                                                                                                        {
+                                                                                                                                                            id: ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .id,
+                                                                                                                                                            name: ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .chapter_name,
+                                                                                                                                                            subjectId:
+                                                                                                                                                                subject.id,
+                                                                                                                                                            moduleId:
+                                                                                                                                                                mod
+                                                                                                                                                                    .module
+                                                                                                                                                                    .id,
+                                                                                                                                                        }
+                                                                                                                                                    );
+                                                                                                                                                }}
+                                                                                                                                                className="text-red-600 focus:text-red-600"
+                                                                                                                                            >
+                                                                                                                                                <Trash
+                                                                                                                                                    size={
+                                                                                                                                                        16
+                                                                                                                                                    }
+                                                                                                                                                    className="mr-2"
+                                                                                                                                                />
+                                                                                                                                                Delete
+                                                                                                                                            </DropdownMenuItem>
+                                                                                                                                            {dripConditionsEnabled && (
+                                                                                                                                                <DropdownMenuItem
+                                                                                                                                                    onClick={(
+                                                                                                                                                        e
+                                                                                                                                                    ) => {
+                                                                                                                                                        e.stopPropagation();
+                                                                                                                                                        handleOpenChapterDripDialog(
+                                                                                                                                                            ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .id,
+                                                                                                                                                            ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .chapter_name
+                                                                                                                                                        );
+                                                                                                                                                    }}
+                                                                                                                                                >
+                                                                                                                                                    <Info
+                                                                                                                                                        size={
+                                                                                                                                                            16
+                                                                                                                                                        }
+                                                                                                                                                        className="mr-2"
+                                                                                                                                                    />
+                                                                                                                                                    Drip
+                                                                                                                                                    Condition
+                                                                                                                                                </DropdownMenuItem>
+                                                                                                                                            )}
+                                                                                                                                        </DropdownMenuContent>
+                                                                                                                                    </DropdownMenu>
+                                                                                                                                </div>
+                                                                                                                            )}
+                                                                                                                        </CollapsibleTrigger>
+                                                                                                                        <CollapsibleContent className="py-1 pl-9">
+                                                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                                                                {!readOnly && (
+                                                                                                                                    <MyButton
+                                                                                                                                        buttonType="text"
+                                                                                                                                        onClick={(
+                                                                                                                                            e
+                                                                                                                                        ) => {
+                                                                                                                                            e.stopPropagation();
+                                                                                                                                            handleChapterNavigation(
+                                                                                                                                                subject.id,
+                                                                                                                                                mod
+                                                                                                                                                    .module
+                                                                                                                                                    .id,
+                                                                                                                                                ch
+                                                                                                                                                    .chapter
+                                                                                                                                                    .id
+                                                                                                                                            );
+                                                                                                                                        }}
+                                                                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                                                    >
+                                                                                                                                        <Plus
+                                                                                                                                            size={
+                                                                                                                                                14
+                                                                                                                                            }
+                                                                                                                                            weight="bold"
+                                                                                                                                            className="text-primary-400 group-hover:text-primary-500"
+                                                                                                                                        />
+                                                                                                                                        <span className="font-medium">
+                                                                                                                                            Add{' '}
+                                                                                                                                            {getTerminology(
+                                                                                                                                                ContentTerms.Slides,
+                                                                                                                                                SystemTerms.Slides
+                                                                                                                                            )}
+                                                                                                                                        </span>
+                                                                                                                                    </MyButton>
+                                                                                                                                )}
+
+                                                                                                                                {(
+                                                                                                                                    chapterSlidesMap[
+                                                                                                                                        ch
+                                                                                                                                            .chapter
+                                                                                                                                            .id
+                                                                                                                                    ] ??
+                                                                                                                                    []
+                                                                                                                                )
+                                                                                                                                    .length ===
+                                                                                                                                0 ? (
+                                                                                                                                    <div className="px-2 py-1 text-xs text-gray-400">
+                                                                                                                                        No{' '}
+                                                                                                                                        {getTerminology(
+                                                                                                                                            ContentTerms.Slides,
+                                                                                                                                            SystemTerms.Slides
+                                                                                                                                        )}{' '}
+                                                                                                                                        in
+                                                                                                                                        this
+                                                                                                                                        chapter.
+                                                                                                                                    </div>
+                                                                                                                                ) : (
+                                                                                                                                    (
+                                                                                                                                        chapterSlidesMap[
+                                                                                                                                            ch
+                                                                                                                                                .chapter
+                                                                                                                                                .id
+                                                                                                                                        ] ??
+                                                                                                                                        []
+                                                                                                                                    ).map(
+                                                                                                                                        (
+                                                                                                                                            slide,
+                                                                                                                                            sIdx
+                                                                                                                                        ) => (
+                                                                                                                                            <div
+                                                                                                                                                key={
+                                                                                                                                                    slide.id
+                                                                                                                                                }
+                                                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                                                                                                                                                onClick={() => {
+                                                                                                                                                    if (
+                                                                                                                                                        readOnly
+                                                                                                                                                    )
+                                                                                                                                                        return;
+                                                                                                                                                    handleSlideNavigation(
+                                                                                                                                                        subject.id,
+                                                                                                                                                        mod
+                                                                                                                                                            .module
+                                                                                                                                                            .id,
+                                                                                                                                                        ch
+                                                                                                                                                            .chapter
+                                                                                                                                                            .id,
+                                                                                                                                                        slide.id
+                                                                                                                                                    );
+                                                                                                                                                }}
+                                                                                                                                            >
+                                                                                                                                                {roleDisplay
+                                                                                                                                                    ?.coursePage
+                                                                                                                                                    ?.viewContentNumbering !==
+                                                                                                                                                    false && (
+                                                                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                                                                        S
+                                                                                                                                                        {sIdx +
+                                                                                                                                                            1}
+                                                                                                                                                    </span>
+                                                                                                                                                )}
+                                                                                                                                                {getIcon(
+                                                                                                                                                    (
+                                                                                                                                                        slide as any
+                                                                                                                                                    )
+                                                                                                                                                        .html_video_slide
+                                                                                                                                                        ? 'HTML_VIDEO'
+                                                                                                                                                        : slide.source_type,
+                                                                                                                                                    slide
+                                                                                                                                                        .document_slide
+                                                                                                                                                        ?.type,
+                                                                                                                                                    '3'
+                                                                                                                                                )}
+                                                                                                                                                <span
+                                                                                                                                                    className="truncate"
+                                                                                                                                                    title={
+                                                                                                                                                        slide.title
+                                                                                                                                                    }
+                                                                                                                                                >
+                                                                                                                                                    {
+                                                                                                                                                        slide.title
+                                                                                                                                                    }
+                                                                                                                                                </span>
+                                                                                                                                            </div>
+                                                                                                                                        )
+                                                                                                                                    )
+                                                                                                                                )}
+                                                                                                                            </div>
+                                                                                                                        </CollapsibleContent>
+                                                                                                                    </Collapsible>
+                                                                                                                </div>
+                                                                                                            </SortableItem>
+                                                                                                        );
+                                                                                                    }
+                                                                                                )}
+                                                                                            </Sortable>
+                                                                                        </div>
+                                                                                    </CollapsibleContent>
+                                                                                </Collapsible>
+                                                                            </div>
+                                                                        </SortableItem>
+                                                                    );
+                                                                })}
+                                                            </Sortable>
+                                                        </div>
+                                                    </CollapsibleContent>
+                                                </Collapsible>
                                             </div>
-                                        </CollapsibleContent>
-                                    </Collapsible>
-                                );
-                            })}
+                                        </SortableItem>
+                                    );
+                                })}
+                            </Sortable>
+                        )}
+                        {courseStructure === 4 && (
+                            <Sortable
+                                value={subjects}
+                                onValueChange={handleSubjectReorder}
+                                orientation="vertical"
+                            >
+                                {subjects.map((subject) => {
+                                    const isSubjectOpen = openSubjects.has(subject.id);
+
+                                    return (
+                                        <SortableItem key={subject.id} value={subject.id} asChild>
+                                            <div className="group/subject-item relative">
+                                                <Collapsible
+                                                    open={isSubjectOpen}
+                                                    onOpenChange={
+                                                        readOnly
+                                                            ? undefined
+                                                            : () => toggleSubject(subject.id)
+                                                    }
+                                                    className="group"
+                                                >
+                                                    <CollapsibleContent className="py-1">
+                                                        <div className="relative space-y-1.5 border-gray-200">
+                                                            <div className="absolute -left-[13px] top-0 h-full">
+                                                                <div className="sticky top-0 flex h-full flex-col items-center" />
+                                                            </div>
+
+                                                            {canEditStructure && (
+                                                                <AddModulesButton
+                                                                    isTextButton
+                                                                    subjectId={subject.id}
+                                                                    onAddModuleBySubjectId={
+                                                                        handleAddModule
+                                                                    }
+                                                                />
+                                                            )}
+                                                            <Sortable
+                                                                value={(
+                                                                    subjectModulesMap[subject.id] ??
+                                                                    []
+                                                                ).map((m) => ({
+                                                                    ...m,
+                                                                    id: m.module.id,
+                                                                }))}
+                                                                onValueChange={(reorderedModules) =>
+                                                                    handleModuleReorder(
+                                                                        subject.id,
+                                                                        reorderedModules as unknown as {
+                                                                            module: Module;
+                                                                            chapters: ChapterWithSlidesStore[];
+                                                                        }[]
+                                                                    )
+                                                                }
+                                                                orientation="vertical"
+                                                            >
+                                                                {(
+                                                                    subjectModulesMap[subject.id] ??
+                                                                    []
+                                                                ).map((mod, modIdx) => {
+                                                                    const isModuleOpen =
+                                                                        openModules.has(
+                                                                            mod.module.id
+                                                                        );
+
+                                                                    return (
+                                                                        <SortableItem
+                                                                            key={mod.module.id}
+                                                                            value={mod.module.id}
+                                                                            asChild
+                                                                        >
+                                                                            <div className="group/module-item relative">
+                                                                                <Collapsible
+                                                                                    open={
+                                                                                        isModuleOpen
+                                                                                    }
+                                                                                    onOpenChange={() =>
+                                                                                        toggleModule(
+                                                                                            mod
+                                                                                                .module
+                                                                                                .id
+                                                                                        )
+                                                                                    }
+                                                                                    className="group/module"
+                                                                                >
+                                                                                    <CollapsibleTrigger className="group/module-trigger flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                                        <div className="flex flex-1 items-center gap-2.5">
+                                                                                            {isModuleOpen ? (
+                                                                                                <CaretDown
+                                                                                                    size={
+                                                                                                        16
+                                                                                                    }
+                                                                                                    className="shrink-0 text-gray-500"
+                                                                                                />
+                                                                                            ) : (
+                                                                                                <CaretRight
+                                                                                                    size={
+                                                                                                        16
+                                                                                                    }
+                                                                                                    className="shrink-0 text-gray-500"
+                                                                                                />
+                                                                                            )}
+                                                                                            <FileText
+                                                                                                size={
+                                                                                                    18
+                                                                                                }
+                                                                                                weight="duotone"
+                                                                                                className="shrink-0 text-blue-600"
+                                                                                            />
+                                                                                            {roleDisplay
+                                                                                                ?.coursePage
+                                                                                                ?.viewContentNumbering !==
+                                                                                                false && (
+                                                                                                <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
+                                                                                                    M
+                                                                                                    {modIdx +
+                                                                                                        1}
+                                                                                                </span>
+                                                                                            )}
+                                                                                            <span
+                                                                                                className="truncate"
+                                                                                                title={
+                                                                                                    mod
+                                                                                                        .module
+                                                                                                        .module_name
+                                                                                                }
+                                                                                            >
+                                                                                                {convertCapitalToTitleCase(
+                                                                                                    mod
+                                                                                                        .module
+                                                                                                        .module_name
+                                                                                                )}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        {canEditStructure && (
+                                                                                            <div className="flex gap-1">
+                                                                                                <SortableDragHandle className="inline-flex size-6 cursor-grab items-center justify-center rounded-md border border-neutral-300 opacity-0 transition-opacity hover:bg-gray-100 group-hover/module-trigger:opacity-100">
+                                                                                                    <DotsSixVertical
+                                                                                                        size={
+                                                                                                            14
+                                                                                                        }
+                                                                                                    />
+                                                                                                </SortableDragHandle>
+                                                                                                <MyButton
+                                                                                                    buttonType="secondary"
+                                                                                                    layoutVariant="icon"
+                                                                                                    scale="small"
+                                                                                                    onClick={(
+                                                                                                        e
+                                                                                                    ) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        openEditDialog(
+                                                                                                            'module',
+                                                                                                            {
+                                                                                                                ...mod.module,
+                                                                                                                subjectId:
+                                                                                                                    subject.id,
+                                                                                                            }
+                                                                                                        );
+                                                                                                    }}
+                                                                                                    className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/module-trigger:opacity-100"
+                                                                                                >
+                                                                                                    <PencilSimple
+                                                                                                        size={
+                                                                                                            14
+                                                                                                        }
+                                                                                                    />
+                                                                                                </MyButton>
+                                                                                                <MyButton
+                                                                                                    buttonType="secondary"
+                                                                                                    layoutVariant="icon"
+                                                                                                    scale="small"
+                                                                                                    onClick={(
+                                                                                                        e
+                                                                                                    ) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        openDeleteConfirmation(
+                                                                                                            'module',
+                                                                                                            {
+                                                                                                                id: mod
+                                                                                                                    .module
+                                                                                                                    .id,
+                                                                                                                name: mod
+                                                                                                                    .module
+                                                                                                                    .module_name,
+                                                                                                                subjectId:
+                                                                                                                    subject.id,
+                                                                                                            }
+                                                                                                        );
+                                                                                                    }}
+                                                                                                    className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/module-trigger:opacity-100"
+                                                                                                >
+                                                                                                    <Trash
+                                                                                                        size={
+                                                                                                            14
+                                                                                                        }
+                                                                                                    />
+                                                                                                </MyButton>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </CollapsibleTrigger>
+                                                                                    <CollapsibleContent className="py-1 pl-10">
+                                                                                        <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                            <AddChapterButton
+                                                                                                moduleId={
+                                                                                                    mod
+                                                                                                        .module
+                                                                                                        .id
+                                                                                                }
+                                                                                                sessionId={
+                                                                                                    selectedSession
+                                                                                                }
+                                                                                                levelId={
+                                                                                                    selectedLevel
+                                                                                                }
+                                                                                                subjectId={
+                                                                                                    subject.id
+                                                                                                }
+                                                                                                isTextButton
+                                                                                            />
+                                                                                            <Sortable
+                                                                                                value={(
+                                                                                                    mod.chapters ??
+                                                                                                    []
+                                                                                                ).map(
+                                                                                                    (
+                                                                                                        ch
+                                                                                                    ) => ({
+                                                                                                        ...ch,
+                                                                                                        id: ch
+                                                                                                            .chapter
+                                                                                                            .id,
+                                                                                                    })
+                                                                                                )}
+                                                                                                onValueChange={(
+                                                                                                    reorderedChapters
+                                                                                                ) =>
+                                                                                                    handleChapterReorder(
+                                                                                                        mod
+                                                                                                            .module
+                                                                                                            .id,
+                                                                                                        reorderedChapters as unknown as ChapterWithSlidesStore[]
+                                                                                                    )
+                                                                                                }
+                                                                                                orientation="vertical"
+                                                                                            >
+                                                                                                {(
+                                                                                                    mod.chapters ??
+                                                                                                    []
+                                                                                                ).map(
+                                                                                                    (
+                                                                                                        ch,
+                                                                                                        chIdx
+                                                                                                    ) => {
+                                                                                                        const isChapterOpen =
+                                                                                                            openChapters.has(
+                                                                                                                ch
+                                                                                                                    .chapter
+                                                                                                                    .id
+                                                                                                            );
+                                                                                                        return (
+                                                                                                            <SortableItem
+                                                                                                                key={
+                                                                                                                    ch
+                                                                                                                        .chapter
+                                                                                                                        .id
+                                                                                                                }
+                                                                                                                value={
+                                                                                                                    ch
+                                                                                                                        .chapter
+                                                                                                                        .id
+                                                                                                                }
+                                                                                                                asChild
+                                                                                                            >
+                                                                                                                <div className="group/chapter-item relative">
+                                                                                                                    <Collapsible
+                                                                                                                        key={
+                                                                                                                            ch
+                                                                                                                                .chapter
+                                                                                                                                .id
+                                                                                                                        }
+                                                                                                                        open={
+                                                                                                                            isChapterOpen
+                                                                                                                        }
+                                                                                                                        onOpenChange={() =>
+                                                                                                                            toggleChapter(
+                                                                                                                                ch
+                                                                                                                                    .chapter
+                                                                                                                                    .id
+                                                                                                                            )
+                                                                                                                        }
+                                                                                                                        className="group/chapter"
+                                                                                                                    >
+                                                                                                                        <CollapsibleTrigger className="group/chapter-trigger flex w-full items-center rounded-md px-2 py-1 text-left text-xs font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                                                                            <div className="flex flex-1 items-center gap-2">
+                                                                                                                                {isChapterOpen ? (
+                                                                                                                                    <CaretDown
+                                                                                                                                        size={
+                                                                                                                                            14
+                                                                                                                                        }
+                                                                                                                                        className="shrink-0 text-gray-500"
+                                                                                                                                    />
+                                                                                                                                ) : (
+                                                                                                                                    <CaretRight
+                                                                                                                                        size={
+                                                                                                                                            14
+                                                                                                                                        }
+                                                                                                                                        className="shrink-0 text-gray-500"
+                                                                                                                                    />
+                                                                                                                                )}
+                                                                                                                                <PresentationChart
+                                                                                                                                    size={
+                                                                                                                                        16
+                                                                                                                                    }
+                                                                                                                                    weight="duotone"
+                                                                                                                                    className="shrink-0 text-green-600"
+                                                                                                                                />
+                                                                                                                                {roleDisplay
+                                                                                                                                    ?.coursePage
+                                                                                                                                    ?.viewContentNumbering !==
+                                                                                                                                    false && (
+                                                                                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
+                                                                                                                                        C
+                                                                                                                                        {chIdx +
+                                                                                                                                            1}
+                                                                                                                                    </span>
+                                                                                                                                )}
+                                                                                                                                <span
+                                                                                                                                    className="truncate"
+                                                                                                                                    title={
+                                                                                                                                        ch
+                                                                                                                                            .chapter
+                                                                                                                                            .chapter_name
+                                                                                                                                    }
+                                                                                                                                >
+                                                                                                                                    {convertCapitalToTitleCase(
+                                                                                                                                        ch
+                                                                                                                                            .chapter
+                                                                                                                                            .chapter_name
+                                                                                                                                    )}
+                                                                                                                                </span>
+                                                                                                                            </div>
+                                                                                                                            {canEditStructure && (
+                                                                                                                                <div className="flex items-center gap-1">
+                                                                                                                                    <SortableDragHandle className="inline-flex size-6 cursor-grab items-center justify-center rounded-md border border-neutral-300 opacity-0 transition-opacity hover:bg-gray-100 group-hover/chapter-trigger:opacity-100">
+                                                                                                                                        <DotsSixVertical
+                                                                                                                                            size={
+                                                                                                                                                14
+                                                                                                                                            }
+                                                                                                                                        />
+                                                                                                                                    </SortableDragHandle>
+                                                                                                                                    <DropdownMenu>
+                                                                                                                                        <DropdownMenuTrigger
+                                                                                                                                            asChild
+                                                                                                                                        >
+                                                                                                                                            <MyButton
+                                                                                                                                                buttonType="secondary"
+                                                                                                                                                layoutVariant="icon"
+                                                                                                                                                scale="small"
+                                                                                                                                                onClick={(
+                                                                                                                                                    e
+                                                                                                                                                ) => {
+                                                                                                                                                    e.stopPropagation();
+                                                                                                                                                }}
+                                                                                                                                                className="opacity-0 transition-opacity group-hover/chapter-trigger:opacity-100"
+                                                                                                                                            >
+                                                                                                                                                <DotsThree
+                                                                                                                                                    size={
+                                                                                                                                                        16
+                                                                                                                                                    }
+                                                                                                                                                    weight="bold"
+                                                                                                                                                />
+                                                                                                                                            </MyButton>
+                                                                                                                                        </DropdownMenuTrigger>
+                                                                                                                                        <DropdownMenuContent
+                                                                                                                                            align="end"
+                                                                                                                                            onClick={(
+                                                                                                                                                e
+                                                                                                                                            ) =>
+                                                                                                                                                e.stopPropagation()
+                                                                                                                                            }
+                                                                                                                                        >
+                                                                                                                                            <DropdownMenuItem
+                                                                                                                                                onClick={(
+                                                                                                                                                    e
+                                                                                                                                                ) => {
+                                                                                                                                                    e.stopPropagation();
+                                                                                                                                                    openEditDialog(
+                                                                                                                                                        'chapter',
+                                                                                                                                                        {
+                                                                                                                                                            ...ch.chapter,
+                                                                                                                                                            subjectId:
+                                                                                                                                                                subject.id,
+                                                                                                                                                            moduleId:
+                                                                                                                                                                mod
+                                                                                                                                                                    .module
+                                                                                                                                                                    .id,
+                                                                                                                                                        }
+                                                                                                                                                    );
+                                                                                                                                                }}
+                                                                                                                                            >
+                                                                                                                                                <PencilSimple
+                                                                                                                                                    size={
+                                                                                                                                                        16
+                                                                                                                                                    }
+                                                                                                                                                    className="mr-2"
+                                                                                                                                                />
+                                                                                                                                                Edit
+                                                                                                                                            </DropdownMenuItem>
+                                                                                                                                            <DropdownMenuItem
+                                                                                                                                                onClick={(
+                                                                                                                                                    e
+                                                                                                                                                ) => {
+                                                                                                                                                    e.stopPropagation();
+                                                                                                                                                    openDeleteConfirmation(
+                                                                                                                                                        'chapter',
+                                                                                                                                                        {
+                                                                                                                                                            id: ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .id,
+                                                                                                                                                            name: ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .chapter_name,
+                                                                                                                                                            subjectId:
+                                                                                                                                                                subject.id,
+                                                                                                                                                            moduleId:
+                                                                                                                                                                mod
+                                                                                                                                                                    .module
+                                                                                                                                                                    .id,
+                                                                                                                                                        }
+                                                                                                                                                    );
+                                                                                                                                                }}
+                                                                                                                                                className="text-red-600 focus:text-red-600"
+                                                                                                                                            >
+                                                                                                                                                <Trash
+                                                                                                                                                    size={
+                                                                                                                                                        16
+                                                                                                                                                    }
+                                                                                                                                                    className="mr-2"
+                                                                                                                                                />
+                                                                                                                                                Delete
+                                                                                                                                            </DropdownMenuItem>
+                                                                                                                                            {dripConditionsEnabled && (
+                                                                                                                                                <DropdownMenuItem
+                                                                                                                                                    onClick={(
+                                                                                                                                                        e
+                                                                                                                                                    ) => {
+                                                                                                                                                        e.stopPropagation();
+                                                                                                                                                        handleOpenChapterDripDialog(
+                                                                                                                                                            ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .id,
+                                                                                                                                                            ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .chapter_name
+                                                                                                                                                        );
+                                                                                                                                                    }}
+                                                                                                                                                >
+                                                                                                                                                    <Info
+                                                                                                                                                        size={
+                                                                                                                                                            16
+                                                                                                                                                        }
+                                                                                                                                                        className="mr-2"
+                                                                                                                                                    />
+                                                                                                                                                    Drip
+                                                                                                                                                    Condition
+                                                                                                                                                </DropdownMenuItem>
+                                                                                                                                            )}
+                                                                                                                                        </DropdownMenuContent>
+                                                                                                                                    </DropdownMenu>
+                                                                                                                                </div>
+                                                                                                                            )}
+                                                                                                                        </CollapsibleTrigger>
+                                                                                                                        <CollapsibleContent className="py-1 pl-9">
+                                                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                                                                {!readOnly && (
+                                                                                                                                    <MyButton
+                                                                                                                                        buttonType="text"
+                                                                                                                                        onClick={(
+                                                                                                                                            e
+                                                                                                                                        ) => {
+                                                                                                                                            e.stopPropagation();
+                                                                                                                                            handleChapterNavigation(
+                                                                                                                                                subject.id,
+                                                                                                                                                mod
+                                                                                                                                                    .module
+                                                                                                                                                    .id,
+                                                                                                                                                ch
+                                                                                                                                                    .chapter
+                                                                                                                                                    .id
+                                                                                                                                            );
+                                                                                                                                        }}
+                                                                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                                                    >
+                                                                                                                                        <Plus
+                                                                                                                                            size={
+                                                                                                                                                14
+                                                                                                                                            }
+                                                                                                                                            weight="bold"
+                                                                                                                                            className="text-primary-400 group-hover:text-primary-500"
+                                                                                                                                        />
+                                                                                                                                        <span className="font-medium">
+                                                                                                                                            Add{' '}
+                                                                                                                                            {getTerminology(
+                                                                                                                                                ContentTerms.Slides,
+                                                                                                                                                SystemTerms.Slides
+                                                                                                                                            )}
+                                                                                                                                        </span>
+                                                                                                                                    </MyButton>
+                                                                                                                                )}
+
+                                                                                                                                {(
+                                                                                                                                    chapterSlidesMap[
+                                                                                                                                        ch
+                                                                                                                                            .chapter
+                                                                                                                                            .id
+                                                                                                                                    ] ??
+                                                                                                                                    []
+                                                                                                                                )
+                                                                                                                                    .length ===
+                                                                                                                                0 ? (
+                                                                                                                                    <div className="px-2 py-1 text-xs text-gray-400">
+                                                                                                                                        No{' '}
+                                                                                                                                        {getTerminology(
+                                                                                                                                            ContentTerms.Slides,
+                                                                                                                                            SystemTerms.Slides
+                                                                                                                                        )}{' '}
+                                                                                                                                        in
+                                                                                                                                        this
+                                                                                                                                        chapter.
+                                                                                                                                    </div>
+                                                                                                                                ) : (
+                                                                                                                                    (
+                                                                                                                                        chapterSlidesMap[
+                                                                                                                                            ch
+                                                                                                                                                .chapter
+                                                                                                                                                .id
+                                                                                                                                        ] ??
+                                                                                                                                        []
+                                                                                                                                    ).map(
+                                                                                                                                        (
+                                                                                                                                            slide,
+                                                                                                                                            sIdx
+                                                                                                                                        ) => (
+                                                                                                                                            <div
+                                                                                                                                                key={
+                                                                                                                                                    slide.id
+                                                                                                                                                }
+                                                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                                                                                                                                                onClick={() => {
+                                                                                                                                                    if (
+                                                                                                                                                        readOnly
+                                                                                                                                                    )
+                                                                                                                                                        return;
+                                                                                                                                                    handleSlideNavigation(
+                                                                                                                                                        subject.id,
+                                                                                                                                                        mod
+                                                                                                                                                            .module
+                                                                                                                                                            .id,
+                                                                                                                                                        ch
+                                                                                                                                                            .chapter
+                                                                                                                                                            .id,
+                                                                                                                                                        slide.id
+                                                                                                                                                    );
+                                                                                                                                                }}
+                                                                                                                                            >
+                                                                                                                                                {roleDisplay
+                                                                                                                                                    ?.coursePage
+                                                                                                                                                    ?.viewContentNumbering !==
+                                                                                                                                                    false && (
+                                                                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                                                                        S
+                                                                                                                                                        {sIdx +
+                                                                                                                                                            1}
+                                                                                                                                                    </span>
+                                                                                                                                                )}
+                                                                                                                                                {getIcon(
+                                                                                                                                                    (
+                                                                                                                                                        slide as any
+                                                                                                                                                    )
+                                                                                                                                                        .html_video_slide
+                                                                                                                                                        ? 'HTML_VIDEO'
+                                                                                                                                                        : slide.source_type,
+                                                                                                                                                    slide
+                                                                                                                                                        .document_slide
+                                                                                                                                                        ?.type,
+                                                                                                                                                    '3'
+                                                                                                                                                )}
+                                                                                                                                                <span
+                                                                                                                                                    className="truncate"
+                                                                                                                                                    title={
+                                                                                                                                                        slide.title
+                                                                                                                                                    }
+                                                                                                                                                >
+                                                                                                                                                    {
+                                                                                                                                                        slide.title
+                                                                                                                                                    }
+                                                                                                                                                </span>
+                                                                                                                                            </div>
+                                                                                                                                        )
+                                                                                                                                    )
+                                                                                                                                )}
+                                                                                                                            </div>
+                                                                                                                        </CollapsibleContent>
+                                                                                                                    </Collapsible>
+                                                                                                                </div>
+                                                                                                            </SortableItem>
+                                                                                                        );
+                                                                                                    }
+                                                                                                )}
+                                                                                            </Sortable>
+                                                                                        </div>
+                                                                                    </CollapsibleContent>
+                                                                                </Collapsible>
+                                                                            </div>
+                                                                        </SortableItem>
+                                                                    );
+                                                                })}
+                                                            </Sortable>
+                                                        </div>
+                                                    </CollapsibleContent>
+                                                </Collapsible>
+                                            </div>
+                                        </SortableItem>
+                                    );
+                                })}
+                            </Sortable>
+                        )}
+                        {courseStructure === 3 && (
+                            <Sortable
+                                value={subjects}
+                                onValueChange={handleSubjectReorder}
+                                orientation="vertical"
+                            >
+                                {subjects.map((subject) => {
+                                    const isSubjectOpen = openSubjects.has(subject.id);
+
+                                    return (
+                                        <SortableItem key={subject.id} value={subject.id} asChild>
+                                            <div className="group/subject-item">
+                                                <Collapsible
+                                                    open={isSubjectOpen}
+                                                    onOpenChange={
+                                                        readOnly
+                                                            ? undefined
+                                                            : () => toggleSubject(subject.id)
+                                                    }
+                                                    className="group"
+                                                >
+                                                    <CollapsibleContent className="py-1">
+                                                        <div className="relative space-y-1.5 border-gray-200">
+                                                            <div className="absolute -left-[13px] top-0 h-full">
+                                                                <div className="sticky top-0 flex h-full flex-col items-center" />
+                                                            </div>
+
+                                                            <Sortable
+                                                                value={(
+                                                                    subjectModulesMap[subject.id] ??
+                                                                    []
+                                                                ).map((m) => ({
+                                                                    ...m,
+                                                                    id: m.module.id,
+                                                                }))}
+                                                                onValueChange={(reorderedModules) =>
+                                                                    handleModuleReorder(
+                                                                        subject.id,
+                                                                        reorderedModules as unknown as {
+                                                                            module: Module;
+                                                                            chapters: ChapterWithSlidesStore[];
+                                                                        }[]
+                                                                    )
+                                                                }
+                                                                orientation="vertical"
+                                                            >
+                                                                {(
+                                                                    subjectModulesMap[subject.id] ??
+                                                                    []
+                                                                ).map((mod, modIdx) => {
+                                                                    const isModuleOpen =
+                                                                        openModules.has(
+                                                                            mod.module.id
+                                                                        );
+
+                                                                    return (
+                                                                        <SortableItem
+                                                                            key={mod.module.id}
+                                                                            value={mod.module.id}
+                                                                            asChild
+                                                                        >
+                                                                            <div className="group/module-item relative">
+                                                                                <Collapsible
+                                                                                    open={
+                                                                                        isModuleOpen
+                                                                                    }
+                                                                                    onOpenChange={() =>
+                                                                                        toggleModule(
+                                                                                            mod
+                                                                                                .module
+                                                                                                .id
+                                                                                        )
+                                                                                    }
+                                                                                    className="group/module"
+                                                                                >
+                                                                                    <CollapsibleContent className="py-1">
+                                                                                        <div className="relative space-y-1.5  border-gray-200">
+                                                                                            <AddChapterButton
+                                                                                                moduleId={
+                                                                                                    mod
+                                                                                                        .module
+                                                                                                        .id
+                                                                                                }
+                                                                                                sessionId={
+                                                                                                    selectedSession
+                                                                                                }
+                                                                                                levelId={
+                                                                                                    selectedLevel
+                                                                                                }
+                                                                                                subjectId={
+                                                                                                    subject.id
+                                                                                                }
+                                                                                                isTextButton
+                                                                                            />
+                                                                                            <Sortable
+                                                                                                value={(
+                                                                                                    mod.chapters ??
+                                                                                                    []
+                                                                                                ).map(
+                                                                                                    (
+                                                                                                        ch
+                                                                                                    ) => ({
+                                                                                                        ...ch,
+                                                                                                        id: ch
+                                                                                                            .chapter
+                                                                                                            .id,
+                                                                                                    })
+                                                                                                )}
+                                                                                                onValueChange={(
+                                                                                                    reorderedChapters
+                                                                                                ) =>
+                                                                                                    handleChapterReorder(
+                                                                                                        mod
+                                                                                                            .module
+                                                                                                            .id,
+                                                                                                        reorderedChapters as unknown as ChapterWithSlidesStore[]
+                                                                                                    )
+                                                                                                }
+                                                                                                orientation="vertical"
+                                                                                            >
+                                                                                                {(
+                                                                                                    mod.chapters ??
+                                                                                                    []
+                                                                                                ).map(
+                                                                                                    (
+                                                                                                        ch,
+                                                                                                        chIdx
+                                                                                                    ) => {
+                                                                                                        const isChapterOpen =
+                                                                                                            openChapters.has(
+                                                                                                                ch
+                                                                                                                    .chapter
+                                                                                                                    .id
+                                                                                                            );
+                                                                                                        return (
+                                                                                                            <SortableItem
+                                                                                                                key={
+                                                                                                                    ch
+                                                                                                                        .chapter
+                                                                                                                        .id
+                                                                                                                }
+                                                                                                                value={
+                                                                                                                    ch
+                                                                                                                        .chapter
+                                                                                                                        .id
+                                                                                                                }
+                                                                                                                asChild
+                                                                                                            >
+                                                                                                                <div className="group/chapter-item relative">
+                                                                                                                    <Collapsible
+                                                                                                                        key={
+                                                                                                                            ch
+                                                                                                                                .chapter
+                                                                                                                                .id
+                                                                                                                        }
+                                                                                                                        open={
+                                                                                                                            isChapterOpen
+                                                                                                                        }
+                                                                                                                        onOpenChange={() =>
+                                                                                                                            toggleChapter(
+                                                                                                                                ch
+                                                                                                                                    .chapter
+                                                                                                                                    .id
+                                                                                                                            )
+                                                                                                                        }
+                                                                                                                        className="group/chapter"
+                                                                                                                    >
+                                                                                                                        <CollapsibleTrigger className="group/chapter-trigger flex w-full items-center rounded-md px-2 py-1 text-left text-xs font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                                                                            <div className="flex flex-1 items-center gap-2">
+                                                                                                                                {isChapterOpen ? (
+                                                                                                                                    <CaretDown
+                                                                                                                                        size={
+                                                                                                                                            14
+                                                                                                                                        }
+                                                                                                                                        className="shrink-0 text-gray-500"
+                                                                                                                                    />
+                                                                                                                                ) : (
+                                                                                                                                    <CaretRight
+                                                                                                                                        size={
+                                                                                                                                            14
+                                                                                                                                        }
+                                                                                                                                        className="shrink-0 text-gray-500"
+                                                                                                                                    />
+                                                                                                                                )}
+                                                                                                                                <PresentationChart
+                                                                                                                                    size={
+                                                                                                                                        16
+                                                                                                                                    }
+                                                                                                                                    weight="duotone"
+                                                                                                                                    className="shrink-0 text-green-600"
+                                                                                                                                />
+                                                                                                                                {roleDisplay
+                                                                                                                                    ?.coursePage
+                                                                                                                                    ?.viewContentNumbering !==
+                                                                                                                                    false && (
+                                                                                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
+                                                                                                                                        C
+                                                                                                                                        {chIdx +
+                                                                                                                                            1}
+                                                                                                                                    </span>
+                                                                                                                                )}
+                                                                                                                                <span
+                                                                                                                                    className="truncate"
+                                                                                                                                    title={
+                                                                                                                                        ch
+                                                                                                                                            .chapter
+                                                                                                                                            .chapter_name
+                                                                                                                                    }
+                                                                                                                                >
+                                                                                                                                    {convertCapitalToTitleCase(
+                                                                                                                                        ch
+                                                                                                                                            .chapter
+                                                                                                                                            .chapter_name
+                                                                                                                                    )}
+                                                                                                                                </span>
+                                                                                                                            </div>
+                                                                                                                            {canEditStructure && (
+                                                                                                                                <div className="flex items-center gap-1">
+                                                                                                                                    <SortableDragHandle className="inline-flex size-6 cursor-grab items-center justify-center rounded-md border border-neutral-300 opacity-0 transition-opacity hover:bg-gray-100 group-hover/chapter-trigger:opacity-100">
+                                                                                                                                        <DotsSixVertical
+                                                                                                                                            size={
+                                                                                                                                                14
+                                                                                                                                            }
+                                                                                                                                        />
+                                                                                                                                    </SortableDragHandle>
+                                                                                                                                    <DropdownMenu>
+                                                                                                                                        <DropdownMenuTrigger
+                                                                                                                                            asChild
+                                                                                                                                        >
+                                                                                                                                            <MyButton
+                                                                                                                                                buttonType="secondary"
+                                                                                                                                                layoutVariant="icon"
+                                                                                                                                                scale="small"
+                                                                                                                                                onClick={(
+                                                                                                                                                    e
+                                                                                                                                                ) => {
+                                                                                                                                                    e.stopPropagation();
+                                                                                                                                                }}
+                                                                                                                                                className="opacity-0 transition-opacity group-hover/chapter-trigger:opacity-100"
+                                                                                                                                            >
+                                                                                                                                                <DotsThree
+                                                                                                                                                    size={
+                                                                                                                                                        16
+                                                                                                                                                    }
+                                                                                                                                                    weight="bold"
+                                                                                                                                                />
+                                                                                                                                            </MyButton>
+                                                                                                                                        </DropdownMenuTrigger>
+                                                                                                                                        <DropdownMenuContent
+                                                                                                                                            align="end"
+                                                                                                                                            onClick={(
+                                                                                                                                                e
+                                                                                                                                            ) =>
+                                                                                                                                                e.stopPropagation()
+                                                                                                                                            }
+                                                                                                                                        >
+                                                                                                                                            <DropdownMenuItem
+                                                                                                                                                onClick={(
+                                                                                                                                                    e
+                                                                                                                                                ) => {
+                                                                                                                                                    e.stopPropagation();
+                                                                                                                                                    openEditDialog(
+                                                                                                                                                        'chapter',
+                                                                                                                                                        {
+                                                                                                                                                            ...ch.chapter,
+                                                                                                                                                            subjectId:
+                                                                                                                                                                subject.id,
+                                                                                                                                                            moduleId:
+                                                                                                                                                                mod
+                                                                                                                                                                    .module
+                                                                                                                                                                    .id,
+                                                                                                                                                        }
+                                                                                                                                                    );
+                                                                                                                                                }}
+                                                                                                                                            >
+                                                                                                                                                <PencilSimple
+                                                                                                                                                    size={
+                                                                                                                                                        16
+                                                                                                                                                    }
+                                                                                                                                                    className="mr-2"
+                                                                                                                                                />
+                                                                                                                                                Edit
+                                                                                                                                            </DropdownMenuItem>
+                                                                                                                                            <DropdownMenuItem
+                                                                                                                                                onClick={(
+                                                                                                                                                    e
+                                                                                                                                                ) => {
+                                                                                                                                                    e.stopPropagation();
+                                                                                                                                                    openDeleteConfirmation(
+                                                                                                                                                        'chapter',
+                                                                                                                                                        {
+                                                                                                                                                            id: ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .id,
+                                                                                                                                                            name: ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .chapter_name,
+                                                                                                                                                            subjectId:
+                                                                                                                                                                subject.id,
+                                                                                                                                                            moduleId:
+                                                                                                                                                                mod
+                                                                                                                                                                    .module
+                                                                                                                                                                    .id,
+                                                                                                                                                        }
+                                                                                                                                                    );
+                                                                                                                                                }}
+                                                                                                                                                className="text-red-600 focus:text-red-600"
+                                                                                                                                            >
+                                                                                                                                                <Trash
+                                                                                                                                                    size={
+                                                                                                                                                        16
+                                                                                                                                                    }
+                                                                                                                                                    className="mr-2"
+                                                                                                                                                />
+                                                                                                                                                Delete
+                                                                                                                                            </DropdownMenuItem>
+                                                                                                                                            {dripConditionsEnabled && (
+                                                                                                                                                <DropdownMenuItem
+                                                                                                                                                    onClick={(
+                                                                                                                                                        e
+                                                                                                                                                    ) => {
+                                                                                                                                                        e.stopPropagation();
+                                                                                                                                                        handleOpenChapterDripDialog(
+                                                                                                                                                            ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .id,
+                                                                                                                                                            ch
+                                                                                                                                                                .chapter
+                                                                                                                                                                .chapter_name
+                                                                                                                                                        );
+                                                                                                                                                    }}
+                                                                                                                                                >
+                                                                                                                                                    <Info
+                                                                                                                                                        size={
+                                                                                                                                                            16
+                                                                                                                                                        }
+                                                                                                                                                        className="mr-2"
+                                                                                                                                                    />
+                                                                                                                                                    Drip
+                                                                                                                                                    Condition
+                                                                                                                                                </DropdownMenuItem>
+                                                                                                                                            )}
+                                                                                                                                        </DropdownMenuContent>
+                                                                                                                                    </DropdownMenu>
+                                                                                                                                </div>
+                                                                                                                            )}
+                                                                                                                        </CollapsibleTrigger>
+                                                                                                                        <CollapsibleContent className="py-1 pl-9">
+                                                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                                                                <MyButton
+                                                                                                                                    buttonType="text"
+                                                                                                                                    onClick={(
+                                                                                                                                        e
+                                                                                                                                    ) => {
+                                                                                                                                        e.stopPropagation();
+                                                                                                                                        handleChapterNavigation(
+                                                                                                                                            subject.id,
+                                                                                                                                            mod
+                                                                                                                                                .module
+                                                                                                                                                .id,
+                                                                                                                                            ch
+                                                                                                                                                .chapter
+                                                                                                                                                .id
+                                                                                                                                        );
+                                                                                                                                    }}
+                                                                                                                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                                                >
+                                                                                                                                    <Plus
+                                                                                                                                        size={
+                                                                                                                                            14
+                                                                                                                                        }
+                                                                                                                                        weight="bold"
+                                                                                                                                        className="text-primary-400 group-hover:text-primary-500"
+                                                                                                                                    />
+                                                                                                                                    <span className="font-medium">
+                                                                                                                                        Add{' '}
+                                                                                                                                        {getTerminology(
+                                                                                                                                            ContentTerms.Slides,
+                                                                                                                                            SystemTerms.Slides
+                                                                                                                                        )}
+                                                                                                                                    </span>
+                                                                                                                                </MyButton>
+
+                                                                                                                                {(
+                                                                                                                                    chapterSlidesMap[
+                                                                                                                                        ch
+                                                                                                                                            .chapter
+                                                                                                                                            .id
+                                                                                                                                    ] ??
+                                                                                                                                    []
+                                                                                                                                )
+                                                                                                                                    .length ===
+                                                                                                                                0 ? (
+                                                                                                                                    <div className="px-2 py-1 text-xs text-gray-400">
+                                                                                                                                        No{' '}
+                                                                                                                                        {getTerminology(
+                                                                                                                                            ContentTerms.Slides,
+                                                                                                                                            SystemTerms.Slides
+                                                                                                                                        )}{' '}
+                                                                                                                                        in
+                                                                                                                                        this
+                                                                                                                                        chapter.
+                                                                                                                                    </div>
+                                                                                                                                ) : (
+                                                                                                                                    (
+                                                                                                                                        chapterSlidesMap[
+                                                                                                                                            ch
+                                                                                                                                                .chapter
+                                                                                                                                                .id
+                                                                                                                                        ] ??
+                                                                                                                                        []
+                                                                                                                                    ).map(
+                                                                                                                                        (
+                                                                                                                                            slide,
+                                                                                                                                            sIdx
+                                                                                                                                        ) => (
+                                                                                                                                            <div
+                                                                                                                                                key={
+                                                                                                                                                    slide.id
+                                                                                                                                                }
+                                                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                                                                                                                                                onClick={() => {
+                                                                                                                                                    if (
+                                                                                                                                                        readOnly
+                                                                                                                                                    )
+                                                                                                                                                        return;
+                                                                                                                                                    handleSlideNavigation(
+                                                                                                                                                        subject.id,
+                                                                                                                                                        mod
+                                                                                                                                                            .module
+                                                                                                                                                            .id,
+                                                                                                                                                        ch
+                                                                                                                                                            .chapter
+                                                                                                                                                            .id,
+                                                                                                                                                        slide.id
+                                                                                                                                                    );
+                                                                                                                                                }}
+                                                                                                                                            >
+                                                                                                                                                {roleDisplay
+                                                                                                                                                    ?.coursePage
+                                                                                                                                                    ?.viewContentNumbering !==
+                                                                                                                                                    false && (
+                                                                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                                                                        S
+                                                                                                                                                        {sIdx +
+                                                                                                                                                            1}
+                                                                                                                                                    </span>
+                                                                                                                                                )}
+                                                                                                                                                {getIcon(
+                                                                                                                                                    (
+                                                                                                                                                        slide as any
+                                                                                                                                                    )
+                                                                                                                                                        .html_video_slide
+                                                                                                                                                        ? 'HTML_VIDEO'
+                                                                                                                                                        : slide.source_type,
+                                                                                                                                                    slide
+                                                                                                                                                        .document_slide
+                                                                                                                                                        ?.type,
+                                                                                                                                                    '3'
+                                                                                                                                                )}
+                                                                                                                                                <span
+                                                                                                                                                    className="truncate"
+                                                                                                                                                    title={
+                                                                                                                                                        slide.title
+                                                                                                                                                    }
+                                                                                                                                                >
+                                                                                                                                                    {
+                                                                                                                                                        slide.title
+                                                                                                                                                    }
+                                                                                                                                                </span>
+                                                                                                                                            </div>
+                                                                                                                                        )
+                                                                                                                                    )
+                                                                                                                                )}
+                                                                                                                            </div>
+                                                                                                                        </CollapsibleContent>
+                                                                                                                    </Collapsible>
+                                                                                                                </div>
+                                                                                                            </SortableItem>
+                                                                                                        );
+                                                                                                    }
+                                                                                                )}
+                                                                                            </Sortable>
+                                                                                        </div>
+                                                                                    </CollapsibleContent>
+                                                                                </Collapsible>
+                                                                            </div>
+                                                                        </SortableItem>
+                                                                    );
+                                                                })}
+                                                            </Sortable>
+                                                        </div>
+                                                    </CollapsibleContent>
+                                                </Collapsible>
+                                            </div>
+                                        </SortableItem>
+                                    );
+                                })}
+                            </Sortable>
+                        )}
 
                         {courseStructure === 2 && (
                             <div className="space-y-1.5">
@@ -2741,124 +3283,51 @@ export const CourseStructureDetails = ({
                 {/* Folder Grid View */}
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
                     {/* Show Subjects (Course Structure 5 or when at subjects level) */}
-                    {courseStructure === 5 &&
-                        currentNavigationLevel === 'subjects' &&
-                        subjects.map((subject, idx) => (
-                            <div key={subject.id} className="group relative">
-                                <div
-                                    onClick={() =>
-                                        handleSubjectClick(subject.id, subject.subject_name)
-                                    }
-                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
+                    {courseStructure === 5 && currentNavigationLevel === 'subjects' && (
+                        <Sortable
+                            value={subjects}
+                            strategy={rectSortingStrategy}
+                            onValueChange={handleSubjectReorder}
+                        >
+                            {subjects.map((subject, idx) => (
+                                <SortableItem
+                                    key={subject.id}
+                                    value={subject.id}
+                                    asTrigger={true}
+                                    className="group relative"
                                 >
-                                    {/* Folder Icon/Image */}
-                                    <ThumbnailImage
-                                        thumbnailId={subject.thumbnail_id}
-                                        fallbackIcon={
-                                            <Folder
-                                                size={96}
-                                                weight="duotone"
-                                                className="text-blue-600"
-                                            />
-                                        }
-                                        fallbackColor="bg-gradient-to-br from-blue-50 to-blue-100"
-                                    />
-
-                                    {/* Folder Title */}
-                                    <h4
-                                        className="mb-1 truncate text-sm font-medium text-gray-800"
-                                        title={subject.subject_name}
-                                    >
-                                        {convertCapitalToTitleCase(subject.subject_name)}
-                                    </h4>
-
-                                    {/* Subject Number */}
-                                    {roleDisplay?.coursePage?.viewContentNumbering !== false && (
-                                        <p className="text-xs text-gray-500">Subject {idx + 1}</p>
-                                    )}
-
-                                    {/* Edit and Delete Buttons */}
-                                    {canEditStructure && (
-                                        <div className="absolute right-2 top-2 flex gap-1">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
-                                                        <DotsThree size={16} weight="bold" />
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openEditDialog('subject', subject);
-                                                        }}
-                                                    >
-                                                        <PencilSimple
-                                                            size={14}
-                                                            className="mr-2 text-blue-600"
-                                                        />
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openDeleteConfirmation('subject', {
-                                                                id: subject.id,
-                                                                name: subject.subject_name,
-                                                            });
-                                                        }}
-                                                        className="text-red-600"
-                                                    >
-                                                        <Trash size={14} className="mr-2" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-
-                    {/* Show Modules for Course Structure 5 when at modules level */}
-                    {courseStructure === 5 &&
-                        currentNavigationLevel === 'modules' &&
-                        selectedSubjectId &&
-                        (subjectModulesMap[selectedSubjectId] ?? []).map(
-                            (mod: ModuleWithChapters, modIdx: number) => (
-                                <div key={mod.module.id} className="group relative">
                                     <div
                                         onClick={() =>
-                                            handleModuleClick(mod.module.id, mod.module.module_name)
+                                            handleSubjectClick(subject.id, subject.subject_name)
                                         }
                                         className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
                                     >
                                         {/* Folder Icon/Image */}
                                         <ThumbnailImage
-                                            thumbnailId={mod.module.thumbnail_id}
+                                            thumbnailId={subject.thumbnail_id}
                                             fallbackIcon={
-                                                <FileText
+                                                <Folder
                                                     size={96}
                                                     weight="duotone"
-                                                    className="text-green-600"
+                                                    className="text-blue-600"
                                                 />
                                             }
-                                            fallbackColor="bg-gradient-to-br from-green-50 to-green-100"
+                                            fallbackColor="bg-gradient-to-br from-blue-50 to-blue-100"
                                         />
 
                                         {/* Folder Title */}
                                         <h4
                                             className="mb-1 truncate text-sm font-medium text-gray-800"
-                                            title={mod.module.module_name}
+                                            title={subject.subject_name}
                                         >
-                                            {convertCapitalToTitleCase(mod.module.module_name)}
+                                            {convertCapitalToTitleCase(subject.subject_name)}
                                         </h4>
 
-                                        {/* Module Number */}
+                                        {/* Subject Number */}
                                         {roleDisplay?.coursePage?.viewContentNumbering !==
                                             false && (
                                             <p className="text-xs text-gray-500">
-                                                Module {modIdx + 1}
+                                                Subject {idx + 1}
                                             </p>
                                         )}
 
@@ -2875,10 +3344,7 @@ export const CourseStructureDetails = ({
                                                         <DropdownMenuItem
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                openEditDialog('module', {
-                                                                    ...mod.module,
-                                                                    subjectId: selectedSubjectId,
-                                                                });
+                                                                openEditDialog('subject', subject);
                                                             }}
                                                         >
                                                             <PencilSimple
@@ -2890,10 +3356,9 @@ export const CourseStructureDetails = ({
                                                         <DropdownMenuItem
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                openDeleteConfirmation('module', {
-                                                                    id: mod.module.id,
-                                                                    name: mod.module.module_name,
-                                                                    subjectId: selectedSubjectId,
+                                                                openDeleteConfirmation('subject', {
+                                                                    id: subject.id,
+                                                                    name: subject.subject_name,
                                                                 });
                                                             }}
                                                             className="text-red-600"
@@ -2906,465 +3371,740 @@ export const CourseStructureDetails = ({
                                             </div>
                                         )}
                                     </div>
-                                </div>
-                            )
+                                </SortableItem>
+                            ))}
+                        </Sortable>
+                    )}
+
+                    {/* Show Modules for Course Structure 5 when at modules level */}
+                    {courseStructure === 5 &&
+                        currentNavigationLevel === 'modules' &&
+                        selectedSubjectId && (
+                            <Sortable
+                                value={(subjectModulesMap[selectedSubjectId] ?? []).map((m) => ({
+                                    ...m,
+                                    id: m.module.id,
+                                }))}
+                                strategy={rectSortingStrategy}
+                                onValueChange={(reordered) =>
+                                    handleModuleReorder(
+                                        selectedSubjectId,
+                                        reordered as unknown as ModuleWithChapters[]
+                                    )
+                                }
+                            >
+                                {(subjectModulesMap[selectedSubjectId] ?? []).map(
+                                    (mod: ModuleWithChapters, modIdx: number) => (
+                                        <SortableItem
+                                            key={mod.module.id}
+                                            value={mod.module.id}
+                                            asTrigger={true}
+                                            asChild
+                                            className="group relative"
+                                        >
+                                            <div
+                                                onClick={() =>
+                                                    handleModuleClick(
+                                                        mod.module.id,
+                                                        mod.module.module_name
+                                                    )
+                                                }
+                                                className="rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
+                                            >
+                                                {/* Folder Icon/Image */}
+                                                <ThumbnailImage
+                                                    thumbnailId={mod.module.thumbnail_id}
+                                                    fallbackIcon={
+                                                        <FileText
+                                                            size={96}
+                                                            weight="duotone"
+                                                            className="text-green-600"
+                                                        />
+                                                    }
+                                                    fallbackColor="bg-gradient-to-br from-green-50 to-green-100"
+                                                />
+
+                                                {/* Folder Title */}
+                                                <h4
+                                                    className="mb-1 truncate text-sm font-medium text-gray-800"
+                                                    title={mod.module.module_name}
+                                                >
+                                                    {convertCapitalToTitleCase(
+                                                        mod.module.module_name
+                                                    )}
+                                                </h4>
+
+                                                {/* Module Number */}
+                                                {roleDisplay?.coursePage?.viewContentNumbering !==
+                                                    false && (
+                                                    <p className="text-xs text-gray-500">
+                                                        Module {modIdx + 1}
+                                                    </p>
+                                                )}
+
+                                                {/* Edit and Delete Buttons */}
+                                                {canEditStructure && (
+                                                    <div className="absolute right-2 top-2 flex gap-1">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                                    <DotsThree
+                                                                        size={16}
+                                                                        weight="bold"
+                                                                    />
+                                                                </button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openEditDialog('module', {
+                                                                            ...mod.module,
+                                                                            subjectId:
+                                                                                selectedSubjectId,
+                                                                        });
+                                                                    }}
+                                                                >
+                                                                    <PencilSimple
+                                                                        size={14}
+                                                                        className="mr-2 text-blue-600"
+                                                                    />
+                                                                    Edit
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openDeleteConfirmation(
+                                                                            'module',
+                                                                            {
+                                                                                id: mod.module.id,
+                                                                                name: mod.module
+                                                                                    .module_name,
+                                                                                subjectId:
+                                                                                    selectedSubjectId,
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                    className="text-red-600"
+                                                                >
+                                                                    <Trash
+                                                                        size={14}
+                                                                        className="mr-2"
+                                                                    />
+                                                                    Delete
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </SortableItem>
+                                    )
+                                )}
+                            </Sortable>
                         )}
 
                     {/* Show Modules for Course Structure 4 */}
                     {courseStructure === 4 &&
                         currentNavigationLevel === 'subjects' &&
-                        subjects[0] &&
-                        (subjectModulesMap[subjects[0].id] ?? []).map(
-                            (mod: ModuleWithChapters, modIdx: number) => (
-                                <div key={mod.module.id} className="group relative">
-                                    <div
-                                        onClick={() => {
-                                            // For courseStructure 4, navigate to show chapters
-                                            setSelectedModuleId(mod.module.id);
-                                            setCurrentNavigationLevel('chapters');
-                                            setNavigationBreadcrumb([
-                                                {
-                                                    level: 'Module',
-                                                    name: mod.module.module_name,
-                                                    id: mod.module.id,
-                                                },
-                                            ]);
-                                        }}
-                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
-                                    >
-                                        {/* Folder Icon/Image */}
-                                        <ThumbnailImage
-                                            thumbnailId={mod.module.thumbnail_id}
-                                            fallbackIcon={
-                                                <FileText
-                                                    size={96}
-                                                    weight="duotone"
-                                                    className="text-green-600"
-                                                />
-                                            }
-                                            fallbackColor="bg-gradient-to-br from-green-50 to-green-100"
-                                        />
-
-                                        {/* Folder Title */}
-                                        <h4
-                                            className="mb-1 truncate text-sm font-medium text-gray-800"
-                                            title={mod.module.module_name}
+                        subjects[0] && (
+                            <Sortable
+                                value={(subjectModulesMap[subjects[0].id] ?? []).map((m) => ({
+                                    ...m,
+                                    id: m.module.id,
+                                }))}
+                                strategy={rectSortingStrategy}
+                                onValueChange={(reordered) =>
+                                    handleModuleReorder(
+                                        subjects[0]?.id || '',
+                                        reordered as unknown as ModuleWithChapters[]
+                                    )
+                                }
+                            >
+                                {(subjectModulesMap[subjects[0].id] ?? []).map(
+                                    (mod: ModuleWithChapters, modIdx: number) => (
+                                        <SortableItem
+                                            key={mod.module.id}
+                                            value={mod.module.id}
+                                            asTrigger={true}
+                                            asChild
+                                            className="group relative"
                                         >
-                                            {convertCapitalToTitleCase(mod.module.module_name)}
-                                        </h4>
+                                            <div
+                                                onClick={() => {
+                                                    // For courseStructure 4, navigate to show chapters
+                                                    setSelectedModuleId(mod.module.id);
+                                                    setCurrentNavigationLevel('chapters');
+                                                    setNavigationBreadcrumb([
+                                                        {
+                                                            level: 'Module',
+                                                            name: mod.module.module_name,
+                                                            id: mod.module.id,
+                                                        },
+                                                    ]);
+                                                }}
+                                                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
+                                            >
+                                                {/* Folder Icon/Image */}
+                                                <ThumbnailImage
+                                                    thumbnailId={mod.module.thumbnail_id}
+                                                    fallbackIcon={
+                                                        <FileText
+                                                            size={96}
+                                                            weight="duotone"
+                                                            className="text-green-600"
+                                                        />
+                                                    }
+                                                    fallbackColor="bg-gradient-to-br from-green-50 to-green-100"
+                                                />
 
-                                        {/* Module Number */}
-                                        {roleDisplay?.coursePage?.viewContentNumbering !==
-                                            false && (
-                                            <p className="text-xs text-gray-500">
-                                                Module {modIdx + 1}
-                                            </p>
-                                        )}
+                                                {/* Folder Title */}
+                                                <h4
+                                                    className="mb-1 truncate text-sm font-medium text-gray-800"
+                                                    title={mod.module.module_name}
+                                                >
+                                                    {convertCapitalToTitleCase(
+                                                        mod.module.module_name
+                                                    )}
+                                                </h4>
 
-                                        {/* Edit and Delete Buttons */}
-                                        {canEditStructure && (
-                                            <div className="absolute right-2 top-2 flex gap-1">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
-                                                            <DotsThree size={16} weight="bold" />
-                                                        </button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                openEditDialog('module', {
-                                                                    ...mod.module,
-                                                                    subjectId: subjects[0]?.id,
-                                                                });
-                                                            }}
-                                                        >
-                                                            <PencilSimple
-                                                                size={14}
-                                                                className="mr-2 text-blue-600"
-                                                            />
-                                                            Edit
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                openDeleteConfirmation('module', {
-                                                                    id: mod.module.id,
-                                                                    name: mod.module.module_name,
-                                                                    subjectId: subjects[0]?.id,
-                                                                });
-                                                            }}
-                                                            className="text-red-600"
-                                                        >
-                                                            <Trash size={14} className="mr-2" />
-                                                            Delete
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                {/* Module Number */}
+                                                {roleDisplay?.coursePage?.viewContentNumbering !==
+                                                    false && (
+                                                    <p className="text-xs text-gray-500">
+                                                        Module {modIdx + 1}
+                                                    </p>
+                                                )}
+
+                                                {/* Edit and Delete Buttons */}
+                                                {canEditStructure && (
+                                                    <div className="absolute right-2 top-2 flex gap-1">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                                    <DotsThree
+                                                                        size={16}
+                                                                        weight="bold"
+                                                                    />
+                                                                </button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openEditDialog('module', {
+                                                                            ...mod.module,
+                                                                            subjectId:
+                                                                                subjects[0]?.id,
+                                                                        });
+                                                                    }}
+                                                                >
+                                                                    <PencilSimple
+                                                                        size={14}
+                                                                        className="mr-2 text-blue-600"
+                                                                    />
+                                                                    Edit
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openDeleteConfirmation(
+                                                                            'module',
+                                                                            {
+                                                                                id: mod.module.id,
+                                                                                name: mod.module
+                                                                                    .module_name,
+                                                                                subjectId:
+                                                                                    subjects[0]?.id,
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                    className="text-red-600"
+                                                                >
+                                                                    <Trash
+                                                                        size={14}
+                                                                        className="mr-2"
+                                                                    />
+                                                                    Delete
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )
+                                        </SortableItem>
+                                    )
+                                )}
+                            </Sortable>
                         )}
 
                     {/* Show Chapters for Course Structure 5 when at chapters level */}
                     {courseStructure === 5 &&
                         currentNavigationLevel === 'chapters' &&
                         selectedSubjectId &&
-                        selectedModuleId &&
-                        (
-                            subjectModulesMap[selectedSubjectId]?.find(
-                                (mod) => mod.module.id === selectedModuleId
-                            )?.chapters ?? []
-                        ).map((ch: ChapterMetadata, chIdx: number) => (
-                            <div key={ch.chapter.id} className="group relative">
-                                <div
-                                    onClick={() => {
-                                        if (readOnly) return;
-                                        // Navigate to chapter slides
-                                        handleChapterNavigation(
-                                            selectedSubjectId,
-                                            selectedModuleId,
-                                            ch.chapter.id
-                                        );
-                                    }}
-                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
-                                >
-                                    {/* Folder Icon/Image */}
-                                    <ThumbnailImage
-                                        thumbnailId={ch.chapter.file_id}
-                                        fallbackIcon={
-                                            <PresentationChart
-                                                size={96}
-                                                weight="duotone"
-                                                className="text-purple-600"
-                                            />
-                                        }
-                                        fallbackColor="bg-gradient-to-br from-purple-50 to-purple-100"
-                                    />
-
-                                    {/* Folder Title */}
-                                    <h4
-                                        className="mb-1 truncate text-sm font-medium text-gray-800"
-                                        title={ch.chapter.chapter_name}
+                        selectedModuleId && (
+                            <Sortable
+                                value={(
+                                    subjectModulesMap[selectedSubjectId]?.find(
+                                        (mod) => mod.module.id === selectedModuleId
+                                    )?.chapters ?? []
+                                ).map((c) => ({ ...c, id: c.chapter.id }))}
+                                strategy={rectSortingStrategy}
+                                onValueChange={(reordered) =>
+                                    handleChapterReorder(
+                                        selectedModuleId,
+                                        reordered as unknown as ChapterWithSlidesStore[]
+                                    )
+                                }
+                            >
+                                {(
+                                    subjectModulesMap[selectedSubjectId]?.find(
+                                        (mod) => mod.module.id === selectedModuleId
+                                    )?.chapters ?? []
+                                ).map((ch: ChapterMetadata, chIdx: number) => (
+                                    <SortableItem
+                                        key={ch.chapter.id}
+                                        value={ch.chapter.id}
+                                        asTrigger={true}
+                                        asChild
+                                        className="group relative"
                                     >
-                                        {convertCapitalToTitleCase(ch.chapter.chapter_name)}
-                                    </h4>
+                                        <div
+                                            onClick={() => {
+                                                if (readOnly) return;
+                                                // Navigate to chapter slides
+                                                handleChapterNavigation(
+                                                    selectedSubjectId,
+                                                    selectedModuleId,
+                                                    ch.chapter.id
+                                                );
+                                            }}
+                                            className="rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
+                                        >
+                                            {/* Folder Icon/Image */}
+                                            <ThumbnailImage
+                                                thumbnailId={ch.chapter.file_id}
+                                                fallbackIcon={
+                                                    <PresentationChart
+                                                        size={96}
+                                                        weight="duotone"
+                                                        className="text-purple-600"
+                                                    />
+                                                }
+                                                fallbackColor="bg-gradient-to-br from-purple-50 to-purple-100"
+                                            />
 
-                                    {/* Chapter Number */}
-                                    {roleDisplay?.coursePage?.viewContentNumbering !== false && (
-                                        <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
-                                    )}
+                                            {/* Folder Title */}
+                                            <h4
+                                                className="mb-1 truncate text-sm font-medium text-gray-800"
+                                                title={ch.chapter.chapter_name}
+                                            >
+                                                {convertCapitalToTitleCase(ch.chapter.chapter_name)}
+                                            </h4>
 
-                                    {/* Edit and Delete Buttons */}
-                                    {canEditStructure && (
-                                        <div className="absolute right-2 top-2 flex gap-1">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
-                                                        <DotsThree size={16} weight="bold" />
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openEditDialog('chapter', {
-                                                                ...ch.chapter,
-                                                                subjectId: selectedSubjectId,
-                                                                moduleId: selectedModuleId,
-                                                            });
-                                                        }}
-                                                    >
-                                                        <PencilSimple
-                                                            size={14}
-                                                            className="mr-2 text-blue-600"
-                                                        />
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                    {dripConditionsEnabled && (
-                                                        <DropdownMenuItem
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleOpenChapterDripDialog(
-                                                                    ch.chapter.id,
-                                                                    ch.chapter.chapter_name
-                                                                );
-                                                            }}
-                                                        >
-                                                            <Info
-                                                                size={14}
-                                                                className="mr-2 text-purple-600"
-                                                            />
-                                                            Drip Condition
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                    <DropdownMenuItem
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openDeleteConfirmation('chapter', {
-                                                                id: ch.chapter.id,
-                                                                name: ch.chapter.chapter_name,
-                                                                subjectId: selectedSubjectId,
-                                                                moduleId: selectedModuleId,
-                                                            });
-                                                        }}
-                                                        className="text-red-600"
-                                                    >
-                                                        <Trash size={14} className="mr-2" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                            {/* Chapter Number */}
+                                            {roleDisplay?.coursePage?.viewContentNumbering !==
+                                                false && (
+                                                <p className="text-xs text-gray-500">
+                                                    Chapter {chIdx + 1}
+                                                </p>
+                                            )}
+
+                                            {/* Edit and Delete Buttons */}
+                                            {canEditStructure && (
+                                                <div className="absolute right-2 top-2 flex gap-1">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                                <DotsThree
+                                                                    size={16}
+                                                                    weight="bold"
+                                                                />
+                                                            </button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    openEditDialog('chapter', {
+                                                                        ...ch.chapter,
+                                                                        subjectId:
+                                                                            selectedSubjectId,
+                                                                        moduleId: selectedModuleId,
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <PencilSimple
+                                                                    size={14}
+                                                                    className="mr-2 text-blue-600"
+                                                                />
+                                                                Edit
+                                                            </DropdownMenuItem>
+                                                            {dripConditionsEnabled && (
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleOpenChapterDripDialog(
+                                                                            ch.chapter.id,
+                                                                            ch.chapter.chapter_name
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    <Info
+                                                                        size={14}
+                                                                        className="mr-2 text-purple-600"
+                                                                    />
+                                                                    Drip Condition
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    openDeleteConfirmation(
+                                                                        'chapter',
+                                                                        {
+                                                                            id: ch.chapter.id,
+                                                                            name: ch.chapter
+                                                                                .chapter_name,
+                                                                            subjectId:
+                                                                                selectedSubjectId,
+                                                                            moduleId:
+                                                                                selectedModuleId,
+                                                                        }
+                                                                    );
+                                                                }}
+                                                                className="text-red-600"
+                                                            >
+                                                                <Trash size={14} className="mr-2" />
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                                    </SortableItem>
+                                ))}
+                            </Sortable>
+                        )}
 
                     {/* Show Chapters for Course Structure 4 when at chapters level */}
                     {courseStructure === 4 &&
                         currentNavigationLevel === 'chapters' &&
                         selectedModuleId &&
-                        subjects[0] &&
-                        (
-                            subjectModulesMap[subjects[0].id]?.find(
-                                (mod) => mod.module.id === selectedModuleId
-                            )?.chapters ?? []
-                        ).map((ch: ChapterMetadata, chIdx: number) => (
-                            <div key={ch.chapter.id} className="group relative">
-                                <div
-                                    onClick={() => {
-                                        if (readOnly) return;
-                                        // Navigate to chapter slides
-                                        handleChapterNavigation(
-                                            subjects[0]?.id || '',
-                                            selectedModuleId,
-                                            ch.chapter.id
-                                        );
-                                    }}
-                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
-                                >
-                                    {/* Folder Icon/Image */}
-                                    <ThumbnailImage
-                                        thumbnailId={ch.chapter.file_id}
-                                        fallbackIcon={
-                                            <PresentationChart
-                                                size={96}
-                                                weight="duotone"
-                                                className="text-purple-600"
-                                            />
-                                        }
-                                        fallbackColor="bg-gradient-to-br from-purple-50 to-purple-100"
-                                    />
-
-                                    {/* Folder Title */}
-                                    <h4
-                                        className="mb-1 truncate text-sm font-medium text-gray-800"
-                                        title={ch.chapter.chapter_name}
+                        subjects[0] && (
+                            <Sortable
+                                value={(
+                                    subjectModulesMap[subjects[0].id]?.find(
+                                        (mod) => mod.module.id === selectedModuleId
+                                    )?.chapters ?? []
+                                ).map((c) => ({ ...c, id: c.chapter.id }))}
+                                strategy={rectSortingStrategy}
+                                onValueChange={(reordered) =>
+                                    handleChapterReorder(
+                                        selectedModuleId,
+                                        reordered as unknown as ChapterWithSlidesStore[]
+                                    )
+                                }
+                            >
+                                {(
+                                    subjectModulesMap[subjects[0].id]?.find(
+                                        (mod) => mod.module.id === selectedModuleId
+                                    )?.chapters ?? []
+                                ).map((ch: ChapterMetadata, chIdx: number) => (
+                                    <SortableItem
+                                        key={ch.chapter.id}
+                                        value={ch.chapter.id}
+                                        asTrigger={true}
+                                        asChild
+                                        className="group relative"
                                     >
-                                        {convertCapitalToTitleCase(ch.chapter.chapter_name)}
-                                    </h4>
+                                        <div
+                                            onClick={() => {
+                                                if (readOnly) return;
+                                                // Navigate to chapter slides
+                                                handleChapterNavigation(
+                                                    subjects[0]?.id || '',
+                                                    selectedModuleId,
+                                                    ch.chapter.id
+                                                );
+                                            }}
+                                            className="rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
+                                        >
+                                            {/* Folder Icon/Image */}
+                                            <ThumbnailImage
+                                                thumbnailId={ch.chapter.file_id}
+                                                fallbackIcon={
+                                                    <PresentationChart
+                                                        size={96}
+                                                        weight="duotone"
+                                                        className="text-purple-600"
+                                                    />
+                                                }
+                                                fallbackColor="bg-gradient-to-br from-purple-50 to-purple-100"
+                                            />
 
-                                    {/* Chapter Number */}
-                                    {roleDisplay?.coursePage?.viewContentNumbering !== false && (
-                                        <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
-                                    )}
+                                            {/* Folder Title */}
+                                            <h4
+                                                className="mb-1 truncate text-sm font-medium text-gray-800"
+                                                title={ch.chapter.chapter_name}
+                                            >
+                                                {convertCapitalToTitleCase(ch.chapter.chapter_name)}
+                                            </h4>
 
-                                    {/* Edit and Delete Buttons */}
-                                    {canEditStructure && (
-                                        <div className="absolute right-2 top-2 flex gap-1">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
-                                                        <DotsThree size={16} weight="bold" />
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openEditDialog('chapter', {
-                                                                ...ch.chapter,
-                                                                subjectId: subjects[0]?.id || '',
-                                                                moduleId: selectedModuleId,
-                                                            });
-                                                        }}
-                                                    >
-                                                        <PencilSimple
-                                                            size={14}
-                                                            className="mr-2 text-blue-600"
-                                                        />
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                    {dripConditionsEnabled && (
-                                                        <DropdownMenuItem
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleOpenChapterDripDialog(
-                                                                    ch.chapter.id,
-                                                                    ch.chapter.chapter_name
-                                                                );
-                                                            }}
-                                                        >
-                                                            <Info
-                                                                size={14}
-                                                                className="mr-2 text-purple-600"
-                                                            />
-                                                            Drip Condition
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                    <DropdownMenuItem
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openDeleteConfirmation('chapter', {
-                                                                id: ch.chapter.id,
-                                                                name: ch.chapter.chapter_name,
-                                                                subjectId: subjects[0]?.id || '',
-                                                                moduleId: selectedModuleId,
-                                                            });
-                                                        }}
-                                                        className="text-red-600"
-                                                    >
-                                                        <Trash size={14} className="mr-2" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                            {/* Chapter Number */}
+                                            {roleDisplay?.coursePage?.viewContentNumbering !==
+                                                false && (
+                                                <p className="text-xs text-gray-500">
+                                                    Chapter {chIdx + 1}
+                                                </p>
+                                            )}
+
+                                            {/* Edit and Delete Buttons */}
+                                            {canEditStructure && (
+                                                <div className="absolute right-2 top-2 flex gap-1">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                                <DotsThree
+                                                                    size={16}
+                                                                    weight="bold"
+                                                                />
+                                                            </button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    openEditDialog('chapter', {
+                                                                        ...ch.chapter,
+                                                                        subjectId:
+                                                                            subjects[0]?.id || '',
+                                                                        moduleId: selectedModuleId,
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <PencilSimple
+                                                                    size={14}
+                                                                    className="mr-2 text-blue-600"
+                                                                />
+                                                                Edit
+                                                            </DropdownMenuItem>
+                                                            {dripConditionsEnabled && (
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleOpenChapterDripDialog(
+                                                                            ch.chapter.id,
+                                                                            ch.chapter.chapter_name
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    <Info
+                                                                        size={14}
+                                                                        className="mr-2 text-purple-600"
+                                                                    />
+                                                                    Drip Condition
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    openDeleteConfirmation(
+                                                                        'chapter',
+                                                                        {
+                                                                            id: ch.chapter.id,
+                                                                            name: ch.chapter
+                                                                                .chapter_name,
+                                                                            subjectId:
+                                                                                subjects[0]?.id ||
+                                                                                '',
+                                                                            moduleId:
+                                                                                selectedModuleId,
+                                                                        }
+                                                                    );
+                                                                }}
+                                                                className="text-red-600"
+                                                            >
+                                                                <Trash size={14} className="mr-2" />
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                                    </SortableItem>
+                                ))}
+                            </Sortable>
+                        )}
 
                     {/* Show Chapters for Course Structure 3 */}
                     {courseStructure === 3 &&
                         currentNavigationLevel === 'subjects' &&
-                        subjects[0] &&
-                        (subjectModulesMap[subjects[0].id]?.[0]?.chapters ?? []).map(
-                            (ch: ChapterMetadata, chIdx: number) => (
-                                <div key={ch.chapter.id} className="group relative">
-                                    <div
-                                        onClick={() => {
-                                            if (readOnly) return;
-                                            // Navigate to chapter slides
-                                            handleChapterNavigation(
-                                                subjects[0]?.id || '',
-                                                subjects[0]
-                                                    ? subjectModulesMap[subjects[0].id]?.[0]?.module
-                                                          .id || ''
-                                                    : '',
-                                                ch.chapter.id
-                                            );
-                                        }}
-                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
-                                    >
-                                        {/* Folder Icon/Image */}
-                                        <ThumbnailImage
-                                            thumbnailId={ch.chapter.file_id}
-                                            fallbackIcon={
-                                                <PresentationChart
-                                                    size={96}
-                                                    weight="duotone"
-                                                    className="text-purple-600"
-                                                />
-                                            }
-                                            fallbackColor="bg-gradient-to-br from-purple-50 to-purple-100"
-                                        />
-
-                                        {/* Folder Title */}
-                                        <h4
-                                            className="mb-1 truncate text-sm font-medium text-gray-800"
-                                            title={ch.chapter.chapter_name}
+                        subjects[0] && (
+                            <Sortable
+                                value={(subjectModulesMap[subjects[0].id]?.[0]?.chapters ?? []).map(
+                                    (c) => ({ ...c, id: c.chapter.id })
+                                )}
+                                strategy={rectSortingStrategy}
+                                onValueChange={(reordered) =>
+                                    handleChapterReorder(
+                                        subjectModulesMap[subjects[0]?.id || '']?.[0]?.module.id ||
+                                            '',
+                                        reordered as unknown as ChapterWithSlidesStore[]
+                                    )
+                                }
+                            >
+                                {(subjectModulesMap[subjects[0].id]?.[0]?.chapters ?? []).map(
+                                    (ch: ChapterMetadata, chIdx: number) => (
+                                        <SortableItem
+                                            key={ch.chapter.id}
+                                            value={ch.chapter.id}
+                                            asTrigger={true}
+                                            asChild
+                                            className="group relative"
                                         >
-                                            {convertCapitalToTitleCase(ch.chapter.chapter_name)}
-                                        </h4>
+                                            <div
+                                                onClick={() => {
+                                                    if (readOnly) return;
+                                                    // Navigate to chapter slides
+                                                    handleChapterNavigation(
+                                                        subjects[0]?.id || '',
+                                                        subjects[0]
+                                                            ? subjectModulesMap[subjects[0].id]?.[0]
+                                                                  ?.module.id || ''
+                                                            : '',
+                                                        ch.chapter.id
+                                                    );
+                                                }}
+                                                className="rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
+                                            >
+                                                {/* Folder Icon/Image */}
+                                                <ThumbnailImage
+                                                    thumbnailId={ch.chapter.file_id}
+                                                    fallbackIcon={
+                                                        <PresentationChart
+                                                            size={96}
+                                                            weight="duotone"
+                                                            className="text-purple-600"
+                                                        />
+                                                    }
+                                                    fallbackColor="bg-gradient-to-br from-purple-50 to-purple-100"
+                                                />
 
-                                        {/* Chapter Number */}
-                                        {roleDisplay?.coursePage?.viewContentNumbering !==
-                                            false && (
-                                            <p className="text-xs text-gray-500">
-                                                Chapter {chIdx + 1}
-                                            </p>
-                                        )}
+                                                {/* Folder Title */}
+                                                <h4
+                                                    className="mb-1 truncate text-sm font-medium text-gray-800"
+                                                    title={ch.chapter.chapter_name}
+                                                >
+                                                    {convertCapitalToTitleCase(
+                                                        ch.chapter.chapter_name
+                                                    )}
+                                                </h4>
 
-                                        {/* Edit and Delete Buttons */}
-                                        {canEditStructure && (
-                                            <div className="absolute right-2 top-2 flex gap-1">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
-                                                            <DotsThree size={16} weight="bold" />
-                                                        </button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                openEditDialog('chapter', {
-                                                                    ...ch.chapter,
-                                                                    subjectId:
-                                                                        subjects[0]?.id || '',
-                                                                    moduleId: subjects[0]
-                                                                        ? subjectModulesMap[
-                                                                              subjects[0].id
-                                                                          ]?.[0]?.module.id
-                                                                        : undefined,
-                                                                });
-                                                            }}
-                                                        >
-                                                            <PencilSimple
-                                                                size={14}
-                                                                className="mr-2 text-blue-600"
-                                                            />
-                                                            Edit
-                                                        </DropdownMenuItem>
-                                                        {dripConditionsEnabled && (
-                                                            <DropdownMenuItem
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleOpenChapterDripDialog(
-                                                                        ch.chapter.id,
-                                                                        ch.chapter.chapter_name
-                                                                    );
-                                                                }}
-                                                            >
-                                                                <Info
-                                                                    size={14}
-                                                                    className="mr-2 text-purple-600"
-                                                                />
-                                                                Drip Condition
-                                                            </DropdownMenuItem>
-                                                        )}
-                                                        <DropdownMenuItem
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                openDeleteConfirmation('chapter', {
-                                                                    id: ch.chapter.id,
-                                                                    name: ch.chapter.chapter_name,
-                                                                    subjectId:
-                                                                        subjects[0]?.id || '',
-                                                                    moduleId: subjects[0]
-                                                                        ? subjectModulesMap[
-                                                                              subjects[0].id
-                                                                          ]?.[0]?.module.id
-                                                                        : undefined,
-                                                                });
-                                                            }}
-                                                            className="text-red-600"
-                                                        >
-                                                            <Trash size={14} className="mr-2" />
-                                                            Delete
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                {/* Chapter Number */}
+                                                {roleDisplay?.coursePage?.viewContentNumbering !==
+                                                    false && (
+                                                    <p className="text-xs text-gray-500">
+                                                        Chapter {chIdx + 1}
+                                                    </p>
+                                                )}
+
+                                                {/* Edit and Delete Buttons */}
+                                                {canEditStructure && (
+                                                    <div className="absolute right-2 top-2 flex gap-1">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                                    <DotsThree
+                                                                        size={16}
+                                                                        weight="bold"
+                                                                    />
+                                                                </button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openEditDialog('chapter', {
+                                                                            ...ch.chapter,
+                                                                            subjectId:
+                                                                                subjects[0]?.id ||
+                                                                                '',
+                                                                            moduleId: subjects[0]
+                                                                                ? subjectModulesMap[
+                                                                                      subjects[0].id
+                                                                                  ]?.[0]?.module.id
+                                                                                : undefined,
+                                                                        });
+                                                                    }}
+                                                                >
+                                                                    <PencilSimple
+                                                                        size={14}
+                                                                        className="mr-2 text-blue-600"
+                                                                    />
+                                                                    Edit
+                                                                </DropdownMenuItem>
+                                                                {dripConditionsEnabled && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleOpenChapterDripDialog(
+                                                                                ch.chapter.id,
+                                                                                ch.chapter
+                                                                                    .chapter_name
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <Info
+                                                                            size={14}
+                                                                            className="mr-2 text-purple-600"
+                                                                        />
+                                                                        Drip Condition
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openDeleteConfirmation(
+                                                                            'chapter',
+                                                                            {
+                                                                                id: ch.chapter.id,
+                                                                                name: ch.chapter
+                                                                                    .chapter_name,
+                                                                                subjectId:
+                                                                                    subjects[0]
+                                                                                        ?.id || '',
+                                                                                moduleId:
+                                                                                    subjects[0]
+                                                                                        ? subjectModulesMap[
+                                                                                              subjects[0]
+                                                                                                  .id
+                                                                                          ]?.[0]
+                                                                                              ?.module
+                                                                                              .id
+                                                                                        : undefined,
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                    className="text-red-600"
+                                                                >
+                                                                    <Trash
+                                                                        size={14}
+                                                                        className="mr-2"
+                                                                    />
+                                                                    Delete
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )
+                                        </SortableItem>
+                                    )
+                                )}
+                            </Sortable>
                         )}
 
                     {/* Show Slides for Course Structure 2 */}
