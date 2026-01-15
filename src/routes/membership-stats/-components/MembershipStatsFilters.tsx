@@ -50,6 +50,7 @@ export function MembershipStatsFilters({
         levelId: string;
         sessionId: string;
         packageId: string;
+        packageSessionIds?: string[];
     }) => {
         onPackageSessionFilterChange({
             ...packageSessionFilter,
@@ -57,6 +58,7 @@ export function MembershipStatsFilters({
             levelId: selection.levelId,
             sessionId: selection.sessionId,
             packageId: selection.packageId,
+            packageSessionIds: selection.packageSessionIds,
         });
     };
 
@@ -111,7 +113,7 @@ export function MembershipStatsFilters({
                             {(selectedUserTypes.length || 0) +
                                 (startDate ? 1 : 0) +
                                 (endDate ? 1 : 0) +
-                                (packageSessionFilter.packageId ? 1 : 0)}
+                                (packageSessionFilter.packageSessionIds?.length || (packageSessionFilter.packageId ? 1 : 0))}
                         </span>
                     )}
                 </Button>
@@ -188,6 +190,8 @@ export function MembershipStatsFilters({
                             initialLevelId={packageSessionFilter.levelId}
                             initialSessionId={packageSessionFilter.sessionId}
                             initialPackageId={packageSessionFilter.packageId}
+                            multiSelect={true}
+                            batchesForSessions={batchesForSessions}
                         />
                     </div>
 

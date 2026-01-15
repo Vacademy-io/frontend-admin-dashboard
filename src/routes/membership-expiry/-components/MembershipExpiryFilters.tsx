@@ -39,6 +39,7 @@ export function MembershipExpiryFilters({
         levelId: string;
         sessionId: string;
         packageId: string;
+        packageSessionIds?: string[];
     }) => {
         onPackageSessionFilterChange({
             ...packageSessionFilter,
@@ -46,6 +47,7 @@ export function MembershipExpiryFilters({
             levelId: selection.levelId,
             sessionId: selection.sessionId,
             packageId: selection.packageId,
+            packageSessionIds: selection.packageSessionIds,
         });
     };
 
@@ -98,7 +100,7 @@ export function MembershipExpiryFilters({
                         <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-primary-500 text-xs text-white">
                             {(startDate ? 1 : 0) +
                                 (endDate ? 1 : 0) +
-                                (packageSessionFilter.packageId ? 1 : 0)}
+                                (packageSessionFilter.packageSessionIds?.length || (packageSessionFilter.packageId ? 1 : 0))}
                         </span>
                     )}
                 </Button>
@@ -175,6 +177,8 @@ export function MembershipExpiryFilters({
                             initialLevelId={packageSessionFilter.levelId}
                             initialSessionId={packageSessionFilter.sessionId}
                             initialPackageId={packageSessionFilter.packageId}
+                            multiSelect={true}
+                            batchesForSessions={batchesForSessions}
                         />
                     </div>
 

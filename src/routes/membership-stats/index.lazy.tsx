@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/card';
 import { Users } from '@phosphor-icons/react';
 import { MembershipAnalytics } from './-components/MembershipAnalytics';
 import { FilterStatsCard } from './-components/FilterStatsCard';
+import { ActiveFiltersDisplay } from '@/components/common/filters/ActiveFiltersDisplay';
 
 export const Route = createLazyFileRoute('/membership-stats/')({
     component: () => (
@@ -64,7 +65,9 @@ function MembershipStatsLayoutPage() {
             filters.user_types = selectedUserTypes.map((s) => s.value) as ("NEW_USER" | "RETAINER")[];
         }
 
-        if (packageSessionFilter.packageSessionId) {
+        if (packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0) {
+            filters.package_session_ids = packageSessionFilter.packageSessionIds;
+        } else if (packageSessionFilter.packageSessionId) {
             filters.package_session_ids = [packageSessionFilter.packageSessionId];
         } else if (packageSessionFilter.packageId) {
             // Resolve all matching batches for the selected package and optional level/session
@@ -87,6 +90,7 @@ function MembershipStatsLayoutPage() {
         endDate,
         selectedUserTypes,
         packageSessionFilter,
+        batchesForSessions
     ]);
 
     useEffect(() => {
@@ -150,6 +154,40 @@ function MembershipStatsLayoutPage() {
         setCurrentPage(0);
     };
 
+    // Handle clearing individual filters
+    const handleClearFilter = (filterType: string, value?: string) => {
+        switch (filterType) {
+            case 'all':
+                handleClearFilters();
+                break;
+            case 'startDate':
+                setStartDate('');
+                setCurrentPage(0);
+                break;
+            case 'endDate':
+                setEndDate('');
+                setCurrentPage(0);
+                break;
+            case 'userType':
+                setSelectedUserTypes((prev) =>
+                    prev.filter((type) => type.value !== value)
+                );
+                setCurrentPage(0);
+                break;
+            case 'packageSession':
+                if (value) {
+                    setPackageSessionFilter(prev => ({
+                        ...prev,
+                        packageSessionIds: prev.packageSessionIds?.filter(id => id !== value)
+                    }));
+                } else {
+                    setPackageSessionFilter({});
+                }
+                setCurrentPage(0);
+                break;
+        }
+    };
+
     // State for view mode
     const [viewMembers, setViewMembers] = useState(false);
 
@@ -201,6 +239,15 @@ function MembershipStatsLayoutPage() {
                         onQuickFilterSelect={handleQuickFilterSelect}
                     />
                 </div>
+
+                <ActiveFiltersDisplay
+                    startDate={startDate}
+                    endDate={endDate}
+                    packageSessionFilter={packageSessionFilter}
+                    batchesForSessions={batchesForSessions}
+                    onClearFilter={handleClearFilter}
+                    selectedUserTypes={selectedUserTypes}
+                />
 
                 {/* Analytics Section */}
                 <div className="mb-4">

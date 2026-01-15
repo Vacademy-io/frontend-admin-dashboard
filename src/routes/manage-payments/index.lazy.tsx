@@ -6,7 +6,7 @@ import { Helmet } from 'react-helmet';
 import { useQuery } from '@tanstack/react-query';
 import { PaymentFilters } from './-components/PaymentFilters';
 import { PaymentLogsTable } from './-components/PaymentLogsTable';
-import { ActiveFiltersDisplay } from './-components/ActiveFiltersDisplay';
+import { ActiveFiltersDisplay } from '@/components/common/filters/ActiveFiltersDisplay';
 import { fetchPaymentLogs, getPaymentLogsQueryKey } from '@/services/payment-logs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import type { SelectOption } from '@/components/design-system/SelectChips';

@@ -3,6 +3,7 @@ import { MembershipExpiryTable } from './-components/MembershipExpiryTable';
 import { MembershipExpiryFilters } from './-components/MembershipExpiryFilters';
 import { MembershipExpiryAnalytics } from './-components/MembershipExpiryAnalytics';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { ActiveFiltersDisplay } from '@/components/common/filters/ActiveFiltersDisplay';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMembershipExpiry, getMembershipExpiryQueryKey } from '@/services/membership-expiry';
@@ -46,7 +47,9 @@ function MembershipExpiryPage() {
       end_date_in_utc: endDate || undefined,
     };
 
-    if (packageSessionFilter.packageSessionId) {
+    if (packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0) {
+      filters.package_session_ids = packageSessionFilter.packageSessionIds;
+    } else if (packageSessionFilter.packageSessionId) {
       filters.package_session_ids = [packageSessionFilter.packageSessionId];
     } else if (packageSessionFilter.packageId) {
       // Resolve all matching batches for the selected package and optional level/session
@@ -79,6 +82,38 @@ function MembershipExpiryPage() {
     setPageNo(0);
   };
 
+  const handleClearFilter = (filterType: string, value?: string) => {
+    switch (filterType) {
+      case 'all':
+        handleClearFilters();
+        break;
+      case 'startDate':
+        setStartDate('');
+        setPageNo(0);
+        break;
+      case 'endDate':
+        setEndDate('');
+        setPageNo(0);
+        break;
+      case 'packageSession':
+        if (value) {
+          setPackageSessionFilter(prev => ({
+            ...prev,
+            packageSessionIds: prev.packageSessionIds?.filter(id => id !== value)
+          }));
+        } else {
+          setPackageSessionFilter({
+            packageId: undefined,
+            sessionId: undefined,
+            levelId: undefined,
+            packageSessionId: undefined,
+          });
+        }
+        setPageNo(0);
+        break;
+    }
+  };
+
   const handleQuickFilter = (range: { start: string; end: string }) => {
     setStartDate(range.start);
     setEndDate(range.end);
@@ -108,7 +143,7 @@ function MembershipExpiryPage() {
         </div>
 
         <MembershipExpiryAnalytics
-          packageSessionIds={packageSessionFilter.packageSessionId ? [packageSessionFilter.packageSessionId] : undefined}
+          packageSessionIds={requestFilters.package_session_ids}
           onCardClick={(range) => {
             // handle analytics card click to set filters
             // range has start, end, status. 
@@ -134,6 +169,14 @@ function MembershipExpiryPage() {
             batchesForSessions={batchesForSessions}
             onQuickFilterSelect={handleQuickFilter}
             onClearFilters={handleClearFilters}
+          />
+
+          <ActiveFiltersDisplay
+            startDate={startDate}
+            endDate={endDate}
+            packageSessionFilter={packageSessionFilter}
+            batchesForSessions={batchesForSessions}
+            onClearFilter={handleClearFilter}
           />
 
           <MembershipExpiryTable

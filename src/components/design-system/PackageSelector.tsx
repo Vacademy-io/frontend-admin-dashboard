@@ -7,6 +7,7 @@ import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { cn } from '@/lib/utils';
 import { MagnifyingGlass, X, CaretRight, Info } from '@phosphor-icons/react';
 import { PACKAGE_AUTOCOMPLETE_URL } from '@/constants/urls';
+import { BatchForSession } from '@/types/payment-logs';
 
 interface PackageSelectorProps {
     instituteId: string;
@@ -23,6 +24,7 @@ interface PackageSelectorProps {
     initialLevelId?: string;
     initialSessionId?: string;
     initialPackageId?: string;
+    batchesForSessions?: BatchForSession[];
 }
 
 interface AutocompletePackage {
@@ -45,6 +47,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
     initialLevelId = '',
     initialSessionId = '',
     initialPackageId = '',
+    batchesForSessions = [],
 }) => {
     const {
         getAllLevels,
