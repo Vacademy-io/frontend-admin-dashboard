@@ -7,6 +7,7 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useStudyLibraryContext } from '@/providers/study-library/init-study-library-provider';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
+import { useGetPackageSessionIdFromCourseInit } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionIdFromCourseInit';
 // import useIntroJsTour from '@/hooks/use-intro';
 // import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 // import { studyLibrarySteps } from '@/constants/intro/steps';
@@ -497,8 +498,17 @@ export const CourseStructureDetails = ({
         setSubjects(newSubjects);
     }, [selectedSession, studyLibraryData, courseId, levelId]);
 
-    const packageSessionIds =
+    // Try to get packageSessionId from course-init API first (new approach)
+    const packageSessionIdFromCourseInit = useGetPackageSessionIdFromCourseInit(
+        courseId,
+        selectedSession || '',
+        levelId
+    );
+    // Fallback to institute details if course-init doesn't have it
+    const packageSessionIdFromInstitute =
         useGetPackageSessionId(courseId, selectedSession || '', levelId) || '';
+    // Prefer course-init data, fallback to institute details
+    const packageSessionIds = packageSessionIdFromCourseInit || packageSessionIdFromInstitute;
 
     const useSlidesByChapterMutation = () => {
         return useMutation({
@@ -1668,7 +1678,12 @@ export const CourseStructureDetails = ({
                                                                                                                     </span>
                                                                                                                 )}
                                                                                                                 {getIcon(
-                                                                                                                    (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
+                                                                                                                    (
+                                                                                                                        slide as any
+                                                                                                                    )
+                                                                                                                        .html_video_slide
+                                                                                                                        ? 'HTML_VIDEO'
+                                                                                                                        : slide.source_type,
                                                                                                                     slide
                                                                                                                         .document_slide
                                                                                                                         ?.type,
@@ -2146,7 +2161,12 @@ export const CourseStructureDetails = ({
                                                                                                                     </span>
                                                                                                                 )}
                                                                                                                 {getIcon(
-                                                                                                                    (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
+                                                                                                                    (
+                                                                                                                        slide as any
+                                                                                                                    )
+                                                                                                                        .html_video_slide
+                                                                                                                        ? 'HTML_VIDEO'
+                                                                                                                        : slide.source_type,
                                                                                                                     slide
                                                                                                                         .document_slide
                                                                                                                         ?.type,
@@ -2526,7 +2546,12 @@ export const CourseStructureDetails = ({
                                                                                                                     </span>
                                                                                                                 )}
                                                                                                                 {getIcon(
-                                                                                                                    (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
+                                                                                                                    (
+                                                                                                                        slide as any
+                                                                                                                    )
+                                                                                                                        .html_video_slide
+                                                                                                                        ? 'HTML_VIDEO'
+                                                                                                                        : slide.source_type,
                                                                                                                     slide
                                                                                                                         .document_slide
                                                                                                                         ?.type,
@@ -2620,7 +2645,9 @@ export const CourseStructureDetails = ({
                                                             </span>
                                                         )}
                                                         {getIcon(
-                                                            (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
+                                                            (slide as any).html_video_slide
+                                                                ? 'HTML_VIDEO'
+                                                                : slide.source_type,
                                                             slide.document_slide?.type,
                                                             '3',
                                                             slide
@@ -3354,7 +3381,9 @@ export const CourseStructureDetails = ({
                                     {/* Slide Icon */}
                                     <div className="mb-3 flex aspect-square items-center justify-center rounded-lg bg-gradient-to-br from-blue-50 to-blue-100">
                                         {getIcon(
-                                            (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
+                                            (slide as any).html_video_slide
+                                                ? 'HTML_VIDEO'
+                                                : slide.source_type,
                                             slide.document_slide?.type,
                                             '8',
                                             slide

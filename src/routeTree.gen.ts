@@ -20,6 +20,7 @@ import { Route as MembershipStatsIndexRouteImport } from "./routes/membership-st
 import { Route as MembershipExpiryIndexRouteImport } from "./routes/membership-expiry/index"
 import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
 import { Route as ManagePaymentsIndexRouteImport } from "./routes/manage-payments/index"
+import { Route as ManagePagesIndexRouteImport } from "./routes/manage-pages/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
 import { Route as ManageContactsIndexRouteImport } from "./routes/manage-contacts/index"
 import { Route as LoginIndexRouteImport } from "./routes/login/index"
@@ -79,6 +80,7 @@ import { Route as TemplatesEditTemplateIdRouteImport } from "./routes/templates/
 import { Route as SignupOauthCallbackRouteImport } from "./routes/signup/oauth/callback"
 import { Route as PlanningPlanningLogIdRouteImport } from "./routes/planning/planning/$logId"
 import { Route as PlanningActivityLogsLogIdRouteImport } from "./routes/planning/activity-logs/$logId"
+import { Route as ManagePagesEditorTagNameRouteImport } from "./routes/manage-pages/editor/$tagName"
 import { Route as LoginOauthRedirectRouteImport } from "./routes/login/oauth/redirect"
 import { Route as StudyLibraryVoltAddIndexRouteImport } from "./routes/study-library/volt/add/index"
 import { Route as StudyLibraryLiveSessionScheduleIndexRouteImport } from "./routes/study-library/live-session/schedule/index"
@@ -106,6 +108,7 @@ import { Route as StudyLibraryLiveSessionScheduleStep1IndexRouteImport } from ".
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/index"
 import { Route as StudyLibraryAiCopilotCourseOutlineGeneratingIndexRouteImport } from "./routes/study-library/ai-copilot/course-outline/generating/index"
 import { Route as HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index"
+import { Route as AudienceManagerListCampaignUsersAddIndexRouteImport } from "./routes/audience-manager/list/campaign-users/add/index"
 import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index"
 import { Route as StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRouteImport } from "./routes/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/modules/index"
@@ -201,6 +204,13 @@ const ManagePaymentsIndexRoute = ManagePaymentsIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() =>
   import("./routes/manage-payments/index.lazy").then((d) => d.Route),
+)
+const ManagePagesIndexRoute = ManagePagesIndexRouteImport.update({
+  id: "/manage-pages/",
+  path: "/manage-pages/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/manage-pages/index.lazy").then((d) => d.Route),
 )
 const ManageInstituteIndexRoute = ManageInstituteIndexRouteImport.update({
   id: "/manage-institute/",
@@ -663,6 +673,12 @@ const PlanningActivityLogsLogIdRoute =
   } as any).lazy(() =>
     import("./routes/planning/activity-logs/$logId.lazy").then((d) => d.Route),
   )
+const ManagePagesEditorTagNameRoute =
+  ManagePagesEditorTagNameRouteImport.update({
+    id: "/manage-pages/editor/$tagName",
+    path: "/manage-pages/editor/$tagName",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LoginOauthRedirectRoute = LoginOauthRedirectRouteImport.update({
   id: "/login/oauth/redirect",
   path: "/login/oauth/redirect",
@@ -886,6 +902,12 @@ const HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute =
       "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index.lazy"
     ).then((d) => d.Route),
   )
+const AudienceManagerListCampaignUsersAddIndexRoute =
+  AudienceManagerListCampaignUsersAddIndexRouteImport.update({
+    id: "/audience-manager/list/campaign-users/add/",
+    path: "/audience-manager/list/campaign-users/add/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute =
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport.update({
     id: "/assessment/create-assessment/$assessmentId/$examtype/",
@@ -1019,6 +1041,7 @@ export interface FileRoutesByFullPath {
   "/login": typeof LoginIndexRoute
   "/manage-contacts": typeof ManageContactsIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
+  "/manage-pages": typeof ManagePagesIndexRoute
   "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
   "/membership-expiry": typeof MembershipExpiryIndexRoute
@@ -1029,6 +1052,7 @@ export interface FileRoutesByFullPath {
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
+  "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
@@ -1098,6 +1122,7 @@ export interface FileRoutesByFullPath {
   "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
   "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/audience-manager/list/campaign-users/add": typeof AudienceManagerListCampaignUsersAddIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   "/study-library/courses/course-details/subjects": typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1130,6 +1155,7 @@ export interface FileRoutesByTo {
   "/login": typeof LoginIndexRoute
   "/manage-contacts": typeof ManageContactsIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
+  "/manage-pages": typeof ManagePagesIndexRoute
   "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
   "/membership-expiry": typeof MembershipExpiryIndexRoute
@@ -1140,6 +1166,7 @@ export interface FileRoutesByTo {
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
+  "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
@@ -1209,6 +1236,7 @@ export interface FileRoutesByTo {
   "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
   "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/audience-manager/list/campaign-users/add": typeof AudienceManagerListCampaignUsersAddIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   "/study-library/courses/course-details/subjects": typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1243,6 +1271,7 @@ export interface FileRoutesById {
   "/login/": typeof LoginIndexRoute
   "/manage-contacts/": typeof ManageContactsIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
+  "/manage-pages/": typeof ManagePagesIndexRoute
   "/manage-payments/": typeof ManagePaymentsIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
   "/membership-expiry/": typeof MembershipExpiryIndexRoute
@@ -1253,6 +1282,7 @@ export interface FileRoutesById {
   "/study-library/": typeof StudyLibraryIndexRoute
   "/assessment/": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
+  "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
@@ -1322,6 +1352,7 @@ export interface FileRoutesById {
   "/study-library/volt/add/": typeof StudyLibraryVoltAddIndexRoute
   "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/audience-manager/list/campaign-users/add/": typeof AudienceManagerListCampaignUsersAddIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype/": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating/": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   "/study-library/courses/course-details/subjects/": typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1357,6 +1388,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/manage-contacts"
     | "/manage-institute"
+    | "/manage-pages"
     | "/manage-payments"
     | "/manage-students"
     | "/membership-expiry"
@@ -1367,6 +1399,7 @@ export interface FileRouteTypes {
     | "/study-library"
     | "/assessment"
     | "/login/oauth/redirect"
+    | "/manage-pages/editor/$tagName"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
@@ -1436,6 +1469,7 @@ export interface FileRouteTypes {
     | "/study-library/volt/add"
     | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype"
+    | "/audience-manager/list/campaign-users/add"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
     | "/study-library/ai-copilot/course-outline/generating"
     | "/study-library/courses/course-details/subjects"
@@ -1468,6 +1502,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/manage-contacts"
     | "/manage-institute"
+    | "/manage-pages"
     | "/manage-payments"
     | "/manage-students"
     | "/membership-expiry"
@@ -1478,6 +1513,7 @@ export interface FileRouteTypes {
     | "/study-library"
     | "/assessment"
     | "/login/oauth/redirect"
+    | "/manage-pages/editor/$tagName"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
@@ -1547,6 +1583,7 @@ export interface FileRouteTypes {
     | "/study-library/volt/add"
     | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype"
+    | "/audience-manager/list/campaign-users/add"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
     | "/study-library/ai-copilot/course-outline/generating"
     | "/study-library/courses/course-details/subjects"
@@ -1580,6 +1617,7 @@ export interface FileRouteTypes {
     | "/login/"
     | "/manage-contacts/"
     | "/manage-institute/"
+    | "/manage-pages/"
     | "/manage-payments/"
     | "/manage-students/"
     | "/membership-expiry/"
@@ -1590,6 +1628,7 @@ export interface FileRouteTypes {
     | "/study-library/"
     | "/assessment/"
     | "/login/oauth/redirect"
+    | "/manage-pages/editor/$tagName"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
@@ -1659,6 +1698,7 @@ export interface FileRouteTypes {
     | "/study-library/volt/add/"
     | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype/"
+    | "/audience-manager/list/campaign-users/add/"
     | "/homework-creation/create-assessment/$assessmentId/$examtype/"
     | "/study-library/ai-copilot/course-outline/generating/"
     | "/study-library/courses/course-details/subjects/"
@@ -1692,6 +1732,7 @@ export interface RootRouteChildren {
   LoginIndexRoute: typeof LoginIndexRoute
   ManageContactsIndexRoute: typeof ManageContactsIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
+  ManagePagesIndexRoute: typeof ManagePagesIndexRoute
   ManagePaymentsIndexRoute: typeof ManagePaymentsIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
   MembershipExpiryIndexRoute: typeof MembershipExpiryIndexRoute
@@ -1702,6 +1743,7 @@ export interface RootRouteChildren {
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
   AssessmentIndexLazyRoute: typeof AssessmentIndexLazyRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
+  ManagePagesEditorTagNameRoute: typeof ManagePagesEditorTagNameRoute
   PlanningActivityLogsLogIdRoute: typeof PlanningActivityLogsLogIdRoute
   PlanningPlanningLogIdRoute: typeof PlanningPlanningLogIdRoute
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
@@ -1771,6 +1813,7 @@ export interface RootRouteChildren {
   StudyLibraryVoltAddIndexRoute: typeof StudyLibraryVoltAddIndexRoute
   StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute: typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  AudienceManagerListCampaignUsersAddIndexRoute: typeof AudienceManagerListCampaignUsersAddIndexRoute
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   StudyLibraryCoursesCourseDetailsSubjectsIndexRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1878,6 +1921,13 @@ declare module "@tanstack/react-router" {
       path: "/manage-payments"
       fullPath: "/manage-payments"
       preLoaderRoute: typeof ManagePaymentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/manage-pages/": {
+      id: "/manage-pages/"
+      path: "/manage-pages"
+      fullPath: "/manage-pages"
+      preLoaderRoute: typeof ManagePagesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-institute/": {
@@ -2293,6 +2343,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PlanningActivityLogsLogIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/manage-pages/editor/$tagName": {
+      id: "/manage-pages/editor/$tagName"
+      path: "/manage-pages/editor/$tagName"
+      fullPath: "/manage-pages/editor/$tagName"
+      preLoaderRoute: typeof ManagePagesEditorTagNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/login/oauth/redirect": {
       id: "/login/oauth/redirect"
       path: "/login/oauth/redirect"
@@ -2482,6 +2539,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/audience-manager/list/campaign-users/add/": {
+      id: "/audience-manager/list/campaign-users/add/"
+      path: "/audience-manager/list/campaign-users/add"
+      fullPath: "/audience-manager/list/campaign-users/add"
+      preLoaderRoute: typeof AudienceManagerListCampaignUsersAddIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/assessment/create-assessment/$assessmentId/$examtype/": {
       id: "/assessment/create-assessment/$assessmentId/$examtype/"
       path: "/assessment/create-assessment/$assessmentId/$examtype"
@@ -2590,6 +2654,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginIndexRoute: LoginIndexRoute,
   ManageContactsIndexRoute: ManageContactsIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
+  ManagePagesIndexRoute: ManagePagesIndexRoute,
   ManagePaymentsIndexRoute: ManagePaymentsIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
   MembershipExpiryIndexRoute: MembershipExpiryIndexRoute,
@@ -2600,6 +2665,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
   AssessmentIndexLazyRoute: AssessmentIndexLazyRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
+  ManagePagesEditorTagNameRoute: ManagePagesEditorTagNameRoute,
   PlanningActivityLogsLogIdRoute: PlanningActivityLogsLogIdRoute,
   PlanningPlanningLogIdRoute: PlanningPlanningLogIdRoute,
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
@@ -2688,6 +2754,8 @@ const rootRouteChildren: RootRouteChildren = {
     StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute,
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
+  AudienceManagerListCampaignUsersAddIndexRoute:
+    AudienceManagerListCampaignUsersAddIndexRoute,
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute:
     HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute,
   StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute:

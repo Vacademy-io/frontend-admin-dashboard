@@ -10,10 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Save, RotateCcw, Settings } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
 import useLocalStorage from '@/hooks/use-local-storage';
-import { IntroKey } from '@/constants/storage/introKey';
 import {
     createNamingSettings,
     updateNamingSettings,
+    getNamingSettings,
     type NamingSettingsRequest,
 } from '@/services/naming-settings';
 import { StorageKey } from '@/constants/storage/storage';
@@ -68,62 +68,91 @@ export enum SystemTerms {
 const createNameRequest = (settings: NamingSettingsType[]): NamingSettingsRequest => {
     const request: Partial<NamingSettingsRequest> = {};
     settings.forEach((item) => {
-        (request as Record<string, string>)[item.key] = item.customValue;
+        let backendKey = item.key;
+        if (item.key === 'Subject') backendKey = 'Subjects';
+        if (item.key === 'Module') backendKey = 'Modules';
+        if (item.key === 'Chapter') backendKey = 'Chapters';
+        if (item.key === 'Slide') backendKey = 'Slides';
+        if (item.key === 'Learner') backendKey = 'Student';
+
+        (request as Record<string, string>)[backendKey] = item.customValue;
+
+        // Also keep original key just in case backend supports both or dynamic
+        if (backendKey !== item.key) {
+            (request as Record<string, string>)[item.key] = item.customValue;
+        }
     });
     return request as unknown as NamingSettingsRequest;
 };
 
 export default function NamingSettings() {
     const [settings, setSettings] = useState<NamingSettingsType[] | null>(null);
-    const { getValue: getFirstTimeValue, setValue: setFirstTimeValue } = useLocalStorage<boolean>(
-        IntroKey.firstTimeNamingSettings,
-        false
-    );
-    const { getValue: getNamingSettings, setValue: setNamingSettingsStorage } = useLocalStorage<
+    const { getValue: getNamingSettingsStorage, setValue: setNamingSettingsStorage } = useLocalStorage<
         NamingSettingsType[]
     >(StorageKey.NAMING_SETTINGS, []);
 
     const [isLoading, setIsLoading] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
 
-    // Initialize settings based on visit history
+    // Initialize settings from Backend
     useEffect(() => {
         const initializeSettings = async () => {
-            const isFirstTime = getFirstTimeValue();
+            // 1. First, check local storage for immediate render (better UX)
+            const savedSettings = getNamingSettingsStorage();
+            if (Array.isArray(savedSettings) && savedSettings.length > 0) {
+                setSettings(savedSettings);
+            }
 
-            if (!isFirstTime) {
-                // First time visit - call create API with defaults and render defaults
-                try {
-                    const nameRequest = createNameRequest(defaultNamingSettings);
-                    console.log('name request', nameRequest);
-                    await createNamingSettings(nameRequest);
+            try {
+                // 2. Always fetch fresh data from the backend
+                const backendSettings = await getNamingSettings();
 
-                    // Store defaults in localStorage after successful API call
-                    setNamingSettingsStorage(defaultNamingSettings);
-                    setFirstTimeValue(true);
+                if (backendSettings && Array.isArray(backendSettings)) {
+                    // Map backend array to UI array
+                    const settingsArray: NamingSettingsType[] = defaultNamingSettings.map((defaultItem) => {
+                        let customValue = defaultItem.systemValue;
 
-                    // Render defaults in UI
+                        // Helper to find item in backend array
+                        const findInBackend = (key: string) => backendSettings.find(i => i.key === key);
+
+                        // 1. Try exact match
+                        let foundItem = findInBackend(defaultItem.key);
+
+                        // 2. If not found, try plural/alias mappings
+                        if (!foundItem) {
+                            if (defaultItem.key === 'Subject') foundItem = findInBackend('Subjects') || findInBackend('Subject');
+                            else if (defaultItem.key === 'Module') foundItem = findInBackend('Modules') || findInBackend('Module');
+                            else if (defaultItem.key === 'Chapter') foundItem = findInBackend('Chapters') || findInBackend('Chapter');
+                            else if (defaultItem.key === 'Slide') foundItem = findInBackend('Slides') || findInBackend('Slide');
+                            else if (defaultItem.key === 'Learner') foundItem = findInBackend('Student') || findInBackend('Learner');
+                        }
+
+                        // 3. If found, use its custom value
+                        if (foundItem) {
+                            customValue = foundItem.customValue;
+                        }
+
+                        return {
+                            ...defaultItem,
+                            customValue: customValue,
+                        };
+                    });
+
+                    setSettings(settingsArray);
+                    setNamingSettingsStorage(settingsArray);
+                } else if (!savedSettings || savedSettings.length === 0) {
+                    // If API returns null AND local storage is empty, use defaults
                     setSettings(defaultNamingSettings);
-
-                    toast.success('Settings Initialized');
-                } catch (error) {
-                    console.error('Failed to create initial naming settings:', error);
-                    // Still render defaults in UI even if API fails
-                    setSettings(defaultNamingSettings);
-                    toast.error(
-                        'Failed to initialize naming settings on server. You can still modify settings locally.'
-                    );
                 }
-            } else {
-                // Second time onwards - load from storage
-                const savedSettings = getNamingSettings();
-                if (!isNullOrEmptyOrUndefined(savedSettings) && savedSettings.length > 0) {
-                    setSettings(savedSettings);
-                } else {
-                    // Fallback to defaults if storage is empty
+            } catch (error) {
+                console.error('Failed to initialize naming settings:', error);
+                // If API fails, rely on local storage or defaults
+                if (!savedSettings || savedSettings.length === 0) {
                     setSettings(defaultNamingSettings);
-                    setNamingSettingsStorage(defaultNamingSettings);
                 }
+                toast.error(
+                    'Failed to sync settings with server.'
+                );
             }
         };
 
@@ -170,7 +199,7 @@ export default function NamingSettings() {
             // Call the update API
             const nameRequest = createNameRequest(settings);
             await updateNamingSettings(nameRequest);
-            window.location.reload();
+
             // Save to localStorage
             setNamingSettingsStorage(settings);
             setHasChanges(false);
@@ -264,7 +293,7 @@ export default function NamingSettings() {
                                         >
                                             {
                                                 systemValueDescription[
-                                                    item.key as keyof typeof systemValueDescription
+                                                item.key as keyof typeof systemValueDescription
                                                 ]
                                             }
                                         </Badge>
@@ -324,7 +353,7 @@ export default function NamingSettings() {
                                         >
                                             {
                                                 systemValueDescription[
-                                                    item.key as keyof typeof systemValueDescription
+                                                item.key as keyof typeof systemValueDescription
                                                 ]
                                             }
                                         </Badge>

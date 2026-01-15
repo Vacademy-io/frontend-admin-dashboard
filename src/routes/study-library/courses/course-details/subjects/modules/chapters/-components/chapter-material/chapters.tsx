@@ -8,6 +8,7 @@ import { FormValues } from '../chapter-material';
 import { ChapterWithSlides } from '@/stores/study-library/use-modules-with-chapters-store';
 import { useRouter } from '@tanstack/react-router';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
+import { useGetPackageSessionIdFromCourseInit } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionIdFromCourseInit';
 import { useSelectedSessionStore } from '@/stores/study-library/selected-session-store';
 import { orderChapterPayloadType } from '@/routes/study-library/courses/-types/order-payload';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -31,8 +32,17 @@ export const Chapters = ({
     const { courseId = '', levelId = '' } = route.state.location.search;
     const { selectedSession } = useSelectedSessionStore();
 
-    const packageSessionId =
+    // Try to get packageSessionId from course-init API first (new approach)
+    const packageSessionIdFromCourseInit = useGetPackageSessionIdFromCourseInit(
+        courseId,
+        selectedSession?.id || '',
+        levelId
+    );
+    // Fallback to institute details if course-init doesn't have it
+    const packageSessionIdFromInstitute =
         useGetPackageSessionId(courseId, selectedSession?.id || '', levelId) || '';
+    // Prefer course-init data, fallback to institute details
+    const packageSessionId = packageSessionIdFromCourseInit || packageSessionIdFromInstitute;
 
     const { fields, move } = useFieldArray({
         control: form.control,

@@ -65,8 +65,8 @@ import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/disp
 import { getCustomFieldSettings } from '@/services/custom-field-settings';
 
 // Analytics Widgets
-import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
-import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
+// import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
+// import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
 import UserActivitySummaryWidget from './-components/analytics-widgets/UserActivitySummaryWidget';
 
 // Dashboard Widgets
@@ -256,12 +256,14 @@ function MyCoursesWidget() {
         const fetchCourseData = async () => {
             try {
                 setCourseCounts((prev) => ({ ...prev, loading: true, error: false }));
-                const courses = await getMyCourses();
+                const response = await getMyCourses();
 
-                if (Array.isArray(courses)) {
-                    const totalAuthored = courses.length;
+                // Handle V2 paginated response - use totalElements for counts
+                if (response && response.content) {
+                    const courses = response.content;
+                    const totalAuthored = response.totalElements || courses.length;
                     const inReview = courses.filter(
-                        (course) => course.courseStatus === 'IN_REVIEW'
+                        (course: any) => course.courseStatus === 'IN_REVIEW'
                     ).length;
 
                     setCourseCounts({
@@ -271,7 +273,7 @@ function MyCoursesWidget() {
                         error: false,
                     });
                 } else {
-                    // Handle case where courses might be null or undefined
+                    // Handle case where response might be null or undefined
                     setCourseCounts({
                         authored: 0,
                         inReview: 0,
@@ -591,22 +593,22 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                             <RecentNotificationsWidget onSeeAll={onOpenAllAlerts} />
                                         ),
                                     },
-                                    {
-                                        id: 'realTimeActiveUsers' as const,
-                                        node: (
-                                            <RealTimeActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
-                                    {
-                                        id: 'currentlyActiveUsers' as const,
-                                        node: (
-                                            <CurrentlyActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
+                                    // {
+                                    //     id: 'realTimeActiveUsers' as const,
+                                    //     node: (
+                                    //         <RealTimeActiveUsersWidget
+                                    //             instituteId={instituteDetails?.id || ''}
+                                    //         />
+                                    //     ),
+                                    // },
+                                    // {
+                                    //     id: 'currentlyActiveUsers' as const,
+                                    //     node: (
+                                    //         <CurrentlyActiveUsersWidget
+                                    //             instituteId={instituteDetails?.id || ''}
+                                    //         />
+                                    //     ),
+                                    // },
                                     {
                                         id: 'userActivitySummary' as const,
                                         node: (

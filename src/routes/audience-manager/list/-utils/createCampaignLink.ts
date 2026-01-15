@@ -1,24 +1,19 @@
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 
-const DEFAULT_LEARNER_PORTAL_URL =
-    import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
+import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
+
+const DEFAULT_LEARNER_PORTAL_URL = BASE_URL_LEARNER_DASHBOARD;
 
 /**
  * Build a shareable campaign link that learners can open.
  * Assumes learner portal handles `audience-campaign-response` route.
  */
-export const createCampaignLink = (
-    campaignId: string,
-    learnerPortalBaseUrl?: string
-): string => {
+export const createCampaignLink = (campaignId: string, learnerPortalBaseUrl?: string): string => {
     if (!campaignId) return '';
 
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const instituteId = tokenData && Object.keys(tokenData.authorities)[0];
+    const instituteId = getCurrentInstituteId();
 
-    const portalBase =   DEFAULT_LEARNER_PORTAL_URL || 'https://learner.vacademy.io';
+    const portalBase = learnerPortalBaseUrl || DEFAULT_LEARNER_PORTAL_URL;
     const encodedInstitute = encodeURIComponent(instituteId || '');
     const encodedCampaign = encodeURIComponent(campaignId);
 
@@ -26,4 +21,3 @@ export const createCampaignLink = (
 };
 
 export default createCampaignLink;
-

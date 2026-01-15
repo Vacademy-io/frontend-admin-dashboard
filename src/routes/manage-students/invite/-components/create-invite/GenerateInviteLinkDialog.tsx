@@ -5,8 +5,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useEffect, useRef } from 'react';
 import { useForm as useDiscountForm } from 'react-hook-form';
@@ -158,9 +157,7 @@ const GenerateInviteLinkDialog = ({
 
     const { instituteDetails, getPackageSessionId } = useInstituteDetailsStore();
     const allTags = instituteDetails?.tags || [];
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+    const INSTITUTE_ID = getCurrentInstituteId();
 
     // Helper function to safely parse JSON
     const safeJsonParse = (jsonString: string | null | undefined, defaultValue: unknown = null) => {
@@ -325,7 +322,7 @@ const GenerateInviteLinkDialog = ({
         if (input.trim()) {
             const filtered = allTags
                 ?.filter(
-                    (tag) =>
+                    (tag: string) =>
                         tag.toLowerCase().includes(input.toLowerCase()) &&
                         !form.watch('tags').includes(tag) // Exclude already selected tags
                 )

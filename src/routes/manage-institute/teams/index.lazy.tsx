@@ -231,11 +231,10 @@ function RouteComponent() {
           status: [{ id: '1', name: 'INVITED' }],
         }),
       ])
-        .then(([instituteUsersData, invitesData]) => {
+        .then(([instituteUsersData]) => {
           setDashboardUsers((prev) => ({
             ...prev,
             instituteUsers: instituteUsersData,
-            invites: invitesData,
           }));
         })
         .catch((error) => {

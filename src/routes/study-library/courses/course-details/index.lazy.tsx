@@ -27,21 +27,34 @@ function RouteComponent() {
     const [isLoading, setIsLoading] = useState(false);
 
     // Fetch authored courses using the correct API
-    const { data: authoredCoursesData, isLoading: isLoadingCourses } = useQuery({
-        queryKey: ['my-courses'],
-        queryFn: getMyCourses,
-        refetchInterval: 30000,
+    const { data: authoredCoursesData, isLoading: isLoadingCourses } = useQuery<{
+        content: Array<{
+            courseId: string;
+            packageEntity: {
+                id: string;
+                packageName: string;
+                status: string;
+            };
+        }>;
+    }>({
+        queryKey: ['my-courses-sidebar'],
+        queryFn: async () => getMyCourses(0, 1000), // Fetch large number for sidebar
+        staleTime: 60000, // Consider data fresh for 60 seconds
+        refetchOnWindowFocus: false, // Don't refetch on window focus
     });
 
     // Process authored courses for sidebar
     const authoredCourses = useMemo(() => {
-        if (!authoredCoursesData || !Array.isArray(authoredCoursesData)) {
+        // Handle V2 paginated response
+        const coursesArray = authoredCoursesData?.content || [];
+        
+        if (!Array.isArray(coursesArray) || coursesArray.length === 0) {
             return [];
         }
 
         // Group courses by courseId and extract unique courses
         const courseMap = new Map();
-        authoredCoursesData.forEach((response) => {
+        coursesArray.forEach((response) => {
             const courseId = response.courseId;
             const course = response.packageEntity;
 
@@ -101,7 +114,7 @@ function RouteComponent() {
             hasInternalSidebarComponent={true}
             internalSidebarComponent={customSidebar}
         >
-            <InitStudyLibraryProvider>
+            <InitStudyLibraryProvider courseId={courseId}>
                 {isLoading || isLoadingCourses ? (
                     <div className="flex min-h-screen items-center justify-center">
                         <div className="flex flex-col items-center gap-4">

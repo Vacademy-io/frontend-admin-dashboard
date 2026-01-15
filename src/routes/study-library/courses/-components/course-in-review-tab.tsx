@@ -65,15 +65,21 @@ export const CourseInReviewTab: React.FC = () => {
 
     // Fetch courses
     const {
-        data: courses,
+        data: coursesResponse,
         isLoading,
         refetch,
         error,
-    } = useQuery<CourseInReviewResponse[]>({
+    } = useQuery<{
+        content: CourseInReviewResponse[];
+    }>({
         queryKey: ['my-courses-in-review'],
-        queryFn: getMyCourses,
-        refetchInterval: 30000,
+        queryFn: async () => getMyCourses(0, 1000), // Fetch all for filtering
+        staleTime: 30000, // Consider data fresh for 30 seconds
+        refetchOnWindowFocus: false, // Don't refetch on window focus
     });
+
+    // Extract courses from V2 paginated response
+    const courses: CourseInReviewResponse[] = coursesResponse?.content || [];
 
     // Withdraw from review mutation
     const withdrawMutation = useMutation({
@@ -101,7 +107,7 @@ export const CourseInReviewTab: React.FC = () => {
         if (!courses) return;
 
         // First filter for IN_REVIEW status
-        let filtered = courses.filter((course) => course.courseStatus === 'IN_REVIEW');
+        let filtered = courses.filter((course: CourseInReviewResponse) => course.courseStatus === 'IN_REVIEW');
 
         // Check if user is admin
         const safeRoles = Array.isArray(roles) ? roles : [];
@@ -110,7 +116,7 @@ export const CourseInReviewTab: React.FC = () => {
         // If user is not admin, filter out sessions with name 'invited'
         if (!isAdmin) {
             filtered = filtered.filter(
-                (course) => course.sessionInfo?.sessionName?.toLowerCase() !== 'invited'
+                (course: CourseInReviewResponse) => course.sessionInfo?.sessionName?.toLowerCase() !== 'invited'
             );
         }
 

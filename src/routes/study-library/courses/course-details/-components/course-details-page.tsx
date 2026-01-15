@@ -29,6 +29,7 @@ import { useForm } from 'react-hook-form';
 import { CourseDetailsFormValues, courseDetailsSchema } from './course-details-schema';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
+import { useGetPackageSessionIdFromCourseInit } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionIdFromCourseInit';
 import {
     VideoSlide,
     DocumentSlide,
@@ -310,12 +311,21 @@ export const CourseDetailsPage = () => {
         .sessions.find((session) => session.sessionDetails.id === selectedSession);
     const currentLevel = currentSession?.levelDetails.find((level) => level.id === selectedLevel);
 
-    const packageSessionIds =
+    // Try to get packageSessionId from course-init API first (new approach)
+    const packageSessionIdFromCourseInit = useGetPackageSessionIdFromCourseInit(
+        searchParams.courseId ?? '',
+        currentSession?.sessionDetails.id ?? '',
+        currentLevel?.id ?? ''
+    );
+    // Fallback to institute details if course-init doesn't have it
+    const packageSessionIdFromInstitute =
         useGetPackageSessionId(
             searchParams.courseId ?? '',
             currentSession?.sessionDetails.id ?? '',
             currentLevel?.id ?? ''
         ) || '';
+    // Prefer course-init data, fallback to institute details
+    const packageSessionIds = packageSessionIdFromCourseInit || packageSessionIdFromInstitute;
 
     // Convert sessions to select options format
     const sessionOptions = useMemo(() => {

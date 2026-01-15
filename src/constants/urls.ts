@@ -3,7 +3,8 @@ export const BASE_URL_LEARNER_DASHBOARD =
     import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
 
 // For testing, use localhost:8077
-export const AI_SERVICE_BASE_URL = import.meta.env.VITE_AI_SERVICE_BASE_URL || 'http://localhost:8077/ai-service';
+export const AI_SERVICE_BASE_URL =
+    import.meta.env.VITE_AI_SERVICE_BASE_URL || 'http://localhost:8077/ai-service';
 
 // AI Video URLs API
 export const GET_VIDEO_URLS = (videoId: string) => `${AI_SERVICE_BASE_URL}/video/urls/${videoId}`;
@@ -48,7 +49,8 @@ export const UPDATE_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1
 export const UPDATE_ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-details/update`;
 export const GET_DASHBOARD_ASSESSMENT_COUNT_URL = `${BASE_URL}/assessment-service/assessment/admin/dashboard/get-count`;
 export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details`;
-export const INIT_INSTITUTE_SETUP = `${BASE_URL}/admin-core-service/institute/v1/setup`;
+export const INIT_INSTITUTE_WITHOUT_BATCHES = `${BASE_URL}/admin-core-service/institute/v1/details-non-batches`;
+export const INIT_INSTITUTE_SETUP = `${BASE_URL}/admin-core-service/institute/v1/setup-without-batches`;
 export const ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-details/get`;
 export const GET_STUDENTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all`;
 export const GET_ASSESSMENT_DETAILS = `${BASE_URL}/assessment-service/assessment/create/v1/status`;
@@ -121,6 +123,7 @@ export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge-get-details`;
 
 export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/init`;
+export const INIT_COURSE_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/course-init`;
 export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/study-library/modules-with-chapters`;
 export const ENROLL_INVITE_URL = `${BASE_URL}/admin-core-service/v1/enroll-invite`;
 export const GET_PAYMENTS_URL = `${BASE_URL}/admin-core-service/v1/payment-option/get-payment-options`;
@@ -153,7 +156,7 @@ export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-co
 export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course-details`;
 
 // Teacher Course Approval Workflow URLs
-export const TEACHER_MY_COURSES = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/my-courses/detailed`;
+export const TEACHER_MY_COURSES = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/my-courses/detailed/v2`;
 export const TEACHER_CREATE_EDITABLE_COPY = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/create-editable-copy`;
 export const TEACHER_SUBMIT_FOR_REVIEW = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/submit-for-review`;
 export const TEACHER_WITHDRAW_FROM_REVIEW = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/withdraw-from-review`;
@@ -451,3 +454,14 @@ export const AGENT_RESPOND = (sessionId: string) =>
     `${BASE_URL}/admin-core-service/v1/agent/respond/${sessionId}`;
 export const AGENT_SESSION_STATUS = (sessionId: string) =>
     `${BASE_URL}/admin-core-service/v1/agent/session/${sessionId}/status`;
+
+// Course Catalogue Editor
+export const CATALOGUE_BASE_URL = `${BASE_URL}/admin-core-service/v1/course-catalogue`;
+export const GET_CATALOGUE_TAGS = (instituteId: string) =>
+    `${CATALOGUE_BASE_URL}/institute/get-all?instituteId=${instituteId}`;
+export const CREATE_CATALOGUE = (instituteId: string) =>
+    `${CATALOGUE_BASE_URL}/create?instituteId=${instituteId}`;
+export const UPDATE_CATALOGUE = (catalogueId: string) =>
+    `${CATALOGUE_BASE_URL}/update?catalogueId=${catalogueId}`;
+export const GET_CATALOGUE_BY_TAG = (instituteId: string, tagName: string) =>
+    `${CATALOGUE_BASE_URL}/institute/get/by-tag?instituteId=${instituteId}&tagName=${encodeURIComponent(tagName)}`;

@@ -2,7 +2,10 @@ import { useMemo, useState, useEffect } from 'react';
 import { MyTable } from '@/components/design-system/table';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import EmptyInvitePage from '@/assets/svgs/empty-invite-page.svg';
-import { MyPagination } from '@/components/design-system/pagination';
+import { Button } from '@/components/ui/button';
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
+import { ChevronLeft, ChevronRight, Download, UserPlus } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 import { useCampaignUsers } from '../../-hooks/useCampaignUsers';
 import {
     campaignUsersColumns,
@@ -13,6 +16,8 @@ import { convertToLocalDateTime } from '@/constants/helper';
 import { useCustomFieldSetup } from '../../-hooks/useCustomFieldSetup';
 import { CustomFieldSetupItem } from '../../-services/get-custom-field-setup';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { toast } from 'sonner';
+import { fetchCampaignLeads } from '../../-services/get-campaign-users';
 
 // Helper function to generate key from name
 const generateKeyFromName = (name: string): string =>
@@ -36,6 +41,8 @@ export const CampaignUsersTable = ({
     const pageSize = 10;
     const { instituteDetails } = useInstituteDetailsStore();
     const instituteId = instituteDetails?.id;
+    const [isDownloading, setIsDownloading] = useState(false);
+    const navigate = useNavigate();
 
     // Reset page when campaign changes
     useEffect(() => {
@@ -43,18 +50,12 @@ export const CampaignUsersTable = ({
         console.log('🔄 [CampaignUsersTable] Campaign changed, resetting page to 0');
     }, [campaignId]);
 
-    // Parse custom fields from JSON - this will update when customFieldsJson prop changes
-    // This is the source of truth for which custom fields this campaign has
+    // Parse custom fields from JSON
     const customFields = useMemo(() => {
         if (!customFieldsJson) return [];
         try {
             const parsed = JSON.parse(customFieldsJson);
             const fields = Array.isArray(parsed) ? parsed : [];
-            console.log(
-                '🔄 [CampaignUsersTable] Parsed custom fields from campaign:',
-                fields.length,
-                'fields'
-            );
             return fields;
         } catch (error) {
             console.error('Error parsing custom fields:', error);
@@ -77,49 +78,22 @@ export const CampaignUsersTable = ({
         customFieldSetup.forEach((field) => {
             const registerKey = (key?: string) => {
                 if (!key) return;
-                // Register multiple variations for better lookup
                 map.set(key, field);
                 map.set(key.toLowerCase(), field);
                 map.set(key.toUpperCase(), field);
-                // Also try without special characters
                 const normalized = key.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                 if (normalized && normalized !== key.toLowerCase()) {
                     map.set(normalized, field);
                 }
             };
 
-            // Register all possible identifiers
             registerKey(field.custom_field_id);
             registerKey(field.field_key);
-            // Also register field_name as a potential lookup key
             if (field.field_name) {
                 const nameKey = generateKeyFromName(field.field_name);
                 registerKey(nameKey);
             }
         });
-
-        console.log(
-            '📋 [CampaignUsersTable] Loaded custom field setup from API, count:',
-            customFieldSetup.length
-        );
-
-        // Log sample fields for debugging
-        if (customFieldSetup.length > 0) {
-            console.log(
-                '📋 [CampaignUsersTable] Sample fields from setup API:',
-                customFieldSetup.slice(0, 5).map((f) => ({
-                    custom_field_id: f.custom_field_id,
-                    field_key: f.field_key,
-                    field_name: f.field_name,
-                }))
-            );
-        }
-
-        console.log('📋 [CampaignUsersTable] Lookup map size:', map.size);
-        console.log(
-            '📋 [CampaignUsersTable] Lookup map keys (first 10):',
-            Array.from(map.keys()).slice(0, 10)
-        );
         return map;
     }, [customFieldSetup]);
 
@@ -136,12 +110,9 @@ export const CampaignUsersTable = ({
 
     const { data: usersResponse, isLoading, error } = useCampaignUsers(leadsPayload);
 
-    // Collect ALL unique field IDs from ALL users in the API response
-    // This ensures we show ALL fields that exist in the leads API, even if some users don't have data
     const allFieldIdsFromAllUsers = useMemo(() => {
         const allFieldIds = new Set<string>();
 
-        // Add field IDs from campaign customFields
         if (customFields && customFields.length > 0) {
             customFields.forEach((campaignField: any) => {
                 const fieldId =
@@ -155,8 +126,6 @@ export const CampaignUsersTable = ({
             });
         }
 
-        // Add field IDs from API response custom_field_values from ALL users
-        // This collects ALL fields that exist in ANY user's response
         if (usersResponse && usersResponse.content) {
             usersResponse.content.forEach((lead: any) => {
                 const customValues = lead.custom_field_values || {};
@@ -166,26 +135,9 @@ export const CampaignUsersTable = ({
             });
         }
 
-        const collectedFieldIds = Array.from(allFieldIds);
-        console.log(
-            '📊 [CampaignUsersTable] All field IDs from all users:',
-            collectedFieldIds.length,
-            'fields'
-        );
-        console.log('📊 [CampaignUsersTable] Field IDs:', collectedFieldIds);
-
-        // Log sample field IDs for debugging
-        if (collectedFieldIds.length > 0) {
-            console.log(
-                '📊 [CampaignUsersTable] Sample field IDs (first 5):',
-                collectedFieldIds.slice(0, 5)
-            );
-        }
-
-        return collectedFieldIds;
+        return Array.from(allFieldIds);
     }, [customFields, usersResponse]);
 
-    // Create a map from campaign's custom fields for field name lookup
     const campaignFieldsMap = useMemo(() => {
         const map = new Map<string, { name: string; key?: string }>();
         if (!customFields || customFields.length === 0) {
@@ -206,26 +158,16 @@ export const CampaignUsersTable = ({
                 const fieldKey = meta.fieldKey || meta.field_key || generateKeyFromName(fieldName);
 
                 if (fieldName) {
-                    // Register multiple variations
                     map.set(fieldId, { name: fieldName, key: fieldKey });
                     map.set(fieldId.toLowerCase(), { name: fieldName, key: fieldKey });
                     map.set(fieldId.toUpperCase(), { name: fieldName, key: fieldKey });
                 }
             }
         });
-
-        console.log('📋 [CampaignUsersTable] Created campaign fields map, size:', map.size);
-        if (map.size > 0) {
-            console.log(
-                '📋 [CampaignUsersTable] Campaign fields map entries:',
-                Array.from(map.entries()).slice(0, 5)
-            );
-        }
         return map;
     }, [customFields]);
 
     const columns = useMemo(() => {
-        // Convert collected field IDs to array and create field objects for column generation
         const allCustomFieldsArray = allFieldIdsFromAllUsers.map((fieldId) => ({
             id: fieldId,
             _id: fieldId,
@@ -236,42 +178,11 @@ export const CampaignUsersTable = ({
             return campaignUsersColumns;
         }
 
-        // Check which field IDs are in the lookup
-        const fieldsInLookup: string[] = [];
-        const fieldsNotInLookup: string[] = [];
-        allFieldIdsFromAllUsers.forEach((fieldId) => {
-            const found =
-                customFieldMap.has(fieldId) ||
-                customFieldMap.has(fieldId.toLowerCase()) ||
-                customFieldMap.has(fieldId.toUpperCase());
-            if (found) {
-                fieldsInLookup.push(fieldId);
-            } else {
-                fieldsNotInLookup.push(fieldId);
-            }
-        });
-
-        // Use all collected field IDs to generate columns
-        // This maps each field ID to its name using the custom-field setup API response
-        // Pass campaignFieldsMap as fallback for field names
         const fieldIdsToUse = allCustomFieldsArray.length > 0 ? allCustomFieldsArray : customFields;
-        const generatedColumns = generateDynamicColumns(
-            fieldIdsToUse,
-            customFieldMap,
-            // campaignFieldsMap
-        );
+        const generatedColumns = generateDynamicColumns(fieldIdsToUse, customFieldMap);
         return generatedColumns;
-    }, [
-        campaignId,
-        customFields,
-        allFieldIdsFromAllUsers,
-        customFieldSetup,
-        customFieldMap,
-        campaignFieldsMap,
-    ]); // Include custom field setup dependency
+    }, [customFields, allFieldIdsFromAllUsers, customFieldMap]);
 
-    // Create a unique key for the table to force re-render when columns change
-    // This key must include field IDs from both campaign and API response
     const tableKey = useMemo(() => {
         const fieldIdsKey =
             allFieldIdsFromAllUsers.length > 0
@@ -280,9 +191,6 @@ export const CampaignUsersTable = ({
         return `campaign-users-table-${campaignId}-${fieldIdsKey}`;
     }, [campaignId, allFieldIdsFromAllUsers]);
 
-    // Map API response data to table rows
-    // This will regenerate whenever usersResponse or customFields change
-    // CRITICAL: Ensure ALL fields from allFieldIdsFromAllUsers are present in each row
     const tableData = useMemo(() => {
         if (!usersResponse || !usersResponse.content || usersResponse.content.length === 0) {
             return undefined;
@@ -296,24 +204,19 @@ export const CampaignUsersTable = ({
                     ? convertToLocalDateTime(lead.submitted_at_local)
                     : '-';
 
-                // Build dynamic row data - start with base fields
                 const rowData: any = {
                     id: lead.response_id || lead.user_id || `${index}`,
                     submittedAt,
                     index: page * pageSize + index,
                 };
 
-                // CRITICAL: Process ALL field IDs from ALL users (not just this user's fields)
-                // This ensures every row has ALL fields, with null/- if the user doesn't have that field
                 allFieldIdsFromAllUsers.forEach((fieldId) => {
-                    // Get field info from API setup map - try multiple lookup strategies
                     let fieldInfo =
                         customFieldMap.get(fieldId) ||
                         customFieldMap.get(fieldId.toLowerCase()) ||
                         customFieldMap.get(fieldId.toUpperCase()) ||
                         customFieldMap.get(fieldId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
 
-                    // If not found, try to find by iterating through all fields
                     if (!fieldInfo && customFieldMap.size > 0) {
                         for (const [key, field] of customFieldMap.entries()) {
                             const customFieldId = field.custom_field_id?.toLowerCase();
@@ -324,9 +227,9 @@ export const CampaignUsersTable = ({
                                 customFieldId === searchId ||
                                 fieldKey === searchId ||
                                 customFieldId?.replace(/[^a-zA-Z0-9]/g, '') ===
-                                searchId.replace(/[^a-zA-Z0-9]/g, '') ||
+                                    searchId.replace(/[^a-zA-Z0-9]/g, '') ||
                                 fieldKey?.replace(/[^a-zA-Z0-9]/g, '') ===
-                                searchId.replace(/[^a-zA-Z0-9]/g, '')
+                                    searchId.replace(/[^a-zA-Z0-9]/g, '')
                             ) {
                                 fieldInfo = field;
                                 break;
@@ -334,17 +237,13 @@ export const CampaignUsersTable = ({
                         }
                     }
 
-                    // Get value from custom_field_values (primary source)
-                    // This is the actual value from the API response for THIS user
                     let value: any = customValues[fieldId];
 
-                    // If value is empty or not present for this user, try user object
                     if (value === undefined || value === null || value === '') {
                         if (fieldInfo && fieldInfo.field_key) {
                             const fieldKey = fieldInfo.field_key;
                             value = (user as any)[fieldKey];
 
-                            // Try common field mappings
                             if (value === undefined || value === null) {
                                 if (fieldKey === 'phone_number' && user.mobile_number) {
                                     value = user.mobile_number;
@@ -357,7 +256,6 @@ export const CampaignUsersTable = ({
                                 }
                             }
                         } else {
-                            // Fallback: try common field names directly from user object
                             if (fieldId === 'full_name' || fieldId === 'name') {
                                 value = user.full_name || (user as any).name;
                             } else if (fieldId === 'email') {
@@ -366,38 +264,9 @@ export const CampaignUsersTable = ({
                         }
                     }
 
-                    // Store value using field ID as key (matches column accessorKey)
-                    // If value is not present for this user, set to null (user requested null, but we'll use '-' for display)
                     rowData[fieldId] =
                         value !== undefined && value !== null && value !== '' ? value : null;
-
-                    // Debug first row
-                    if (index === 0) {
-                        console.log(
-                            '📝 [CampaignUsersTable] Mapped field:',
-                            fieldId,
-                            '->',
-                            value !== undefined && value !== null && value !== '' ? value : 'null',
-                            '(found in API setup:',
-                            !!fieldInfo,
-                            ')'
-                        );
-                    }
                 });
-
-                // Debug: log first row data keys
-                if (index === 0) {
-                    console.log(
-                        '🔄 [CampaignUsersTable] First row data keys:',
-                        Object.keys(rowData)
-                    );
-                    console.log(
-                        '🔄 [CampaignUsersTable] First row null values:',
-                        Object.entries(rowData)
-                            .filter(([_, v]) => v === null)
-                            .map(([k]) => k)
-                    );
-                }
 
                 return rowData as CampaignUserTable;
             }),
@@ -409,61 +278,152 @@ export const CampaignUsersTable = ({
         };
     }, [usersResponse, allFieldIdsFromAllUsers, customFieldMap, page, pageSize]);
 
-    // Debug: Log when campaignId changes (new campaign selected)
-    useEffect(() => {
-        console.log('🔄 [CampaignUsersTable] Campaign changed to:', campaignId);
-        console.log(
-            '🔄 [CampaignUsersTable] Custom fields for this campaign:',
-            customFields.length
-        );
-    }, [campaignId, customFields]);
-
-    // Debug: Log when columns change
-    useEffect(() => {
-        console.log('🔄 [CampaignUsersTable] Columns changed, count:', columns.length);
-        console.log(
-            '🔄 [CampaignUsersTable] Column accessorKeys:',
-            columns.map((col) => {
-                const colAny = col as any;
-                return colAny.accessorKey || colAny.id || 'no-key';
-            })
-        );
-        console.log(
-            '🔄 [CampaignUsersTable] Column headers:',
-            columns.map((col) => {
-                const colAny = col as any;
-                return typeof colAny.header === 'function' ? 'function' : colAny.header;
-            })
-        );
-    }, [columns]);
-
-    // Debug: Log when tableData changes
-    useEffect(() => {
-        if (tableData && tableData.content && tableData.content.length > 0) {
-            console.log(
-                '🔄 [CampaignUsersTable] Table data changed, rows:',
-                tableData.content.length
-            );
-            const firstRow = tableData.content[0];
-            if (firstRow) {
-                console.log('🔄 [CampaignUsersTable] First row keys:', Object.keys(firstRow));
-                console.log(
-                    '🔄 [CampaignUsersTable] First row sample values:',
-                    Object.entries(firstRow)
-                        .slice(0, 10)
-                        .map(([key, value]) => `${key}: ${value}`)
-                );
-            }
-        }
-    }, [tableData]);
-
-    // Debug: Log when tableKey changes
-    useEffect(() => {
-        console.log('🔄 [CampaignUsersTable] Table key changed:', tableKey);
-    }, [tableKey]);
-
     const handlePageChange = (newPage: number) => {
         setPage(newPage);
+    };
+
+    const handleDownload = async () => {
+        if (!tableData?.total_elements) return;
+
+        try {
+            setIsDownloading(true);
+            toast.info('Starting download...');
+
+            const allDataPayload = {
+                ...leadsPayload,
+                page: 0,
+                size: tableData.total_elements,
+            };
+
+            const response = await fetchCampaignLeads(allDataPayload);
+
+            if (!response.content || response.content.length === 0) {
+                toast.error('No data to download');
+                setIsDownloading(false);
+                return;
+            }
+
+            const allFieldIds = new Set<string>();
+            customFields.forEach((field: any) => {
+                const fieldId = field.custom_field?.id || field.id || field._id || field.field_id;
+                if (fieldId) allFieldIds.add(fieldId);
+            });
+            response.content.forEach((lead: any) => {
+                const customValues = lead.custom_field_values || {};
+                Object.keys(customValues).forEach((key) => allFieldIds.add(key));
+            });
+
+            const fieldIdsArray = Array.from(allFieldIds);
+
+            const csvHeaders = ['Lead ID', 'Submitted At', 'Name', 'Email', 'Mobile'];
+            const fieldIdToHeaderNameMap: Record<string, string> = {};
+
+            fieldIdsArray.forEach((fieldId) => {
+                let headerName = fieldId;
+                let fieldInfo =
+                    customFieldMap.get(fieldId) ||
+                    customFieldMap.get(fieldId.toLowerCase()) ||
+                    customFieldMap.get(fieldId.toUpperCase()) ||
+                    customFieldMap.get(fieldId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
+
+                if (!fieldInfo && customFieldMap.size > 0) {
+                    for (const [key, field] of customFieldMap.entries()) {
+                        const customFieldId = field.custom_field_id?.toLowerCase();
+                        const fieldKey = field.field_key?.toLowerCase();
+                        const searchId = fieldId.toLowerCase();
+
+                        if (
+                            customFieldId === searchId ||
+                            fieldKey === searchId ||
+                            customFieldId?.replace(/[^a-zA-Z0-9]/g, '') ===
+                                searchId.replace(/[^a-zA-Z0-9]/g, '') ||
+                            fieldKey?.replace(/[^a-zA-Z0-9]/g, '') ===
+                                searchId.replace(/[^a-zA-Z0-9]/g, '')
+                        ) {
+                            fieldInfo = field;
+                            break;
+                        }
+                    }
+                }
+
+                if (fieldInfo && fieldInfo.field_name) {
+                    headerName = fieldInfo.field_name;
+                } else if (campaignFieldsMap.has(fieldId)) {
+                    headerName = campaignFieldsMap.get(fieldId)?.name || fieldId;
+                }
+
+                if (headerName.includes(',')) headerName = `"${headerName}"`;
+
+                fieldIdToHeaderNameMap[fieldId] = headerName;
+                csvHeaders.push(headerName);
+            });
+
+            const csvRows = response.content.map((lead) => {
+                const user = lead.user || {};
+                const customValues = lead.custom_field_values || {};
+                const submittedAt = lead.submitted_at_local
+                    ? convertToLocalDateTime(lead.submitted_at_local)
+                    : '-';
+
+                const safeString = (val: any) => {
+                    if (val === undefined || val === null) return '';
+                    const str = String(val);
+                    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                        return `"${str.replace(/"/g, '""')}"`;
+                    }
+                    return str;
+                };
+
+                const row = [
+                    safeString(lead.response_id || lead.user_id || '-'),
+                    safeString(submittedAt),
+                    safeString(user.full_name || (user as any).name || '-'),
+                    safeString(user.email || '-'),
+                    safeString(user.mobile_number || '-'),
+                ];
+
+                fieldIdsArray.forEach((fieldId) => {
+                    let value: any = customValues[fieldId];
+                    if (value === undefined || value === null || value === '') {
+                        const fieldInfo =
+                            customFieldMap.get(fieldId) ||
+                            customFieldMap.get(fieldId.toLowerCase());
+
+                        if (fieldInfo && fieldInfo.field_key) {
+                            const k = fieldInfo.field_key;
+                            if (k === 'email') value = user.email;
+                            else if (k === 'phone' || k === 'phone_number')
+                                value = user.mobile_number;
+                            else if (k === 'full_name' || k === 'name') value = user.full_name;
+                            else value = (user as any)[k];
+                        }
+                    }
+                    row.push(safeString(value));
+                });
+                return row.join(',');
+            });
+
+            const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute(
+                'download',
+                `${campaignName || 'campaign_users'}_${new Date().toISOString().split('T')[0]}.csv`
+            );
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            toast.success('Download completed successfully');
+        } catch (error) {
+            console.error('Download failed:', error);
+            toast.error('Failed to download data');
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     if (isLoading || isCustomFieldsLoading) {
@@ -503,12 +463,40 @@ export const CampaignUsersTable = ({
                             <span className="font-semibold">{tableData.total_elements}</span>
                         </p>
                     </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                                navigate({
+                                    to: '/audience-manager/list/campaign-users/add' as any,
+                                    search: {
+                                        campaignId,
+                                        campaignName,
+                                        customFields: customFieldsJson,
+                                    } as any,
+                                } as any)
+                            }
+                        >
+                            <UserPlus className="mr-2 size-4" />
+                            Add Response
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleDownload}
+                            disabled={isDownloading || !tableData?.total_elements}
+                        >
+                            <Download className="mr-2 size-4" />
+                            {isDownloading ? 'Downloading...' : 'Download CSV'}
+                        </Button>
+                    </div>
                 </div>
             )}
 
-            <div className="overflow-hidden rounded-xl border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 shadow-sm">
+            <div className="rounded-md shadow-sm">
                 <MyTable<CampaignUserTable>
-                    key={tableKey} // Force re-render when columns change
+                    key={tableKey}
                     data={tableData}
                     columns={columns}
                     isLoading={isLoading || isCustomFieldsLoading}
@@ -519,13 +507,39 @@ export const CampaignUsersTable = ({
             </div>
 
             {tableData.total_pages > 1 && (
-                <div className="flex justify-center">
-                    <MyPagination
-                        currentPage={page}
-                        totalPages={tableData.total_pages}
-                        onPageChange={handlePageChange}
-                    />
-                </div>
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handlePageChange(Math.max(0, page - 1))}
+                                disabled={page === 0}
+                            >
+                                <span className="sr-only">Previous</span>
+                                <ChevronLeft className="size-4" />
+                            </Button>
+                        </PaginationItem>
+                        <PaginationItem className="hidden sm:block">
+                            <span className="px-4 text-sm text-muted-foreground">
+                                Page {page + 1} of {tableData.total_pages}
+                            </span>
+                        </PaginationItem>
+                        <PaginationItem>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() =>
+                                    handlePageChange(Math.min(tableData.total_pages - 1, page + 1))
+                                }
+                                disabled={page >= tableData.total_pages - 1}
+                            >
+                                <span className="sr-only">Next</span>
+                                <ChevronRight className="size-4" />
+                            </Button>
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
             )}
         </div>
     );

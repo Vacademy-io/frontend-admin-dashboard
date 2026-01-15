@@ -13,7 +13,14 @@ import { DropdownValueType } from '@/components/common/students/enroll-manually/
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { MyInput } from '@/components/design-system/input';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
-import { Copy, DotsSixVertical, DownloadSimple, Plus, TrashSimple, XCircle } from '@phosphor-icons/react';
+import {
+    Copy,
+    DotsSixVertical,
+    DownloadSimple,
+    Plus,
+    TrashSimple,
+    XCircle,
+} from '@phosphor-icons/react';
 import QRCode from 'react-qr-code';
 import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -35,6 +42,8 @@ import { toast } from 'sonner';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { LiveSessionParticipantsTab } from './LiveSessionParticipantsTab';
+
+import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
 
 const TimeOptions = [
     { label: '5 minutes before', value: '5m' },
@@ -131,10 +140,10 @@ export default function ScheduleStep2() {
                         };
                     })
                     .filter(Boolean) as {
-                        courseId: string;
-                        sessionId: string;
-                        levelId: string;
-                    }[];
+                    courseId: string;
+                    sessionId: string;
+                    levelId: string;
+                }[];
 
                 if (selectedLevelsFromPackages.length) {
                     form.setValue('selectedLevels', selectedLevelsFromPackages);
@@ -351,14 +360,11 @@ export default function ScheduleStep2() {
                 form.setValue('fields', fields);
                 form.setValue(
                     'joinLink',
-                    `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/register/live-class?sessionId=${sessionId}`
+                    `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${sessionId}`
                 );
             } else {
                 form.setValue('fields', []);
-                form.setValue(
-                    'joinLink',
-                    `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/study-library/live-class`
-                );
+                form.setValue('joinLink', `${BASE_URL_LEARNER_DASHBOARD}/study-library/live-class`);
             }
             return;
         }
@@ -372,14 +378,11 @@ export default function ScheduleStep2() {
             ]);
             form.setValue(
                 'joinLink',
-                `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/register/live-class?sessionId=${sessionId}`
+                `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${sessionId}`
             );
         } else {
             form.setValue('fields', []);
-            form.setValue(
-                'joinLink',
-                `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/study-library/live-class`
-            );
+            form.setValue('joinLink', `${BASE_URL_LEARNER_DASHBOARD}/study-library/live-class`);
         }
     }, [accessType]);
     const {
@@ -453,9 +456,9 @@ export default function ScheduleStep2() {
             options:
                 data.fieldType === 'dropdown'
                     ? data.options.map((option) => ({
-                        name: option.optionField,
-                        label: option.optionField,
-                    }))
+                          name: option.optionField,
+                          label: option.optionField,
+                      }))
                     : [],
         });
         setAddCustomFieldDialog(false);
@@ -689,7 +692,7 @@ export default function ScheduleStep2() {
                         className="flex flex-col gap-10 font-bold sm:flex-row sm:items-center sm:gap-20"
                         id="join-link-qr-code"
                     >
-                        <div className="col flex flex-1 flex-col gap-2">
+                        <div className="flex flex-1 flex-col gap-2">
                             <h1>Join Link</h1>
                             <div className="flex w-full items-center gap-8">
                                 <div className="flex w-full items-center gap-4">
@@ -720,7 +723,7 @@ export default function ScheduleStep2() {
                                         type="button"
                                         scale="small"
                                         buttonType="secondary"
-                                        className="h-10 min-w-10 flex-shrink-0"
+                                        className="h-10 min-w-10 shrink-0"
                                         onClick={() => copyToClipboard(getValues('joinLink'))}
                                     >
                                         <Copy size={32} />
@@ -775,10 +778,11 @@ export default function ScheduleStep2() {
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`size-5 rounded-sm border-2 shadow-none ${field.value
-                                                    ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
-                                                    : '' // Default styles when unchecked
-                                                    }`}
+                                                className={`size-5 rounded-sm border-2 shadow-none ${
+                                                    field.value
+                                                        ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
+                                                }`}
                                             />
                                         </FormControl>
                                         <FormLabel className="!mb-[3px] font-thin">
@@ -796,10 +800,11 @@ export default function ScheduleStep2() {
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`size-5 rounded-sm border-2 shadow-none ${field.value
-                                                    ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
-                                                    : '' // Default styles when unchecked
-                                                    }`}
+                                                className={`size-5 rounded-sm border-2 shadow-none ${
+                                                    field.value
+                                                        ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
+                                                }`}
                                             />
                                         </FormControl>
                                         <FormLabel className="!mb-[3px] font-thin">
@@ -822,10 +827,11 @@ export default function ScheduleStep2() {
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`size-5 rounded-sm border-2 shadow-none ${field.value
-                                                    ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
-                                                    : '' // Default styles when unchecked
-                                                    }`}
+                                                className={`size-5 rounded-sm border-2 shadow-none ${
+                                                    field.value
+                                                        ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
+                                                }`}
                                             />
                                         </FormControl>
                                         <FormLabel className="!mb-[3px] font-thin">
@@ -882,10 +888,11 @@ export default function ScheduleStep2() {
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`size-5 rounded-sm border-2 shadow-none ${field.value
-                                                    ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
-                                                    : '' // Default styles when unchecked
-                                                    }`}
+                                                className={`size-5 rounded-sm border-2 shadow-none ${
+                                                    field.value
+                                                        ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
+                                                }`}
                                             />
                                         </FormControl>
                                         <FormLabel className="!mb-[3px] font-thin">
@@ -936,7 +943,7 @@ export default function ScheduleStep2() {
                                             inputType="text"
                                             inputPlaceholder={testInputFields.label}
                                             input=""
-                                            onChangeFunction={() => { }}
+                                            onChangeFunction={() => {}}
                                             size="large"
                                             disabled
                                             className="!min-w-full"
