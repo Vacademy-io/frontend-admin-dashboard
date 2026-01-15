@@ -35,15 +35,15 @@ export const InternalSidebarComponent = ({
             {sidebarComponent
                 ? sidebarComponent
                 : sideBarItems.map((obj, key) => (
-                    <div key={key} id={obj.id} className="pb-5">
-                        <SidebarItem
-                            icon={obj.icon}
-                            subItems={obj.subItems}
-                            title={obj.title}
-                            to={obj.to}
-                        />
-                    </div>
-                ))}
+                      <div key={key} id={obj.id} className="pb-5">
+                          <SidebarItem
+                              icon={obj.icon}
+                              subItems={obj.subItems}
+                              title={obj.title}
+                              to={obj.to}
+                          />
+                      </div>
+                  ))}
         </div>
     );
 
@@ -61,11 +61,8 @@ export const InternalSidebarComponent = ({
                         Menu
                     </Button>
                 </SheetTrigger>
-                <SheetContent
-                    side="left"
-                    className="w-[280px] p-0 bg-primary-50 overflow-y-auto"
-                >
-                    <SheetHeader className="px-3 pt-6 sr-only">
+                <SheetContent side="left" className="w-[280px] overflow-y-auto bg-primary-50 p-0">
+                    <SheetHeader className="sr-only px-3 pt-6">
                         <SheetTitle>Navigation</SheetTitle>
                     </SheetHeader>
                     <div
