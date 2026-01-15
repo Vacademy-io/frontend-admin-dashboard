@@ -535,6 +535,7 @@ export function RouteComponent() {
                 // Build API payload
                 const numChapters = courseConfig.durationFormatStructure?.numberOfSessions;
                 const topicsPerSession = courseConfig.durationFormatStructure?.topicsPerSession;
+                const courseLength = courseConfig.durationFormatStructure?.sessionLength;
                 // Calculate total slides: slides per chapter * number of chapters
                 const totalSlides = numChapters && topicsPerSession
                     ? parseInt(numChapters) * parseInt(topicsPerSession)
@@ -564,6 +565,13 @@ export function RouteComponent() {
                 }
                 if (totalSlides) {
                     payload.generation_options.num_slides = totalSlides;
+                }
+                if (courseLength) {
+                    // Convert course length to number (it can be a string like '45', '60', '90' or custom value)
+                    const courseTiming = parseInt(courseLength);
+                    if (!isNaN(courseTiming)) {
+                        payload.generation_options.course_timing = courseTiming;
+                    }
                 }
 
                 console.log('=== API Request ===');

@@ -9,6 +9,12 @@ export const AI_SERVICE_BASE_URL =
 // AI Video URLs API
 export const GET_VIDEO_URLS = (videoId: string) => `${AI_SERVICE_BASE_URL}/video/urls/${videoId}`;
 
+// Institute AI Settings APIs
+export const GET_INSTITUTE_AI_SETTINGS = (instituteId: string) =>
+    `${AI_SERVICE_BASE_URL}/institute/ai-settings/v1/get?institute_id=${instituteId}`;
+export const UPDATE_INSTITUTE_AI_SETTINGS = (instituteId: string) =>
+    `${AI_SERVICE_BASE_URL}/institute/ai-settings/v1/update?institute_id=${instituteId}`;
+
 // Institute IDs from environment variables for multi-org deployment
 export const SSDC_INSTITUTE_ID =
     import.meta.env.VITE_SSDC_INSTITUTE_ID || '69ca11c6-54e1-4e99-9498-50c9a4272ce6';

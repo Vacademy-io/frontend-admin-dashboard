@@ -156,6 +156,14 @@ function RouteComponent() {
         setOpen(false);
     }, [setOpen]);
 
+    // Ensure form fields are empty on mount (prevent any cached/pre-filled values)
+    useEffect(() => {
+        setNumberOfChapters('');
+        setOpenaiKey('');
+        setChapterLength('');
+        setCustomChapterLength('');
+    }, []);
+
     // Form state
     const [ageRange, setAgeRange] = useState('');
     const [skillLevel, setSkillLevel] = useState('');
@@ -534,8 +542,8 @@ function RouteComponent() {
     };
 
     const handleConfirmGenerate = () => {
-        // Get chapter length (use default if not provided)
-        const finalChapterLength = chapterLength === 'custom' ? customChapterLength : (chapterLength || '60');
+        // Get course length (no default value)
+        const finalCourseLength = chapterLength === 'custom' ? customChapterLength : chapterLength;
 
         const courseConfig = {
             prompt: courseGoal, // Using courseGoal as the main prompt
@@ -561,7 +569,7 @@ function RouteComponent() {
             },
             durationFormatStructure: {
                 numberOfSessions: numberOfChapters ? parseInt(numberOfChapters) : undefined,
-                sessionLength: finalChapterLength,
+                sessionLength: finalCourseLength || undefined,
                 includeQuizzes,
                 includeHomework,
                 includeSolutions,
@@ -777,16 +785,17 @@ function RouteComponent() {
                                                     }}
                                                     placeholder="e.g., 8"
                                                     className="w-full"
+                                                    autoComplete="off"
                                                 />
                                             </div>
                                             <div>
                                                 <Label htmlFor="chapterLength" className="mb-2 block">
-                                                    Chapter Length
+                                                    Course Length
                                                 </Label>
                                                 <div className="space-y-2">
                                                     <Select value={chapterLength} onValueChange={handleChapterLengthChange}>
                                                         <SelectTrigger id="chapterLength" className="w-full">
-                                                            <SelectValue placeholder="Select chapter length" />
+                                                            <SelectValue placeholder="Select course length" />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem value="45">45 minutes</SelectItem>
@@ -835,6 +844,7 @@ function RouteComponent() {
                                                         placeholder="sk-..."
                                                         className="w-full"
                                                         disabled={userKeysStatus.hasOpenAI}
+                                                        autoComplete="new-password"
                                                     />
                                                     <Button
                                                         type="button"
@@ -1284,7 +1294,7 @@ function RouteComponent() {
                                 )}
                                 {(chapterLength || customChapterLength) && (
                                     <div>
-                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Chapter Length</h4>
+                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Course Length</h4>
                                         <p className="text-sm text-neutral-600">
                                             {chapterLength === 'custom' ? `${customChapterLength} minutes` : chapterLength ? `${chapterLength} minutes` : ''}
                                         </p>
