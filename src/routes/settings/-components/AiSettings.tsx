@@ -13,7 +13,7 @@ import { MyButton } from '@/components/design-system/button';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { Sparkles, Save, ShieldCheck, Trash2, Plus, Info } from 'lucide-react';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { AI_SERVICE_BASE_URL, BASE_URL } from '@/constants/urls';
+import { AI_SERVICE_BASE_URL, BASE_URL, GET_INSITITUTE_SETTINGS } from '@/constants/urls';
 import { getInstituteId } from '@/constants/helper';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Switch } from '@/components/ui/switch';
 
 interface AiSettingsProps {
     isTab?: boolean;
@@ -48,6 +49,7 @@ interface KeysStatus {
 }
 
 interface TutorConfiguration {
+    enable: boolean;
     role: string;
     assistant_name: string;
     institute_name: string;
@@ -103,6 +105,7 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
     const [showKeysInfo, setShowKeysInfo] = useState(false);
     const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
     const [tutorConfig, setTutorConfig] = useState<TutorConfiguration>({
+        enable: false,
         role: 'Tutor',
         assistant_name: 'Savir',
         institute_name: instituteDetails?.institute_name || 'Vacademy',
@@ -186,14 +189,40 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
         }
     }, []);
 
+    // Fetch tutor settings
+    const fetchTutorSettings = useCallback(async () => {
+        if (!instituteId) return;
+        try {
+            const response = await authenticatedAxiosInstance.get(GET_INSITITUTE_SETTINGS, {
+                params: {
+                    instituteId,
+                    settingKey: 'CHATBOT_SETTING',
+                },
+            });
+            if (response.data && response.data.data) {
+                setTutorConfig((prev) => ({
+                    ...prev,
+                    ...response.data.data,
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching tutor settings:', error);
+        }
+    }, [instituteId]);
+
     useEffect(() => {
         const initialize = async () => {
             setIsLoading(true);
-            await Promise.all([checkKeys(), fetchActivityLogs(), fetchModels()]);
+            await Promise.all([
+                checkKeys(),
+                fetchActivityLogs(),
+                fetchModels(),
+                fetchTutorSettings(),
+            ]);
             setIsLoading(false);
         };
         initialize();
-    }, [checkKeys, fetchActivityLogs, fetchModels]);
+    }, [checkKeys, fetchActivityLogs, fetchModels, fetchTutorSettings]);
 
     // Update institute name when instituteDetails changes
     useEffect(() => {
@@ -236,8 +265,9 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
             await authenticatedAxiosInstance.post(
                 `${BASE_URL}/admin-core-service/institute/setting/v1/save-setting`,
                 {
-                    settingName: 'AI Chatbot Configuration',
-                    settingData: {
+                    setting_name: 'AI Chatbot Configuration',
+                    setting_data: {
+                        enable: tutorConfig.enable,
                         role: tutorConfig.role,
                         assistant_name: tutorConfig.assistant_name,
                         institute_name: tutorConfig.institute_name,
@@ -742,6 +772,21 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                 </CardHeader>
                 <CardContent className="space-y-6 pt-6">
                     <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="role" className="text-sm font-medium">
+                                Enable
+                            </Label>
+                            <Switch
+                                id="enable"
+                                checked={tutorConfig.enable}
+                                onCheckedChange={(e) =>
+                                    setTutorConfig({
+                                        ...tutorConfig,
+                                        enable: e,
+                                    })
+                                }
+                            />
+                        </div>
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
                                 <Label htmlFor="role" className="text-sm font-medium">
