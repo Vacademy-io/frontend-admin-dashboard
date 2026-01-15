@@ -39,20 +39,38 @@ function MembershipExpiryPage() {
     return batches && Array.isArray(batches) ? (batches as unknown as BatchForSession[]) : [];
   }, [instituteDetails]);
 
-  const queryKey = getMembershipExpiryQueryKey(pageNo, pageSize, {
-    start_date_in_utc: startDate || undefined,
-    end_date_in_utc: endDate || undefined,
-    package_session_ids: packageSessionFilter.packageSessionId ? [packageSessionFilter.packageSessionId] : undefined,
-  });
+  // Build request filters
+  const requestFilters = useMemo(() => {
+    const filters: any = {
+      start_date_in_utc: startDate || undefined,
+      end_date_in_utc: endDate || undefined,
+    };
+
+    if (packageSessionFilter.packageSessionId) {
+      filters.package_session_ids = [packageSessionFilter.packageSessionId];
+    } else if (packageSessionFilter.packageId) {
+      // Resolve all matching batches for the selected package and optional level/session
+      const resolvedIds = batchesForSessions
+        .filter((batch) =>
+          batch.package_dto.id === packageSessionFilter.packageId &&
+          (!packageSessionFilter.levelId || batch.level.id === packageSessionFilter.levelId) &&
+          (!packageSessionFilter.sessionId || batch.session.id === packageSessionFilter.sessionId)
+        )
+        .map((batch) => batch.id);
+
+      if (resolvedIds.length > 0) {
+        filters.package_session_ids = resolvedIds;
+      }
+    }
+
+    return filters;
+  }, [startDate, endDate, packageSessionFilter, batchesForSessions]);
+
+  const queryKey = getMembershipExpiryQueryKey(pageNo, pageSize, requestFilters);
 
   const { data, isLoading, error } = useQuery({
     queryKey,
-    queryFn: () => fetchMembershipExpiry(pageNo, pageSize, {
-      start_date_in_utc: startDate || undefined,
-      end_date_in_utc: endDate || undefined,
-      package_session_ids: packageSessionFilter.packageSessionId ? [packageSessionFilter.packageSessionId] : undefined,
-      // Note: API expects array of string, filter gives single string.
-    }),
+    queryFn: () => fetchMembershipExpiry(pageNo, pageSize, requestFilters),
     placeholderData: keepPreviousData,
   });
 

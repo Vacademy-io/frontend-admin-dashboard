@@ -30,6 +30,10 @@ interface AutocompletePackage {
     package_name: string;
     package_id?: string; // Original field from API
     package_session_id?: string; // Field from API
+    level_id?: string;
+    level_name?: string;
+    session_id?: string;
+    session_name?: string;
 }
 
 const PackageSelector: React.FC<PackageSelectorProps> = ({
@@ -257,12 +261,20 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                         id: pkg.package_id || '',
                         package_name: pkg.package_name || '',
                         package_id: pkg.package_id,
-                        package_session_id: pkg.package_session_id
+                        package_session_id: pkg.package_session_id,
+                        level_id: pkg.level_id,
+                        level_name: pkg.level_name,
+                        session_id: pkg.session_id,
+                        session_name: pkg.session_name
                     }));
                 } else if (data && Array.isArray(data.content)) {
                     normalizedResults = data.content.map((pkg: any) => ({
                         ...pkg,
-                        id: pkg.id || pkg.package_id || ''
+                        id: pkg.id || pkg.package_id || '',
+                        level_id: pkg.level_id,
+                        level_name: pkg.level_name,
+                        session_id: pkg.session_id,
+                        session_name: pkg.session_name
                     }));
                 }
 
@@ -301,10 +313,13 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
 
                     setShowResults(false);
 
+                    if (pkg.level_id) setLevelId(pkg.level_id);
+                    if (pkg.session_id) setSessionId(pkg.session_id);
+
                     onChange({
                         packageSessionId: psId,
-                        levelId,
-                        sessionId,
+                        levelId: pkg.level_id || levelId,
+                        sessionId: pkg.session_id || sessionId,
                         packageId: pkg.id || pkg.package_id || '',
                         packageSessionIds: newSelection.map(p => p.package_session_id!).filter(Boolean)
                     });
@@ -326,14 +341,16 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                 });
             }
         } else {
+            if (pkg.level_id) setLevelId(pkg.level_id);
+            if (pkg.session_id) setSessionId(pkg.session_id);
             setPackageId(pkg.id || pkg.package_id || '');
             setSearchTerm(pkg.package_name);
             setShowResults(false);
 
             onChange({
                 packageSessionId: psId || null,
-                levelId,
-                sessionId,
+                levelId: pkg.level_id || levelId,
+                sessionId: pkg.session_id || sessionId,
                 packageId: pkg.id || pkg.package_id || ''
             });
         }
@@ -440,7 +457,23 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                                             "size-3.5",
                                             selectedIndex === index ? "text-gray-600" : "text-gray-400"
                                         )} weight={selectedIndex === index ? "bold" : "regular"} />
-                                        <span className="flex-1 text-sm truncate">{pkg.package_name}</span>
+                                        <div className="flex flex-1 flex-col truncate">
+                                            <span className="text-sm font-medium">{pkg.package_name}</span>
+                                            {(pkg.level_name || pkg.session_name) && (
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    {pkg.level_name && (
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 uppercase font-semibold border border-transparent">
+                                                            {pkg.level_name}
+                                                        </span>
+                                                    )}
+                                                    {pkg.session_name && (
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 uppercase font-semibold border border-blue-100">
+                                                            {pkg.session_name}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                         {selectedIndex === index && <CaretRight size={14} className="text-gray-400" />}
                                     </button>
                                 ))

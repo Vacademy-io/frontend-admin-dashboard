@@ -66,6 +66,17 @@ function MembershipStatsLayoutPage() {
 
         if (packageSessionFilter.packageSessionId) {
             filters.package_session_ids = [packageSessionFilter.packageSessionId];
+        } else if (packageSessionFilter.packageId) {
+            // Resolve all matching batches for the selected package and optional level/session
+            const resolvedIds = batchesForSessions
+                .filter((batch) =>
+                    batch.package_dto.id === packageSessionFilter.packageId &&
+                    (!packageSessionFilter.levelId || batch.level.id === packageSessionFilter.levelId) &&
+                    (!packageSessionFilter.sessionId || batch.session.id === packageSessionFilter.sessionId)
+                )
+                .map((batch) => batch.id);
+
+            filters.package_session_ids = resolvedIds;
         } else {
             filters.package_session_ids = [];
         }

@@ -89,6 +89,19 @@ function ManagePaymentsLayoutPage() {
             filters.package_session_ids = packageSessionFilter.packageSessionIds;
         } else if (packageSessionFilter.packageSessionId) {
             filters.package_session_ids = [packageSessionFilter.packageSessionId];
+        } else if (packageSessionFilter.packageId) {
+            // Resolve all matching batches for the selected package and optional level/session
+            const resolvedIds = batchesForSessions
+                .filter((batch) =>
+                    batch.package_dto.id === packageSessionFilter.packageId &&
+                    (!packageSessionFilter.levelId || batch.level.id === packageSessionFilter.levelId) &&
+                    (!packageSessionFilter.sessionId || batch.session.id === packageSessionFilter.sessionId)
+                )
+                .map((batch) => batch.id);
+
+            if (resolvedIds.length > 0) {
+                filters.package_session_ids = resolvedIds;
+            }
         }
 
         return filters;
