@@ -1,7 +1,7 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { fetchInstituteDashboardUsers } from '@/routes/dashboard/-services/dashboard-services';
 import { useRefetchUsersStore } from '@/routes/dashboard/-global-states/refetch-store-users';
@@ -202,52 +202,43 @@ function RouteComponent() {
     setHandleRefetchUsersData(handleRefetchData);
   }, [setHandleRefetchUsersData]);
 
+  // Ref to prevent Strict Mode double-invocation
+  const hasInitialFetchRef = useRef(false);
+
   useEffect(() => {
+    // Prevent duplicate fetch in Strict Mode
+    if (hasInitialFetchRef.current) return;
+    hasInitialFetchRef.current = true;
+
     setIsLoading(true);
 
-    const timeoutId = setTimeout(() => {
-      Promise.all([
-        fetchInstituteDashboardUsers(instituteId, {
-          roles: [
-            { id: '1', name: 'ADMIN' },
-            { id: '2', name: 'COURSE CREATOR' },
-            { id: '3', name: 'ASSESSMENT CREATOR' },
-            { id: '4', name: 'EVALUATOR' },
-            { id: '5', name: 'TEACHER' },
-          ],
-          status: [
-            { id: '1', name: 'ACTIVE' },
-            { id: '2', name: 'DISABLED' },
-          ],
-        }),
-        fetchInstituteDashboardUsers(instituteId, {
-          roles: [
-            { id: '1', name: 'ADMIN' },
-            { id: '2', name: 'COURSE CREATOR' },
-            { id: '3', name: 'ASSESSMENT CREATOR' },
-            { id: '4', name: 'EVALUATOR' },
-            { id: '5', name: 'TEACHER' },
-          ],
-          status: [{ id: '1', name: 'INVITED' }],
-        }),
-      ])
-        .then(([instituteUsersData]) => {
-          setDashboardUsers((prev) => ({
-            ...prev,
-            instituteUsers: instituteUsersData,
-          }));
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }, 0);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
+    // Only fetch data for the initially active tab (instituteUsers)
+    // The other tab (invites) will be fetched when user switches to it
+    fetchInstituteDashboardUsers(instituteId, {
+      roles: [
+        { id: '1', name: 'ADMIN' },
+        { id: '2', name: 'COURSE CREATOR' },
+        { id: '3', name: 'ASSESSMENT CREATOR' },
+        { id: '4', name: 'EVALUATOR' },
+        { id: '5', name: 'TEACHER' },
+      ],
+      status: [
+        { id: '1', name: 'ACTIVE' },
+        { id: '2', name: 'DISABLED' },
+      ],
+    })
+      .then((instituteUsersData) => {
+        setDashboardUsers((prev) => ({
+          ...prev,
+          instituteUsers: instituteUsersData,
+        }));
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   useEffect(() => {

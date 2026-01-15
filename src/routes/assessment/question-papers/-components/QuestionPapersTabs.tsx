@@ -125,9 +125,7 @@ export const QuestionPapersTabs = ({
         },
     });
 
-    const handleTabChange = (value: string) => {
-        setSelectedTab(value);
-    };
+    // Old handleTabChange removed - using handleTabChangeWithLazyLoad instead
 
     const handleFilterChange = (filterKey: string, selectedItems: FilterOption[]) => {
         setSelectedQuestionPaperFilters((prev) => {
@@ -216,57 +214,52 @@ export const QuestionPapersTabs = ({
         setHandleRefetchData(handleRefetchData);
     }, [setHandleRefetchData]);
 
+    // Track which tabs have been loaded
+    const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set());
+
+    // Fetch data for a specific tab
+    const fetchTabData = (tabValue: string) => {
+        return getQuestionPaperDataWithFilters(pageNo, 10, INSTITUTE_ID, {
+            ...selectedQuestionPaperFilters,
+            statuses: [{ id: tabValue, name: tabValue }],
+        }).then((data) => {
+            if (tabValue === 'FAVOURITE') {
+                setQuestionPaperFavouriteList(data);
+            } else {
+                setQuestionPaperList(data);
+            }
+            setLoadedTabs((prev) => new Set([...prev, tabValue]));
+        });
+    };
+
+    // Handle tab change with lazy loading
+    const handleTabChangeWithLazyLoad = (value: string) => {
+        setSelectedTab(value);
+
+        // Only fetch if this tab hasn't been loaded yet
+        if (!loadedTabs.has(value)) {
+            setIsLoading(true);
+            fetchTabData(value)
+                .catch((error) => console.error(error))
+                .finally(() => setIsLoading(false));
+        }
+    };
+
+    // Initial fetch - only load the ACTIVE tab (default selected)
     useEffect(() => {
         setIsLoading(true);
-        const timeoutId = setTimeout(() => {
-            getQuestionPaperDataWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...selectedQuestionPaperFilters,
-                statuses: [{ id: 'ACTIVE', name: 'ACTIVE' }],
-            })
-                .then((data) => {
-                    setQuestionPaperList(data);
-                    setIsLoading(false);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    setIsLoading(false);
-                });
-        }, 0);
-
-        return () => {
-            clearTimeout(timeoutId);
-        };
-    }, []);
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timeoutId = setTimeout(() => {
-            getQuestionPaperDataWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...selectedQuestionPaperFilters,
-                statuses: [{ id: 'FAVOURITE', name: 'FAVOURITE' }],
-            })
-                .then((data) => {
-                    setQuestionPaperFavouriteList(data);
-                    setIsLoading(false);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    setIsLoading(false);
-                });
-        }, 0); // Adjust delay as necessary, 0 means immediate execution in the next event loop.
-
-        return () => {
-            clearTimeout(timeoutId); // Cleanup: prevent execution of pending timeout if unmounted
-        };
+        fetchTabData('ACTIVE')
+            .catch((error) => console.error(error))
+            .finally(() => setIsLoading(false));
     }, []);
 
     if (isLoading) return <DashboardLoader />;
 
     return (
-        <Tabs value={selectedTab} onValueChange={handleTabChange}>
+        <Tabs value={selectedTab} onValueChange={handleTabChangeWithLazyLoad}>
             <div className="flex flex-wrap items-center justify-between gap-8">
                 <div className="flex flex-wrap gap-8">
-                    {questionPaperList !== null && questionPaperFavouriteList !== null && (
+                    {questionPaperList !== null && (
                         <TabListComponent
                             selectedTab={selectedTab}
                             questionPaperList={questionPaperList}
@@ -308,9 +301,8 @@ export const QuestionPapersTabs = ({
                         </div>
                     )}
                     <div
-                        className={`flex gap-4 ${
-                            Object.keys(selectedQuestionPaperFilters).length > 0 ? 'mt-[-3px]' : ''
-                        }`}
+                        className={`flex gap-4 ${Object.keys(selectedQuestionPaperFilters).length > 0 ? 'mt-[-3px]' : ''
+                            }`}
                     >
                         <QuestionPapersSearchComponent
                             onSearch={(searchValue: string) => {
