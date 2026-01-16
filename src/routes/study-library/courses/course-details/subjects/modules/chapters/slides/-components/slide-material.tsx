@@ -182,18 +182,7 @@ export const SlideMaterial = ({
     const EditorWithPlaceholder = ({ initialIsEmpty }: { initialIsEmpty: boolean }) => {
         const [showPlaceholder, setShowPlaceholder] = useState(initialIsEmpty);
         const deferredUpdateTimerRef = useRef<number | null>(null);
-        useEffect(() => {
-            console.log('[YooptaEditor] EditorWithPlaceholder mount', {
-                slideId: activeItem?.id || null,
-                initialIsEmpty,
-            });
-            return () => {
-                console.log('[YooptaEditor] EditorWithPlaceholder unmount', {
-                    slideId: activeItem?.id || null,
-                });
-            };
-        }, [activeItem?.id]);
-
+        
         useEffect(() => {
             setShowPlaceholder(initialIsEmpty);
         }, [initialIsEmpty]);
@@ -274,9 +263,50 @@ export const SlideMaterial = ({
                 : activeItem?.document_slide?.data || null;
 
         // Sanitize any public S3 URLs that may contain expired signatures
-        const sanitizedDocData = stripAwsQueryParamsFromUrls(docData || '');
+        let sanitizedDocData = stripAwsQueryParamsFromUrls(docData || '');
+        
+        // Check if content contains mermaid diagrams - they need preserved newlines
+        const hasMermaid = sanitizedDocData.includes('class="mermaid"') || sanitizedDocData.includes("class='mermaid'");
+        
+        // Extract inner content from full HTML documents (removes DOCTYPE, html, head, body wrappers)
+        let contentForDeserialization = sanitizedDocData || '';
+        
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(contentForDeserialization, 'text/html');
+            
+            // Get body element and its inner HTML
+            if (doc.body) {
+                contentForDeserialization = doc.body.innerHTML.trim();
+                
+                // Recursively unwrap divs until we get to actual content
+                // Yoopta needs semantic content like p, h1, a etc., not nested divs
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = contentForDeserialization;
+                
+                // Keep unwrapping single-child divs (but stop if div has mermaid class)
+                let current: Element = wrapper;
+                while (current.children.length === 1) {
+                    const firstChild = current.children[0];
+                    if (
+                        firstChild && 
+                        firstChild.tagName === 'DIV' &&
+                        !firstChild.classList.contains('mermaid')
+                    ) {
+                        current = firstChild;
+                    } else {
+                        break;
+                    }
+                }
+                
+                // Get the final inner content
+                contentForDeserialization = current.innerHTML.trim();
+            }
+        } catch (e) {
+            console.error('Error parsing HTML for Yoopta:', e);
+        }
 
-        const editorContent = html.deserialize(editor, sanitizedDocData || '');
+        const editorContent = html.deserialize(editor, contentForDeserialization || '');
 
         editor.setEditorValue(editorContent);
 
@@ -1363,6 +1393,8 @@ export const SlideMaterial = ({
             // 🔁 Then handle DOC
             if (documentType === 'DOC') {
                 try {
+                    // Call setEditorContent twice - once immediately, once after delay
+                    // The delayed call ensures editor is mounted and ready
                     setTimeout(() => {
                         setEditorContent();
                     }, 300);
@@ -1944,26 +1976,28 @@ export const SlideMaterial = ({
         }
 
         if (items && items.length > 0) {
-            // Check if current active slide still exists in items
+            // Priority 1: Use slideId from URL if available (ALWAYS respect URL)
+            if (slideId) {
+                const targetSlide = items.find((slide) => slide.id === slideId);
+                if (targetSlide) {
+                    // Only update if it's different from current activeItem
+                    if (!activeItem || activeItem.id !== slideId) {
+                        setActiveItem(targetSlide);
+                    }
+                    return;
+                }
+            }
+
+            // Priority 2: Check if current active slide still exists in items
             const activeSlideStillExists =
                 activeItem && items.find((slide) => slide.id === activeItem.id);
 
             if (activeSlideStillExists) {
                 // Active slide still exists, keep it selected
-
                 return;
             }
 
-            // Priority 1: Use slideId from URL if available
-            if (slideId) {
-                const targetSlide = items.find((slide) => slide.id === slideId);
-                if (targetSlide) {
-                    setActiveItem(targetSlide);
-                    return;
-                }
-            }
-
-            // Priority 2: Always set first available slide as active
+            // Priority 3: Always set first available slide as active
             // This handles both new slide creation and slide deletion scenarios
             const firstSlide = items[0];
 
@@ -2287,3 +2321,4 @@ export const SlideMaterial = ({
         </div>
     );
 };
+
