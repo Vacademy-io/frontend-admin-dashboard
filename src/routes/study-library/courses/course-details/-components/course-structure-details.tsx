@@ -3293,7 +3293,6 @@ export const CourseStructureDetails = ({
                                 <SortableItem
                                     key={subject.id}
                                     value={subject.id}
-                                    asTrigger={true}
                                     className="group relative"
                                 >
                                     <div
@@ -3398,7 +3397,6 @@ export const CourseStructureDetails = ({
                                         <SortableItem
                                             key={mod.module.id}
                                             value={mod.module.id}
-                                            asTrigger={true}
                                             asChild
                                             className="group relative"
                                         >
@@ -3526,7 +3524,6 @@ export const CourseStructureDetails = ({
                                         <SortableItem
                                             key={mod.module.id}
                                             value={mod.module.id}
-                                            asTrigger={true}
                                             asChild
                                             className="group relative"
                                         >
@@ -3665,7 +3662,6 @@ export const CourseStructureDetails = ({
                                     <SortableItem
                                         key={ch.chapter.id}
                                         value={ch.chapter.id}
-                                        asTrigger={true}
                                         asChild
                                         className="group relative"
                                     >
@@ -3815,7 +3811,6 @@ export const CourseStructureDetails = ({
                                     <SortableItem
                                         key={ch.chapter.id}
                                         value={ch.chapter.id}
-                                        asTrigger={true}
                                         asChild
                                         className="group relative"
                                     >
@@ -3961,7 +3956,6 @@ export const CourseStructureDetails = ({
                                         <SortableItem
                                             key={ch.chapter.id}
                                             value={ch.chapter.id}
-                                            asTrigger={true}
                                             asChild
                                             className="group relative"
                                         >
