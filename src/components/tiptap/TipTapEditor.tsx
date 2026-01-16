@@ -117,6 +117,10 @@ export function TipTapEditor({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
+  // Track whether the last change originated from within the editor
+  // This prevents the sync useEffect from resetting content when user is typing/pasting
+  const isInternalChange = useRef(false);
+
   const getAuthContext = useCallback(() => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -652,12 +656,12 @@ export function TipTapEditor({
 
                   const renderId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                   let cleanCode = code.trim();
-                  
+
                   // Remove "mermaid " prefix if present
                   if (cleanCode.toLowerCase().startsWith('mermaid ')) {
                     cleanCode = cleanCode.substring(8).trim();
                   }
-                  
+
                   if (!cleanCode) {
                     setError('Empty mermaid code');
                     setSvg('');
@@ -668,9 +672,9 @@ export function TipTapEditor({
                   cleanCode = sanitizeMermaidCode(cleanCode);
 
                   console.log('🔵 [TipTap Mermaid] Rendering diagram, code length:', cleanCode.length, 'preview:', cleanCode.substring(0, 100));
-                  
+
                   const result = await mermaid.render(renderId, cleanCode);
-                  
+
                   if (result && result.svg) {
                     console.log('✅ [TipTap Mermaid] Diagram rendered successfully, SVG length:', result.svg.length);
                     setSvg(result.svg);
@@ -765,6 +769,8 @@ export function TipTapEditor({
     content: value || '',
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
+      // Mark this as an internal change so the sync effect doesn't reset content
+      isInternalChange.current = true;
       onChange(html);
     },
     editorProps: {
@@ -805,11 +811,51 @@ export function TipTapEditor({
   });
 
   // Sync external value changes into TipTap
+  // We only sync in specific cases to avoid disrupting user input:
+  // 1. Initial content load (when editor just mounted)
+  // 2. External reset (e.g., form reset where content becomes empty or completely new)
+  // We track the last synced value to avoid unnecessary syncs
+  const lastSyncedValue = useRef<string | null>(null);
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
     if (!editor) return;
-    const current = editor.getHTML();
-    if ((value || '') !== current) {
-      editor.commands.setContent(value || '', false);
+
+    // If this change came from within the editor, don't sync back
+    if (isInternalChange.current) {
+      isInternalChange.current = false;
+      lastSyncedValue.current = value || '';
+      return;
+    }
+
+    // Don't sync if the editor is currently focused - user is actively editing
+    if (editor.isFocused) {
+      return;
+    }
+
+    const normalizedValue = value || '';
+    const currentContent = editor.getHTML();
+
+    // Initial sync on first render
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      if (normalizedValue !== currentContent) {
+        editor.commands.setContent(normalizedValue, false);
+        lastSyncedValue.current = normalizedValue;
+      }
+      return;
+    }
+
+    // Only sync if the value is significantly different (external change)
+    // Skip if it's the same value we last synced or if content matches
+    if (lastSyncedValue.current === normalizedValue) {
+      return;
+    }
+
+    // Only sync if content is actually different
+    if (normalizedValue !== currentContent) {
+      editor.commands.setContent(normalizedValue, false);
+      lastSyncedValue.current = normalizedValue;
     }
   }, [value, editor]);
 

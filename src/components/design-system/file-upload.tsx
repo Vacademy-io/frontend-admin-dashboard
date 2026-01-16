@@ -4,7 +4,7 @@ import { FieldValues } from 'react-hook-form';
 import { FormControl, FormField, FormItem } from '../ui/form';
 import { FileUploadComponentProps } from '@/types/common/file-upload';
 import { useDropzone } from 'react-dropzone';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
 export const FileUploadComponent = <T extends FieldValues>({
     fileInputRef,
@@ -27,13 +27,7 @@ export const FileUploadComponent = <T extends FieldValues>({
         [onFileSubmit]
     );
 
-    const handleClick = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click(); // Programmatically click the file input
-        }
-    };
-
-    const { getRootProps, getInputProps } = useDropzone({
+    const { getRootProps, getInputProps, inputRef } = useDropzone({
         onDrop,
         accept: acceptedFileTypes
             ? Array.isArray(acceptedFileTypes)
@@ -43,7 +37,17 @@ export const FileUploadComponent = <T extends FieldValues>({
         maxFiles: 1,
         multiple: false,
         disabled: isUploading,
+        noClick: true, // Disable internal click handling since we use an external button
+        noKeyboard: true,
     });
+
+    // Sync the dropzone's inputRef to the external fileInputRef
+    useEffect(() => {
+        if (inputRef.current && fileInputRef) {
+            (fileInputRef as React.MutableRefObject<HTMLInputElement | null>).current =
+                inputRef.current;
+        }
+    }, [inputRef, fileInputRef]);
 
     return (
         <FormField
@@ -52,15 +56,9 @@ export const FileUploadComponent = <T extends FieldValues>({
             render={() => (
                 <FormItem>
                     <FormControl>
-                        <div
-                            {...getRootProps({
-                                onClick: handleClick, // Trigger file input on click
-                            })}
-                            className={`cursor-pointer bg-white ${className}`}
-                        >
+                        <div {...getRootProps()} className={`cursor-pointer bg-white ${className}`}>
                             <input
                                 {...getInputProps()}
-                                ref={fileInputRef}
                                 accept={
                                     Array.isArray(acceptedFileTypes)
                                         ? acceptedFileTypes.join(',')

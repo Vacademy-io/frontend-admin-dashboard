@@ -594,48 +594,28 @@ export const AddCourseStep1 = ({
                                 />
 
                                 {courseSettings?.courseInformation?.descriptionRequired && (
-                                    <div className="flex flex-col">
-                                        <FormField
-                                            control={form.control}
-                                            name="description"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Description</FormLabel>
-                                                    <FormControl>
-                                                        <RichTextEditor
-                                                            onChange={(value: string) => {
-                                                                const plainText = value
-                                                                    .replace(/<[^>]*>/g, '')
-                                                                    .trim();
-                                                                const words =
-                                                                    plainText.split(/\s+/);
-                                                                if (words.length <= 30) {
-                                                                    field.onChange(value);
-                                                                } else {
-                                                                    // Truncate to first 30 words and update editor content
-                                                                    const truncatedText = words
-                                                                        .slice(0, 30)
-                                                                        .join(' ');
-                                                                    field.onChange(truncatedText);
-                                                                }
-                                                            }}
-                                                            value={field.value || ''}
-                                                            onBlur={field.onBlur}
-                                                            minHeight={120}
-                                                            placeholder={`Enter ${getTerminology(
-                                                                ContentTerms.Course,
-                                                                SystemTerms.Course
-                                                            )} description`}
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <span className="relative top-12 text-xs text-red-500">
-                                            *Max 30 words allowed
-                                        </span>
-                                    </div>
+                                    <FormField
+                                        control={form.control}
+                                        name="description"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Description</FormLabel>
+                                                <FormControl>
+                                                    <RichTextEditor
+                                                        onChange={field.onChange}
+                                                        value={field.value || ''}
+                                                        onBlur={field.onBlur}
+                                                        minHeight={120}
+                                                        placeholder={`Enter ${getTerminology(
+                                                            ContentTerms.Course,
+                                                            SystemTerms.Course
+                                                        )} description`}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 )}
 
                                 {/* Tags Section */}
