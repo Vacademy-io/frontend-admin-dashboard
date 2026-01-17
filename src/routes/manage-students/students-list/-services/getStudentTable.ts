@@ -37,18 +37,20 @@ export const useStudentList = (
             package_session_ids: filters.package_session_ids?.sort() || [],
             group_ids: filters.group_ids?.sort() || [],
             gender: filters.gender?.sort() || [],
-            statuses: filters.statuses?.map((s: any) => typeof s === 'string' ? s : s?.name || '').sort() || [],
+            statuses: filters.statuses?.sort() || [], // statuses are strings, standard sort is fine
             sort_columns: filters.sort_columns || {},
+            session_expiry_days: filters.session_expiry_days?.sort((a, b) => a - b) || [],
+            sub_org_user_types: filters.sub_org_user_types?.sort() || [],
+            // Include dynamic custom fields if present - sorting keys to be safe
+            ...Object.keys(filters)
+                .filter(key => key.startsWith('customField'))
+                .sort()
+                .reduce((obj, key) => {
+                    obj[key] = filters[key];
+                    return obj;
+                }, {} as Record<string, any>)
         });
-    }, [
-        filters.name,
-        filters.institute_ids,
-        filters.package_session_ids,
-        filters.group_ids,
-        filters.gender,
-        filters.statuses,
-        filters.sort_columns,
-    ]);
+    }, [filters]);
 
     return useQuery({
         queryKey: ['students', pageNo, pageSize, stableFiltersKey],

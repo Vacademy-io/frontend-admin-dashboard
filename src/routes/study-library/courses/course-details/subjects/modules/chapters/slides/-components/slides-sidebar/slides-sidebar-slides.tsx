@@ -287,12 +287,13 @@ const SlideItem = ({
 export const ChapterSidebarSlides = ({
     handleSlideOrderChange,
 }: {
-    handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
+    handleSlideOrderChange: (slideOrderPayloadType: slideOrderPayloadType) => void;
 }) => {
     const { setItems, activeItem, setActiveItem, items } = useContentStore();
     const { isLearnerView } = useLearnerViewStore();
     const router = useRouter();
-    const { chapterId, slideId } = router.state.location.search;
+    const searchParams = router.state.location.search;
+    const { chapterId, slideId, courseId, levelId, moduleId, subjectId, sessionId } = searchParams;
 
     const { slides, isLoading, refetch } = useSlidesQuery(chapterId || '');
 
@@ -308,7 +309,22 @@ export const ChapterSidebarSlides = ({
     }, []);
 
     const handleSlideClick = async (slide: Slide) => {
-        // Now set the new active item
+        // Update URL with new slideId
+        router.navigate({
+            to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+            search: {
+                courseId: courseId || '',
+                levelId: levelId || '',
+                subjectId: subjectId || '',
+                moduleId: moduleId || '',
+                chapterId: chapterId || '',
+                slideId: slide.id, // ✅ Update slideId in URL
+                sessionId: sessionId || '',
+            },
+            replace: true, // Replace history entry instead of pushing new one
+        });
+        
+        // Set the new active item
         setActiveItem(slide);
     };
 
