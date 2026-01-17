@@ -489,7 +489,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                             <div className="mx-auto size-10 rounded-full bg-gray-50 flex items-center justify-center mb-3">
                                 <MagnifyingGlass className="size-5 text-gray-300" />
                             </div>
-                            <p className="text-sm font-medium text-gray-900">No matching packages</p>
+                            <p className="text-sm font-medium text-gray-900">No result found for "{searchTerm}"</p>
                         </div>
                     )}
                 </div>
