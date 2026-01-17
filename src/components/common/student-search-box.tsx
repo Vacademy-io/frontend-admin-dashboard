@@ -32,7 +32,7 @@ export const StudentSearchBox = ({
     useEffect(() => {
         const fetchSuggestions = async () => {
             // Only fetch if we have input, instituteId, and it's not just the search icon trigger
-            if (!searchInput || searchInput.length < 1  || !instituteId) {
+            if (!searchInput || searchInput.length == 0  || !instituteId) {
                 setSuggestions([]);
                 setShowSuggestions(false);
                 return;
