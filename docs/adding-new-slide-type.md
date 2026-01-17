@@ -190,6 +190,24 @@ if (activeItem?.source_type === '[YOUR_SLIDE_TYPE]') {
 }
 ```
 
+#### 4.3 Update SaveDraft
+
+In the `SaveDraft` function, add a condition for your slide type to enable saving drafts:
+
+```typescript
+if (activeItem?.source_type === '[YOUR_SLIDE_TYPE]') {
+    try {
+        await addUpdate[YourSlideType]Slide({
+            // ... construct payload with status based on current activeItem status
+        });
+        toast.success('[Your Slide Type] slide saved successfully!');
+    } catch (error) {
+        toast.error('Error saving slide');
+    }
+    return;
+}
+```
+
 ---
 
 ### 5. Dialog Store
@@ -408,7 +426,78 @@ const {
 
 ---
 
-### 11. Non-Admin (Learner/Teacher) Support
+---
+
+### 11. Publishing Logic
+
+**File:** `src/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-operations/handlePublishSlide.tsx`
+
+#### 11.1 Update `handlePublishSlide`
+
+1.  Import your `[YourSlideType]SlidePayload` interface.
+2.  Add `addUpdate[YourSlideType]Slide` to the function signature.
+3.  Add the logic to handle publishing:
+
+```typescript
+if (activeItem?.source_type === '[YOUR_SLIDE_TYPE]') {
+    try {
+        await addUpdate[YourSlideType]Slide({
+            // ... construct payload with status: 'PUBLISHED', new_slide: false
+        });
+        toast.success('Slide published successfully!');
+        setIsOpen(false);
+    } catch {
+        toast.error('Error in publishing the slide');
+    }
+}
+```
+
+**File:** `src/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-operations/handleUnpublishSlide.tsx`
+
+#### 11.2 Update `handleUnpublishSlide`
+
+1.  Import your `[YourSlideType]SlidePayload` interface.
+2.  Add `addUpdate[YourSlideType]Slide` to the function signature.
+3.  Add the logic to handle unpublishing:
+
+```typescript
+if (activeItem?.source_type === '[YOUR_SLIDE_TYPE]') {
+    try {
+        await addUpdate[YourSlideType]Slide({
+            // ... construct payload with status: 'DRAFT', new_slide: false
+        });
+        toast.success('Slide unpublished successfully!');
+        setIsOpen(false);
+    } catch {
+        toast.error('Error in unpublishing the slide');
+    }
+}
+```
+
+**File:** `src/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material.tsx`
+
+#### 11.3 Pass Mutation to Handlers
+
+Update `handlePublishSlide` and `handleUnpublishSlide` calls to pass your new mutation:
+
+```typescript
+const {
+    // ...
+    addUpdate[YourSlideType]Slide,
+} = useSlidesMutations(...);
+
+// ... in JSX ...
+handlePublishSlide(
+    // ...
+    addUpdate[YourSlideType]Slide, // <--- Add this
+    SaveDraft,
+    playerRef
+)
+```
+
+---
+
+### 12. Non-Admin (Learner/Teacher) Support
 
 **File:** `src/routes/study-library/courses/course-details/subjects/modules/chapters/slides/non-admin/hooks/useNonAdminSlides.ts`
 
@@ -444,7 +533,9 @@ Add handling in `saveSlideAsPublished`:
 | 8   | `slides-sidebar-slides.tsx`     | Add icon and title handling          |
 | 9   | `slide-naming-utils.ts`         | Add type name and functions          |
 | 10  | `quick-add.tsx`                 | Add bulk upload support (optional)   |
-| 11  | `useNonAdminSlides.ts`          | Add non-admin save support           |
+| 11  | `handlePublishSlide.tsx`        | Add publishing logic                 |
+| 12  | `handleUnpublishSlide.tsx`      | Add unpublishing logic               |
+| 13  | `useNonAdminSlides.ts`          | Add non-admin save support           |
 
 ---
 
@@ -460,6 +551,7 @@ After implementation, verify:
 -   [ ] Quick add works (if implemented)
 -   [ ] Non-admin users can view/interact with slide
 -   [ ] Slide can be edited and saved
+-   [ ] Slide can be published and unpublished
 -   [ ] Slide order can be changed (drag and drop)
 -   [ ] TypeScript compilation passes (`npx tsc --noEmit`)
 

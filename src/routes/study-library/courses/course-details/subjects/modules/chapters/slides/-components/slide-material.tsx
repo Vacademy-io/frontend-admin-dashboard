@@ -134,7 +134,7 @@ export const SlideMaterial = ({
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { setOpen: setSidebarOpen } = useSidebar();
-    const { addUpdateDocumentSlide, addUpdateQuizSlide } = useSlidesMutations(
+    const { addUpdateDocumentSlide, addUpdateQuizSlide, addUpdateAudioSlide } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -183,7 +183,7 @@ export const SlideMaterial = ({
     const EditorWithPlaceholder = ({ initialIsEmpty }: { initialIsEmpty: boolean }) => {
         const [showPlaceholder, setShowPlaceholder] = useState(initialIsEmpty);
         const deferredUpdateTimerRef = useRef<number | null>(null);
-        
+
         useEffect(() => {
             setShowPlaceholder(initialIsEmpty);
         }, [initialIsEmpty]);
@@ -265,32 +265,32 @@ export const SlideMaterial = ({
 
         // Sanitize any public S3 URLs that may contain expired signatures
         let sanitizedDocData = stripAwsQueryParamsFromUrls(docData || '');
-        
+
         // Check if content contains mermaid diagrams - they need preserved newlines
         const hasMermaid = sanitizedDocData.includes('class="mermaid"') || sanitizedDocData.includes("class='mermaid'");
-        
+
         // Extract inner content from full HTML documents (removes DOCTYPE, html, head, body wrappers)
         let contentForDeserialization = sanitizedDocData || '';
-        
+
         try {
             const parser = new DOMParser();
             const doc = parser.parseFromString(contentForDeserialization, 'text/html');
-            
+
             // Get body element and its inner HTML
             if (doc.body) {
                 contentForDeserialization = doc.body.innerHTML.trim();
-                
+
                 // Recursively unwrap divs until we get to actual content
                 // Yoopta needs semantic content like p, h1, a etc., not nested divs
                 const wrapper = document.createElement('div');
                 wrapper.innerHTML = contentForDeserialization;
-                
+
                 // Keep unwrapping single-child divs (but stop if div has mermaid class)
                 let current: Element = wrapper;
                 while (current.children.length === 1) {
                     const firstChild = current.children[0];
                     if (
-                        firstChild && 
+                        firstChild &&
                         firstChild.tagName === 'DIV' &&
                         !firstChild.classList.contains('mermaid')
                     ) {
@@ -299,7 +299,7 @@ export const SlideMaterial = ({
                         break;
                     }
                 }
-                
+
                 // Get the final inner content
                 contentForDeserialization = current.innerHTML.trim();
             }
@@ -1603,6 +1603,39 @@ export const SlideMaterial = ({
                 return;
             }
 
+            if (activeItem?.source_type === 'AUDIO') {
+                if (!activeItem.audio_slide) {
+                    toast.error('Audio slide data is missing');
+                    return;
+                }
+                try {
+                    await addUpdateAudioSlide({
+                        id: activeItem.id,
+                        title: activeItem.title,
+                        description: activeItem.description || null,
+                        image_file_id: activeItem.image_file_id || null,
+                        status: status as 'DRAFT' | 'PUBLISHED',
+                        slide_order: activeItem.slide_order,
+                        notify: false,
+                        new_slide: false,
+                        audio_slide: {
+                            id: activeItem.audio_slide.id,
+                            audio_file_id: activeItem.audio_slide.audio_file_id,
+                            thumbnail_file_id: activeItem.audio_slide.thumbnail_file_id || null,
+                            audio_length_in_millis: activeItem.audio_slide.audio_length_in_millis,
+                            source_type: activeItem.audio_slide.source_type,
+                            external_url: activeItem.audio_slide.external_url || null,
+                            transcript: activeItem.audio_slide.transcript || null,
+                        },
+                    });
+                    toast.success('Audio slide saved successfully!');
+                } catch (error) {
+                    console.error('Error saving audio slide:', error);
+                    toast.error('Error saving audio slide');
+                }
+                return;
+            }
+
             if (
                 activeItem?.source_type == 'DOCUMENT' &&
                 activeItem?.document_slide?.type == 'PRESENTATION'
@@ -2259,6 +2292,7 @@ export const SlideMaterial = ({
                                                 updateQuestionOrder,
                                                 updateAssignmentOrder,
                                                 addUpdateQuizSlide,
+                                                addUpdateAudioSlide,
                                                 SaveDraft,
                                                 playerRef
                                             )
@@ -2286,6 +2320,7 @@ export const SlideMaterial = ({
                                                     updateQuestionOrder,
                                                     updateAssignmentOrder,
                                                     addUpdateQuizSlide,
+                                                    addUpdateAudioSlide,
                                                     SaveDraft,
                                                     playerRef
                                                 );
