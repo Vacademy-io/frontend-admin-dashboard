@@ -132,17 +132,23 @@ export const getAssessmentsCountsData = (instituteId: string | undefined) => {
 
 export const fetchInstituteDashboardUsers = async (
     instituteId: string | undefined,
-    selectedFilter: RoleTypeSelectedFilter
+    selectedFilter: RoleTypeSelectedFilter,
+    pageNumber: number = 0,
+    pageSize: number = 10,
+    name: string = ''
 ) => {
     const response = await authenticatedAxiosInstance({
         method: 'POST',
         url: GET_INSTITUTE_USERS,
         params: {
             instituteId,
+            pageNumber,
+            pageSize,
         },
         data: {
             roles: selectedFilter.roles.map((role) => role.name),
             status: selectedFilter.status.map((status) => status.name),
+            name,
         },
     });
     return response.data;

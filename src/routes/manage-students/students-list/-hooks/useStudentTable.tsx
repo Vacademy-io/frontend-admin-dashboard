@@ -17,7 +17,13 @@ export const useStudentTable = (
     let localAppliedFilters = appliedFilters;
     const { instituteDetails } = useInstituteDetailsStore();
 
-    if (appliedFilters.package_session_ids?.length == 0) {
+    // Check if we have approval statuses that require global search (empty package_session_ids)
+    const hasApprovalStatus = appliedFilters.statuses?.some(s =>
+        ['INVITED', 'PENDING_FOR_APPROVAL'].includes(s)
+    );
+
+    // Only override empty package_session_ids if NOT searching for approval statuses
+    if (appliedFilters.package_session_ids?.length == 0 && !hasApprovalStatus) {
         if (package_session_id && package_session_id != null && package_session_id.length > 0) {
             localAppliedFilters = {
                 ...appliedFilters,
