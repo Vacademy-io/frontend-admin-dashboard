@@ -32,6 +32,8 @@ import { ShareCredentialsDialog } from './bulk-actions/share-credentials-dialog'
 import { IndividualShareCredentialsDialog } from './bulk-actions/individual-share-credentials-dialog';
 import { SendMessageDialog } from './bulk-actions/send-message-dialog';
 import { SendEmailDialog } from './bulk-actions/send-email-dialog';
+import { AcceptRequestDialog } from '@/routes/manage-students/enroll-requests/-components/bulk-actions/bulk-actions-component/accept-request-dialog';
+import { DeclineRequestDialog } from '@/routes/manage-students/enroll-requests/-components/bulk-actions/bulk-actions-component/decline-request-dialog';
 import { InviteFormProvider } from '@/routes/manage-students/invite/-context/useInviteFormContext';
 import { Users, FileMagnifyingGlass } from '@phosphor-icons/react';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -429,7 +431,12 @@ export const StudentsListSection = () => {
                                                 total_elements: studentTableData.total_elements,
                                                 last: studentTableData.last,
                                             }}
-                                            columns={getCustomColumns()}
+                                            columns={getCustomColumns(
+                                                // Show approval actions if INVITED or PENDING_FOR_APPROVAL is in statuses
+                                                appliedFilters.statuses?.some(s =>
+                                                    ['INVITED', 'PENDING_FOR_APPROVAL'].includes(s)
+                                                ) || false
+                                            )}
                                             tableState={{
                                                 columnVisibility: getColumnsVisibility(),
                                             }}
@@ -482,6 +489,8 @@ export const StudentsListSection = () => {
                 <IndividualShareCredentialsDialog />
                 <SendMessageDialog />
                 <SendEmailDialog />
+                <AcceptRequestDialog />
+                <DeclineRequestDialog />
             </section>
         </ErrorBoundary>
     );

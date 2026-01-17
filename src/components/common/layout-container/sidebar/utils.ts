@@ -131,15 +131,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemId: 'students-list',
             },
             {
-                subItem: 'Enroll Requests',
-                subItemLink: '/manage-students/enroll-requests',
-                subItemId: 'enroll-requests',
-            },
-            {
                 subItem: 'Invite',
                 subItemLink: '/manage-students/invite',
                 subItemId: 'invite',
             },
+            // Enroll Requests deprecated
         ],
     },
     {

@@ -560,11 +560,31 @@ export const myColumns: ColumnDef<StudentTable>[] = [
  * 1. Processes system fields (reorders, applies custom names)
  * 2. Adds dynamic custom field columns for learnersList location
  * 3. Returns final ordered columns
+ * @param showApprovalActions - If true, shows approval-specific action buttons instead of regular student options
  */
-export const getCustomColumns = (): ColumnDef<StudentTable>[] => {
+export const getCustomColumns = (showApprovalActions = false): ColumnDef<StudentTable>[] => {
     try {
+        // Create a copy of myColumns with the appropriate options column
+        let columnsToProcess = [...myColumns];
+
+        // If showApprovalActions is true, replace the options column
+        if (showApprovalActions) {
+            const optionsIndex = columnsToProcess.findIndex(col => col.id === 'options');
+            if (optionsIndex !== -1) {
+                columnsToProcess[optionsIndex] = {
+                    id: 'options',
+                    size: 60,
+                    minSize: 50,
+                    maxSize: 80,
+                    enableResizing: false,
+                    header: '',
+                    cell: ({ row }) => <EnrollRequestsStudentMenuOptions student={row.original} />,
+                };
+            }
+        }
+
         // Step 1: Process system fields (apply custom names and reorder)
-        const { columns: processedColumns } = processColumnsWithSystemFields(myColumns);
+        const { columns: processedColumns } = processColumnsWithSystemFields(columnsToProcess);
 
         // Step 2: Generate custom field columns for learnersList location
         const customFieldColumns = generateCustomFieldColumns();

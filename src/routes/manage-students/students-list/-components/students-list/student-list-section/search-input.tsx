@@ -10,7 +10,7 @@ interface SearchInputProps {
 export const SearchInput = ({ searchInput, onSearchChange, placeholder }: SearchInputProps) => {
     return (
         <div className="group relative">
-            <div className="to-primary-600/20 absolute -inset-0.5 rounded-lg bg-gradient-to-r from-primary-500/20 opacity-0 blur transition duration-300 group-focus-within:opacity-100"></div>
+            {/* <div className="to-primary-600/20 absolute -inset-0.5 rounded-lg bg-gradient-to-r from-primary-500/20 opacity-0 blur transition duration-300 group-focus-within:opacity-100"></div> */}
             <div className="relative">
                 <MyInput
                     inputType="text"
