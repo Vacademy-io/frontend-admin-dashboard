@@ -185,7 +185,9 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     // Sidebar content - shared between mobile drawer and desktop sidebar
     const sidebarContent = (
         <>
-            <SidebarHeader className="px-3 py-1">
+            <SidebarHeader
+                className={cn('py-1', state === 'collapsed' ? 'px-1' : 'px-3')}
+            >
                 <div
                     className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors"
                     onClick={() => {
@@ -198,8 +200,14 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             src={instituteLogo}
                             alt="logo"
                             className={cn(
-                                'w-auto object-contain',
-                                isCompact ? 'h-10 max-w-[80px]' : 'h-20 max-w-[180px]'
+                                'w-auto object-contain transition-all duration-200',
+                                state === 'expanded'
+                                    ? isCompact
+                                        ? 'h-10 max-w-[80px]'
+                                        : 'h-20 max-w-[180px]'
+                                    : isCompact
+                                      ? 'h-8 max-w-[30px]'
+                                      : 'h-10 max-w-[80px]'
                             )}
                         />
                     )}

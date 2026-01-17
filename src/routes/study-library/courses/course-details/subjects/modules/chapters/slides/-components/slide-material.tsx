@@ -32,6 +32,7 @@ import {
 import { StudyLibraryQuestionsPreview } from './questions-preview';
 import StudyLibraryAssignmentPreview from './assignment-preview';
 import VideoSlidePreview from './video-slide-preview';
+import AudioSlidePreview from './audio-slide-preview';
 import { handlePublishSlide } from './slide-operations/handlePublishSlide';
 import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
@@ -1403,6 +1404,12 @@ export const SlideMaterial = ({
 
         if (activeItem.source_type?.toUpperCase() === 'QUESTION') {
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
+            return;
+        }
+
+        // Handle AUDIO slides
+        if (activeItem.source_type?.toUpperCase() === 'AUDIO') {
+            setContent(<AudioSlidePreview activeItem={activeItem} isLearnerView={isLearnerView} />);
             return;
         }
 

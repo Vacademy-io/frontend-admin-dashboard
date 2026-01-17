@@ -18,7 +18,15 @@ import {
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useRouter } from '@tanstack/react-router';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { BookOpen, CheckCircle, Code, File, GameController, Question } from '@phosphor-icons/react';
+import {
+    BookOpen,
+    CheckCircle,
+    Code,
+    File,
+    GameController,
+    MusicNotes,
+    Question,
+} from '@phosphor-icons/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLearnerViewStore } from '../../-stores/learner-view-store';
 
@@ -77,7 +85,7 @@ export const getIcon = (
         return (
             <div className="relative inline-block">
                 <Video className={`${iconClass} text-blue-500`} />
-                <Sparkles className={`absolute -top-0.5 -right-0.5 ${sparkleSize} text-blue-400`} />
+                <Sparkles className={`absolute -right-0.5 -top-0.5 ${sparkleSize} text-blue-400`} />
             </div>
         );
     }
@@ -107,6 +115,8 @@ export const getIcon = (
             return <Code className={`${iconClass} text-green-500`} />;
         case 'PRESENTATION':
             return <FileDoc className={`${iconClass} text-orange-500`} />;
+        case 'AUDIO':
+            return <MusicNotes className={`${iconClass} text-indigo-500`} />;
         default:
             return <></>;
     }
@@ -131,6 +141,7 @@ const SlideItem = ({
             (slide.source_type === 'QUESTION' && slide?.title) ||
             (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
             (slide.source_type === 'QUIZ' && slide.title) || // Always use slide.title for QUIZ
+            (slide.source_type === 'AUDIO' && slide?.title) ||
             'Untitled'
         );
     };
@@ -187,7 +198,7 @@ const SlideItem = ({
                             slide.status === 'DELETED'
                                 ? 'cursor-not-allowed border-red-200 bg-red-50/30 text-red-600 opacity-50'
                                 : isActive
-                                  ? 'text-primary-600 border-primary-300 bg-primary-50/80 shadow-md shadow-primary-100/50'
+                                  ? 'border-primary-300 bg-primary-50/80 text-primary-600 shadow-md shadow-primary-100/50'
                                   : 'hover:bg-primary-25 border-neutral-100 bg-white/60 text-neutral-600 hover:border-primary-200 hover:text-primary-500 hover:shadow-sm'
                         }
                         ${slide.status !== 'DELETED' ? 'group-hover:shadow-md' : ''}
@@ -207,7 +218,7 @@ const SlideItem = ({
                                                 ? 'bg-red-200 text-red-600'
                                                 : isActive
                                                   ? 'bg-primary-500 text-white shadow-sm'
-                                                  : 'group-hover:text-primary-600 bg-neutral-100 text-neutral-500 group-hover:bg-primary-100'
+                                                  : 'bg-neutral-100 text-neutral-500 group-hover:bg-primary-100 group-hover:text-primary-600'
                                         }
                                     `}
                                     >
