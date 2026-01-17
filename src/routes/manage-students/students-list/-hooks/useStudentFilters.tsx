@@ -363,15 +363,35 @@ export const useStudentFilters = () => {
 
     const handleSessionChange = (value: DropdownValueType) => {
         if (value && typeof value === 'object' && 'id' in value && 'name' in value) {
+            const newSessionId = (value as DropdownItemType).id;
             setCurrentSession(value as DropdownItemType);
             const session = getAllSessions().find(
-                (session) => session.id === (value as DropdownItemType).id
+                (session) => session.id === newSessionId
             );
             if (session) {
                 setSelectedSession(session);
-                // Update session in URL
+
+                // Clear any existing batch filter when session changes
+                // This ensures we show ALL students from the new session
+                setColumnFilters((prev) => prev.filter((f) => f.id !== 'batch'));
+
+                // Get all batch IDs (package_session_ids) for the new session
+                const newSessionBatchIds = (instituteDetails?.batches_for_sessions || [])
+                    .filter((batch) => batch.session.id === newSessionId)
+                    .map((batch) => batch.id);
+
+                // Update applied filters with new session's batch IDs
+                // This triggers the API call to fetch students for the new session
+                setAppliedFilters((prev) => ({
+                    ...prev,
+                    package_session_ids: newSessionBatchIds,
+                    // Clear name search when switching sessions for cleaner UX
+                }));
+
+                // Update session in URL and clear batch param
                 const currentParams = new URLSearchParams(window.location.search);
                 currentParams.set('session', session.id);
+                currentParams.delete('batch'); // Clear batch from URL
                 const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
                 window.history.replaceState({}, '', newUrl);
             }
