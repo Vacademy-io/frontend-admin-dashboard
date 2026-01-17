@@ -352,6 +352,11 @@ export const StudentsListSection = () => {
         window.history.replaceState({}, '', newUrl);
     };
 
+    const handleResetAll = () => {
+        handleClearFilters();
+        setSelectedPackages([]);
+    };
+
     return (
         <ErrorBoundary>
             <section className="animate-fadeIn flex max-w-full flex-col gap-3 overflow-visible">
@@ -374,7 +379,7 @@ export const StudentsListSection = () => {
                         onClearSearch={handleClearSearch}
                         onFilterChange={handleFilterChange}
                         onFilterClick={handleFilterClick}
-                        onClearFilters={handleClearFilters}
+                        onClearFilters={handleResetAll}
                         appliedFilters={appliedFilters}
                         page={page}
                         pageSize={10}
