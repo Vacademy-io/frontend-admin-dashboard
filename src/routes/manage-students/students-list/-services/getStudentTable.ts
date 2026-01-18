@@ -37,7 +37,8 @@ export const useStudentList = (
             package_session_ids: filters.package_session_ids?.sort() || [],
             group_ids: filters.group_ids?.sort() || [],
             gender: filters.gender?.sort() || [],
-            statuses: filters.statuses?.sort() || [], // statuses are strings, standard sort is fine
+            statuses: filters.statuses?.sort() || [],
+            payment_statuses: filters.payment_statuses?.sort() || [],
             sort_columns: filters.sort_columns || {},
             session_expiry_days: filters.session_expiry_days?.sort((a, b) => a - b) || [],
             sub_org_user_types: filters.sub_org_user_types?.sort() || [],

@@ -32,8 +32,9 @@ export const StudentSearchBox = ({
     useEffect(() => {
         const fetchSuggestions = async () => {
             // Only fetch if we have input, instituteId, and it's not just the search icon trigger
-            if (!searchInput || searchInput.length < 2 || !instituteId) {
+            if (!searchInput || searchInput.length == 0  || !instituteId) {
                 setSuggestions([]);
+                setShowSuggestions(false);
                 return;
             }
 
@@ -177,28 +178,34 @@ export const StudentSearchBox = ({
                 </div>
 
                 {/* Suggestions Dropdown */}
-                {showSuggestions && suggestions.length > 0 && (
+                {showSuggestions && (
                     <div className="absolute left-0 top-full z-50 mt-1 w-full overflow-hidden rounded-md border border-neutral-200 bg-white shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
-                        <ul className="max-h-60 overflow-y-auto py-1">
-                            {suggestions.map((pkg, index) => (
-                                <li key={index}>
-                                    <button
-                                        type="button"
-                                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-neutral-700 hover:bg-neutral-50 hover:text-primary-600 focus:bg-neutral-50 focus:outline-none"
-                                        onClick={() => handleSelectSuggestion(pkg)}
-                                    >
-                                        <MagnifyingGlass className="size-4 min-w-4 text-neutral-400" />
-                                        <div className="flex flex-1 flex-col">
-                                            <span className="font-medium text-neutral-800">{pkg.package_name}</span>
-                                            {pkg.level_name && (
-                                                <span className="text-xs text-neutral-500 mt-0.5">{pkg.level_name}</span>
-                                            )}
-                                        </div>
-                                        <CaretRight className="size-3 text-neutral-300" />
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
+                        {suggestions.length > 0 ? (
+                            <ul className="max-h-60 overflow-y-auto py-1">
+                                {suggestions.map((pkg, index) => (
+                                    <li key={index}>
+                                        <button
+                                            type="button"
+                                            className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-neutral-700 hover:bg-neutral-50 hover:text-primary-600 focus:bg-neutral-50 focus:outline-none"
+                                            onClick={() => handleSelectSuggestion(pkg)}
+                                        >
+                                            <MagnifyingGlass className="size-4 min-w-4 text-neutral-400" />
+                                            <div className="flex flex-1 flex-col">
+                                                <span className="font-medium text-neutral-800">{pkg.package_name}</span>
+                                                {pkg.level_name && (
+                                                    <span className="text-xs text-neutral-500 mt-0.5">{pkg.level_name}</span>
+                                                )}
+                                            </div>
+                                            <CaretRight className="size-3 text-neutral-300" />
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center px-4 py-6 text-center text-sm text-neutral-500">
+                                <p>No results found for "{searchInput}"</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

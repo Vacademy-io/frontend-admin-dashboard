@@ -69,6 +69,23 @@ export const GetFilterData = (instituteDetails: InstituteDetailsType, currentSes
             title: `${getTerminology(ContentTerms.Session, SystemTerms.Session)} Expiry`,
             filterList: sessionExpiry || [],
         },
+        {
+            id: 'payment_statuses',
+            title: 'Payment Status',
+            filterList: [
+                { id: 'PAID', label: 'Paid' },
+                { id: 'FAILED', label: 'Failed' },
+                { id: 'PAYMENT_FAILED', label: 'Payment Failed' },
+            ],
+        },
+        {
+            id: 'approval_statuses',
+            title: 'Approval Status',
+            filterList: [
+                { id: 'PENDING_FOR_APPROVAL', label: 'Pending for Approval' },
+                { id: 'INVITED', label: 'Invited' },
+            ],
+        },
     ];
 
     // Add role filter if org-associated batches exist
