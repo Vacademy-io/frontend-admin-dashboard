@@ -138,6 +138,8 @@ const SlideItem = ({
         return (
             (slide.source_type === 'DOCUMENT' && slide.document_slide?.title) ||
             (slide.source_type === 'VIDEO' && slide.video_slide?.title) ||
+            (slide.source_type === 'HTML_VIDEO' &&
+                ((slide as any).html_video_slide?.title || slide.title)) ||
             (slide.source_type === 'QUESTION' && slide?.title) ||
             (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
             (slide.source_type === 'QUIZ' && slide.title) || // Always use slide.title for QUIZ
@@ -323,7 +325,7 @@ export const ChapterSidebarSlides = ({
             },
             replace: true, // Replace history entry instead of pushing new one
         });
-        
+
         // Set the new active item
         setActiveItem(slide);
     };

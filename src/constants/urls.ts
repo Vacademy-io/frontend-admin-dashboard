@@ -4,7 +4,7 @@ export const BASE_URL_LEARNER_DASHBOARD =
 
 // For testing, use localhost:8077
 export const AI_SERVICE_BASE_URL =
-    import.meta.env.VITE_AI_SERVICE_BASE_URL || 'http://localhost:8077/ai-service';
+    import.meta.env.VITE_AI_SERVICE_BASE_URL || 'https://backend-stage.vacademy.io/ai-service';
 
 // AI Video URLs API
 export const GET_VIDEO_URLS = (videoId: string) => `${AI_SERVICE_BASE_URL}/video/urls/${videoId}`;
