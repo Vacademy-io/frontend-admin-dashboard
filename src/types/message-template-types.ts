@@ -7,6 +7,7 @@ export interface MessageTemplate {
     variables: string[]; // Available variables like {{student_name}}, {{course_name}}, etc.
     isDefault: boolean;
     templateType?: 'marketing' | 'utility' | 'transactional';
+    mjml?: string; // MJML JSON data for email templates (editor state)
     createdAt: string;
     updatedAt: string;
     createdBy?: string;
@@ -21,6 +22,7 @@ export interface CreateTemplateRequest {
     variables: string[];
     isDefault?: boolean;
     templateType?: 'marketing' | 'utility' | 'transactional';
+    mjml?: string; // MJML JSON data for email templates (editor state)
 }
 
 export interface UpdateTemplateRequest {
@@ -32,6 +34,7 @@ export interface UpdateTemplateRequest {
     variables?: string[];
     isDefault?: boolean;
     templateType?: 'marketing' | 'utility' | 'transactional';
+    mjml?: string; // MJML JSON data for email templates (editor state)
 }
 
 export interface TemplateListResponse {

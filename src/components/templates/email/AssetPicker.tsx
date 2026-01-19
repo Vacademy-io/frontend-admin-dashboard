@@ -1,8 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { UploadFileInS3, getPublicUrl } from '@/services/upload_file';
+import { addEmailAsset, getEmailAssets, EmailAsset } from '@/services/email-assets-service';
 import { getUserId } from '@/utils/userDetails';
 import { getInstituteId } from '@/constants/helper';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 export interface AssetImage {
     id: string;
@@ -10,6 +12,9 @@ export interface AssetImage {
     url: string;
     thumbnail: string;
     category: string;
+    description?: string;
+    createdAt?: string;
+    createdBy?: string;
 }
 
 interface AssetPickerProps {
@@ -18,55 +23,97 @@ interface AssetPickerProps {
     onSelect: (imageUrl: string) => void;
 }
 
+// Transform API response to AssetImage format
+const transformEmailAssetToAssetImage = (asset: EmailAsset): AssetImage => ({
+    id: asset.id,
+    name: asset.name,
+    url: asset.data,
+    thumbnail: asset.data, // Use the same URL for thumbnail
+    category: 'Email Assets',
+    description: asset.description,
+    createdAt: asset.created_at_iso,
+    createdBy: asset.created_by,
+});
+
 const AssetPicker: React.FC<AssetPickerProps> = ({ isOpen, onClose, onSelect }) => {
     const [assets, setAssets] = useState<AssetImage[]>([]);
-    const [uploadedAssets, setUploadedAssets] = useState<AssetImage[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [searchQuery, setSearchQuery] = useState('');
     const [isUploading, setIsUploading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    
+    // Track request ID to handle race conditions
+    const requestIdRef = useRef<number>(0);
+    // Track if component is mounted to prevent state updates after unmount
+    const isMountedRef = useRef<boolean>(true);
 
-    // Load uploaded assets from localStorage on mount
+    // Reset state when modal opens and load assets
     useEffect(() => {
-        const stored = localStorage.getItem('uploadedAssets');
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                setUploadedAssets(parsed);
-            } catch (e) {
-                console.error('Failed to parse stored assets:', e);
-            }
+        if (isOpen) {
+            // Reset filters when modal opens to ensure all assets are shown
+            setSearchQuery('');
+            setSelectedCategory('All');
+            setError(null);
+            loadAssets();
         }
+        
+        // Cleanup function - increment request ID to invalidate any pending requests
+        return () => {
+            requestIdRef.current += 1;
+        };
+    }, [isOpen]);
+
+    // Track mounted state
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
     }, []);
 
+    const loadAssets = async () => {
+        // Increment request ID to track this specific request
+        const currentRequestId = ++requestIdRef.current;
+        
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            const emailAssets = await getEmailAssets();
+            
+            // Only update state if this is still the latest request and component is mounted
+            if (currentRequestId === requestIdRef.current && isMountedRef.current) {
+                const transformedAssets = emailAssets.map(transformEmailAssetToAssetImage);
+                console.log('Loaded assets:', transformedAssets.length, 'for request:', currentRequestId);
+                setAssets(transformedAssets);
+            } else {
+                console.log('Discarding stale response for request:', currentRequestId, 'current:', requestIdRef.current);
+            }
+        } catch (err) {
+            // Only update error state if this is still the latest request
+            if (currentRequestId === requestIdRef.current && isMountedRef.current) {
+                console.error('Failed to load email assets:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load assets');
+                toast.error('Failed to load assets. Please try again.');
+            }
+        } finally {
+            // Only update loading state if this is still the latest request
+            if (currentRequestId === requestIdRef.current && isMountedRef.current) {
+                setIsLoading(false);
+            }
+        }
+    };
+
     // Get all categories
-    const allAssets = [...assets, ...uploadedAssets];
-    const categories = ['All', ...new Set(allAssets.map((a) => a.category))];
+    const categories = ['All', ...new Set(assets.map((a) => a.category))];
 
     // Filter assets based on category and search
-    const filteredAssets = allAssets.filter((asset) => {
+    const filteredAssets = assets.filter((asset) => {
         const matchesCategory = selectedCategory === 'All' || asset.category === selectedCategory;
         const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesSearch;
     });
-
-    // Helper to convert base64 to File
-    const base64ToFile = (base64Data: string, mimeType: string, filename: string): File | null => {
-        try {
-            const base64String = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
-            if (!base64String) throw new Error('Invalid base64 data');
-
-            const binaryString = atob(base64String);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            const blob = new Blob([bytes], { type: mimeType });
-            return new File([blob], filename, { type: mimeType });
-        } catch (error) {
-            console.error('Error converting base64 to File:', error);
-            return null;
-        }
-    };
 
     // Handle file upload
     const handleUpload = useCallback(
@@ -104,31 +151,40 @@ const AssetPicker: React.FC<AssetPickerProps> = ({ isOpen, onClose, onSelect }) 
 
                     if (!fileId) {
                         console.error('Failed to upload file:', file.name);
+                        toast.error(`Failed to upload ${file.name}`);
                         continue;
                     }
 
                     const publicUrl = await getPublicUrl(fileId);
                     if (!publicUrl) {
                         console.error('Failed to get public URL for file:', file.name);
+                        toast.error(`Failed to get URL for ${file.name}`);
                         continue;
                     }
 
-                    const newAsset: AssetImage = {
-                        id: `uploaded-${Date.now()}-${i}`,
-                        name: file.name.replace(/\.[^/.]+$/, ''),
-                        url: publicUrl,
-                        thumbnail: publicUrl,
-                        category: 'Uploaded',
-                    };
+                    // Save asset to API (system files)
+                    const assetName = file.name.replace(/\.[^/.]+$/, '');
+                    try {
+                        const result = await addEmailAsset(publicUrl, assetName, `Uploaded on ${new Date().toLocaleDateString()}`);
+                        
+                        const newAsset: AssetImage = {
+                            id: result.id,
+                            name: assetName,
+                            url: publicUrl,
+                            thumbnail: publicUrl,
+                            category: 'Email Assets',
+                        };
 
-                    newAssets.push(newAsset);
+                        newAssets.push(newAsset);
+                    } catch (apiError) {
+                        console.error('Failed to save asset to API:', apiError);
+                        toast.error(`Failed to save ${file.name} to library`);
+                    }
                 }
 
-                const updatedUploaded = [...uploadedAssets, ...newAssets];
-                setUploadedAssets(updatedUploaded);
-                localStorage.setItem('uploadedAssets', JSON.stringify(updatedUploaded));
-
+                // Update local state with new assets
                 if (newAssets.length > 0) {
+                    setAssets((prev) => [...prev, ...newAssets]);
                     toast.success(`${newAssets.length} image${newAssets.length > 1 ? 's' : ''} uploaded successfully!`);
                 }
             } catch (error) {
@@ -139,7 +195,7 @@ const AssetPicker: React.FC<AssetPickerProps> = ({ isOpen, onClose, onSelect }) 
                 event.target.value = '';
             }
         },
-        [uploadedAssets]
+        []
     );
 
     // Handle image selection
@@ -151,17 +207,12 @@ const AssetPicker: React.FC<AssetPickerProps> = ({ isOpen, onClose, onSelect }) 
         [onSelect, onClose]
     );
 
-    // Handle delete uploaded asset
-    const handleDelete = useCallback(
-        (assetId: string, event: React.MouseEvent) => {
-            event.stopPropagation();
-            const updated = uploadedAssets.filter((a) => a.id !== assetId);
-            setUploadedAssets(updated);
-            localStorage.setItem('uploadedAssets', JSON.stringify(updated));
-            toast.success('Asset deleted');
-        },
-        [uploadedAssets]
-    );
+    // Handle refresh - reset filters and reload
+    const handleRefresh = useCallback(() => {
+        setSearchQuery('');
+        setSelectedCategory('All');
+        loadAssets();
+    }, []);
 
     if (!isOpen) return null;
 
@@ -170,10 +221,20 @@ const AssetPicker: React.FC<AssetPickerProps> = ({ isOpen, onClose, onSelect }) 
             <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
                 <div style={styles.header}>
-                    <h2 style={styles.title}>📁 Select Image from Assets</h2>
-                    <button style={styles.closeButton} onClick={onClose}>
-                        ✕
-                    </button>
+                    <h2 style={styles.title}>📁 Institute Email Assets</h2>
+                    <div style={styles.headerActions}>
+                        <button 
+                            style={styles.refreshButton} 
+                            onClick={handleRefresh}
+                            disabled={isLoading}
+                            title="Refresh assets"
+                        >
+                            🔄
+                        </button>
+                        <button style={styles.closeButton} onClick={onClose}>
+                            ✕
+                        </button>
+                    </div>
                 </div>
 
                 {/* Toolbar */}
@@ -201,11 +262,22 @@ const AssetPicker: React.FC<AssetPickerProps> = ({ isOpen, onClose, onSelect }) 
                     </select>
 
                     {/* Upload button */}
-                    <label style={styles.uploadButton}>
-                        {isUploading ? 'Uploading...' : '📤 Upload Image'}
+                    <label style={{
+                        ...styles.uploadButton,
+                        opacity: isUploading ? 0.7 : 1,
+                        cursor: isUploading ? 'not-allowed' : 'pointer',
+                    }}>
+                        {isUploading ? (
+                            <>
+                                <Loader2 className="size-4 animate-spin" />
+                                Uploading...
+                            </>
+                        ) : (
+                            '📤 Upload Image'
+                        )}
                         <input
                             type="file"
-                            accept="image/*"
+                            accept="image/*,.gif"
                             multiple
                             onChange={handleUpload}
                             style={{ display: 'none' }}
@@ -214,11 +286,35 @@ const AssetPicker: React.FC<AssetPickerProps> = ({ isOpen, onClose, onSelect }) 
                     </label>
                 </div>
 
+                {/* Info banner */}
+                <div style={styles.infoBanner}>
+                    <span style={styles.infoIcon}>ℹ️</span>
+                    <span>Assets are shared across all email templates in your institute. Upload once, use everywhere!</span>
+                </div>
+
                 {/* Image grid */}
                 <div style={styles.imageGrid}>
-                    {filteredAssets.length === 0 ? (
+                    {isLoading ? (
+                        <div style={styles.loadingState}>
+                            <Loader2 className="size-8 animate-spin" style={{ color: '#667eea' }} />
+                            <p>Loading assets...</p>
+                        </div>
+                    ) : error ? (
+                        <div style={styles.errorState}>
+                            <p>❌ {error}</p>
+                            <button style={styles.retryButton} onClick={handleRefresh}>
+                                Try Again
+                            </button>
+                        </div>
+                    ) : filteredAssets.length === 0 ? (
                         <div style={styles.emptyState}>
-                            <p>No images found. Upload some images to get started!</p>
+                            <div style={styles.emptyIcon}>🖼️</div>
+                            <p style={styles.emptyTitle}>No images found</p>
+                            <p style={styles.emptySubtitle}>
+                                {searchQuery 
+                                    ? 'Try adjusting your search query'
+                                    : 'Upload some images to build your asset library!'}
+                            </p>
                         </div>
                     ) : (
                         filteredAssets.map((asset) => (
@@ -228,22 +324,28 @@ const AssetPicker: React.FC<AssetPickerProps> = ({ isOpen, onClose, onSelect }) 
                                 onClick={() => handleSelect(asset.url)}
                             >
                                 <div style={styles.imageWrapper}>
-                                    <img src={asset.thumbnail} alt={asset.name} style={styles.image} />
-                                    {asset.id.startsWith('uploaded-') && (
-                                        <button
-                                            style={styles.deleteButton}
-                                            onClick={(e) => handleDelete(asset.id, e)}
-                                            title="Delete"
-                                        >
-                                            🗑️
-                                        </button>
-                                    )}
+                                    <img 
+                                        src={asset.thumbnail} 
+                                        alt={asset.name} 
+                                        style={styles.image}
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23f0f0f0" width="100" height="100"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23999">Error</text></svg>';
+                                        }}
+                                    />
                                 </div>
-                                <div style={styles.imageName}>{asset.name}</div>
+                                <div style={styles.imageName} title={asset.name}>{asset.name}</div>
                                 <div style={styles.imageCategory}>{asset.category}</div>
+                                {asset.createdBy && (
+                                    <div style={styles.imageCreator}>by {asset.createdBy}</div>
+                                )}
                             </div>
                         ))
                     )}
+                </div>
+
+                {/* Footer with asset count */}
+                <div style={styles.footer}>
+                    <span>{filteredAssets.length} asset{filteredAssets.length !== 1 ? 's' : ''} available</span>
                 </div>
             </div>
         </div>
@@ -268,7 +370,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         borderRadius: '12px',
         width: '90%',
         maxWidth: '900px',
-        maxHeight: '80vh',
+        maxHeight: '85vh',
         display: 'flex',
         flexDirection: 'column',
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
@@ -279,6 +381,11 @@ const styles: { [key: string]: React.CSSProperties } = {
         alignItems: 'center',
         padding: '20px 24px',
         borderBottom: '1px solid #eee',
+    },
+    headerActions: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
     },
     title: {
         margin: 0,
@@ -294,6 +401,15 @@ const styles: { [key: string]: React.CSSProperties } = {
         color: '#666',
         padding: '4px 8px',
         borderRadius: '4px',
+    },
+    refreshButton: {
+        background: '#f1f5f9',
+        border: 'none',
+        fontSize: '16px',
+        cursor: 'pointer',
+        padding: '6px 10px',
+        borderRadius: '6px',
+        transition: 'background-color 0.2s',
     },
     toolbar: {
         display: 'flex',
@@ -333,6 +449,19 @@ const styles: { [key: string]: React.CSSProperties } = {
         cursor: 'pointer',
         transition: 'background-color 0.2s',
     },
+    infoBanner: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '10px 24px',
+        backgroundColor: '#f0f9ff',
+        color: '#0369a1',
+        fontSize: '13px',
+        borderBottom: '1px solid #e0f2fe',
+    },
+    infoIcon: {
+        fontSize: '14px',
+    },
     imageGrid: {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
@@ -340,6 +469,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         padding: '24px',
         overflowY: 'auto',
         flex: 1,
+        minHeight: '300px',
     },
     imageCard: {
         display: 'flex',
@@ -366,17 +496,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         height: '100%',
         objectFit: 'cover',
     },
-    deleteButton: {
-        position: 'absolute',
-        top: '4px',
-        right: '4px',
-        background: 'rgba(255,255,255,0.9)',
-        border: 'none',
-        borderRadius: '4px',
-        padding: '4px 6px',
-        cursor: 'pointer',
-        fontSize: '12px',
-    },
     imageName: {
         marginTop: '8px',
         fontSize: '13px',
@@ -391,13 +510,66 @@ const styles: { [key: string]: React.CSSProperties } = {
         color: '#888',
         marginTop: '2px',
     },
+    imageCreator: {
+        fontSize: '10px',
+        color: '#aaa',
+        marginTop: '2px',
+        fontStyle: 'italic',
+    },
+    loadingState: {
+        gridColumn: '1 / -1',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '60px 20px',
+        color: '#666',
+        gap: '12px',
+    },
+    errorState: {
+        gridColumn: '1 / -1',
+        textAlign: 'center',
+        padding: '60px 20px',
+        color: '#dc2626',
+    },
+    retryButton: {
+        marginTop: '16px',
+        padding: '8px 16px',
+        backgroundColor: '#667eea',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontSize: '14px',
+    },
     emptyState: {
         gridColumn: '1 / -1',
         textAlign: 'center',
         padding: '60px 20px',
         color: '#888',
     },
+    emptyIcon: {
+        fontSize: '48px',
+        marginBottom: '16px',
+    },
+    emptyTitle: {
+        fontSize: '16px',
+        fontWeight: 600,
+        color: '#333',
+        margin: '0 0 8px 0',
+    },
+    emptySubtitle: {
+        fontSize: '14px',
+        color: '#666',
+        margin: 0,
+    },
+    footer: {
+        padding: '12px 24px',
+        borderTop: '1px solid #eee',
+        fontSize: '13px',
+        color: '#666',
+        textAlign: 'right',
+    },
 };
 
 export default AssetPicker;
-
