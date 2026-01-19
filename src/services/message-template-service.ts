@@ -26,7 +26,7 @@ const getAccessToken = (): string | null => {
 // Helper function to safely parse settingJson
 const parseSettingJson = (
     settingJson: string | object | undefined
-): { variables: string[]; isDefault: boolean; templateType: 'marketing' | 'utility' | 'transactional' } => {
+): { variables: string[]; isDefault: boolean; templateType: 'marketing' | 'utility' | 'transactional'; mjml?: string } => {
     if (!settingJson) {
         return { variables: [], isDefault: false, templateType: 'utility' };
     }
@@ -37,6 +37,7 @@ const parseSettingJson = (
             variables: (settingJson as any).variables || [],
             isDefault: (settingJson as any).isDefault || false,
             templateType: ((settingJson as any).templateType as 'marketing' | 'utility' | 'transactional') || 'utility',
+            mjml: (settingJson as any).mjml || undefined,
         };
     }
 
@@ -48,6 +49,7 @@ const parseSettingJson = (
                 variables: settings.variables || [],
                 isDefault: settings.isDefault || false,
                 templateType: (settings.templateType as 'marketing' | 'utility' | 'transactional') || 'utility',
+                mjml: settings.mjml || undefined,
             };
         } catch (error) {
             return { variables: [], isDefault: false, templateType: 'utility' };
@@ -83,6 +85,7 @@ export const createMessageTemplate = async (
                 variables: template.variables || [],
                 isDefault: template.isDefault || false,
                 templateType: template.templateType || 'utility',
+                mjml: template.mjml || undefined, // MJML JSON data for editor state
             },
             dynamicParameters: {},
             canDelete: true,
@@ -115,6 +118,7 @@ export const createMessageTemplate = async (
         }
 
         const result = await response.json();
+        const parsedSettings = parseSettingJson(result.settingJson);
 
         // Transform the API response to match our MessageTemplate interface
         return {
@@ -123,9 +127,10 @@ export const createMessageTemplate = async (
             type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
             subject: result.subject || '',
             content: result.content,
-            variables: parseSettingJson(result.settingJson).variables,
-            isDefault: parseSettingJson(result.settingJson).isDefault,
-            templateType: parseSettingJson(result.settingJson).templateType,
+            variables: parsedSettings.variables,
+            isDefault: parsedSettings.isDefault,
+            templateType: parsedSettings.templateType,
+            mjml: parsedSettings.mjml,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
         };
@@ -205,10 +210,10 @@ export const getMessageTemplates = async (
 
         // Transform templates to match our MessageTemplate interface
         const transformedTemplates = templates.map((template: Record<string, unknown>) => {
-            const { variables, isDefault, templateType } = parseSettingJson(template.settingJson as string);
+            const parsedSettings = parseSettingJson(template.settingJson as string);
 
             // Map templateCategory to templateType if needed
-            let mappedTemplateType = templateType;
+            let mappedTemplateType = parsedSettings.templateType;
             if (!mappedTemplateType && template.templateCategory) {
                 const category = (template.templateCategory as string).toLowerCase();
                 if (category === 'marketing' || category === 'utility' || category === 'transactional') {
@@ -224,9 +229,10 @@ export const getMessageTemplates = async (
                 type: normalizedType,
                 subject: (template.subject as string) || '',
                 content: (template.content as string) || '', // Content might not be in list response
-                variables: variables,
-                isDefault: isDefault,
+                variables: parsedSettings.variables,
+                isDefault: parsedSettings.isDefault,
                 templateType: mappedTemplateType,
+                mjml: parsedSettings.mjml,
                 createdAt: (template.createdAt as string) || new Date().toISOString(),
                 updatedAt: (template.updatedAt as string) || new Date().toISOString(),
                 createdBy: template.createdBy as string | undefined,
@@ -280,11 +286,11 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
         const result = await response.json();
         console.log('Template API response:', result);
 
-        // Parse settingJson to extract variables, isDefault, templateType
-        const { variables, isDefault, templateType } = parseSettingJson(result.settingJson);
+        // Parse settingJson to extract variables, isDefault, templateType, mjml
+        const parsedSettings = parseSettingJson(result.settingJson);
 
         // Map templateCategory to templateType if needed
-        let mappedTemplateType = templateType;
+        let mappedTemplateType = parsedSettings.templateType;
         if (!mappedTemplateType && result.templateCategory) {
             const category = (result.templateCategory as string).toLowerCase();
             // Map API categories to our template types
@@ -302,9 +308,10 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
             type: ((result.type as string)?.toUpperCase() || 'EMAIL') as 'EMAIL' | 'WHATSAPP',
             subject: result.subject || '',
             content: result.content || '',
-            variables: variables,
-            isDefault: isDefault,
+            variables: parsedSettings.variables,
+            isDefault: parsedSettings.isDefault,
             templateType: mappedTemplateType,
+            mjml: parsedSettings.mjml,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
             createdBy: result.createdBy,
@@ -317,6 +324,7 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
             type: transformed.type,
             hasContent: !!transformed.content,
             contentLength: transformed.content?.length || 0,
+            hasMjml: !!transformed.mjml,
         });
 
         return transformed;
@@ -355,6 +363,7 @@ export const updateMessageTemplate = async (
                 variables: updateData.variables || [],
                 isDefault: updateData.isDefault || false,
                 templateType: updateData.templateType || 'utility',
+                mjml: updateData.mjml || undefined, // MJML JSON data for editor state
             },
             dynamicParameters: {},
             canDelete: true,
@@ -387,6 +396,7 @@ export const updateMessageTemplate = async (
         }
 
         const result = await response.json();
+        const parsedSettings = parseSettingJson(result.settingJson);
 
         // Transform the API response to match our MessageTemplate interface
         return {
@@ -395,9 +405,10 @@ export const updateMessageTemplate = async (
             type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
             subject: result.subject || '',
             content: result.content,
-            variables: parseSettingJson(result.settingJson).variables,
-            isDefault: parseSettingJson(result.settingJson).isDefault,
-            templateType: parseSettingJson(result.settingJson).templateType,
+            variables: parsedSettings.variables,
+            isDefault: parsedSettings.isDefault,
+            templateType: parsedSettings.templateType,
+            mjml: parsedSettings.mjml,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
         };
@@ -469,6 +480,7 @@ export const setDefaultTemplate = async (
         }
 
         const result = await response.json();
+        const parsedSettings = parseSettingJson(result.settingJson);
 
         // Transform the API response to match our MessageTemplate interface
         return {
@@ -477,9 +489,10 @@ export const setDefaultTemplate = async (
             type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
             subject: result.subject || '',
             content: result.content,
-            variables: parseSettingJson(result.settingJson).variables,
-            isDefault: parseSettingJson(result.settingJson).isDefault,
-            templateType: parseSettingJson(result.settingJson).templateType,
+            variables: parsedSettings.variables,
+            isDefault: parsedSettings.isDefault,
+            templateType: parsedSettings.templateType,
+            mjml: parsedSettings.mjml,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
         };
@@ -509,6 +522,7 @@ export const duplicateTemplate = async (id: string): Promise<MessageTemplate> =>
         }
 
         const result = await response.json();
+        const parsedSettings = parseSettingJson(result.settingJson);
 
         // Transform the API response to match our MessageTemplate interface
         return {
@@ -517,9 +531,10 @@ export const duplicateTemplate = async (id: string): Promise<MessageTemplate> =>
             type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
             subject: result.subject || '',
             content: result.content,
-            variables: parseSettingJson(result.settingJson).variables,
-            isDefault: parseSettingJson(result.settingJson).isDefault,
-            templateType: parseSettingJson(result.settingJson).templateType,
+            variables: parsedSettings.variables,
+            isDefault: parsedSettings.isDefault,
+            templateType: parsedSettings.templateType,
+            mjml: parsedSettings.mjml,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
         };
@@ -579,16 +594,17 @@ export const searchMessageTemplates = async (searchParams: {
         // Transform the API response to match our TemplateListResponse interface
         const templates = (result.content || result.templates || result.data || []).map(
             (template: Record<string, unknown>) => {
-                const { variables, isDefault, templateType } = parseSettingJson(template.settingJson as string);
+                const parsedSettings = parseSettingJson(template.settingJson as string);
                 return {
                     id: (template.id || template.templateId) as string,
                     name: template.name as string,
                     type: (template.type as string)?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
                     subject: (template.subject as string) || '',
                     content: template.content as string,
-                    variables: variables,
-                    isDefault: isDefault,
-                    templateType: templateType,
+                    variables: parsedSettings.variables,
+                    isDefault: parsedSettings.isDefault,
+                    templateType: parsedSettings.templateType,
+                    mjml: parsedSettings.mjml,
                     createdAt: (template.createdAt as string) || new Date().toISOString(),
                     updatedAt: (template.updatedAt as string) || new Date().toISOString(),
                 };
