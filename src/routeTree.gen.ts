@@ -23,6 +23,7 @@ import { Route as ManagePaymentsIndexRouteImport } from "./routes/manage-payment
 import { Route as ManagePagesIndexRouteImport } from "./routes/manage-pages/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
 import { Route as ManageContactsIndexRouteImport } from "./routes/manage-contacts/index"
+import { Route as ManageBookingsIndexRouteImport } from "./routes/manage-bookings/index"
 import { Route as LoginIndexRouteImport } from "./routes/login/index"
 import { Route as LearnerInsightsIndexRouteImport } from "./routes/learner-insights/index"
 import { Route as InstructorCopilotIndexRouteImport } from "./routes/instructor-copilot/index"
@@ -225,6 +226,13 @@ const ManageContactsIndexRoute = ManageContactsIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() =>
   import("./routes/manage-contacts/index.lazy").then((d) => d.Route),
+)
+const ManageBookingsIndexRoute = ManageBookingsIndexRouteImport.update({
+  id: "/manage-bookings/",
+  path: "/manage-bookings/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/manage-bookings/index.lazy").then((d) => d.Route),
 )
 const LoginIndexRoute = LoginIndexRouteImport.update({
   id: "/login/",
@@ -1039,6 +1047,7 @@ export interface FileRoutesByFullPath {
   "/instructor-copilot": typeof InstructorCopilotIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
+  "/manage-bookings": typeof ManageBookingsIndexRoute
   "/manage-contacts": typeof ManageContactsIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-pages": typeof ManagePagesIndexRoute
@@ -1153,6 +1162,7 @@ export interface FileRoutesByTo {
   "/instructor-copilot": typeof InstructorCopilotIndexRoute
   "/learner-insights": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
+  "/manage-bookings": typeof ManageBookingsIndexRoute
   "/manage-contacts": typeof ManageContactsIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-pages": typeof ManagePagesIndexRoute
@@ -1269,6 +1279,7 @@ export interface FileRoutesById {
   "/instructor-copilot/": typeof InstructorCopilotIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login/": typeof LoginIndexRoute
+  "/manage-bookings/": typeof ManageBookingsIndexRoute
   "/manage-contacts/": typeof ManageContactsIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-pages/": typeof ManagePagesIndexRoute
@@ -1386,6 +1397,7 @@ export interface FileRouteTypes {
     | "/instructor-copilot"
     | "/learner-insights/"
     | "/login"
+    | "/manage-bookings"
     | "/manage-contacts"
     | "/manage-institute"
     | "/manage-pages"
@@ -1500,6 +1512,7 @@ export interface FileRouteTypes {
     | "/instructor-copilot"
     | "/learner-insights"
     | "/login"
+    | "/manage-bookings"
     | "/manage-contacts"
     | "/manage-institute"
     | "/manage-pages"
@@ -1615,6 +1628,7 @@ export interface FileRouteTypes {
     | "/instructor-copilot/"
     | "/learner-insights/"
     | "/login/"
+    | "/manage-bookings/"
     | "/manage-contacts/"
     | "/manage-institute/"
     | "/manage-pages/"
@@ -1730,6 +1744,7 @@ export interface RootRouteChildren {
   EvaluatorAiIndexRoute: typeof EvaluatorAiIndexRoute
   InstructorCopilotIndexRoute: typeof InstructorCopilotIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
+  ManageBookingsIndexRoute: typeof ManageBookingsIndexRoute
   ManageContactsIndexRoute: typeof ManageContactsIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
   ManagePagesIndexRoute: typeof ManagePagesIndexRoute
@@ -1942,6 +1957,13 @@ declare module "@tanstack/react-router" {
       path: "/manage-contacts"
       fullPath: "/manage-contacts"
       preLoaderRoute: typeof ManageContactsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/manage-bookings/": {
+      id: "/manage-bookings/"
+      path: "/manage-bookings"
+      fullPath: "/manage-bookings"
+      preLoaderRoute: typeof ManageBookingsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/login/": {
@@ -2652,6 +2674,7 @@ const rootRouteChildren: RootRouteChildren = {
   EvaluatorAiIndexRoute: EvaluatorAiIndexRoute,
   InstructorCopilotIndexRoute: InstructorCopilotIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
+  ManageBookingsIndexRoute: ManageBookingsIndexRoute,
   ManageContactsIndexRoute: ManageContactsIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
   ManagePagesIndexRoute: ManagePagesIndexRoute,
