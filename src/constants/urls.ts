@@ -479,3 +479,25 @@ export const UPDATE_CATALOGUE = (catalogueId: string) =>
     `${CATALOGUE_BASE_URL}/update?catalogueId=${catalogueId}`;
 export const GET_CATALOGUE_BY_TAG = (instituteId: string, tagName: string) =>
     `${CATALOGUE_BASE_URL}/institute/get/by-tag?instituteId=${instituteId}&tagName=${encodeURIComponent(tagName)}`;
+
+// Booking System URLs
+export const BOOKING_BASE = `${BASE_URL}/admin-core-service/booking/v1`;
+
+export const BOOKING_CREATE = `${BOOKING_BASE}/create`;
+export const BOOKING_LINK_USERS = `${BOOKING_BASE}/link-users`;
+export const BOOKING_CHECK_AVAILABILITY = `${BOOKING_BASE}/check-availability`;
+export const BOOKING_CANCEL = `${BOOKING_BASE}/cancel`;
+export const BOOKING_RESCHEDULE = `${BOOKING_BASE}/reschedule`;
+export const BOOKING_CALENDAR = `${BOOKING_BASE}/calendar`;
+export const BOOKING_GET_BY_ID = (sessionId: string) => `${BOOKING_BASE}/${sessionId}`;
+export const BOOKING_UPDATE_STATUS = (sessionId: string) => `${BOOKING_BASE}/${sessionId}/status`;
+
+// Booking Types URLs
+export const BOOKING_TYPES_CREATE = `${BOOKING_BASE}/types/create`;
+export const BOOKING_TYPES_LIST = `${BOOKING_BASE}/types/list`;
+export const BOOKING_TYPES_ALL = `${BOOKING_BASE}/types/all`;
+export const BOOKING_TYPES_GLOBAL = `${BOOKING_BASE}/types/global`;
+export const BOOKING_TYPES_BY_INSTITUTE = `${BOOKING_BASE}/types/by-institute`;
+
+// Autosuggest Users API
+export const AUTOSUGGEST_USERS = `${BASE_URL}/auth-service/v1/user/autosuggest-users`;
