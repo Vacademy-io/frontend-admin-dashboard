@@ -182,7 +182,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
 
     // Extract courses and pagination info from response
     const courses = coursesResponse?.content || [];
-    
+
     // Update pagination metadata when data changes
     useEffect(() => {
         if (coursesResponse) {
@@ -261,7 +261,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
             const course = response.packageEntity;
             // Create unique ID for each entry
             const uniqueId = `${response.courseId}_${response.sessionInfo.sessionId}_${response.levelInfo.levelId}`;
-            
+
             return {
                 id: uniqueId,
                 courseId: response.courseId,
@@ -302,7 +302,8 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
 
     const handleViewCourse = (courseId: string) => {
         navigate({
-            to: `/study-library/courses/course-details?courseId=${courseId}`,
+            to: '/study-library/courses/course-details',
+            search: { courseId: courseId },
         });
     };
 
@@ -501,7 +502,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                 )}
 
                                 {/* Session Name - show if not invited */}
-                                {course.sessionInfo.sessionName && 
+                                {course.sessionInfo.sessionName &&
                                  !course.sessionInfo.sessionName.toLowerCase().includes('invited') && (
                                     <div className="mt-2 flex items-center gap-2">
                                         <span className="text-xs text-neutral-600">

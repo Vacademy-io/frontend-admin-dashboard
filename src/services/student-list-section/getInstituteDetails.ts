@@ -33,6 +33,9 @@ export const fetchInstituteSetup = async (): Promise<any> => {
     const setupData = response.data;
     const transformedData = {
         ...setupData.institute_info_dto,
+        sub_modules: Array.isArray(setupData.institute_info_dto?.sub_modules)
+            ? setupData.institute_info_dto.sub_modules
+            : [],
         sub_org_roles: setupData.sub_org_roles || [],
         dropdown_custom_fields: setupData.dropdown_custom_fields || [],
     };
@@ -136,6 +139,7 @@ export const fetchBothInstituteAPIs = async (): Promise<InstituteDetailsType> =>
         student_statuses: instituteData?.student_statuses || [],
         genders: instituteData?.genders || [],
         tags: instituteData?.tags || [],
+        sub_modules: Array.isArray(instituteData?.sub_modules) ? instituteData.sub_modules : [],
     };
 
     return mergedData;

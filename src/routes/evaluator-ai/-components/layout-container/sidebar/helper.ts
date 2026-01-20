@@ -6,9 +6,10 @@ export function getModuleFlags(
         | { module: string; sub_module: string; sub_module_description: string }[]
         | undefined
 ) {
+    const modules = Array.isArray(sub_modules) ? sub_modules : [];
     return {
-        assess: sub_modules?.some((item) => item.module === 'ASSESS'),
-        lms: sub_modules?.some((item) => item.module === 'ENGAGE'),
+        assess: modules.some((item) => item.module === 'ASSESS'),
+        lms: modules.some((item) => item.module === 'ENGAGE'),
     };
 }
 
