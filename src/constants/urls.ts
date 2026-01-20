@@ -48,6 +48,12 @@ export const GET_ALL_RATING_SUMMARY = `${BASE_URL}/admin-core-service/rating/sum
 
 export const GET_REFERRAL_LIST_URL = `${BASE_URL}/admin-core-service/v1/referral-option`;
 
+// Email Assets (System Files) API
+export const SYSTEM_FILES_BASE = `${BASE_URL}/admin-core-service/system-files/v1`;
+export const ADD_EMAIL_ASSET = `${SYSTEM_FILES_BASE}/add`;
+export const LIST_EMAIL_ASSETS = `${SYSTEM_FILES_BASE}/list`;
+export const GET_MY_FILES = `${SYSTEM_FILES_BASE}/my-files`;
+
 export const COURSE_CATALOG_URL = `${BASE_URL}/admin-core-service/packages/v1/search`;
 export const PACKAGE_AUTOCOMPLETE_URL = `${BASE_URL}/admin-core-service/packages/v1/autocomplete`;
 export const COURSE_CATALOG_TEACHER_URL = `${BASE_URL}/admin-core-service/v1/package/package-request/search`;

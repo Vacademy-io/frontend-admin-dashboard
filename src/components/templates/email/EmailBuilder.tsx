@@ -381,20 +381,38 @@ const EmailBuilder: React.FC<EmailBuilderProps> = ({
     // Initial template data
     const initialValues: IEmailTemplate = useMemo(() => {
         if (template && template.id) {
-            // Try to load MJML JSON from localStorage (stored when saving)
-            const mjmlJsonKey = `email_template_mjml_${template.id}`;
-            const storedMjml = localStorage.getItem(mjmlJsonKey);
-
-            if (storedMjml) {
+            // Load MJML JSON from the template.mjml field (stored in settingJson on backend)
+            if (template.mjml) {
                 try {
-                    const contentData = JSON.parse(storedMjml);
+                    const contentData = typeof template.mjml === 'string' 
+                        ? JSON.parse(template.mjml) 
+                        : template.mjml;
+                    console.log('Loaded MJML from API settingJson:', { hasContent: !!contentData });
                     return {
                         subject: template.subject || 'Welcome to Easy-email',
                         subTitle: 'Nice to meet you!',
                         content: contentData,
                     };
                 } catch (e) {
-                    console.warn('Failed to parse stored MJML JSON:', e);
+                    console.warn('Failed to parse MJML JSON from API:', e);
+                }
+            }
+
+            // Fallback: Try to load from localStorage (for backwards compatibility)
+            const mjmlJsonKey = `email_template_mjml_${template.id}`;
+            const storedMjml = localStorage.getItem(mjmlJsonKey);
+
+            if (storedMjml) {
+                try {
+                    const contentData = JSON.parse(storedMjml);
+                    console.log('Loaded MJML from localStorage (legacy):', { hasContent: !!contentData });
+                    return {
+                        subject: template.subject || 'Welcome to Easy-email',
+                        subTitle: 'Nice to meet you!',
+                        content: contentData,
+                    };
+                } catch (e) {
+                    console.warn('Failed to parse stored MJML JSON from localStorage:', e);
                 }
             }
 
@@ -454,15 +472,15 @@ const EmailBuilder: React.FC<EmailBuilderProps> = ({
         async (values: IEmailTemplate, _form: any) => {
             setIsSaving(true);
             try {
-                // 1. Convert to MJML
-                const mjml = JsonToMjml({
+                // 1. Convert to MJML string
+                const mjmlString = JsonToMjml({
                     data: values.content,
                     mode: 'production',
                     context: values.content,
                 });
 
                 // 2. Convert MJML to HTML
-                const { html, errors } = mjml2html(mjml);
+                const { html, errors } = mjml2html(mjmlString);
 
                 if (errors && errors.length > 0) {
                     console.warn('MJML compilation errors:', errors);
@@ -472,13 +490,10 @@ const EmailBuilder: React.FC<EmailBuilderProps> = ({
                 // 3. Process and upload images to S3
                 const processedHtml = await processHtmlImages(html);
 
-                // 4. Store MJML JSON in localStorage for future editing
-                const mjmlJsonKey = template?.id ? `email_template_mjml_${template.id}` : null;
-                if (mjmlJsonKey) {
-                    localStorage.setItem(mjmlJsonKey, JSON.stringify(values.content));
-                }
+                // 4. Serialize MJML JSON for storage in settingJson
+                const mjmlJsonString = JSON.stringify(values.content);
 
-                // 5. Create template object
+                // 5. Create template object with MJML stored in mjml field
                 const savedTemplate: MessageTemplate = {
                     id: template?.id || '',
                     name: templateName,
@@ -488,17 +503,24 @@ const EmailBuilder: React.FC<EmailBuilderProps> = ({
                     variables: template?.variables || [],
                     isDefault: template?.isDefault || false,
                     templateType: templateType,
+                    mjml: mjmlJsonString, // Store MJML JSON in settingJson via API
                     createdAt: template?.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
                 };
 
-                // 6. Save via API
+                console.log('Saving template with MJML:', { 
+                    hasId: !!savedTemplate.id, 
+                    hasMjml: !!savedTemplate.mjml,
+                    mjmlLength: savedTemplate.mjml?.length || 0
+                });
+
+                // 6. Save via API (mjml will be stored in settingJson on the backend)
                 await onSave(savedTemplate);
 
-                // 7. After saving, update localStorage with the new template ID if it was created
-                if (!template?.id && savedTemplate.id) {
-                    const newMjmlJsonKey = `email_template_mjml_${savedTemplate.id}`;
-                    localStorage.setItem(newMjmlJsonKey, JSON.stringify(values.content));
+                // 7. Also store in localStorage as backup for backwards compatibility
+                const mjmlJsonKey = template?.id ? `email_template_mjml_${template.id}` : null;
+                if (mjmlJsonKey) {
+                    localStorage.setItem(mjmlJsonKey, mjmlJsonString);
                 }
 
                 toast.success('Template saved successfully!');
@@ -509,7 +531,7 @@ const EmailBuilder: React.FC<EmailBuilderProps> = ({
                 setIsSaving(false);
             }
         },
-        [template, templateName, onSave]
+        [template, templateName, templateType, onSave]
     );
 
     // Handle image upload (for drag and drop in editor)
