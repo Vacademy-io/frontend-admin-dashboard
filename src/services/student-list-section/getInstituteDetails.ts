@@ -139,7 +139,7 @@ export const fetchBothInstituteAPIs = async (): Promise<InstituteDetailsType> =>
         student_statuses: instituteData?.student_statuses || [],
         genders: instituteData?.genders || [],
         tags: instituteData?.tags || [],
-        sub_modules: Array.isArray(instituteData?.sub_modules) ? instituteData.sub_modules : [],
+        sub_modules: Array.isArray(instituteData?.sub_modules) ? instituteData?.sub_modules : [],
     };
 
     return mergedData;
