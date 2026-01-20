@@ -90,7 +90,8 @@ export const AdminApprovalDashboard: React.FC = () => {
 
     const handleViewCourse = (course: CourseForApproval) => {
         navigate({
-            to: `/study-library/courses/course-details?courseId=${course.id}`,
+            to: '/study-library/courses/course-details',
+            search: { courseId: course.id },
         });
     };
 

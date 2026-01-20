@@ -125,7 +125,8 @@ export const CourseInReviewTab: React.FC = () => {
 
     const handleViewCourse = (course: CourseInReviewResponse) => {
         navigate({
-            to: `/study-library/courses/course-details?courseId=${course.courseId}`,
+            to: '/study-library/courses/course-details',
+            search: { courseId: course.courseId },
         });
     };
 
