@@ -1,6 +1,11 @@
 import { MyTable } from '@/components/design-system/table';
 import { Badge } from '@/components/ui/badge';
-import type { MembershipDetail, MembershipStatus, MembershipDetailsResponse, PolicyDetails } from '@/types/membership-expiry';
+import type {
+    MembershipDetail,
+    MembershipStatus,
+    MembershipDetailsResponse,
+    PolicyDetails,
+} from '@/types/membership-expiry';
 import { format } from 'date-fns';
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
@@ -43,12 +48,18 @@ const AutoRenewalBadge = ({ policy }: { policy: PolicyDetails | null }) => {
                 <TooltipTrigger asChild>
                     <div className="flex items-center gap-1">
                         {isEnabled ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+                            <Badge
+                                variant="outline"
+                                className="flex items-center gap-1 border-green-200 bg-green-50 text-green-700"
+                            >
                                 <RefreshCw className="size-3" />
                                 Auto-Renewal
                             </Badge>
                         ) : (
-                            <Badge variant="outline" className="bg-gray-50 text-gray-500 border-gray-200 flex items-center gap-1">
+                            <Badge
+                                variant="outline"
+                                className="flex items-center gap-1 border-gray-200 bg-gray-50 text-gray-500"
+                            >
                                 <Ban className="size-3" />
                                 No Auto-Renewal
                             </Badge>
@@ -58,8 +69,7 @@ const AutoRenewalBadge = ({ policy }: { policy: PolicyDetails | null }) => {
                 <TooltipContent>
                     {isEnabled
                         ? `Payment will be attempted on ${policy.on_expiry_policy.next_payment_attempt_date ? format(new Date(policy.on_expiry_policy.next_payment_attempt_date), 'MMM dd, yyyy') : 'scheduled date'}`
-                        : 'Auto-renewal is disabled for this membership'
-                    }
+                        : 'Auto-renewal is disabled for this membership'}
                 </TooltipContent>
             </Tooltip>
         </TooltipProvider>
@@ -96,11 +106,15 @@ const ExpiryDetails = ({ policy }: { policy: PolicyDetails | null }) => {
 const ReenrollmentInfo = ({ policy }: { policy: PolicyDetails | null }) => {
     if (!policy?.reenrollment_policy) return <span className="text-gray-400">—</span>;
 
-    const { allow_reenrollment_after_expiry, next_eligible_enrollment_date, reenrollment_gap_in_days } = policy.reenrollment_policy;
+    const {
+        allow_reenrollment_after_expiry,
+        next_eligible_enrollment_date,
+        reenrollment_gap_in_days,
+    } = policy.reenrollment_policy;
 
     if (!allow_reenrollment_after_expiry) {
         return (
-            <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
+            <Badge variant="outline" className="border-red-200 bg-red-50 text-red-600">
                 Not Allowed
             </Badge>
         );
@@ -124,91 +138,109 @@ const ReenrollmentInfo = ({ policy }: { policy: PolicyDetails | null }) => {
                 <TooltipContent>
                     {reenrollment_gap_in_days > 0
                         ? `${reenrollment_gap_in_days} day gap required before re-enrollment`
-                        : 'Can re-enroll immediately after expiry'
-                    }
+                        : 'Can re-enroll immediately after expiry'}
                 </TooltipContent>
             </Tooltip>
         </TooltipProvider>
     );
 };
 
-export function MembershipExpiryTable({ data, isLoading, error, currentPage, onPageChange }: Props) {
-    const columns = useMemo<any>(() => [
-        columnHelper.accessor('user_details.full_name', {
-            header: 'User',
-            cell: (info) => (
-                <div>
-                    <div className="font-medium text-gray-900">{info.getValue()}</div>
-                    <div className="text-xs text-gray-500">{info.row.original.user_details.email}</div>
-                    <div className="text-xs text-gray-500">{info.row.original.user_details.mobile_number}</div>
-                </div>
-            ),
-        }),
-        columnHelper.accessor('user_plan.payment_plan_dto.name', {
-            header: 'Plan',
-            cell: (info) => {
-                const policy = getFirstPolicy(info.row.original);
-                return (
+export function MembershipExpiryTable({
+    data,
+    isLoading,
+    error,
+    currentPage,
+    onPageChange,
+}: Props) {
+    const columns = useMemo<any>(
+        () => [
+            columnHelper.accessor((row) => row.user_details?.full_name, {
+                id: 'full_name',
+                header: 'User',
+                cell: (info) => (
                     <div>
-                        <div className="font-medium">{info.getValue()}</div>
-                        {policy?.package_session_name && (
-                            <div className="text-xs text-gray-500">{policy.package_session_name}</div>
-                        )}
-                        {info.row.original.package_sessions?.map((ps, idx) => (
-                            <div key={idx} className="text-xs text-gray-500">
-                                {ps.package_name} - {ps.session_name} ({ps.level_name})
-                            </div>
-                        ))}
+                        <div className="font-medium text-gray-900">
+                            {info.getValue() ?? 'Unknown User'}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                            {info.row.original.user_details?.email}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                            {info.row.original.user_details?.mobile_number}
+                        </div>
                     </div>
-                );
-            },
-        }),
-        columnHelper.accessor('membership_status', {
-            header: 'Status',
-            cell: (info) => {
-                const status = info.getValue() as MembershipStatus;
-                let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'default';
-                if (status === 'ENDED') variant = 'destructive';
-                if (status === 'ABOUT_TO_END') variant = 'secondary';
-                if (status === 'LIFETIME') variant = 'outline';
-                if (status === 'ACTIVE') variant = 'default';
+                ),
+            }),
+            columnHelper.accessor((row) => row.user_plan?.payment_plan_dto?.name, {
+                id: 'plan_name',
+                header: 'Plan',
+                cell: (info) => {
+                    const policy = getFirstPolicy(info.row.original);
+                    return (
+                        <div>
+                            <div className="font-medium">{info.getValue() ?? 'Unknown Plan'}</div>
+                            {policy?.package_session_name && (
+                                <div className="text-xs text-gray-500">
+                                    {policy.package_session_name}
+                                </div>
+                            )}
+                            {info.row.original.package_sessions?.map((ps, idx) => (
+                                <div key={idx} className="text-xs text-gray-500">
+                                    {ps.package_name} - {ps.session_name} ({ps.level_name})
+                                </div>
+                            ))}
+                        </div>
+                    );
+                },
+            }),
+            columnHelper.accessor('membership_status', {
+                header: 'Status',
+                cell: (info) => {
+                    const status = info.getValue() as MembershipStatus;
+                    let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'default';
+                    if (status === 'ENDED') variant = 'destructive';
+                    if (status === 'ABOUT_TO_END') variant = 'secondary';
+                    if (status === 'LIFETIME') variant = 'outline';
+                    if (status === 'ACTIVE') variant = 'default';
 
-                return <Badge variant={variant}>{status.replace('_', ' ')}</Badge>;
-            },
-        }),
-        columnHelper.display({
-            id: 'auto_renewal',
-            header: 'Auto-Renewal',
-            cell: (info) => {
-                const policy = getFirstPolicy(info.row.original);
-                return <AutoRenewalBadge policy={policy} />;
-            },
-        }),
-        columnHelper.accessor((row) => row.user_plan.end_date, {
-            id: 'end_date',
-            header: 'Plan End Date',
-            cell: (info) => {
-                const date = info.getValue();
-                return date ? format(new Date(date), 'MMM dd, yyyy') : 'N/A';
-            },
-        }),
-        columnHelper.display({
-            id: 'final_expiry',
-            header: 'Final Expiry',
-            cell: (info) => {
-                const policy = getFirstPolicy(info.row.original);
-                return <ExpiryDetails policy={policy} />;
-            },
-        }),
-        columnHelper.display({
-            id: 'reenrollment',
-            header: 'Re-enrollment',
-            cell: (info) => {
-                const policy = getFirstPolicy(info.row.original);
-                return <ReenrollmentInfo policy={policy} />;
-            },
-        }),
-    ], []);
+                    return <Badge variant={variant}>{status.replace('_', ' ')}</Badge>;
+                },
+            }),
+            columnHelper.display({
+                id: 'auto_renewal',
+                header: 'Auto-Renewal',
+                cell: (info) => {
+                    const policy = getFirstPolicy(info.row.original);
+                    return <AutoRenewalBadge policy={policy} />;
+                },
+            }),
+            columnHelper.accessor((row) => row.user_plan?.end_date, {
+                id: 'end_date',
+                header: 'Plan End Date',
+                cell: (info) => {
+                    const date = info.getValue();
+                    return date ? format(new Date(date), 'MMM dd, yyyy') : 'N/A';
+                },
+            }),
+            columnHelper.display({
+                id: 'final_expiry',
+                header: 'Final Expiry',
+                cell: (info) => {
+                    const policy = getFirstPolicy(info.row.original);
+                    return <ExpiryDetails policy={policy} />;
+                },
+            }),
+            columnHelper.display({
+                id: 'reenrollment',
+                header: 'Re-enrollment',
+                cell: (info) => {
+                    const policy = getFirstPolicy(info.row.original);
+                    return <ReenrollmentInfo policy={policy} />;
+                },
+            }),
+        ],
+        []
+    );
 
     const tableData = useMemo(() => {
         if (!data) return undefined;
@@ -218,7 +250,7 @@ export function MembershipExpiryTable({ data, isLoading, error, currentPage, onP
             total_pages: data.totalPages,
             page_no: data.number,
             page_size: data.size,
-            last: data.last
+            last: data.last,
         };
     }, [data]);
 
