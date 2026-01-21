@@ -18,7 +18,7 @@ export const Route = createLazyFileRoute('/settings')({
 
 const SafeRouteSearch = () => {
     try {
-        return SettingsRoute.useSearch();
+        return SettingsRoute.useSearch() as { selectedTab?: string };
     } catch (error) {
         // Return a default object if the hook fails
         return { selectedTab: SettingsTabs.Tab };
@@ -122,10 +122,11 @@ function RouteComponent() {
                                 <TabsTrigger
                                     key={index}
                                     value={tab.tab}
-                                    className={`flex gap-1.5 rounded-none px-4 py-2 text-sm !shadow-none sm:px-12 ${selectedTab === tab.tab
-                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                        : 'border-none bg-transparent'
-                                        }`}
+                                    className={`flex gap-1.5 rounded-none px-4 py-2 text-sm !shadow-none sm:px-12 ${
+                                        selectedTab === tab.tab
+                                            ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                            : 'border-none bg-transparent'
+                                    }`}
                                 >
                                     <span
                                         className={`${selectedTab === tab.tab ? 'text-primary-500' : ''}`}
