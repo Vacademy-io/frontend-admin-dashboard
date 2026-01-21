@@ -11,10 +11,10 @@ export function getModuleFlags(
 ) {
     const modules = Array.isArray(sub_modules) ? sub_modules : [];
     return {
-        assess: modules.some((item) => item.module === 'ASSESS'),
-        lms: modules.some((item) => item.module === 'ENGAGE'),
-        volt: modules.some((item) => item.module === 'VOLT'),
-        vsmart_ai_tools: modules.some((item) => item.module === 'VSMART_AI_TOOLS'),
+        assess: modules.some((item) => item?.module === 'ASSESS'),
+        lms: modules.some((item) => item?.module === 'ENGAGE'),
+        volt: modules.some((item) => item?.module === 'VOLT'),
+        vsmart_ai_tools: modules.some((item) => item?.module === 'VSMART_AI_TOOLS'),
     };
 }
 
@@ -25,6 +25,7 @@ export function getAllowedSidebarItems(subModules: SubModuleType[] | undefined):
     if (!Array.isArray(subModules)) return allowedItems;
 
     subModules.forEach((subModule) => {
+        if (!subModule) return;
         const mapping = SUB_MODULE_SIDEBAR_MAPPING[subModule.sub_module];
         if (mapping) {
             // Handle both single object and array of mappings
@@ -95,6 +96,7 @@ export function getAllowedSubItems(
     if (!Array.isArray(subModules)) return allowedSubItems;
 
     subModules.forEach((subModule) => {
+        if (!subModule) return;
         const mapping = SUB_MODULE_SIDEBAR_MAPPING[subModule.sub_module];
         if (mapping) {
             // Handle both single object and array of mappings
@@ -213,7 +215,7 @@ export function getModules(subModules: SubModuleType[] | undefined) {
 
     if (Array.isArray(subModules)) {
         subModules.forEach((subModule) => {
-            if (modules.includes(subModule.module)) {
+            if (subModule && modules.includes(subModule.module)) {
                 optionalModules.add(subModule.module);
             }
         });

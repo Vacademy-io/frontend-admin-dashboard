@@ -8,8 +8,8 @@ export function getModuleFlags(
 ) {
     const modules = Array.isArray(sub_modules) ? sub_modules : [];
     return {
-        assess: modules.some((item) => item.module === 'ASSESS'),
-        lms: modules.some((item) => item.module === 'ENGAGE'),
+        assess: modules.some((item) => item?.module === 'ASSESS'),
+        lms: modules.some((item) => item?.module === 'ENGAGE'),
     };
 }
 
