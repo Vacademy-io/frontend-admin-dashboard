@@ -119,18 +119,20 @@ export default function SessionListPage() {
             baseRequest.end_date = format(endDate, 'yyyy-MM-dd');
         }
 
-        // For upcoming tab, set start_date to tomorrow if not already set
+        // For upcoming tab, set start_date to today (in user's local timezone) if not already set
         if (selectedTab === SessionStatus.UPCOMING && !startDate) {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            baseRequest.start_date = format(tomorrow, 'yyyy-MM-dd');
+            // Get current date in user's local timezone
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+            baseRequest.start_date = format(nowLocal, 'yyyy-MM-dd');
         }
 
-        // For past tab, set end_date to yesterday if not already set
+        // For past tab, set end_date to today (in user's local timezone) if not already set
         if (selectedTab === SessionStatus.PAST && !endDate) {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            baseRequest.end_date = format(yesterday, 'yyyy-MM-dd');
+            // Get current date in user's local timezone
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+            baseRequest.end_date = format(nowLocal, 'yyyy-MM-dd');
         }
 
         // Apply time of day filters
@@ -608,55 +610,106 @@ export default function SessionListPage() {
             );
         }
 
+
+        // Filter sessions based on tab - exclude/include based on start_time
+        const filteredSessions = searchResponse.sessions.filter((session) => {
+            // Get current date and time in user's local timezone
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+            const todayLocal = format(nowLocal, 'yyyy-MM-dd');
+            const currentTimeLocal = format(nowLocal, 'HH:mm:ss');
+
+            if (selectedTab === SessionStatus.UPCOMING) {
+                // For upcoming tab - exclude sessions whose start_time has already passed
+                // If meeting_date is after today, include the session
+                if (session.meeting_date > todayLocal) {
+                    return true;
+                }
+
+                // If meeting_date is today, only include if start_time is after current time
+                if (session.meeting_date === todayLocal) {
+                    return session.start_time > currentTimeLocal;
+                }
+
+                // If meeting_date is before today, exclude the session
+                return false;
+            }
+
+            if (selectedTab === SessionStatus.PAST) {
+                // For past tab - include only sessions whose last_entry_time (end time) has already passed
+                // If meeting_date is before today, include the session
+                if (session.meeting_date < todayLocal) {
+                    return true;
+                }
+
+                // If meeting_date is today, only include if last_entry_time (end time) is before or equal to current time
+                if (session.meeting_date === todayLocal) {
+                    return session.last_entry_time <= currentTimeLocal;
+                }
+
+                // If meeting_date is after today, exclude the session
+                return false;
+            }
+
+            // For other tabs (Live, Drafts), include all sessions
+            return true;
+        });
+
         return (
             <div>
                 <div className="space-y-4">
-                    {searchResponse.sessions.map((session) => {
-                        // Convert API response to component props format
-                        const sessionData = {
-                            session_id: session.session_id,
-                            schedule_id: session.schedule_id,
-                            meeting_date: session.meeting_date,
-                            start_time: session.start_time,
-                            last_entry_time: session.last_entry_time,
-                            recurrence_type: session.recurrence_type,
-                            access_level: session.access_level,
-                            title: session.title,
-                            subject: session.subject || '',
-                            meeting_link: session.meeting_link,
-                            registration_form_link_for_public_sessions:
-                                session.registration_form_link_for_public_sessions || '',
-                            timezone: session.timezone,
-                        };
-
-                        if (selectedTab === SessionStatus.PAST) {
-                            return (
-                                <PreviousSessionCard
-                                    key={`${session.session_id}-${session.schedule_id}`}
-                                    session={sessionData}
-                                />
-                            );
-                        } else if (selectedTab === SessionStatus.DRAFTS) {
-                            const draftSession = {
-                                ...sessionData,
-                                waiting_room_time: session.waiting_room_time,
-                                thumbnail_file_id: session.thumbnail_file_id,
-                                background_score_file_id: session.background_score_file_id,
-                                session_streaming_service_type:
-                                    session.session_streaming_service_type,
+                    {filteredSessions.length > 0 ? (
+                        filteredSessions.map((session) => {
+                            // Convert API response to component props format
+                            const sessionData = {
+                                session_id: session.session_id,
+                                schedule_id: session.schedule_id,
+                                meeting_date: session.meeting_date,
+                                start_time: session.start_time,
+                                last_entry_time: session.last_entry_time,
+                                recurrence_type: session.recurrence_type,
+                                access_level: session.access_level,
+                                title: session.title,
+                                subject: session.subject || '',
+                                meeting_link: session.meeting_link,
+                                registration_form_link_for_public_sessions:
+                                    session.registration_form_link_for_public_sessions || '',
+                                timezone: session.timezone,
                             };
-                            return (
-                                <DraftSessionCard key={session.session_id} session={draftSession} />
-                            );
-                        } else {
-                            return (
-                                <LiveSessionCard
-                                    key={`${session.session_id}-${session.schedule_id}`}
-                                    session={sessionData}
-                                />
-                            );
-                        }
-                    })}
+
+                            if (selectedTab === SessionStatus.PAST) {
+                                return (
+                                    <PreviousSessionCard
+                                        key={`${session.session_id}-${session.schedule_id}`}
+                                        session={sessionData}
+                                    />
+                                );
+                            } else if (selectedTab === SessionStatus.DRAFTS) {
+                                const draftSession = {
+                                    ...sessionData,
+                                    waiting_room_time: session.waiting_room_time,
+                                    thumbnail_file_id: session.thumbnail_file_id,
+                                    background_score_file_id: session.background_score_file_id,
+                                    session_streaming_service_type:
+                                        session.session_streaming_service_type,
+                                };
+                                return (
+                                    <DraftSessionCard key={session.session_id} session={draftSession} />
+                                );
+                            } else {
+                                return (
+                                    <LiveSessionCard
+                                        key={`${session.session_id}-${session.schedule_id}`}
+                                        session={sessionData}
+                                    />
+                                );
+                            }
+                        })
+                    ) : (
+                        <div className="flex h-[200px] items-center justify-center text-neutral-500">
+                            No {selectedTab === SessionStatus.UPCOMING ? 'upcoming' : 'past'} sessions on this page.
+                        </div>
+                    )}
                 </div>
                 {searchResponse.pagination.total_pages > 1 && (
                     <div className="mt-6">
