@@ -4,7 +4,7 @@ import { SidebarItemsData } from '@/routes/evaluator-ai/-components/layout-conta
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import React, { useState } from 'react';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { filterMenuItems, filterMenuListByModules } from '../sidebar/helper';
+import { filterMenuItems } from '../sidebar/helper';
 import { useTabSettings } from '@/hooks/use-tab-settings';
 import { useIsMobile, useIsTablet } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -19,8 +19,8 @@ export const InternalSidebarComponent = ({
 }) => {
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
     const { isTabVisible, isSubItemVisible } = useTabSettings();
-    const sideBarData = filterMenuListByModules(data?.sub_modules, SidebarItemsData);
-    const sideBarItems = filterMenuItems(sideBarData, data?.id, isTabVisible, isSubItemVisible);
+    // Removed sub_modules dependency - use filterMenuItems directly
+    const sideBarItems = filterMenuItems(SidebarItemsData, data?.id, isTabVisible, isSubItemVisible);
     const isMobile = useIsMobile();
     const isTablet = useIsTablet();
     const [isOpen, setIsOpen] = useState(false);
