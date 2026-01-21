@@ -34,7 +34,7 @@ export const fetchInstituteSetup = async (): Promise<any> => {
     const transformedData = {
         ...setupData.institute_info_dto,
         sub_modules: Array.isArray(setupData.institute_info_dto?.sub_modules)
-            ? setupData.institute_info_dto.sub_modules
+            ? setupData.institute_info_dto?.sub_modules
             : [],
         sub_org_roles: setupData.sub_org_roles || [],
         dropdown_custom_fields: setupData.dropdown_custom_fields || [],
