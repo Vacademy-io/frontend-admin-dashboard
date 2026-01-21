@@ -62,42 +62,64 @@ export const useStudentFilters = () => {
 
     const [allPackageSessionIds, setAllPackageSessionIds] = useState<string[]>([]);
 
-    const [appliedFilters, setAppliedFilters] = useState<StudentFilterRequest>({
-        name: '',
-        institute_ids: INSTITUTE_ID ? [INSTITUTE_ID] : [],
-        package_session_ids: allPackageSessionIds,
-        group_ids: [],
-        gender: [],
-        statuses: instituteDetails?.student_statuses || [],
-        session_expiry_days: [],
-        sort_columns: {},
-        sub_org_user_types: [],
-        payment_statuses: [],
-        sources: [],
-        types: [],
-        type_ids: [],
-        destination_package_session_ids: [],
-        level_ids: [],
+    // Ref to track if we've done the initial package session setup
+    const hasInitialSessionSetupRef = useRef(false);
+
+    // Compute initial package session IDs from current session
+    const getPackageSessionIdsForSession = useCallback((sessionId: string) => {
+        return (instituteDetails?.batches_for_sessions || [])
+            .filter((batch) => batch.session.id === sessionId)
+            .map((batch) => batch.id);
+    }, [instituteDetails]);
+
+    const [appliedFilters, setAppliedFilters] = useState<StudentFilterRequest>(() => {
+        // Compute initial package session IDs at initialization time
+        const initialSessionId = selectedSession?.id || getAllSessions()[0]?.id || '';
+        const initialPksIds = (instituteDetails?.batches_for_sessions || [])
+            .filter((batch) => batch.session.id === initialSessionId)
+            .map((batch) => batch.id);
+
+        return {
+            name: '',
+            institute_ids: INSTITUTE_ID ? [INSTITUTE_ID] : [],
+            package_session_ids: initialPksIds,
+            group_ids: [],
+            gender: [],
+            statuses: instituteDetails?.student_statuses || [],
+            session_expiry_days: [],
+            sort_columns: {},
+            sub_org_user_types: [],
+            payment_statuses: [],
+            sources: [],
+            types: [],
+            type_ids: [],
+            destination_package_session_ids: [],
+            level_ids: [],
+        };
     });
 
     useEffect(() => {
-        const pksIds =
+        let pksIds =
             columnFilters
                 .find((filter) => filter.id === 'batch')
                 ?.value.map((option) => option.id) ||
-            (instituteDetails?.batches_for_sessions || [])
-                .filter((batch) => batch.session.id === currentSession.id)
-                .map((batch) => batch.id);
+            getPackageSessionIdsForSession(currentSession.id);
+
+        // Check active status filters (both regular and approval) to see if we need to force empty batches
+        const statusFilter = columnFilters.find((filter) => filter.id === 'statuses');
+        const approvalFilter = columnFilters.find((filter) => filter.id === 'approval_statuses');
+
+        const activeStatuses = [
+            ...(statusFilter?.value.map(opt => opt.label) || []),
+            ...(approvalFilter?.value.map(opt => opt.id) || [])
+        ];
+
+        if (activeStatuses.some(s => ['INVITED', 'PENDING_FOR_APPROVAL'].includes(s))) {
+            pksIds = [];
+        }
 
         setAllPackageSessionIds(pksIds);
-
-        if (currentSession) {
-            setAppliedFilters((prev) => ({
-                ...prev,
-                package_session_ids: pksIds,
-            }));
-        }
-    }, [currentSession]);
+    }, [currentSession, getPackageSessionIdsForSession, columnFilters]);
 
     useEffect(() => {
         if (columnFilters.length === 0) {
@@ -205,6 +227,30 @@ export const useStudentFilters = () => {
             setSearchFilter(searchParams.name);
         }
 
+        // Payment Status filter from URL
+        if (searchParams.paymentStatus) {
+            const statuses = Array.isArray(searchParams.paymentStatus) ? searchParams.paymentStatus : [searchParams.paymentStatus];
+            const options = statuses.map((status: string) => ({
+                id: status,
+                label: status === 'PAID' ? 'Paid' : status === 'failed' ? 'Failed' : 'Payment Failed',
+            }));
+            if (options.length > 0) {
+                initialFilters.push({ id: 'payment_statuses', value: options });
+            }
+        }
+
+        // Approval Status filter from URL
+        if (searchParams.approvalStatus) {
+            const statuses = Array.isArray(searchParams.approvalStatus) ? searchParams.approvalStatus : [searchParams.approvalStatus];
+            const options = statuses.map((status: string) => ({
+                id: status,
+                label: status === 'PENDING_FOR_APPROVAL' ? 'Pending for Approval' : 'Invited',
+            }));
+            if (options.length > 0) {
+                initialFilters.push({ id: 'approval_statuses', value: options });
+            }
+        }
+
         // Custom field filters from URL
         if (instituteDetails?.dropdown_custom_fields) {
             instituteDetails.dropdown_custom_fields.forEach((customField) => {
@@ -240,7 +286,20 @@ export const useStudentFilters = () => {
             // Calculate filters from initialFilters to apply them
             const statusFilter = initialFilters.find((filter) => filter.id === 'statuses');
             const statusesToApply = statusFilter?.value.map((option) => option.label) || [];
-            const finalStatusesToApply = statusesToApply.length > 0 ? statusesToApply : instituteDetails?.student_statuses || [];
+
+            const approvalStatusFilter = initialFilters.find((filter) => filter.id === 'approval_statuses');
+            const approvalStatusesToApply = approvalStatusFilter?.value.map((option) => option.id) || [];
+
+            // Combine regular statuses and approval statuses
+            // Logic: If ANY status filter (regular or approval) is set, use ONLY those.
+            // If NO status filter is set, we use default regular statuses.
+            let finalStatusesToApply: string[] = [];
+
+            if (statusesToApply.length > 0 || approvalStatusesToApply.length > 0) {
+                finalStatusesToApply = [...statusesToApply, ...approvalStatusesToApply];
+            } else {
+                finalStatusesToApply = instituteDetails?.student_statuses || [];
+            }
 
             const genderFilter = initialFilters.find((filter) => filter.id === 'gender');
             const gendersToApply = genderFilter?.value.map((option) => option.label) || [];
@@ -249,16 +308,29 @@ export const useStudentFilters = () => {
             const rolesToApply = roleFilter?.value.map((option) => option.id) || [];
 
             const batchFilter = initialFilters.find((filter) => filter.id === 'batch');
-            const pksids = batchFilter?.value.map((option) => option.id) ||
+            let pksids = batchFilter?.value.map((option) => option.id) ||
                 (instituteDetails?.batches_for_sessions || [])
                     .filter((batch) => batch.session.id === currentSession.id)
                     .map((batch) => batch.id);
+
+            // Special handling for Invited/Pending statuses:
+            // These students might not be assigned to a batch yet, so we must clear the batch filter
+            // to allow global search across the institute for these statuses.
+            if (finalStatusesToApply.some(s => ['INVITED', 'PENDING_FOR_APPROVAL'].includes(s))) {
+                pksids = [];
+            }
 
             const sessionExpiryFilter = initialFilters.find((filter) => filter.id === 'session_expiry_days');
             const sessionExpiryDays = sessionExpiryFilter?.value.map((value) => {
                 const numberMatch = value.label.match(/\d+/);
                 return numberMatch ? parseInt(numberMatch[0]) : 0;
             }) || [];
+
+            const paymentStatusFilter = initialFilters.find((filter) => filter.id === 'payment_statuses');
+            const paymentStatusesToApply = paymentStatusFilter?.value.map((option) => option.id) || [];
+
+            // approvalStatusFilter already declared above
+            // approvalStatusesToApply already declared above
 
             // Handle custom field filters
             const customFieldParams: Record<string, any> = {};
@@ -282,6 +354,8 @@ export const useStudentFilters = () => {
                 statuses: finalStatusesToApply,
                 session_expiry_days: sessionExpiryDays,
                 sub_org_user_types: rolesToApply,
+                payment_statuses: paymentStatusesToApply,
+                // approval_statuses is removed, merged into statuses
                 ...customFieldParams,
             }));
         }
@@ -289,15 +363,35 @@ export const useStudentFilters = () => {
 
     const handleSessionChange = (value: DropdownValueType) => {
         if (value && typeof value === 'object' && 'id' in value && 'name' in value) {
+            const newSessionId = (value as DropdownItemType).id;
             setCurrentSession(value as DropdownItemType);
             const session = getAllSessions().find(
-                (session) => session.id === (value as DropdownItemType).id
+                (session) => session.id === newSessionId
             );
             if (session) {
                 setSelectedSession(session);
-                // Update session in URL
+
+                // Clear any existing batch filter when session changes
+                // This ensures we show ALL students from the new session
+                setColumnFilters((prev) => prev.filter((f) => f.id !== 'batch'));
+
+                // Get all batch IDs (package_session_ids) for the new session
+                const newSessionBatchIds = (instituteDetails?.batches_for_sessions || [])
+                    .filter((batch) => batch.session.id === newSessionId)
+                    .map((batch) => batch.id);
+
+                // Update applied filters with new session's batch IDs
+                // This triggers the API call to fetch students for the new session
+                setAppliedFilters((prev) => ({
+                    ...prev,
+                    package_session_ids: newSessionBatchIds,
+                    // Clear name search when switching sessions for cleaner UX
+                }));
+
+                // Update session in URL and clear batch param
                 const currentParams = new URLSearchParams(window.location.search);
                 currentParams.set('session', session.id);
+                currentParams.delete('batch'); // Clear batch from URL
                 const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
                 window.history.replaceState({}, '', newUrl);
             }
@@ -325,22 +419,50 @@ export const useStudentFilters = () => {
             return numberMatch ? parseInt(numberMatch[0]) : 0;
         });
 
+        // Determine statuses to apply
+        let finalStatusesToApply: string[] = [];
+
+        // Check if we have any "regular" statuses selected
         const statusFilter = columnFilters.find((filter) => filter.id === 'statuses');
-        const statusesToApply = statusFilter?.value.map((option) => option.label) || [];
-        const defaultStatuses = instituteDetails?.student_statuses || [];
-        // If no status filter is selected, use all default statuses for API
-        const finalStatusesToApply = statusesToApply.length > 0 ? statusesToApply : defaultStatuses;
+        const statusesToApply = statusFilter?.value.map((opt) => opt.label) || [];
+        if (statusesToApply.length > 0) {
+            finalStatusesToApply = [...finalStatusesToApply, ...statusesToApply];
+        }
 
-        const pksids =
-            columnFilters
-                .find((filter) => filter.id === 'batch')
-                ?.value.map((option) => option.id) || allPackageSessionIds;
+        // Check if we have any "approval" statuses selected
+        const approvalFilter = columnFilters.find((filter) => filter.id === 'approval_statuses');
+        const approvalStatusesToApply = approvalFilter?.value.map((opt) => opt.id) || [];
+        if (approvalStatusesToApply.length > 0) {
+            finalStatusesToApply = [...finalStatusesToApply, ...approvalStatusesToApply];
+        }
 
-        const roleFilter = columnFilters.find((filter) => filter.id === 'sub_org_user_types');
-        const rolesToApply = roleFilter?.value.map((option) => option.id) || [];
+        // If NO status filters are selected (regular or approval), default to ACTIVE/INACTIVE
+        if (finalStatusesToApply.length === 0) {
+            finalStatusesToApply = instituteDetails?.student_statuses || [];
+        }
 
-        const genderFilter = columnFilters.find((filter) => filter.id === 'gender');
-        const gendersToApply = genderFilter?.value.map((option) => option.label) || [];
+        // Handle Package Session IDs
+        // Requirement: If INVITED or PENDING_FOR_APPROVAL status is selected (explicitly), 
+        // we MUST send empty package_session_ids to search globally.
+        let finalPackageSessionIds: string[] = [];
+
+        // Combine all explicitly selected statuses to check for special ones
+        const allExplicitStatuses = [...statusesToApply, ...approvalStatusesToApply];
+        const hasSpecialStatus = allExplicitStatuses.some(s =>
+            ['INVITED', 'PENDING_FOR_APPROVAL', 'Invited', 'Pending for Approval'].includes(s)
+        );
+
+        if (hasSpecialStatus) {
+            finalPackageSessionIds = [];
+        } else {
+            finalPackageSessionIds =
+                columnFilters.find((filter) => filter.id === 'batch')?.value.map((option) => option.id) ||
+                allPackageSessionIds;
+        }
+
+        // Get Payment Statuses
+        const paymentFilter = columnFilters.find((filter) => filter.id === 'payment_statuses');
+        const paymentStatuses = paymentFilter ? paymentFilter.value.map((opt) => opt.id) : [];
 
         // Handle custom field filters - convert to flat structure
         const customFieldParams: Record<string, any> = {};
@@ -356,10 +478,29 @@ export const useStudentFilters = () => {
             });
         }
 
-        // Build URL search params - preserve existing params and update only filter-related ones
+        const gendersToApply = columnFilters.find((filter) => filter.id === 'gender')?.value.map((option) => option.label) || [];
+        const rolesToApply = columnFilters.find((filter) => filter.id === 'sub_org_user_types')?.value.map((option) => option.id) || [];
+
+        const newFilters: StudentFilterRequest = {
+            name: searchFilter,
+            package_session_ids: finalPackageSessionIds,
+            gender: gendersToApply,
+            statuses: finalStatusesToApply,
+            session_expiry_days: sessionExpiryDays || [],
+            sub_org_user_types: rolesToApply,
+            institute_ids: INSTITUTE_ID ? [INSTITUTE_ID] : [],
+            group_ids: [],
+            sort_columns: {},
+            payment_statuses: paymentStatuses,
+            ...customFieldParams,
+        };
+
+        setAppliedFilters(newFilters);
+
+        // Build URL search params
         const currentParams = new URLSearchParams(window.location.search);
 
-        // Remove old filter params to avoid duplicates
+        // Remove old filter params
         currentParams.delete('name');
         currentParams.delete('role');
         currentParams.delete('gender');
@@ -374,7 +515,7 @@ export const useStudentFilters = () => {
             });
         }
 
-        // Always include/update current session
+        // Keep session
         if (currentSession?.id) {
             currentParams.set('session', currentSession.id);
         }
@@ -384,38 +525,36 @@ export const useStudentFilters = () => {
             currentParams.set('name', searchFilter);
         }
 
-        // Handle multiple roles - use unique values only
         if (rolesToApply.length > 0) {
-            const uniqueRoles = [...new Set(rolesToApply)];
-            uniqueRoles.forEach(role => currentParams.append('role', role));
+            [...new Set(rolesToApply)].forEach(role => currentParams.append('role', role));
         }
 
-        // Handle multiple genders - use unique values only
         if (gendersToApply.length > 0) {
-            const uniqueGenders = [...new Set(gendersToApply)];
-            uniqueGenders.forEach(gender => currentParams.append('gender', gender));
+            [...new Set(gendersToApply)].forEach(gender => currentParams.append('gender', gender));
         }
 
-        // Handle multiple statuses - only add to URL if user has explicitly selected specific statuses
-        // Don't add if no filter was selected (which means all statuses are applied by default)
         if (statusesToApply.length > 0) {
-            const uniqueStatuses = [...new Set(statusesToApply)];
-            uniqueStatuses.forEach(status => currentParams.append('status', status));
+            [...new Set(statusesToApply)].forEach(status => currentParams.append('status', status));
         }
 
-        // Handle multiple batches - use unique values only
-        if (pksids.length > 0 && pksids.length !== allPackageSessionIds.length) {
-            const uniqueBatches = [...new Set(pksids)];
-            uniqueBatches.forEach(batch => currentParams.append('batch', batch));
+        // Use finalPackageSessionIds for batch URL params
+        if (finalPackageSessionIds.length > 0 && finalPackageSessionIds.length !== allPackageSessionIds.length) {
+            [...new Set(finalPackageSessionIds)].forEach(batch => currentParams.append('batch', batch));
         }
 
-        // Handle multiple session expiry values - use unique values only
         if (sessionExpiryDays && sessionExpiryDays.length > 0) {
-            const uniqueDays = [...new Set(sessionExpiryDays)];
-            uniqueDays.forEach(days => currentParams.append('sessionExpiry', String(days)));
+            [...new Set(sessionExpiryDays)].forEach(days => currentParams.append('sessionExpiry', String(days)));
         }
 
-        // Handle custom field filters in URL - use unique values only
+        if (paymentStatuses.length > 0) {
+            [...new Set(paymentStatuses)].forEach(status => currentParams.append('paymentStatus', status));
+        }
+
+        if (approvalStatusesToApply.length > 0) {
+            [...new Set(approvalStatusesToApply)].forEach(status => currentParams.append('approvalStatus', status));
+        }
+
+        // Handle custom field filters
         if (instituteDetails?.dropdown_custom_fields) {
             instituteDetails.dropdown_custom_fields.forEach((customField) => {
                 const filter = columnFilters.find((f) => f.id === customField.fieldKey);
@@ -428,20 +567,8 @@ export const useStudentFilters = () => {
             });
         }
 
-        // Update URL preserving all other params (like courseId, etc.)
         const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
         window.history.replaceState({}, '', newUrl);
-
-        setAppliedFilters((prev) => ({
-            ...prev,
-            name: searchFilter,
-            package_session_ids: pksids,
-            gender: gendersToApply,
-            statuses: finalStatusesToApply,
-            session_expiry_days: sessionExpiryDays || [],
-            sub_org_user_types: rolesToApply,
-            ...customFieldParams,
-        }));
     };
 
     const handleClearFilters = async () => {
@@ -464,6 +591,8 @@ export const useStudentFilters = () => {
         currentParams.delete('status');
         currentParams.delete('batch');
         currentParams.delete('sessionExpiry');
+        currentParams.delete('paymentStatus');
+        currentParams.delete('approvalStatus');
 
         // Remove custom field params
         if (instituteDetails?.dropdown_custom_fields) {
@@ -491,6 +620,7 @@ export const useStudentFilters = () => {
             institute_ids: INSTITUTE_ID ? [INSTITUTE_ID] : [],
             group_ids: [],
             sort_columns: {},
+            payment_statuses: [],
         };
 
         setAppliedFilters(newFilters);
@@ -541,6 +671,8 @@ export const useStudentFilters = () => {
         const sessionExpiryFilter = columnFilters.find(
             (filter) => filter.id === 'session_expiry_days'
         );
+        const paymentStatusFilter = columnFilters.find((filter) => filter.id === 'payment_statuses');
+        const approvalStatusFilter = columnFilters.find((filter) => filter.id === 'approval_statuses');
 
         const hasBatch = Boolean(batchFilter?.value && batchFilter.value.length > 0);
         const hasName = Boolean(appliedFilters.name?.trim());
@@ -549,8 +681,10 @@ export const useStudentFilters = () => {
         const hasSessionExpiry = Boolean(
             sessionExpiryFilter?.value && sessionExpiryFilter.value.length > 0
         );
+        const hasPaymentStatus = Boolean(paymentStatusFilter?.value && paymentStatusFilter.value.length > 0);
+        const hasApprovalStatus = Boolean(approvalStatusFilter?.value && approvalStatusFilter.value.length > 0);
 
-        return Boolean(hasName || hasGender || hasStatus || hasBatch || hasSessionExpiry);
+        return Boolean(hasName || hasGender || hasStatus || hasBatch || hasSessionExpiry || hasPaymentStatus || hasApprovalStatus);
     }, [columnFilters, appliedFilters]);
 
     return {
@@ -573,4 +707,3 @@ export const useStudentFilters = () => {
         setColumnFilters,
     };
 };
-

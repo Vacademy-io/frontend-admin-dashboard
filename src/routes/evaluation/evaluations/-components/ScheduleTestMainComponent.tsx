@@ -336,93 +336,59 @@ export const ScheduleTestMainComponent = () => {
             });
     };
 
+    // Track which tabs have been loaded
+    const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set());
+
+    // Fetch data for a specific tab
+    const fetchTabData = (tabValue: string) => {
+        const tabConfigs: Record<string, { get_live: boolean; get_passed: boolean; get_upcoming: boolean; status: string }> = {
+            liveTests: { get_live: true, get_passed: false, get_upcoming: false, status: 'PUBLISHED' },
+            upcomingTests: { get_live: false, get_passed: false, get_upcoming: true, status: 'PUBLISHED' },
+            previousTests: { get_live: false, get_passed: true, get_upcoming: false, status: 'PUBLISHED' },
+            draftTests: { get_live: false, get_passed: false, get_upcoming: false, status: 'DRAFT' },
+        };
+
+        const config = tabConfigs[tabValue];
+        if (!config) return Promise.resolve();
+
+        return getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+            ...selectedQuestionPaperFilters,
+            assessment_statuses: [{ id: '0', name: config.status }],
+            get_live_assessments: config.get_live,
+            get_passed_assessments: config.get_passed,
+            get_upcoming_assessments: config.get_upcoming,
+            evaluation_types: [{ id: 'MANUAL', name: 'MANUAL' }],
+        }).then((data) => {
+            setScheduleTestTabsData((prevTabs) =>
+                prevTabs.map((tab) =>
+                    tab.value === tabValue ? { ...tab, data: data } : tab
+                )
+            );
+            setLoadedTabs((prev) => new Set([...prev, tabValue]));
+        });
+    };
+
+    // Handle tab change - fetch data if tab hasn't been loaded yet
+    const handleTabChange = (newTab: string) => {
+        setSelectedTab(newTab);
+
+        // Only fetch if this tab hasn't been loaded yet
+        if (!loadedTabs.has(newTab)) {
+            setIsLoading(true);
+            fetchTabData(newTab)
+                .catch((error) => console.error(error))
+                .finally(() => setIsLoading(false));
+        }
+    };
+
+    // Initial fetch - only load the default tab (liveTests)
     useEffect(() => {
         setIsLoading(true);
 
-        const timeoutId = setTimeout(() => {
-            const fetchLiveTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...selectedQuestionPaperFilters,
-                assessment_statuses: [
-                    {
-                        id: '0',
-                        name: 'PUBLISHED',
-                    },
-                ],
-                get_live_assessments: true,
-                get_passed_assessments: false,
-                get_upcoming_assessments: false,
-                evaluation_types: [
-                    {
-                        id: 'MANUAL',
-                        name: 'MANUAL',
-                    },
-                ],
-            });
-
-            const fetchUpcomingTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...selectedQuestionPaperFilters,
-                assessment_statuses: [
-                    {
-                        id: '0',
-                        name: 'PUBLISHED',
-                    },
-                ],
-                get_live_assessments: false,
-                get_passed_assessments: false,
-                get_upcoming_assessments: true,
-            });
-
-            const fetchPreviousTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...selectedQuestionPaperFilters,
-                assessment_statuses: [
-                    {
-                        id: '0',
-                        name: 'PUBLISHED',
-                    },
-                ],
-                get_live_assessments: false,
-                get_passed_assessments: true,
-                get_upcoming_assessments: false,
-            });
-
-            const fetchDraftTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...selectedQuestionPaperFilters,
-                assessment_statuses: [
-                    {
-                        id: '0',
-                        name: 'DRAFT',
-                    },
-                ],
-                get_live_assessments: false,
-                get_passed_assessments: false,
-                get_upcoming_assessments: false,
-            });
-
-            Promise.all([fetchLiveTests, fetchUpcomingTests, fetchPreviousTests, fetchDraftTests])
-                .then(([liveData, upcomingData, previousData, draftData]) => {
-                    setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) => {
-                            if (tab.value === 'liveTests') return { ...tab, data: liveData };
-                            if (tab.value === 'upcomingTests')
-                                return { ...tab, data: upcomingData };
-                            if (tab.value === 'previousTests')
-                                return { ...tab, data: previousData };
-                            if (tab.value === 'draftTests') return { ...tab, data: draftData };
-                            return tab;
-                        })
-                    );
-                })
-                .catch((error) => {
-                    console.error(error);
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
-        }, 500); // Delay execution by 500ms
-
-        return () => {
-            clearTimeout(timeoutId); // Cleanup to prevent duplicate calls
-        };
+        // Only fetch the currently selected tab (liveTests by default)
+        fetchTabData(selectedTab)
+            .catch((error) => console.error(error))
+            .finally(() => setIsLoading(false));
     }, []);
 
     useEffect(() => {
@@ -452,7 +418,7 @@ export const ScheduleTestMainComponent = () => {
                 />
             </Helmet>
             <div className="flex flex-col gap-4">
-                <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+                <Tabs value={selectedTab} onValueChange={handleTabChange}>
                     <ScheduleTestTabList
                         selectedTab={selectedTab}
                         scheduleTestTabsData={scheduleTestTabsData}

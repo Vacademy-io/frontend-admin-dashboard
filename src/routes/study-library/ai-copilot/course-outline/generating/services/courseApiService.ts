@@ -10,6 +10,7 @@ export interface CourseOutlineRequest {
         image_style: string;
         num_chapters?: number;
         num_slides?: number;
+        course_timing?: number;
     };
 }
 

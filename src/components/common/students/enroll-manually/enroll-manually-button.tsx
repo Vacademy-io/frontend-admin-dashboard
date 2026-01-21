@@ -59,9 +59,11 @@ export const EnrollManuallyButton = ({
         }
     }, [forceOpen]);
 
-    // Fetch credentials if editing
+    // Fetch credentials only when editing (initialValues exists) AND dialog is open
+    // This prevents unnecessary API calls when the component mounts but dialog is not open
+    const shouldFetchCredentials = openDialog && !!initialValues?.user_id;
     const { data: credentials, isLoading: isLoadingCreds } = useStudentCredentails({
-        userId: initialValues?.user_id || '',
+        userId: shouldFetchCredentials ? initialValues.user_id : '',
     });
 
     const isReEnroll = !!initialValues;

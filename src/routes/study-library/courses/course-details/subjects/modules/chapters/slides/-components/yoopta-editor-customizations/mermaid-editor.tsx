@@ -142,6 +142,7 @@ export function MermaidBlock({
         <div
             {...attributes}
             className="yoopta-mermaid-block"
+            contentEditable={false}
             style={{
                 margin: '20px 0',
                 padding: '15px',
@@ -152,6 +153,7 @@ export function MermaidBlock({
                 overflow: 'auto',
             }}
         >
+            {children}
             {isRendering && (
                 <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
                     Rendering diagram...
@@ -200,6 +202,12 @@ export function MermaidBlock({
                 </div>
             )}
 
+            {!code && !isRendering && (
+                <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+                    <em>Click to add mermaid diagram code</em>
+                </div>
+            )}
+
             <style>{`
                 .yoopta-mermaid-block svg {
                     max-width: 100% !important;
@@ -238,9 +246,19 @@ export const MermaidPlugin = new YooptaPlugin<{ mermaid: any }>({
             deserialize: {
                 nodeNames: ['DIV'],
                 parse: (element) => {
-                    // Check if this is a mermaid div
-                    if (element.classList?.contains('mermaid')) {
-                        const code = element.textContent?.trim() || '';
+                    try {
+                        // Check if this is a mermaid div
+                        const className = element.getAttribute?.('class') || element.className || '';
+                        const isMermaidDiv = 
+                            element.classList?.contains('mermaid') || 
+                            (typeof className === 'string' && className.split(/\s+/).includes('mermaid'));
+                        
+                        if (!isMermaidDiv) {
+                            return undefined;
+                        }
+                        
+                        const code = element.textContent?.trim() || element.innerText?.trim() || '';
+                        
                         return {
                             id: `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                             type: 'mermaid',
@@ -249,8 +267,11 @@ export const MermaidPlugin = new YooptaPlugin<{ mermaid: any }>({
                             },
                             children: [{ text: '' }],
                         };
+                    } catch (error) {
+                        console.error('[MermaidPlugin] ❌ Error during deserialization:', error);
+                        // Return undefined to let other parsers handle this element
+                        return undefined;
                     }
-                    return undefined;
                 },
             },
             serialize: (element, children) => {

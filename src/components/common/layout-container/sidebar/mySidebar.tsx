@@ -92,11 +92,11 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
         const base = isVoltSubdomain
             ? voltSidebarData
             : filterMenuItems(
-                  filterMenuListByModules(data?.sub_modules, SidebarItemsData),
-                  data?.id,
-                  isTabVisible,
-                  isSubItemVisible
-              );
+                SidebarItemsData,
+                data?.id,
+                isTabVisible,
+                isSubItemVisible
+            );
         if (!roleDisplay) return base;
         // Apply role-based visibility and ordering
         const tabVis = new Map(roleDisplay.sidebar.map((t) => [t.id, t]));
@@ -185,7 +185,9 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     // Sidebar content - shared between mobile drawer and desktop sidebar
     const sidebarContent = (
         <>
-            <SidebarHeader className="px-3 py-1">
+            <SidebarHeader
+                className={cn('py-1', state === 'collapsed' ? 'px-1' : 'px-3')}
+            >
                 <div
                     className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors"
                     onClick={() => {
@@ -198,8 +200,14 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             src={instituteLogo}
                             alt="logo"
                             className={cn(
-                                'w-auto object-contain',
-                                isCompact ? 'h-10 max-w-[80px]' : 'h-20 max-w-[180px]'
+                                'w-auto object-contain transition-all duration-200',
+                                state === 'expanded'
+                                    ? isCompact
+                                        ? 'h-10 max-w-[80px]'
+                                        : 'h-20 max-w-[180px]'
+                                    : isCompact
+                                        ? 'h-8 max-w-[30px]'
+                                        : 'h-10 max-w-[80px]'
                             )}
                         />
                     )}
@@ -224,24 +232,24 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 {sidebarComponent
                     ? sidebarComponent
                     : finalSidebarItems
-                          .filter((item) => {
-                              const show = (item as SidebarItemsType).showForInstitute;
-                              return !show || show === data?.id;
-                          })
-                          .map((obj, key) => (
-                              <SidebarMenuItem
-                                  key={key}
-                                  id={obj.id}
-                                  onClick={() => {
-                                      // Close mobile sidebar when an item is clicked
-                                      if (isMobile && !obj.subItems) {
-                                          setOpenMobile(false);
-                                      }
-                                  }}
-                              >
-                                  <SidebarItem {...obj} />
-                              </SidebarMenuItem>
-                          ))}
+                        .filter((item) => {
+                            const show = (item as SidebarItemsType).showForInstitute;
+                            return !show || show === data?.id;
+                        })
+                        .map((obj, key) => (
+                            <SidebarMenuItem
+                                key={key}
+                                id={obj.id}
+                                onClick={() => {
+                                    // Close mobile sidebar when an item is clicked
+                                    if (isMobile && !obj.subItems) {
+                                        setOpenMobile(false);
+                                    }
+                                }}
+                            >
+                                <SidebarItem {...obj} />
+                            </SidebarMenuItem>
+                        ))}
             </SidebarMenu>
             {roleDisplay?.ui?.showSupportButton !== false && (
                 <div
@@ -283,8 +291,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             ? 'w-[220px]'
                             : 'w-[307px]'
                         : isCompact
-                          ? 'w-14'
-                          : 'w-28'
+                            ? 'w-14'
+                            : 'w-28'
                 )}
             >
                 {sidebarContent}
@@ -312,9 +320,8 @@ function SupportOptions() {
                         weight="fill"
                     />
                     <div
-                        className={`${
-                            hover ? 'text-primary-500' : 'text-neutral-600'
-                        } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
+                        className={`${hover ? 'text-primary-500' : 'text-neutral-600'
+                            } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
                     >
                         {'Support'}
                     </div>

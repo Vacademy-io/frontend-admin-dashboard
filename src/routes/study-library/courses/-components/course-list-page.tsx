@@ -452,7 +452,8 @@ const CourseListPage = ({
                                                     buttonType="primary"
                                                     onClick={() =>
                                                         navigate({
-                                                            to: `/study-library/courses/course-details?courseId=${course.id}`,
+                                                            to: '/study-library/courses/course-details',
+                                                            search: { courseId: course.id },
                                                         })
                                                     }
                                                 >

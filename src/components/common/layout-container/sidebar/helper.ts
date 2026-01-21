@@ -9,11 +9,12 @@ export function getModuleFlags(
         | { module: string; sub_module: string; sub_module_description: string }[]
         | undefined
 ) {
+    const modules = Array.isArray(sub_modules) ? sub_modules : [];
     return {
-        assess: sub_modules?.some((item) => item.module === 'ASSESS'),
-        lms: sub_modules?.some((item) => item.module === 'ENGAGE'),
-        volt: sub_modules?.some((item) => item.module === 'VOLT'),
-        vsmart_ai_tools: sub_modules?.some((item) => item.module === 'VSMART_AI_TOOLS'),
+        assess: modules.some((item) => item?.module === 'ASSESS'),
+        lms: modules.some((item) => item?.module === 'ENGAGE'),
+        volt: modules.some((item) => item?.module === 'VOLT'),
+        vsmart_ai_tools: modules.some((item) => item?.module === 'VSMART_AI_TOOLS'),
     };
 }
 
@@ -21,9 +22,10 @@ export function getModuleFlags(
 export function getAllowedSidebarItems(subModules: SubModuleType[] | undefined): Set<string> {
     const allowedItems = new Set<string>();
 
-    if (!subModules) return allowedItems;
+    if (!Array.isArray(subModules)) return allowedItems;
 
     subModules.forEach((subModule) => {
+        if (!subModule) return;
         const mapping = SUB_MODULE_SIDEBAR_MAPPING[subModule.sub_module];
         if (mapping) {
             // Handle both single object and array of mappings
@@ -91,9 +93,10 @@ export function getAllowedSubItems(
 ): Set<string> {
     const allowedSubItems = new Set<string>();
 
-    if (!subModules) return allowedSubItems;
+    if (!Array.isArray(subModules)) return allowedSubItems;
 
     subModules.forEach((subModule) => {
+        if (!subModule) return;
         const mapping = SUB_MODULE_SIDEBAR_MAPPING[subModule.sub_module];
         if (mapping) {
             // Handle both single object and array of mappings
@@ -212,9 +215,9 @@ export function filterMenuItems(
 export function getModules(subModules: SubModuleType[] | undefined) {
     const optionalModules: Set<string> = new Set();
 
-    if (subModules) {
+    if (Array.isArray(subModules)) {
         subModules.forEach((subModule) => {
-            if (modules.includes(subModule.module)) {
+            if (subModule && modules.includes(subModule.module)) {
                 optionalModules.add(subModule.module);
             }
         });

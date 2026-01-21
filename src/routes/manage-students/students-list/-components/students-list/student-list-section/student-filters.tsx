@@ -36,6 +36,9 @@ export const StudentFilters = ({
     totalElements,
     appliedFilters,
     sessionList,
+    onPackageSelect,
+    selectedPackages,
+    onPackageRemove,
 }: StudentFiltersProps) => {
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const handleOpenAddSessionDialog = () => {
@@ -218,6 +221,11 @@ export const StudentFilters = ({
                             onSearchChange={onSearchChange}
                             onSearchEnter={onSearchEnter}
                             onClearSearch={onClearSearch}
+                            sessionId={currentSession?.id}
+                            instituteId={instituteDetails?.id}
+                            onPackageSelect={onPackageSelect}
+                            selectedPackages={selectedPackages}
+                            onPackageRemove={onPackageRemove}
                         />
                     </div>
 

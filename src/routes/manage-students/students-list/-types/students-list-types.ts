@@ -43,12 +43,15 @@ export interface StudentFiltersProps {
     onClearSearch: () => void;
     onFilterChange: (filterId: string, values: { id: string; label: string }[]) => void;
     onFilterClick: () => void;
+    onPackageSelect?: (pkg: AutocompletePackage) => void;
     onClearFilters: () => void;
     appliedFilters: StudentFilterRequest;
     page: number;
     pageSize: number;
     isAssessment?: boolean;
     totalElements?: number;
+    selectedPackages?: AutocompletePackage[];
+    onPackageRemove?: (pkgId: string) => void;
 }
 
 // types/students/student-types.ts
@@ -107,4 +110,17 @@ export interface StudentSearchBoxProps {
     onSearchEnter: () => void;
     onClearSearch: () => void;
     placeholder?: string;
+    sessionId?: string;
+    instituteId?: string;
+    onPackageSelect?: (pkg: AutocompletePackage) => void;
+    selectedPackages?: AutocompletePackage[];
+    onPackageRemove?: (pkgId: string) => void;
+}
+
+export interface AutocompletePackage {
+    course_name: string;
+    package_name: string;
+    package_id: string;
+    package_session_id?: string;
+    level_name?: string;
 }

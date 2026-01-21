@@ -242,7 +242,18 @@ export const EditStudentDetails = () => {
     };
 
     const submitButton = (
-        <MyButton onClick={() => formRef.current?.requestSubmit()}>Save Changes</MyButton>
+        <MyButton
+            onAsyncClick={async () => {
+                // Trigger form validation and submission
+                const isValid = await form.trigger();
+                if (isValid) {
+                    await form.handleSubmit(onSubmit)();
+                }
+            }}
+            loadingText="Saving..."
+        >
+            Save Changes
+        </MyButton>
     );
 
     return selectedStudent ? (

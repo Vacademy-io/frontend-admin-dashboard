@@ -8,6 +8,7 @@ import {
     ADD_UPDATE_DOCUMENT_SLIDE,
     ADD_UPDATE_QUIZ_SLIDE,
     ADD_UPDATE_ASSIGNMENT_SLIDE,
+    ADD_UPDATE_AUDIO_SLIDE,
     UPDATE_SLIDE_STATUS,
     UPDATE_SLIDE_ORDER,
     UPDATE_QUESTION_ORDER,
@@ -140,6 +141,19 @@ export interface QuizSlide {
     source_type?: string;
 }
 
+// Audio slide interface
+export interface AudioSlide {
+    id: string;
+    audio_file_id: string;
+    thumbnail_file_id?: string;
+    audio_length_in_millis: number;
+    published_audio_file_id?: string;
+    published_audio_length_in_millis?: number;
+    source_type: 'FILE' | 'URL';
+    external_url?: string;
+    transcript?: string;
+}
+
 // Main slide interface
 export interface Slide {
     id: string;
@@ -155,6 +169,7 @@ export interface Slide {
     question_slide?: QuestionSlide | null;
     assignment_slide?: AssignmentSlide | null;
     quiz_slide?: QuizSlide | null;
+    audio_slide?: AudioSlide | null;
     is_loaded: boolean;
     new_slide: boolean;
     // Split-screen mode properties (frontend only)
@@ -332,6 +347,26 @@ export interface QuizSlidePayload {
     };
     is_loaded: boolean;
     new_slide: boolean;
+}
+
+export interface AudioSlidePayload {
+    id?: string | null;
+    title: string;
+    description?: string | null;
+    image_file_id?: string | null;
+    status: 'DRAFT' | 'PUBLISHED';
+    slide_order?: number | null;
+    notify?: boolean;
+    new_slide: boolean;
+    audio_slide: {
+        id?: string | null;
+        audio_file_id: string;
+        thumbnail_file_id?: string | null;
+        audio_length_in_millis?: number;
+        source_type: 'FILE' | 'URL';
+        external_url?: string | null;
+        transcript?: string | null;
+    };
 }
 
 interface UpdateStatusParams {
@@ -573,6 +608,35 @@ export const useSlidesMutations = (
         },
     });
 
+    const addUpdateAudioSlideMutation = useMutation({
+        mutationFn: async (payload: AudioSlidePayload) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${ADD_UPDATE_AUDIO_SLIDE}?chapterId=${chapterId}&moduleId=${moduleId}&subjectId=${subjectId}&packageSessionId=${packageSessionId}&instituteId=${INSTITUTE_ID}`,
+                payload
+            );
+            return { data: response.data, isNewSlide: payload.new_slide };
+        },
+        onSuccess: async (result) => {
+            // Invalidate and wait for slides query to refetch
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            // If this was a new slide creation, set first slide as active after refetch completes
+            if (result.isNewSlide) {
+                // Wait for the slides query to actually refetch and update the store
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000);
+            }
+        },
+    });
+
     const updateSlideStatus = useMutation({
         mutationFn: async ({ chapterId, slideId, status, instituteId }: UpdateStatusParams) => {
             return await authenticatedAxiosInstance.put(
@@ -669,6 +733,8 @@ export const useSlidesMutations = (
             addUpdateQuizSlideMutation.mutateAsync(payload).then((result) => result.data),
         addUpdateAssignmentSlide: (payload: AssignmentSlidePayload) =>
             addUpdateAssignmentSlideMutation.mutateAsync(payload).then((result) => result.data),
+        addUpdateAudioSlide: (payload: AudioSlidePayload) =>
+            addUpdateAudioSlideMutation.mutateAsync(payload).then((result) => result.data),
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,
         updateQuestionOrder: (payload: SlideQuestionsDataInterface) =>
@@ -681,6 +747,7 @@ export const useSlidesMutations = (
             addUpdateDocumentSlideMutation.isPending ||
             addUpdateQuizSlideMutation.isPending ||
             addUpdateAssignmentSlideMutation.isPending ||
+            addUpdateAudioSlideMutation.isPending ||
             updateSlideOrderMutation.isPending ||
             updateQuestionSlideMutation.isPending ||
             updateAssignmentSlideMutation.isPending,

@@ -4,10 +4,16 @@ export const BASE_URL_LEARNER_DASHBOARD =
 
 // For testing, use localhost:8077
 export const AI_SERVICE_BASE_URL =
-    import.meta.env.VITE_AI_SERVICE_BASE_URL || 'http://localhost:8077/ai-service';
+    import.meta.env.VITE_AI_SERVICE_BASE_URL || 'https://backend-stage.vacademy.io/ai-service';
 
 // AI Video URLs API
 export const GET_VIDEO_URLS = (videoId: string) => `${AI_SERVICE_BASE_URL}/video/urls/${videoId}`;
+
+// Institute AI Settings APIs
+export const GET_INSTITUTE_AI_SETTINGS = (instituteId: string) =>
+    `${AI_SERVICE_BASE_URL}/institute/ai-settings/v1/get?institute_id=${instituteId}`;
+export const UPDATE_INSTITUTE_AI_SETTINGS = (instituteId: string) =>
+    `${AI_SERVICE_BASE_URL}/institute/ai-settings/v1/update?institute_id=${instituteId}`;
 
 // Institute IDs from environment variables for multi-org deployment
 export const SSDC_INSTITUTE_ID =
@@ -44,7 +50,14 @@ export const GET_ALL_RATING_SUMMARY = `${BASE_URL}/admin-core-service/rating/sum
 
 export const GET_REFERRAL_LIST_URL = `${BASE_URL}/admin-core-service/v1/referral-option`;
 
+// Email Assets (System Files) API
+export const SYSTEM_FILES_BASE = `${BASE_URL}/admin-core-service/system-files/v1`;
+export const ADD_EMAIL_ASSET = `${SYSTEM_FILES_BASE}/add`;
+export const LIST_EMAIL_ASSETS = `${SYSTEM_FILES_BASE}/list`;
+export const GET_MY_FILES = `${SYSTEM_FILES_BASE}/my-files`;
+
 export const COURSE_CATALOG_URL = `${BASE_URL}/admin-core-service/packages/v1/search`;
+export const PACKAGE_AUTOCOMPLETE_URL = `${BASE_URL}/admin-core-service/packages/v1/autocomplete`;
 export const COURSE_CATALOG_TEACHER_URL = `${BASE_URL}/admin-core-service/v1/package/package-request/search`;
 export const GET_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/get-dashboard`;
 export const UPDATE_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/institute-update`;
@@ -191,6 +204,7 @@ export const UPDATE_QUESTION_ORDER = `${BASE_URL}/admin-core-service/slide/quest
 export const UPDATE_ASSIGNMENT_ORDER = `${BASE_URL}/admin-core-service/slide/assignment-slide/add-or-update`;
 export const ADD_UPDATE_QUIZ_SLIDE = `${BASE_URL}/admin-core-service/slide/quiz-slide/add-or-update`;
 export const ADD_UPDATE_ASSIGNMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/assignment-slide/add-or-update`;
+export const ADD_UPDATE_AUDIO_SLIDE = `${BASE_URL}/admin-core-service/slide/audio-slide/add-update-audio-slide`;
 export const GET_SLIDE_ACTIVITY = `${BASE_URL}/admin-core-service/learner-tracking/activity-log/v1/learner-activity`;
 export const GET_USER_VIDEO_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-video-activity-logs`;
 export const GET_USER_DOC_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-document-activity-logs`;
@@ -470,3 +484,24 @@ export const GET_CATALOGUE_BY_TAG = (instituteId: string, tagName: string) =>
     `${CATALOGUE_BASE_URL}/institute/get/by-tag?instituteId=${instituteId}&tagName=${encodeURIComponent(tagName)}`;
 
 export const LINK_COUNSELLOR = `${BASE_URL}/admin-core-service/enquiry/link-counselor`;
+// Booking System URLs
+export const BOOKING_BASE = `${BASE_URL}/admin-core-service/booking/v1`;
+
+export const BOOKING_CREATE = `${BOOKING_BASE}/create`;
+export const BOOKING_LINK_USERS = `${BOOKING_BASE}/link-users`;
+export const BOOKING_CHECK_AVAILABILITY = `${BOOKING_BASE}/check-availability`;
+export const BOOKING_CANCEL = `${BOOKING_BASE}/cancel`;
+export const BOOKING_RESCHEDULE = `${BOOKING_BASE}/reschedule`;
+export const BOOKING_CALENDAR = `${BOOKING_BASE}/calendar`;
+export const BOOKING_GET_BY_ID = (sessionId: string) => `${BOOKING_BASE}/${sessionId}`;
+export const BOOKING_UPDATE_STATUS = (sessionId: string) => `${BOOKING_BASE}/${sessionId}/status`;
+
+// Booking Types URLs
+export const BOOKING_TYPES_CREATE = `${BOOKING_BASE}/types/create`;
+export const BOOKING_TYPES_LIST = `${BOOKING_BASE}/types/list`;
+export const BOOKING_TYPES_ALL = `${BOOKING_BASE}/types/all`;
+export const BOOKING_TYPES_GLOBAL = `${BOOKING_BASE}/types/global`;
+export const BOOKING_TYPES_BY_INSTITUTE = `${BOOKING_BASE}/types/by-institute`;
+
+// Autosuggest Users API
+export const AUTOSUGGEST_USERS = `${BASE_URL}/auth-service/v1/user/autosuggest-users`;

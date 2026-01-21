@@ -9,6 +9,7 @@ interface DialogState {
     isQuestionDialogOpen: boolean;
     isAssignmentDialogOpen: boolean;
     isQuizDialogOpen: boolean;
+    isAudioDialogOpen: boolean;
 
     // Dialog actions
     openPdfDialog: () => void;
@@ -39,6 +40,10 @@ interface DialogState {
     closeQuizDialog: () => void;
     toggleQuizDialog: () => void;
 
+    openAudioDialog: () => void;
+    closeAudioDialog: () => void;
+    toggleAudioDialog: () => void;
+
     resetDialogs: () => void;
 }
 
@@ -50,6 +55,7 @@ export const useDialogStore = create<DialogState>((set) => ({
     isQuestionDialogOpen: false,
     isAssignmentDialogOpen: false,
     isQuizDialogOpen: false,
+    isAudioDialogOpen: false,
 
     // PDF Dialog actions
     openPdfDialog: () => set({ isPdfDialogOpen: true }),
@@ -90,6 +96,11 @@ export const useDialogStore = create<DialogState>((set) => ({
     closeQuizDialog: () => set({ isQuizDialogOpen: false }),
     toggleQuizDialog: () => set((state) => ({ isQuizDialogOpen: !state.isQuizDialogOpen })),
 
+    // Audio Dialog actions
+    openAudioDialog: () => set({ isAudioDialogOpen: true }),
+    closeAudioDialog: () => set({ isAudioDialogOpen: false }),
+    toggleAudioDialog: () => set((state) => ({ isAudioDialogOpen: !state.isAudioDialogOpen })),
+
     // Reset all dialogs
     resetDialogs: () =>
         set({
@@ -100,5 +111,6 @@ export const useDialogStore = create<DialogState>((set) => ({
             isQuestionDialogOpen: false,
             isAssignmentDialogOpen: false,
             isQuizDialogOpen: false,
+            isAudioDialogOpen: false,
         }),
 }));
