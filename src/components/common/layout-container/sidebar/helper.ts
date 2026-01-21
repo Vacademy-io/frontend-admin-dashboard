@@ -136,8 +136,9 @@ export function filterMenuListByModules(
                 item.id === 'membership-stats' ||
                 item.id === 'manage-contacts' ||
                 item.id === 'ai-center' ||
-                item.id === 'instructor-copilot'
-
+                item.id === 'ai-center' ||
+                item.id === 'instructor-copilot' ||
+                item.id === 'admissions'
             ) {
                 return true;
             }

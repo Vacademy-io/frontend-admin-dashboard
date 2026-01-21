@@ -16,6 +16,7 @@ import {
     AddressBook,
     Sparkle,
 } from '@phosphor-icons/react';
+import { School, FileUser } from 'lucide-react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
 import {
     ChalkboardTeacher,
@@ -117,6 +118,18 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: 'Teams',
                 subItemLink: '/manage-institute/teams',
                 subItemId: 'teams',
+            },
+        ],
+    },
+    {
+        icon: School,
+        title: 'Admissions',
+        id: 'admissions',
+        subItems: [
+            {
+                subItem: 'Enquiries',
+                subItemLink: '/admissions/enquiries',
+                subItemId: 'enquiry',
             },
         ],
     },

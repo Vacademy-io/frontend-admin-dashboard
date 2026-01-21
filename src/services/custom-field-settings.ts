@@ -111,6 +111,7 @@ export interface FieldVisibility {
     assessmentRegistration: boolean;
     liveSessionRegistration: boolean;
     learnerProfile: boolean;
+    enquiry: boolean;
 }
 
 export interface CustomField {
@@ -140,6 +141,8 @@ export interface NewCustomField {
 export interface FixedField {
     id: string; // customFieldId from API
     name: string;
+    type: 'text' | 'dropdown' | 'number';
+    options?: string[];
     visibility: FieldVisibility;
     required: boolean;
     canBeDeleted: boolean;
@@ -207,6 +210,7 @@ const LOCATION_TO_VISIBILITY_MAP: Record<string, keyof FieldVisibility> = {
     'Assessment Registration Form': 'assessmentRegistration',
     'Live Session Registration Form': 'liveSessionRegistration',
     'Learner Profile': 'learnerProfile',
+    Enquiry: 'enquiry',
 };
 
 const VISIBILITY_TO_LOCATION_MAP: Record<keyof FieldVisibility, string> = {
@@ -218,6 +222,7 @@ const VISIBILITY_TO_LOCATION_MAP: Record<keyof FieldVisibility, string> = {
     assessmentRegistration: 'Assessment Registration Form',
     liveSessionRegistration: 'Live Session Registration Form',
     learnerProfile: 'Learner Profile',
+    enquiry: 'Enquiry',
 };
 
 // System field identifiers (fieldName from API)
@@ -414,6 +419,7 @@ const mapLocationsToVisibility = (locations: string[]): FieldVisibility => {
         assessmentRegistration: false,
         liveSessionRegistration: false,
         learnerProfile: false,
+        enquiry: false,
     };
 
     locations.forEach((location) => {
@@ -453,6 +459,7 @@ const mapApiFieldToFixedField = (apiField: ApiCustomField): FixedField => {
         name: apiField.fieldName,
         visibility: mapLocationsToVisibility(apiField.locations),
         required: true, // System fields are typically required
+        type: apiField.fieldType as 'text' | 'dropdown' | 'number',
         canBeDeleted: apiField.canBeDeleted,
         canBeEdited: apiField.canBeEdited,
         canBeRenamed: apiField.canBeRenamed,
@@ -1477,6 +1484,7 @@ export const createNewCustomField = (
             assessmentRegistration: false,
             liveSessionRegistration: false,
             learnerProfile: false,
+            enquiry: false,
         },
         required: false,
         order: 999, // Will be updated when added to settings
@@ -1517,6 +1525,7 @@ export const createTempCustomField = (
             assessmentRegistration: false,
             liveSessionRegistration: false,
             learnerProfile: false,
+            enquiry: false,
         },
         required: false,
         canBeDeleted: true,
