@@ -14,6 +14,9 @@ export const SLIDE_TYPE_NAMES = {
     // Video types
     VIDEO: 'Video',
 
+    // Audio types
+    AUDIO: 'Audio',
+
     // Question types
     QUESTION: 'Question',
 
@@ -60,6 +63,11 @@ export function getSlideTypeForNaming(slide: Partial<Slide>): string {
     // Handle assignment slides
     if (slide.source_type === 'ASSIGNMENT') {
         return SLIDE_TYPE_NAMES.ASSIGNMENT;
+    }
+
+    // Handle audio slides
+    if (slide.source_type === 'AUDIO') {
+        return SLIDE_TYPE_NAMES.AUDIO;
     }
 
     // Default fallback
@@ -153,4 +161,11 @@ export function generateUniqueAssignmentSlideTitle(allSlides: Slide[]): string {
  */
 export function generateUniqueQuizSlideTitle(allSlides: Slide[]): string {
     return generateUniqueSlideTitle(allSlides, 'Quiz');
+}
+
+/**
+ * Generate a unique slide name for audio slides
+ */
+export function generateUniqueAudioSlideTitle(allSlides: Slide[]): string {
+    return generateUniqueSlideTitle(allSlides, SLIDE_TYPE_NAMES.AUDIO);
 }

@@ -104,6 +104,7 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
         addUpdateDocumentSlide,
         addUpdateVideoSlide,
         addUpdateExcalidrawSlide,
+        addUpdateAudioSlide,
         updateSlideOrder,
     } = useSlidesMutations(
         search.chapterId || '',
@@ -628,6 +629,7 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                         prev.map((it) => (it.id === item.id ? { ...it, status: 'done' } : it))
                     );
                 } else if (item.kind === 'AUDIO' && item.file) {
+                    // Upload audio file
                     const fileId = await UploadFileInS3(
                         item.file,
                         () => {},
@@ -636,32 +638,43 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                         'AUDIO',
                         true
                     );
-                    const url = await getPublicUrl(fileId as string);
-                    const fileSize = typeof item.file.size === 'number' ? item.file.size : 0;
-                    const downloadName = item.file.name || 'file';
-                    const displayText = `${downloadName}.${item.file.type || 'file'}`;
-                    const html = `<html><head></head><body><div><div style='margin-left: 0px; display: flex; width: 100%; justify-content: flex-start'><a data-meta-align='left' data-meta-depth='0' href='${url}' data-size='${fileSize}' download='${escapeForSingleQuotedAttr(downloadName)}' target='_blank' rel='noopener noreferrer'>${escapeForSingleQuotedAttr(displayText)}</a></div></div></body></html>`;
-                    const normalized = normalizeHtmlQuotes(html);
+
+                    // Get audio duration
+                    let audioDuration = 0;
+                    try {
+                        const audio = new Audio();
+                        audio.src = URL.createObjectURL(item.file);
+                        await new Promise<void>((resolve) => {
+                            audio.onloadedmetadata = () => {
+                                audioDuration = Math.floor(audio.duration * 1000);
+                                URL.revokeObjectURL(audio.src);
+                                resolve();
+                            };
+                            audio.onerror = () => resolve();
+                        });
+                    } catch {
+                        // Fallback to 0 duration if we can't get it
+                    }
+
                     const id = crypto.randomUUID();
-                    const resp: string = await addUpdateDocumentSlide({
+                    const resp = await addUpdateAudioSlide({
                         id,
                         title: item.title,
-                        image_file_id: '',
-                        description: 'Audio',
+                        description: null,
+                        image_file_id: null,
+                        status: status as 'DRAFT' | 'PUBLISHED',
                         slide_order: 0,
-                        document_slide: {
-                            id: crypto.randomUUID(),
-                            type: 'DOC',
-                            data: normalized,
-                            title: item.title,
-                            cover_file_id: '',
-                            total_pages: 1,
-                            published_data: normalized,
-                            published_document_total_pages: 1,
-                        },
-                        status,
-                        new_slide: true,
                         notify: false,
+                        new_slide: true,
+                        audio_slide: {
+                            id: crypto.randomUUID(),
+                            audio_file_id: fileId ?? '',
+                            thumbnail_file_id: null,
+                            audio_length_in_millis: audioDuration,
+                            source_type: 'FILE',
+                            external_url: null,
+                            transcript: null,
+                        },
                     });
                     createdIds.push(resp || id);
                     setStaged((prev) =>
@@ -1078,7 +1091,7 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                                                 {s.url ? ` • ${s.url}` : ''}
                                             </span>
                                             {s.status === 'loading' && (
-                                                <span className="text-primary-600 flex items-center gap-1">
+                                                <span className="flex items-center gap-1 text-primary-600">
                                                     <CircleNotch className="size-3 animate-spin" />
                                                     Adding...
                                                 </span>

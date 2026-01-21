@@ -7,6 +7,7 @@
 //     TableHeader,
 //     TableRow,
 // } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     flexRender,
     getCoreRowModel,
@@ -225,7 +226,47 @@ export function MyTable<T>({
         closeAllDialogs,
     } = useDialogStore();
 
-    if (isLoading) return <div>Loading...</div>;
+    if (isLoading) {
+        return (
+            <div className={`h-auto w-full ${className}`}>
+                <div className="relative w-full rounded-lg border border-neutral-200 bg-white">
+                    <div className="overflow-hidden">
+                        <table className="w-full caption-bottom text-sm border-collapse" style={{ tableLayout: 'fixed' }}>
+                            <thead className={cn(
+                                "sticky top-0 z-30 border-b border-neutral-300 bg-primary-50 shadow-sm",
+                                isCompact ? "text-xs" : "text-sm"
+                            )}>
+                                <tr>
+                                    {columns.map((col, i) => (
+                                        <th key={i} className={cn(
+                                            "h-14 p-4 px-2 text-left align-middle font-semibold text-neutral-700 border-r border-primary-200",
+                                            isCompact ? "h-8 p-1 px-2" : "h-14 p-4 px-2"
+                                        )}>
+                                            {typeof col.header === 'string' ? col.header : <Skeleton className="h-4 w-20 bg-neutral-200" />}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Array.from({ length: 10 }).map((_, i) => (
+                                    <tr key={i} className="border-b border-neutral-100">
+                                        {columns.map((_, colIndex) => (
+                                            <td key={colIndex} className={cn(
+                                                "p-3",
+                                                isCompact ? "p-1" : "p-3"
+                                            )}>
+                                                <Skeleton className="h-4 w-full bg-neutral-100" />
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     if (error) return <div>Error loading data {JSON.stringify(error)}</div>;
     if (!data) return null;
     if (!table) return <DashboardLoader />;
@@ -263,7 +304,7 @@ export function MyTable<T>({
                     >
                         <thead
                             className={cn(
-                                "sticky top-0 z-30 border-b border-neutral-300 bg-primary-200 shadow-sm [&_tr]:border-b",
+                                "sticky top-0 z-30 border-b border-neutral-300 bg-primary-50 shadow-sm [&_tr]:border-b",
                                 isCompact ? "text-xs" : "text-sm"
                             )}
                             style={{
@@ -289,11 +330,11 @@ export function MyTable<T>({
                                                 <th
                                                     key={header.id}
                                                     className={cn(
-                                                        "sticky left-0 z-40 overflow-visible border-r-2 border-primary-300 bg-primary-100 text-left align-middle font-semibold text-neutral-600",
+                                                        "sticky left-0 z-40 overflow-visible border-r border-primary-200 bg-primary-50 text-left align-middle font-semibold text-neutral-700",
                                                         // Compact vs Default styles
                                                         isCompact
                                                             ? "h-8 p-1 px-2 text-xs"
-                                                            : "h-10 p-3 px-2 text-subtitle",
+                                                            : "h-14 p-4 text-subtitle",
                                                         columnWidths?.[header.column.id] || ''
                                                     )}
                                                     style={{
@@ -349,11 +390,11 @@ export function MyTable<T>({
                                                 <th
                                                     key={header.id}
                                                     className={cn(
-                                                        "relative overflow-visible border-r border-neutral-300 bg-primary-100 text-left align-middle font-semibold text-neutral-600",
+                                                        "relative overflow-visible border-r border-primary-200 bg-primary-50 text-left align-middle font-semibold text-neutral-700",
                                                         // Compact vs Default styles
                                                         isCompact
                                                             ? "h-8 p-1 px-2 text-xs"
-                                                            : "h-10 p-3 px-2 text-subtitle",
+                                                            : "h-14 p-4 text-subtitle",
                                                         columnWidths?.[header.column.id] || ''
                                                     )}
                                                     style={{

@@ -216,4 +216,5 @@ export interface PackageSessionFilter {
     sessionId?: string;
     levelId?: string;
     packageSessionId?: string;
+    packageSessionIds?: string[];
 }

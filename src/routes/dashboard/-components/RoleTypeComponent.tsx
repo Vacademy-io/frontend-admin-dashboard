@@ -89,9 +89,9 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
         }) => fetchInstituteDashboardUsers(instituteId, selectedFilter),
         onSuccess: (data) => {
             if (selectedTab === 'instituteUsers') {
-                setDashboardUsers({ ...dashboardUsers, ['instituteUsers']: data });
+                setDashboardUsers({ ...dashboardUsers, ['instituteUsers']: data || [] });
             } else {
-                setDashboardUsers({ ...dashboardUsers, ['invites']: data });
+                setDashboardUsers({ ...dashboardUsers, ['invites']: data || [] });
             }
         },
         onError: (error: unknown) => {
@@ -187,8 +187,8 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                 .then(([instituteUsersData, invitesData]) => {
                     setDashboardUsers((prev) => ({
                         ...prev,
-                        instituteUsers: instituteUsersData,
-                        invites: invitesData,
+                        instituteUsers: instituteUsersData || [],
+                        invites: invitesData || [],
                     }));
                 })
                 .catch((error) => {
@@ -253,8 +253,8 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                 .then(([instituteUsersData, invitesData]) => {
                     setDashboardUsers((prev) => ({
                         ...prev,
-                        instituteUsers: instituteUsersData,
-                        invites: invitesData,
+                        instituteUsers: instituteUsersData || [],
+                        invites: invitesData || [],
                     }));
                 })
                 .catch((error) => {

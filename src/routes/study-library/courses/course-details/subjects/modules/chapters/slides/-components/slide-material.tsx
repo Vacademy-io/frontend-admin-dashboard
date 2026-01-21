@@ -32,6 +32,7 @@ import {
 import { StudyLibraryQuestionsPreview } from './questions-preview';
 import StudyLibraryAssignmentPreview from './assignment-preview';
 import VideoSlidePreview from './video-slide-preview';
+import AudioSlidePreview from './audio-slide-preview';
 import { handlePublishSlide } from './slide-operations/handlePublishSlide';
 import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
@@ -133,7 +134,7 @@ export const SlideMaterial = ({
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { setOpen: setSidebarOpen } = useSidebar();
-    const { addUpdateDocumentSlide, addUpdateQuizSlide } = useSlidesMutations(
+    const { addUpdateDocumentSlide, addUpdateQuizSlide, addUpdateAudioSlide } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -182,17 +183,6 @@ export const SlideMaterial = ({
     const EditorWithPlaceholder = ({ initialIsEmpty }: { initialIsEmpty: boolean }) => {
         const [showPlaceholder, setShowPlaceholder] = useState(initialIsEmpty);
         const deferredUpdateTimerRef = useRef<number | null>(null);
-        useEffect(() => {
-            console.log('[YooptaEditor] EditorWithPlaceholder mount', {
-                slideId: activeItem?.id || null,
-                initialIsEmpty,
-            });
-            return () => {
-                console.log('[YooptaEditor] EditorWithPlaceholder unmount', {
-                    slideId: activeItem?.id || null,
-                });
-            };
-        }, [activeItem?.id]);
 
         useEffect(() => {
             setShowPlaceholder(initialIsEmpty);
@@ -274,9 +264,50 @@ export const SlideMaterial = ({
                 : activeItem?.document_slide?.data || null;
 
         // Sanitize any public S3 URLs that may contain expired signatures
-        const sanitizedDocData = stripAwsQueryParamsFromUrls(docData || '');
+        let sanitizedDocData = stripAwsQueryParamsFromUrls(docData || '');
 
-        const editorContent = html.deserialize(editor, sanitizedDocData || '');
+        // Check if content contains mermaid diagrams - they need preserved newlines
+        const hasMermaid = sanitizedDocData.includes('class="mermaid"') || sanitizedDocData.includes("class='mermaid'");
+
+        // Extract inner content from full HTML documents (removes DOCTYPE, html, head, body wrappers)
+        let contentForDeserialization = sanitizedDocData || '';
+
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(contentForDeserialization, 'text/html');
+
+            // Get body element and its inner HTML
+            if (doc.body) {
+                contentForDeserialization = doc.body.innerHTML.trim();
+
+                // Recursively unwrap divs until we get to actual content
+                // Yoopta needs semantic content like p, h1, a etc., not nested divs
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = contentForDeserialization;
+
+                // Keep unwrapping single-child divs (but stop if div has mermaid class)
+                let current: Element = wrapper;
+                while (current.children.length === 1) {
+                    const firstChild = current.children[0];
+                    if (
+                        firstChild &&
+                        firstChild.tagName === 'DIV' &&
+                        !firstChild.classList.contains('mermaid')
+                    ) {
+                        current = firstChild;
+                    } else {
+                        break;
+                    }
+                }
+
+                // Get the final inner content
+                contentForDeserialization = current.innerHTML.trim();
+            }
+        } catch (e) {
+            console.error('Error parsing HTML for Yoopta:', e);
+        }
+
+        const editorContent = html.deserialize(editor, contentForDeserialization || '');
 
         editor.setEditorValue(editorContent);
 
@@ -1363,6 +1394,8 @@ export const SlideMaterial = ({
             // 🔁 Then handle DOC
             if (documentType === 'DOC') {
                 try {
+                    // Call setEditorContent twice - once immediately, once after delay
+                    // The delayed call ensures editor is mounted and ready
                     setTimeout(() => {
                         setEditorContent();
                     }, 300);
@@ -1403,6 +1436,12 @@ export const SlideMaterial = ({
 
         if (activeItem.source_type?.toUpperCase() === 'QUESTION') {
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
+            return;
+        }
+
+        // Handle AUDIO slides
+        if (activeItem.source_type?.toUpperCase() === 'AUDIO') {
+            setContent(<AudioSlidePreview activeItem={activeItem} isLearnerView={isLearnerView} />);
             return;
         }
 
@@ -1560,6 +1599,39 @@ export const SlideMaterial = ({
                 } catch (error) {
                     console.error('Error saving quiz slide:', error);
                     toast.error('Error saving quiz slide');
+                }
+                return;
+            }
+
+            if (activeItem?.source_type === 'AUDIO') {
+                if (!activeItem.audio_slide) {
+                    toast.error('Audio slide data is missing');
+                    return;
+                }
+                try {
+                    await addUpdateAudioSlide({
+                        id: activeItem.id,
+                        title: activeItem.title,
+                        description: activeItem.description || null,
+                        image_file_id: activeItem.image_file_id || null,
+                        status: status as 'DRAFT' | 'PUBLISHED',
+                        slide_order: activeItem.slide_order,
+                        notify: false,
+                        new_slide: false,
+                        audio_slide: {
+                            id: activeItem.audio_slide.id,
+                            audio_file_id: activeItem.audio_slide.audio_file_id,
+                            thumbnail_file_id: activeItem.audio_slide.thumbnail_file_id || null,
+                            audio_length_in_millis: activeItem.audio_slide.audio_length_in_millis,
+                            source_type: activeItem.audio_slide.source_type,
+                            external_url: activeItem.audio_slide.external_url || null,
+                            transcript: activeItem.audio_slide.transcript || null,
+                        },
+                    });
+                    toast.success('Audio slide saved successfully!');
+                } catch (error) {
+                    console.error('Error saving audio slide:', error);
+                    toast.error('Error saving audio slide');
                 }
                 return;
             }
@@ -1944,26 +2016,28 @@ export const SlideMaterial = ({
         }
 
         if (items && items.length > 0) {
-            // Check if current active slide still exists in items
+            // Priority 1: Use slideId from URL if available (ALWAYS respect URL)
+            if (slideId) {
+                const targetSlide = items.find((slide) => slide.id === slideId);
+                if (targetSlide) {
+                    // Only update if it's different from current activeItem
+                    if (!activeItem || activeItem.id !== slideId) {
+                        setActiveItem(targetSlide);
+                    }
+                    return;
+                }
+            }
+
+            // Priority 2: Check if current active slide still exists in items
             const activeSlideStillExists =
                 activeItem && items.find((slide) => slide.id === activeItem.id);
 
             if (activeSlideStillExists) {
                 // Active slide still exists, keep it selected
-
                 return;
             }
 
-            // Priority 1: Use slideId from URL if available
-            if (slideId) {
-                const targetSlide = items.find((slide) => slide.id === slideId);
-                if (targetSlide) {
-                    setActiveItem(targetSlide);
-                    return;
-                }
-            }
-
-            // Priority 2: Always set first available slide as active
+            // Priority 3: Always set first available slide as active
             // This handles both new slide creation and slide deletion scenarios
             const firstSlide = items[0];
 
@@ -2218,6 +2292,7 @@ export const SlideMaterial = ({
                                                 updateQuestionOrder,
                                                 updateAssignmentOrder,
                                                 addUpdateQuizSlide,
+                                                addUpdateAudioSlide,
                                                 SaveDraft,
                                                 playerRef
                                             )
@@ -2245,6 +2320,7 @@ export const SlideMaterial = ({
                                                     updateQuestionOrder,
                                                     updateAssignmentOrder,
                                                     addUpdateQuizSlide,
+                                                    addUpdateAudioSlide,
                                                     SaveDraft,
                                                     playerRef
                                                 );
@@ -2287,3 +2363,4 @@ export const SlideMaterial = ({
         </div>
     );
 };
+

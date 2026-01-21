@@ -6,6 +6,7 @@ import {
     DocumentSlidePayload,
     VideoSlidePayload,
     QuizSlidePayload,
+    AudioSlidePayload,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
 import {
@@ -50,6 +51,7 @@ export const handlePublishSlide = async (
         unknown
     >,
     addUpdateQuizSlide: UseMutateAsyncFunction<SlideResponse, Error, QuizSlidePayload, unknown>,
+    addUpdateAudioSlide: UseMutateAsyncFunction<SlideResponse, Error, AudioSlidePayload, unknown>,
     SaveDraft: (activeItem: Slide) => Promise<void>,
     playerRef?: RefObject<YTPlayer> // Optional YouTube player ref
 ) => {
@@ -177,6 +179,39 @@ export const handlePublishSlide = async (
         } catch (error) {
             console.error('Error publishing quiz slide:', error);
             toast.error('Failed to publish quiz');
+        }
+    }
+
+    if (activeItem?.source_type === 'AUDIO') {
+        if (!activeItem.audio_slide) {
+            toast.error('Audio slide data is missing.');
+            return;
+        }
+
+        try {
+            await addUpdateAudioSlide({
+                id: activeItem.id,
+                title: activeItem.title,
+                description: activeItem.description || null,
+                image_file_id: activeItem.image_file_id || null,
+                status: 'PUBLISHED',
+                slide_order: activeItem.slide_order,
+                notify: notify,
+                new_slide: false,
+                audio_slide: {
+                    id: activeItem.audio_slide.id,
+                    audio_file_id: activeItem.audio_slide.audio_file_id,
+                    thumbnail_file_id: activeItem.audio_slide.thumbnail_file_id || null,
+                    audio_length_in_millis: activeItem.audio_slide.audio_length_in_millis,
+                    source_type: activeItem.audio_slide.source_type,
+                    external_url: activeItem.audio_slide.external_url || null,
+                    transcript: activeItem.audio_slide.transcript || null,
+                },
+            });
+            toast.success('Slide published successfully!');
+            setIsOpen(false);
+        } catch {
+            toast.error('Error in publishing the slide');
         }
     }
 };

@@ -16,10 +16,12 @@ import {
 } from '@/types/display-settings';
 import { isUserAdmin } from '@/utils/userDetails';
 import { getLearnerPortalAccess, sendResetPasswordEmail } from '@/services/learner-portal-access';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
     const { openIndividualShareCredentialsDialog } = useDialogStore();
+    const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const [copiedField, setCopiedField] = useState<string>('');
     const [learnerSettings, setLearnerSettings] = useState<LearnerManagementSettings | null>(null);
 
@@ -64,9 +66,27 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
             return;
         }
 
+        // Get packageId from selectedStudent.package_id or derive it from package_session_id
+        let packageId = selectedStudent.package_id;
+
+        if (!packageId && selectedStudent.package_session_id) {
+            const batchDetails = getDetailsFromPackageSessionId({
+                packageSessionId: selectedStudent.package_session_id,
+            });
+            packageId = batchDetails?.package_dto?.id;
+        }
+
+        if (!packageId) {
+            toast.error('Student package ID not found');
+            return;
+        }
+
         try {
             toast.loading('Accessing learner portal...');
-            const response = await getLearnerPortalAccess(selectedStudent.user_id);
+            const response = await getLearnerPortalAccess(
+                selectedStudent.user_id,
+                packageId
+            );
 
             if (response.redirect_url) {
                 // Open the redirect URL in a new tab
@@ -89,9 +109,24 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
             return;
         }
 
+        // Get packageId from selectedStudent.package_id or derive it from package_session_id
+        let packageId = selectedStudent.package_id;
+
+        if (!packageId && selectedStudent.package_session_id) {
+            const batchDetails = getDetailsFromPackageSessionId({
+                packageSessionId: selectedStudent.package_session_id,
+            });
+            packageId = batchDetails?.package_dto?.id;
+        }
+
+        if (!packageId) {
+            toast.error('Student package ID not found');
+            return;
+        }
+
         try {
             toast.loading('Sending reset password email...');
-            await sendResetPasswordEmail(selectedStudent.user_id);
+            await sendResetPasswordEmail(selectedStudent.user_id, packageId);
             toast.success('Reset password email sent successfully');
         } catch (error) {
             console.error('Error sending reset password email:', error);

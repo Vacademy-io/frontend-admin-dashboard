@@ -388,77 +388,67 @@ export const ScheduleTestMainComponent = ({
         [getDetailsFromPackageSessionId]
     );
 
+    // Track which tabs have been loaded
+    const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set());
+
+    // Define base filters that include batch_id if in course outline mode
+    const getBaseFilters = useCallback(() => ({
+        ...selectedQuestionPaperFilters,
+        batch_ids:
+            isCourseOutline && batchId
+                ? [{ id: batchId, name: '' }]
+                : selectedQuestionPaperFilters.batch_ids,
+    }), [selectedQuestionPaperFilters, isCourseOutline, batchId]);
+
+    // Fetch data for a specific tab
+    const fetchTabData = useCallback((tabValue: string) => {
+        const tabConfigs: Record<string, { get_live: boolean; get_passed: boolean; get_upcoming: boolean; status: string }> = {
+            liveTests: { get_live: true, get_passed: false, get_upcoming: false, status: 'PUBLISHED' },
+            upcomingTests: { get_live: false, get_passed: false, get_upcoming: true, status: 'PUBLISHED' },
+            previousTests: { get_live: false, get_passed: true, get_upcoming: false, status: 'PUBLISHED' },
+            draftTests: { get_live: false, get_passed: false, get_upcoming: false, status: 'DRAFT' },
+        };
+
+        const config = tabConfigs[tabValue];
+        if (!config) return Promise.resolve();
+
+        return getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+            ...getBaseFilters(),
+            assessment_statuses: [{ id: '0', name: config.status }],
+            get_live_assessments: config.get_live,
+            get_passed_assessments: config.get_passed,
+            get_upcoming_assessments: config.get_upcoming,
+        }).then((data) => {
+            setScheduleTestTabsData((prevTabs) =>
+                prevTabs.map((tab) =>
+                    tab.value === tabValue ? { ...tab, data: data } : tab
+                )
+            );
+            setLoadedTabs((prev) => new Set([...prev, tabValue]));
+        });
+    }, [pageNo, INSTITUTE_ID, getBaseFilters]);
+
+    // Handle tab change - fetch data if tab hasn't been loaded yet
+    const handleTabChange = useCallback((newTab: string) => {
+        setSelectedTab(newTab);
+
+        // Only fetch if this tab hasn't been loaded yet
+        if (!loadedTabs.has(newTab)) {
+            setIsLoading(true);
+            fetchTabData(newTab)
+                .catch((error) => console.error(error))
+                .finally(() => setIsLoading(false));
+        }
+    }, [loadedTabs, fetchTabData]);
+
+    // Initial fetch - only load the default tab
     useEffect(() => {
         setIsLoading(true);
 
-        const timeoutId = setTimeout(() => {
-            // Define base filters that include batch_id if in course outline mode
-            const baseFilters = {
-                ...selectedQuestionPaperFilters,
-                // When in course outline mode, always include the batchId
-                batch_ids:
-                    isCourseOutline && batchId
-                        ? [{ id: batchId, name: '' }]
-                        : selectedQuestionPaperFilters.batch_ids,
-            };
-
-            const fetchLiveTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...baseFilters,
-                assessment_statuses: [{ id: '0', name: 'PUBLISHED' }],
-                get_live_assessments: true,
-                get_passed_assessments: false,
-                get_upcoming_assessments: false,
-            });
-
-            const fetchUpcomingTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...baseFilters,
-                assessment_statuses: [{ id: '0', name: 'PUBLISHED' }],
-                get_live_assessments: false,
-                get_passed_assessments: false,
-                get_upcoming_assessments: true,
-            });
-
-            const fetchPreviousTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...baseFilters,
-                assessment_statuses: [{ id: '0', name: 'PUBLISHED' }],
-                get_live_assessments: false,
-                get_passed_assessments: true,
-                get_upcoming_assessments: false,
-            });
-
-            const fetchDraftTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...baseFilters,
-                assessment_statuses: [{ id: '0', name: 'DRAFT' }],
-                get_live_assessments: false,
-                get_passed_assessments: false,
-                get_upcoming_assessments: false,
-            });
-
-            Promise.all([fetchLiveTests, fetchUpcomingTests, fetchPreviousTests, fetchDraftTests])
-                .then(([liveData, upcomingData, previousData, draftData]) => {
-                    setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) => {
-                            if (tab.value === 'liveTests') return { ...tab, data: liveData };
-                            if (tab.value === 'upcomingTests')
-                                return { ...tab, data: upcomingData };
-                            if (tab.value === 'previousTests')
-                                return { ...tab, data: previousData };
-                            if (tab.value === 'draftTests') return { ...tab, data: draftData };
-                            return tab;
-                        })
-                    );
-                })
-                .catch((error) => {
-                    console.error(error);
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
-        }, 500); // Delay execution by 500ms
-
-        return () => {
-            clearTimeout(timeoutId); // Cleanup to prevent duplicate calls
-        };
+        // Only fetch the currently selected tab (liveTests by default)
+        fetchTabData(selectedTab)
+            .catch((error) => console.error(error))
+            .finally(() => setIsLoading(false));
     }, [isCourseOutline, batchId]);
 
     useEffect(() => {
@@ -499,7 +489,7 @@ export const ScheduleTestMainComponent = ({
             </Helmet>
             <ScheduleTestHeaderDescription isCourseOutline />
             <div className="flex flex-col gap-4">
-                <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+                <Tabs value={selectedTab} onValueChange={handleTabChange}>
                     <ScheduleTestTabList
                         selectedTab={selectedTab}
                         scheduleTestTabsData={scheduleTestTabsData}

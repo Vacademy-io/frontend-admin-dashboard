@@ -9,7 +9,7 @@ export const TabListComponent = ({
 }: {
     selectedTab: string;
     questionPaperList: PaginatedResponse;
-    questionPaperFavouriteList: PaginatedResponse;
+    questionPaperFavouriteList: PaginatedResponse | null;
 }) => {
     return (
         <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
@@ -44,7 +44,7 @@ export const TabListComponent = ({
                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {questionPaperFavouriteList.content.length}
+                    {questionPaperFavouriteList?.content?.length ?? 0}
                 </Badge>
             </TabsTrigger>
         </TabsList>

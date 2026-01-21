@@ -27,7 +27,7 @@ import {
 } from '@phosphor-icons/react';
 import { StorageKey } from '@/constants/storage/storage';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
-import { NamingSettingsType, SettingsTabs } from '@/routes/settings/-constants/terms';
+import { NamingSettingsType } from '@/routes/settings/-constants/terms';
 
 // Utility function to get naming settings from localStorage
 const getNamingSettings = (): NamingSettingsType[] => {
@@ -144,15 +144,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemId: 'students-list',
             },
             {
-                subItem: 'Enroll Requests',
-                subItemLink: '/manage-students/enroll-requests',
-                subItemId: 'enroll-requests',
-            },
-            {
                 subItem: 'Invite',
                 subItemLink: '/manage-students/invite',
                 subItemId: 'invite',
             },
+            // Enroll Requests deprecated
         ],
     },
     {
@@ -436,6 +432,6 @@ export const SidebarItemsData: SidebarItemsType[] = [
         icon: GearSix,
         id: 'settings',
         title: 'Settings',
-        to: `/settings?selectedTab=${SettingsTabs.Tab}`,
+        to: '/settings',
     },
 ];

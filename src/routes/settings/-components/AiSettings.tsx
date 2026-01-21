@@ -13,7 +13,13 @@ import { MyButton } from '@/components/design-system/button';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { Sparkles, Save, ShieldCheck, Trash2, Plus, Info } from 'lucide-react';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { AI_SERVICE_BASE_URL, BASE_URL, GET_INSITITUTE_SETTINGS } from '@/constants/urls';
+import {
+    AI_SERVICE_BASE_URL,
+    BASE_URL,
+    GET_INSITITUTE_SETTINGS,
+    GET_INSTITUTE_AI_SETTINGS,
+    UPDATE_INSTITUTE_AI_SETTINGS,
+} from '@/constants/urls';
 import { getInstituteId } from '@/constants/helper';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -35,6 +41,15 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 
 interface AiSettingsProps {
     isTab?: boolean;
@@ -101,6 +116,8 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
     const [activityLogs, setActivityLogs] = useState<ActivityLogResponse | null>(null);
     const [models, setModels] = useState<Model[]>([]);
     const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(20);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showKeysInfo, setShowKeysInfo] = useState(false);
     const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
@@ -120,6 +137,10 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
         },
     });
     const [newHardRule, setNewHardRule] = useState('');
+    const [aiCoursePrompt, setAiCoursePrompt] = useState('');
+    const [hasCustomPrompt, setHasCustomPrompt] = useState(false);
+    const [isSavingAiPrompt, setIsSavingAiPrompt] = useState(false);
+    const [isLoadingAiPrompt, setIsLoadingAiPrompt] = useState(false);
     const instituteId = getInstituteId();
 
     // Check if keys exist
@@ -156,7 +177,7 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
     }, [instituteId]);
 
     // Fetch activity logs
-    const fetchActivityLogs = useCallback(async () => {
+    const fetchActivityLogs = useCallback(async (page: number = 1) => {
         if (!instituteId) return;
         setIsLoadingLogs(true);
         try {
@@ -164,8 +185,8 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                 `${AI_SERVICE_BASE_URL}/token-usage/v1/institute/${instituteId}/activity-log`,
                 {
                     params: {
-                        page: 1,
-                        page_size: 20,
+                        page: page,
+                        page_size: pageSize,
                     },
                 }
             );
@@ -175,7 +196,7 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
         } finally {
             setIsLoadingLogs(false);
         }
-    }, [instituteId]);
+    }, [instituteId, pageSize]);
 
     // Fetch models list
     const fetchModels = useCallback(async () => {
@@ -210,19 +231,81 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
         }
     }, [instituteId]);
 
+    // Fetch Institute AI Settings
+    const fetchInstituteAiSettings = useCallback(async () => {
+        if (!instituteId) return;
+        setIsLoadingAiPrompt(true);
+        try {
+            const response = await authenticatedAxiosInstance.get(
+                GET_INSTITUTE_AI_SETTINGS(instituteId)
+            );
+            if (response.data) {
+                setAiCoursePrompt(response.data.ai_settings?.AI_COURSE_PROMPT || '');
+                setHasCustomPrompt(response.data.has_custom_prompt || false);
+            }
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                // Institute not found or no settings - set defaults
+                setAiCoursePrompt('');
+                setHasCustomPrompt(false);
+            } else {
+                console.error('Error fetching institute AI settings:', error);
+            }
+        } finally {
+            setIsLoadingAiPrompt(false);
+        }
+    }, [instituteId]);
+
+    // Update Institute AI Settings
+    const handleSaveAiPrompt = async () => {
+        if (!instituteId) return;
+        setIsSavingAiPrompt(true);
+        try {
+            const response = await authenticatedAxiosInstance.post(
+                UPDATE_INSTITUTE_AI_SETTINGS(instituteId),
+                {
+                    ai_settings: {
+                        AI_COURSE_PROMPT: aiCoursePrompt.trim() || null,
+                    },
+                }
+            );
+            if (response.data) {
+                setHasCustomPrompt(response.data.has_custom_prompt || false);
+                toast.success('AI Course Prompt saved successfully!');
+            }
+        } catch (error: any) {
+            console.error('Error updating institute AI settings:', error);
+            if (error.response?.status === 404) {
+                toast.error('Institute not found');
+            } else {
+                toast.error('Failed to save AI Course Prompt');
+            }
+        } finally {
+            setIsSavingAiPrompt(false);
+        }
+    };
+
     useEffect(() => {
         const initialize = async () => {
             setIsLoading(true);
             await Promise.all([
                 checkKeys(),
-                fetchActivityLogs(),
+                fetchActivityLogs(currentPage),
                 fetchModels(),
                 fetchTutorSettings(),
+                fetchInstituteAiSettings(),
             ]);
             setIsLoading(false);
         };
         initialize();
-    }, [checkKeys, fetchActivityLogs, fetchModels, fetchTutorSettings]);
+    }, [checkKeys, fetchModels, fetchTutorSettings, fetchInstituteAiSettings]);
+
+    // Fetch activity logs when page changes
+    useEffect(() => {
+        if (instituteId) {
+            fetchActivityLogs(currentPage);
+        }
+    }, [currentPage, instituteId, fetchActivityLogs]);
 
     // Update institute name when instituteDetails changes
     useEffect(() => {
@@ -383,9 +466,9 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
 
     // Calculate totals
     const totalTokens =
-        activityLogs?.records.reduce((sum, record) => sum + record.total_tokens, 0) || 0;
+        activityLogs?.records?.reduce((sum, record) => sum + (record.total_tokens || 0), 0) || 0;
     const totalPrice =
-        activityLogs?.records.reduce((sum, record) => sum + record.total_price, 0) || 0;
+        activityLogs?.records?.reduce((sum, record) => sum + (record.total_price || 0), 0) || 0;
 
     // Get unique models from activity logs
     const uniqueModels = Array.from(
@@ -697,7 +780,7 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                                             {record.total_tokens.toLocaleString()}
                                                         </TableCell>
                                                         <TableCell className="text-right text-xs">
-                                                            ${record.total_price.toFixed(4)}
+                                                            ${(record.total_price || 0).toFixed(4)}
                                                         </TableCell>
                                                     </TableRow>
                                                 );
@@ -708,6 +791,98 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                             ) : (
                                 <div className="py-8 text-center text-sm text-gray-500">
                                     No activity logs found
+                                </div>
+                            )}
+
+                            {/* Pagination */}
+                            {activityLogs && activityLogs.total_pages > 1 && (
+                                <div className="mt-6 flex items-center justify-between">
+                                    <div className="text-sm text-gray-600">
+                                        Showing page {activityLogs.page} of {activityLogs.total_pages} (
+                                        {activityLogs.total_count} total records)
+                                    </div>
+                                    <Pagination>
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <PaginationPrevious
+                                                    href="#"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (currentPage > 1) {
+                                                            setCurrentPage(currentPage - 1);
+                                                        }
+                                                    }}
+                                                    className={
+                                                        currentPage <= 1
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : 'cursor-pointer'
+                                                    }
+                                                />
+                                            </PaginationItem>
+
+                                            {/* Page Numbers */}
+                                            {(() => {
+                                                const pages: React.ReactNode[] = [];
+                                                const totalPages = activityLogs.total_pages;
+                                                let lastPage = 0;
+
+                                                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                                                    // Show first page, last page, current page, and pages around current
+                                                    const showPage =
+                                                        pageNum === 1 ||
+                                                        pageNum === totalPages ||
+                                                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+
+                                                    if (showPage) {
+                                                        // Add ellipsis if there's a gap
+                                                        if (pageNum - lastPage > 1) {
+                                                            pages.push(
+                                                                <PaginationItem key={`ellipsis-${lastPage + 1}`}>
+                                                                    <PaginationEllipsis />
+                                                                </PaginationItem>
+                                                            );
+                                                        }
+
+                                                        pages.push(
+                                                            <PaginationItem key={pageNum}>
+                                                                <PaginationLink
+                                                                    href="#"
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        setCurrentPage(pageNum);
+                                                                    }}
+                                                                    isActive={currentPage === pageNum}
+                                                                    className="cursor-pointer"
+                                                                >
+                                                                    {pageNum}
+                                                                </PaginationLink>
+                                                            </PaginationItem>
+                                                        );
+                                                        lastPage = pageNum;
+                                                    }
+                                                }
+
+                                                return pages;
+                                            })()}
+
+                                            <PaginationItem>
+                                                <PaginationNext
+                                                    href="#"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (currentPage < activityLogs.total_pages) {
+                                                            setCurrentPage(currentPage + 1);
+                                                        }
+                                                    }}
+                                                    className={
+                                                        currentPage >= activityLogs.total_pages
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : 'cursor-pointer'
+                                                    }
+                                                />
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
                                 </div>
                             )}
                         </div>
@@ -1020,6 +1195,101 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                             )}
                         </MyButton>
                     </div>
+                </CardContent>
+            </Card>
+
+            {/* Institute AI Settings Card */}
+            <Card className="border-indigo-100 shadow-sm">
+                <CardHeader className="border-b border-indigo-50 bg-indigo-50/30">
+                    <div className="flex items-center gap-2">
+                        <div className="rounded-lg bg-indigo-500 p-2 text-white">
+                            <Sparkles className="size-5" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-xl">Institute AI Course Prompt</CardTitle>
+                            <CardDescription>
+                                Configure custom AI prompt for course outline generation to align
+                                with your institute's educational philosophy
+                            </CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-6 pt-6">
+                    {isLoadingAiPrompt ? (
+                        <div className="flex h-32 items-center justify-center">
+                            <div className="size-6 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600"></div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="space-y-2">
+                                <Label htmlFor="aiCoursePrompt" className="text-sm font-medium">
+                                    AI Course Prompt
+                                </Label>
+                                <textarea
+                                    id="aiCoursePrompt"
+                                    value={aiCoursePrompt}
+                                    onChange={(e) => setAiCoursePrompt(e.target.value)}
+                                    placeholder="Focus on practical, industry-relevant content with hands-on coding exercises and real-world applications. Emphasize problem-solving skills and modern development practices."
+                                    rows={6}
+                                    className="w-full rounded-md border border-indigo-100 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-100"
+                                />
+                                <p className="text-[10px] text-gray-500">
+                                    This prompt guides the AI when generating course outlines. Keep it
+                                    concise but descriptive (recommended: 50-200 words). Leave empty
+                                    to use default system prompt.
+                                </p>
+                                {hasCustomPrompt && (
+                                    <div className="flex items-center gap-2 rounded-md bg-green-50 px-3 py-2">
+                                        <ShieldCheck className="size-4 text-green-600" />
+                                        <span className="text-xs text-green-700">
+                                            Custom prompt is active
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="rounded-full bg-blue-100 p-1 text-blue-600">
+                                        <Info className="size-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium text-blue-900">
+                                            Best Practices
+                                        </h4>
+                                        <ul className="mt-1 list-inside list-disc space-y-1 text-xs text-blue-700">
+                                            <li>
+                                                Be specific about course structure preferences
+                                            </li>
+                                            <li>Mention learning objectives and outcomes</li>
+                                            <li>Include preferred teaching methodologies</li>
+                                            <li>Specify any industry standards or frameworks</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end pt-4">
+                                <MyButton
+                                    disabled={isSavingAiPrompt}
+                                    onClick={handleSaveAiPrompt}
+                                    className="min-w-[120px] bg-indigo-600 text-white hover:bg-indigo-700"
+                                >
+                                    {isSavingAiPrompt ? (
+                                        <>
+                                            <span className="mr-2 size-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="mr-2 size-4" />
+                                            Save Prompt
+                                        </>
+                                    )}
+                                </MyButton>
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
 

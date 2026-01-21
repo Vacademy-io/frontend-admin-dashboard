@@ -18,7 +18,15 @@ import {
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useRouter } from '@tanstack/react-router';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { BookOpen, CheckCircle, Code, File, GameController, Question } from '@phosphor-icons/react';
+import {
+    BookOpen,
+    CheckCircle,
+    Code,
+    File,
+    GameController,
+    MusicNotes,
+    Question,
+} from '@phosphor-icons/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLearnerViewStore } from '../../-stores/learner-view-store';
 
@@ -77,7 +85,7 @@ export const getIcon = (
         return (
             <div className="relative inline-block">
                 <Video className={`${iconClass} text-blue-500`} />
-                <Sparkles className={`absolute -top-0.5 -right-0.5 ${sparkleSize} text-blue-400`} />
+                <Sparkles className={`absolute -right-0.5 -top-0.5 ${sparkleSize} text-blue-400`} />
             </div>
         );
     }
@@ -107,6 +115,8 @@ export const getIcon = (
             return <Code className={`${iconClass} text-green-500`} />;
         case 'PRESENTATION':
             return <FileDoc className={`${iconClass} text-orange-500`} />;
+        case 'AUDIO':
+            return <MusicNotes className={`${iconClass} text-indigo-500`} />;
         default:
             return <></>;
     }
@@ -128,9 +138,12 @@ const SlideItem = ({
         return (
             (slide.source_type === 'DOCUMENT' && slide.document_slide?.title) ||
             (slide.source_type === 'VIDEO' && slide.video_slide?.title) ||
+            (slide.source_type === 'HTML_VIDEO' &&
+                ((slide as any).html_video_slide?.title || slide.title)) ||
             (slide.source_type === 'QUESTION' && slide?.title) ||
             (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
             (slide.source_type === 'QUIZ' && slide.title) || // Always use slide.title for QUIZ
+            (slide.source_type === 'AUDIO' && slide?.title) ||
             'Untitled'
         );
     };
@@ -187,7 +200,7 @@ const SlideItem = ({
                             slide.status === 'DELETED'
                                 ? 'cursor-not-allowed border-red-200 bg-red-50/30 text-red-600 opacity-50'
                                 : isActive
-                                  ? 'text-primary-600 border-primary-300 bg-primary-50/80 shadow-md shadow-primary-100/50'
+                                  ? 'border-primary-300 bg-primary-50/80 text-primary-600 shadow-md shadow-primary-100/50'
                                   : 'hover:bg-primary-25 border-neutral-100 bg-white/60 text-neutral-600 hover:border-primary-200 hover:text-primary-500 hover:shadow-sm'
                         }
                         ${slide.status !== 'DELETED' ? 'group-hover:shadow-md' : ''}
@@ -207,7 +220,7 @@ const SlideItem = ({
                                                 ? 'bg-red-200 text-red-600'
                                                 : isActive
                                                   ? 'bg-primary-500 text-white shadow-sm'
-                                                  : 'group-hover:text-primary-600 bg-neutral-100 text-neutral-500 group-hover:bg-primary-100'
+                                                  : 'bg-neutral-100 text-neutral-500 group-hover:bg-primary-100 group-hover:text-primary-600'
                                         }
                                     `}
                                     >
@@ -276,12 +289,13 @@ const SlideItem = ({
 export const ChapterSidebarSlides = ({
     handleSlideOrderChange,
 }: {
-    handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
+    handleSlideOrderChange: (slideOrderPayloadType: slideOrderPayloadType) => void;
 }) => {
     const { setItems, activeItem, setActiveItem, items } = useContentStore();
     const { isLearnerView } = useLearnerViewStore();
     const router = useRouter();
-    const { chapterId, slideId } = router.state.location.search;
+    const searchParams = router.state.location.search;
+    const { chapterId, slideId, courseId, levelId, moduleId, subjectId, sessionId } = searchParams;
 
     const { slides, isLoading, refetch } = useSlidesQuery(chapterId || '');
 
@@ -297,7 +311,22 @@ export const ChapterSidebarSlides = ({
     }, []);
 
     const handleSlideClick = async (slide: Slide) => {
-        // Now set the new active item
+        // Update URL with new slideId
+        router.navigate({
+            to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+            search: {
+                courseId: courseId || '',
+                levelId: levelId || '',
+                subjectId: subjectId || '',
+                moduleId: moduleId || '',
+                chapterId: chapterId || '',
+                slideId: slide.id, // ✅ Update slideId in URL
+                sessionId: sessionId || '',
+            },
+            replace: true, // Replace history entry instead of pushing new one
+        });
+
+        // Set the new active item
         setActiveItem(slide);
     };
 

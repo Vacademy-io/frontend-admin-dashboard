@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { StudentFilterRequest, StudentListResponse } from '@/types/student-table-types';
 import { GET_STUDENTS } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { useMemo } from 'react';
 
 interface FetchStudentsParams {
     pageNo?: number;
@@ -21,17 +22,47 @@ export const fetchStudents = async ({
     return response.data;
 };
 
-// React Query hook
+// React Query hook with stabilized query key
 export const useStudentList = (
     filters: StudentFilterRequest,
     pageNo?: number,
     pageSize?: number
 ) => {
+    // Stabilize the filters object by creating a consistent string representation
+    // This prevents React Query from treating each render's filter object as a new key
+    const stableFiltersKey = useMemo(() => {
+        return JSON.stringify({
+            name: filters.name || '',
+            institute_ids: filters.institute_ids?.sort() || [],
+            package_session_ids: filters.package_session_ids?.sort() || [],
+            group_ids: filters.group_ids?.sort() || [],
+            gender: filters.gender?.sort() || [],
+            statuses: filters.statuses?.sort() || [],
+            payment_statuses: filters.payment_statuses?.sort() || [],
+            sort_columns: filters.sort_columns || {},
+            session_expiry_days: filters.session_expiry_days?.sort((a, b) => a - b) || [],
+            sub_org_user_types: filters.sub_org_user_types?.sort() || [],
+            // Include dynamic custom fields if present - sorting keys to be safe
+            ...Object.keys(filters)
+                .filter(key => key.startsWith('customField'))
+                .sort()
+                .reduce((obj, key) => {
+                    obj[key] = filters[key];
+                    return obj;
+                }, {} as Record<string, any>)
+        });
+    }, [filters]);
+
     return useQuery({
-        queryKey: ['students', pageNo, pageSize, filters],
+        queryKey: ['students', pageNo, pageSize, stableFiltersKey],
         queryFn: () => fetchStudents({ pageNo, pageSize, filters }),
-        enabled: true, // Change this to true
+        // Prevent refetching when window regains focus
         refetchOnWindowFocus: false,
-        staleTime: 1000 * 5,
+        // Don't refetch when component remounts
+        refetchOnMount: false,
+        // Keep data fresh for 30 seconds to prevent duplicate fetches
+        staleTime: 1000 * 30,
+        // Keep data in cache for 5 minutes
+        gcTime: 1000 * 60 * 5,
     });
 };

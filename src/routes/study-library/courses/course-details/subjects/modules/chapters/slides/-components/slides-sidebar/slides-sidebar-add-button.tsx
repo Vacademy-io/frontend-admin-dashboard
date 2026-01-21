@@ -13,12 +13,14 @@ import {
     PresentationChart,
     Code,
     BookOpen,
+    MusicNotes,
 } from '@phosphor-icons/react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { AddVideoDialog } from './add-video-dialog';
 import { AddVideoFileDialog } from './add-video-file-dialog';
 import { AddDocDialog } from './add-doc-dialog';
 import { AddPdfDialog } from './add-pdf-dialog';
+import { AddAudioDialog } from './add-audio-dialog';
 import { useRouter } from '@tanstack/react-router';
 import {
     useSlidesMutations,
@@ -103,6 +105,7 @@ export const ChapterSidebarAddButton = () => {
         isVideoDialogOpen,
         isVideoFileDialogOpen,
         isQuestionDialogOpen,
+        isAudioDialogOpen,
 
         openPdfDialog,
         closePdfDialog,
@@ -114,6 +117,8 @@ export const ChapterSidebarAddButton = () => {
         closeVideoFileDialog,
         openQuestionDialog,
         closeQuestionDialog,
+        openAudioDialog,
+        closeAudioDialog,
     } = useDialogStore();
 
     // Function to reorder slides after adding a new one at the top
@@ -233,7 +238,12 @@ export const ChapterSidebarAddButton = () => {
                 icon: <ClipboardText className="size-4 text-pink-500" />, // ✅ Changed to ListChecks
                 description: 'Timed quiz slide',
             },
-
+            {
+                label: 'Audio',
+                value: 'audio',
+                icon: <MusicNotes className="size-4 text-indigo-500" />,
+                description: 'Audio slide with playback',
+            },
             {
                 label: 'Code Editor',
                 value: 'code-editor',
@@ -272,6 +282,8 @@ export const ChapterSidebarAddButton = () => {
                     return ct.quiz !== false;
                 case 'code-editor':
                     return ct.codeEditor !== false;
+                case 'audio':
+                    return true; // Audio slides are enabled by default
                 // presentation treated as a document-type control
                 case 'presentation':
                     return ct.document !== false;
@@ -615,6 +627,10 @@ export const ChapterSidebarAddButton = () => {
                 }
                 break;
             }
+
+            case 'audio':
+                openAudioDialog();
+                break;
         }
     };
 
@@ -752,6 +768,18 @@ export const ChapterSidebarAddButton = () => {
             >
                 <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
+                </div>
+            </MyDialog>
+
+            <MyDialog
+                trigger={<></>}
+                heading="Add Audio Slide"
+                dialogWidth="min-w-[500px]"
+                open={isAudioDialogOpen}
+                onOpenChange={closeAudioDialog}
+            >
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
+                    <AddAudioDialog openState={(open) => !open && closeAudioDialog()} />
                 </div>
             </MyDialog>
         </div>
