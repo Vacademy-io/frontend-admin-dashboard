@@ -10,9 +10,6 @@ import { AlertTriangle, Eye, EyeOff, Settings } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { StorageKey } from '@/constants/storage/storage';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
-import { getModules } from '@/components/common/layout-container/sidebar/helper';
 
 interface TabItem {
     name: string;
@@ -72,8 +69,6 @@ const optionalTab: TabItem[] = [
 export default function TabSettings({ isTab = false }: { isTab: boolean }) {
     const [tabSettings, setTabSettings] = useState<TabItem[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { data } = useSuspenseQuery(useInstituteQuery());
-    const modules = getModules(data?.sub_modules);
     const [success, setSuccess] = useState<string | null>(null);
     const { setValue, getValue } = useLocalStorage<TabItem[]>(StorageKey.TAB_SETTINGS, []);
 
@@ -233,7 +228,7 @@ export default function TabSettings({ isTab = false }: { isTab: boolean }) {
             {/* Tab Settings */}
             <div className="grid gap-4">
                 {optionalTab.map((tab) => {
-                    if (tab.module !== 'ALL' && !modules.includes(tab.module)) return null;
+                    // Show all tabs regardless of module - removed sub_modules dependency
                     const tabSetting = getTabSetting(tab.tabId);
                     const isVisible = tabSetting?.isVisible ?? true;
 
