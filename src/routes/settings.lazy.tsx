@@ -4,11 +4,11 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { useEffect, useRef, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { SettingsTabs } from './-constants/terms';
-import { getAvailableSettingsTabs } from './-utils/utils';
-import { Route as SettingsRoute } from './index';
+import { SettingsTabs } from './settings/-constants/terms';
+import { getAvailableSettingsTabs } from './settings/-utils/utils';
+import { Route as SettingsRoute } from './settings';
 
-export const Route = createLazyFileRoute('/settings/')({
+export const Route = createLazyFileRoute('/settings')({
     component: () => (
         <LayoutContainer>
             <RouteComponent />
