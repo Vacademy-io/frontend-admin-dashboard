@@ -340,7 +340,9 @@ export function RouteComponent() {
                     slide.slideType === 'quiz' ||
                     slide.slideType === 'assessment' ||
                     slide.slideType === 'video' ||
-                    slide.slideType === 'ai-video') &&
+                    slide.slideType === 'ai-video' ||
+                    slide.slideType === 'video-code' ||
+                    slide.slideType === 'ai-video-code') &&
                 (slide.status === 'pending' || slide.status === 'generating' || !slide.content);
             return needsGeneration;
         });
