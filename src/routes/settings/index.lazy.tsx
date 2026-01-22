@@ -4,11 +4,11 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { useEffect, useRef, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { SettingsTabs } from './settings/-constants/terms';
-import { getAvailableSettingsTabs } from './settings/-utils/utils';
-import { Route as SettingsRoute } from './settings';
+import { SettingsTabs } from './-constants/terms';
+import { getAvailableSettingsTabs } from './-utils/utils';
+import { Route as SettingsRoute } from '.';
 
-export const Route = createLazyFileRoute('/settings')({
+export const Route = createLazyFileRoute('/settings/')({
     component: () => (
         <LayoutContainer>
             <RouteComponent />
@@ -27,7 +27,7 @@ const SafeRouteSearch = () => {
 
 function RouteComponent() {
     const searchParams = SafeRouteSearch();
-    const [selectedTab, setSelectedTab] = useState(searchParams.selectedTab ?? SettingsTabs.Tab);
+    const [selectedTab, setSelectedTab] = useState('adminDisplay');
     const { setNavHeading } = useNavHeadingStore();
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
