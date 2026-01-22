@@ -4,6 +4,7 @@ import { createFileRoute, useSearch, useNavigate } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { z } from 'zod';
+import { zodValidator } from '@tanstack/zod-adapter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, Send } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -21,7 +22,7 @@ const addResponseSearchSchema = z.object({
 
 export const Route = createFileRoute('/audience-manager/list/campaign-users/add/')({
     component: AddResponsePage,
-    validateSearch: addResponseSearchSchema,
+    validateSearch: zodValidator(addResponseSearchSchema),
 });
 
 interface CustomFieldConfig {

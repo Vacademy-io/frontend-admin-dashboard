@@ -12,12 +12,15 @@ import {
     ADD_UPDATE_QUIZ_SLIDE,
 } from '@/constants/urls';
 import { SlideGeneration, SessionProgress } from '../../../shared/types';
+// Note: fetchInstituteDetails kept for backward compatibility fallback
 import { fetchInstituteDetails } from '@/services/student-list-section/getInstituteDetails';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { markdownToHtml } from '../../../shared/utils/markdownToHtml';
+// New paginated batches API - more efficient for institutes with many courses
+import { findPackageSessionIdsWithRetry } from '@/services/paginated-batches';
 
 interface CreateCourseParams {
     courseName: string;
@@ -59,7 +62,9 @@ function findIdByPackageId(data: BatchForSessionType[], packageId: string): stri
  * Creates a course with all its content
  * Flow: Create Course -> Get PackageSessionIds -> Create Subject -> Module -> Chapters -> Slides
  */
-export async function createCourseWithContent(params: CreateCourseParams): Promise<CreateCourseResult> {
+export async function createCourseWithContent(
+    params: CreateCourseParams
+): Promise<CreateCourseResult> {
     const { courseName, sessions, courseMetadata } = params;
 
     // Remove unused variable
@@ -91,15 +96,15 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
     }
 
     if (!INSTITUTE_ID) {
-        throw new Error('Institute ID not found. Please ensure you are logged in and have selected an institute.');
+        throw new Error(
+            'Institute ID not found. Please ensure you are logged in and have selected an institute.'
+        );
     }
 
     // Get user data for approval workflow
     const isAdmin =
         tokenData?.authorities &&
-        Object.values(tokenData.authorities).some((auth: any) =>
-            auth?.roles?.includes('ADMIN')
-        );
+        Object.values(tokenData.authorities).some((auth: any) => auth?.roles?.includes('ADMIN'));
 
     // Helper function to validate file IDs (should be UUIDs, not filenames)
     const isValidFileId = (fileId: string | undefined | null): boolean => {
@@ -111,12 +116,14 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
         return uuidRegex.test(fileId) && !isFilename;
     };
 
-    const previewImageId = courseMetadata?.coursePreview && isValidFileId(courseMetadata.coursePreview)
-        ? courseMetadata.coursePreview
-        : '';
-    const bannerImageId = courseMetadata?.courseBanner && isValidFileId(courseMetadata.courseBanner)
-        ? courseMetadata.courseBanner
-        : '';
+    const previewImageId =
+        courseMetadata?.coursePreview && isValidFileId(courseMetadata.coursePreview)
+            ? courseMetadata.coursePreview
+            : '';
+    const bannerImageId =
+        courseMetadata?.courseBanner && isValidFileId(courseMetadata.courseBanner)
+            ? courseMetadata.courseBanner
+            : '';
 
     const coursePayload = {
         id: '',
@@ -131,7 +138,9 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
         course_html_description: courseMetadata?.description || '',
         course_preview_image_media_id: previewImageId,
         course_banner_media_id: bannerImageId,
-        course_media_id: courseMetadata?.courseMedia ? JSON.stringify(courseMetadata.courseMedia) : '',
+        course_media_id: courseMetadata?.courseMedia
+            ? JSON.stringify(courseMetadata.courseMedia)
+            : '',
         tags: courseMetadata?.tags || [],
         course_depth: courseMetadata?.levelStructure || 2,
         // Required fields for course creation
@@ -203,7 +212,8 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
 
                 // Check if it's actually a backend error message disguised as 511
                 if (responseData?.ex || responseData?.responseCode || responseData?.message) {
-                    const backendError = responseData.ex || responseData.responseCode || responseData.message;
+                    const backendError =
+                        responseData.ex || responseData.responseCode || responseData.message;
                     console.error('[Course Creation] Backend error (511):', backendError);
                     // Don't logout on backend errors - just throw the error
                     throw new Error(`Backend Error: ${backendError}`);
@@ -211,75 +221,98 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
 
                 // If it's a real 511, check if INSTITUTE_ID is valid
                 if (!INSTITUTE_ID || INSTITUTE_ID === 'undefined' || INSTITUTE_ID === 'null') {
-                    throw new Error(`Invalid Institute ID: ${INSTITUTE_ID}. Please ensure you are logged in and have selected an institute.`);
+                    throw new Error(
+                        `Invalid Institute ID: ${INSTITUTE_ID}. Please ensure you are logged in and have selected an institute.`
+                    );
                 }
 
                 // If it's a real 511 with valid INSTITUTE_ID, provide more context
-                throw new Error(`Network authentication required. Please check your connection or contact support. INSTITUTE_ID: ${INSTITUTE_ID}`);
+                throw new Error(
+                    `Network authentication required. Please check your connection or contact support. INSTITUTE_ID: ${INSTITUTE_ID}`
+                );
             }
 
             // For other errors, provide the error message
-            const errorMessage = error?.response?.data?.ex || error?.response?.data?.message || error?.message || 'Unknown error';
+            const errorMessage =
+                error?.response?.data?.ex ||
+                error?.response?.data?.message ||
+                error?.message ||
+                'Unknown error';
             throw new Error(`Failed to create course: ${errorMessage}`);
         }
 
-        const courseId = courseResponse.data?.id || courseResponse.data?.data || courseResponse.data;
+        const courseId =
+            courseResponse.data?.id || courseResponse.data?.data || courseResponse.data;
         console.log('[Course Creation] Course created successfully, courseId:', courseId);
         console.log('[Course Creation] Full response data:', courseResponse.data);
         if (!courseId) {
             throw new Error('Failed to create course: No course ID returned');
         }
 
-        // Step 2: Get Institute Details to find batches_for_sessions
-        // Try to get from store first (if already loaded), otherwise fetch from API
+        // Step 2: Find Package Session IDs for the created course using paginated API
+        // This is more efficient than loading all batches_for_sessions
         if (setCreationProgress) {
             setCreationProgress('Fetching course details...');
         }
 
-        let batchesForSessions: BatchForSessionType[] = [];
+        let packageSessionIds: string;
 
         try {
-            // Try to get from store first
-            const storeState = useInstituteDetailsStore.getState();
-            if (storeState.instituteDetails?.batches_for_sessions) {
-                batchesForSessions = storeState.instituteDetails.batches_for_sessions;
-            } else {
-                // If not in store, fetch from API
-                const instituteDetails = await fetchInstituteDetails();
-                batchesForSessions = instituteDetails?.batches_for_sessions || [];
-            }
+            // Use the new paginated API with packageId filter
+            // This has built-in retry logic for the race condition where
+            // the course may not immediately appear in the database
+            const packageSessionIdArray = await findPackageSessionIdsWithRetry(courseId, {
+                maxRetries: 3,
+                retryDelayMs: 2000,
+                instituteId: INSTITUTE_ID,
+                onRetry: (attempt) => {
+                    if (setCreationProgress) {
+                        setCreationProgress(
+                            `Waiting for course to be fully created... (attempt ${attempt})`
+                        );
+                    }
+                    console.log(
+                        `[Course Creation] Retrying to find package session IDs, attempt ${attempt}`
+                    );
+                },
+            });
+
+            packageSessionIds = packageSessionIdArray.join(',');
+            console.log('[Course Creation] Package session IDs found:', packageSessionIds);
         } catch (error) {
-            console.warn('Failed to fetch institute details, trying alternative approach:', error);
-            // If fetch fails, try to get from store as fallback
-            const storeState = useInstituteDetailsStore.getState();
-            batchesForSessions = storeState.instituteDetails?.batches_for_sessions || [];
-        }
+            console.error(
+                '[Course Creation] Failed to find package session IDs via paginated API:',
+                error
+            );
 
-        if (!batchesForSessions || batchesForSessions.length === 0) {
-            throw new Error('Institute details not loaded. Please refresh the page and try again.');
-        }
+            // Fallback to legacy approach if paginated API fails
+            // This ensures backward compatibility during migration
+            console.log(
+                '[Course Creation] Falling back to legacy batches_for_sessions approach...'
+            );
 
-        // Step 3: Find Package Session IDs for the created course
-        let packageSessionIds = findIdByPackageId(batchesForSessions, courseId);
-
-        if (!packageSessionIds) {
-            // If not found immediately, wait a bit and retry (course might need a moment to be fully created)
-            if (setCreationProgress) {
-                setCreationProgress('Waiting for course to be fully created...');
-            }
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Try fetching again to get updated batches
+            let batchesForSessions: BatchForSessionType[] = [];
             try {
-                const instituteDetails = await fetchInstituteDetails();
-                const updatedBatches = instituteDetails?.batches_for_sessions || batchesForSessions;
-                packageSessionIds = findIdByPackageId(updatedBatches, courseId);
-            } catch (error) {
-                console.warn('Failed to refetch institute details:', error);
+                const storeState = useInstituteDetailsStore.getState();
+                if (storeState.instituteDetails?.batches_for_sessions) {
+                    batchesForSessions = storeState.instituteDetails.batches_for_sessions;
+                } else {
+                    const instituteDetails = await fetchInstituteDetails();
+                    batchesForSessions = instituteDetails?.batches_for_sessions || [];
+                }
+            } catch (fallbackError) {
+                console.warn('[Course Creation] Fallback also failed:', fallbackError);
+                const storeState = useInstituteDetailsStore.getState();
+                batchesForSessions = storeState.instituteDetails?.batches_for_sessions || [];
             }
+
+            packageSessionIds = findIdByPackageId(batchesForSessions, courseId);
 
             if (!packageSessionIds) {
-                throw new Error('Package session IDs not found for the created course. The course may need a moment to be fully created. Please try again in a few seconds.');
+                throw new Error(
+                    'Package session IDs not found for the created course. ' +
+                        'The course may need a moment to be fully created. Please try again in a few seconds.'
+                );
             }
         }
 
@@ -346,7 +379,9 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
         for (let sessionIndex = 0; sessionIndex < sessions.length; sessionIndex++) {
             const session = sessions[sessionIndex];
             if (!session) continue;
-            console.log(`[Course Creation] Processing session ${sessionIndex + 1}/${sessions.length}: "${session.sessionTitle}" with ${session.slides.length} slides`);
+            console.log(
+                `[Course Creation] Processing session ${sessionIndex + 1}/${sessions.length}: "${session.sessionTitle}" with ${session.slides.length} slides`
+            );
 
             // Create Chapter
             const chapterPayload = {
@@ -366,23 +401,34 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
 
                 const chapterId = chapterResponse.data?.id || chapterResponse.data?.data?.id;
                 if (!chapterId) {
-                    console.error(`[Course Creation] Failed to create chapter for session: ${session.sessionTitle}`, chapterResponse.data);
+                    console.error(
+                        `[Course Creation] Failed to create chapter for session: ${session.sessionTitle}`,
+                        chapterResponse.data
+                    );
                     continue;
                 }
 
-                console.log(`[Course Creation] Chapter created successfully: ${chapterId} for session "${session.sessionTitle}"`);
+                console.log(
+                    `[Course Creation] Chapter created successfully: ${chapterId} for session "${session.sessionTitle}"`
+                );
                 console.log(`[Course Creation] Chapter response full data:`, chapterResponse.data);
                 chapterIds.push(chapterId);
 
                 // Step 7: Create Slides for this chapter
-                console.log(`[Course Creation] Creating ${session.slides.length} slides for chapter "${session.sessionTitle}"...`);
+                console.log(
+                    `[Course Creation] Creating ${session.slides.length} slides for chapter "${session.sessionTitle}"...`
+                );
                 for (let slideIndex = 0; slideIndex < session.slides.length; slideIndex++) {
                     const slide = session.slides[slideIndex];
                     if (!slide) continue;
                     if (setCreationProgress) {
-                        setCreationProgress(`Creating slide ${slideIndex + 1}/${session.slides.length} in "${session.sessionTitle}"...`);
+                        setCreationProgress(
+                            `Creating slide ${slideIndex + 1}/${session.slides.length} in "${session.sessionTitle}"...`
+                        );
                     }
-                    console.log(`[Course Creation] Creating slide ${slideIndex + 1}/${session.slides.length}: "${slide.slideTitle}" (type: ${slide.slideType})`);
+                    console.log(
+                        `[Course Creation] Creating slide ${slideIndex + 1}/${session.slides.length}: "${slide.slideTitle}" (type: ${slide.slideType})`
+                    );
                     try {
                         await createSlide({
                             slide,
@@ -393,14 +439,22 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
                             instituteId: INSTITUTE_ID,
                             slideOrder: slideIndex,
                         });
-                        console.log(`[Course Creation] Slide "${slide.slideTitle}" created successfully`);
+                        console.log(
+                            `[Course Creation] Slide "${slide.slideTitle}" created successfully`
+                        );
                     } catch (slideError) {
-                        console.error(`[Course Creation] Failed to create slide "${slide.slideTitle}":`, slideError);
+                        console.error(
+                            `[Course Creation] Failed to create slide "${slide.slideTitle}":`,
+                            slideError
+                        );
                         // Continue with next slide instead of failing entire process
                     }
                 }
             } catch (chapterError) {
-                console.error(`[Course Creation] Failed to create chapter for session "${session.sessionTitle}":`, chapterError);
+                console.error(
+                    `[Course Creation] Failed to create chapter for session "${session.sessionTitle}":`,
+                    chapterError
+                );
                 // Continue with next session instead of failing entire process
             }
         }
@@ -421,7 +475,7 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
 }
 
 // Global progress setter (will be set by the hook)
-let setCreationProgress: (progress: string) => void = () => { };
+let setCreationProgress: (progress: string) => void = () => {};
 
 export function setProgressCallback(callback: (progress: string) => void) {
     setCreationProgress = callback;
@@ -441,7 +495,8 @@ interface CreateSlideParams {
  * Creates a slide based on its type
  */
 async function createSlide(params: CreateSlideParams): Promise<void> {
-    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } = params;
+    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } =
+        params;
 
     try {
         switch (slide.slideType) {
@@ -486,7 +541,8 @@ async function createSlide(params: CreateSlideParams): Promise<void> {
  * Creates a document slide
  */
 async function createDocumentSlide(params: CreateSlideParams): Promise<void> {
-    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } = params;
+    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } =
+        params;
 
     // Get slide content (may be markdown or HTML)
     let slideContent = slide.content || '';
@@ -539,7 +595,9 @@ async function createDocumentSlide(params: CreateSlideParams): Promise<void> {
 
     const apiUrl = `${ADD_UPDATE_DOCUMENT_SLIDE}?chapterId=${chapterId}&moduleId=${moduleId}&subjectId=${subjectId}&packageSessionId=${packageSessionIds}&instituteId=${instituteId}`;
     console.log(`[Course Creation] Creating document slide API URL:`, apiUrl);
-    console.log(`[Course Creation] Document slide - chapterId: ${chapterId}, slideOrder: ${slideOrder}, contentLength: ${slideContent.length}`);
+    console.log(
+        `[Course Creation] Document slide - chapterId: ${chapterId}, slideOrder: ${slideOrder}, contentLength: ${slideContent.length}`
+    );
     console.log(`[Course Creation] Document slide payload:`, {
         id: payload.id,
         title: payload.title,
@@ -557,7 +615,9 @@ async function createDocumentSlide(params: CreateSlideParams): Promise<void> {
     // Verify the response contains the slide ID
     const slideId = response.data?.id || response.data?.data?.id || response.data;
     if (!slideId) {
-        console.warn(`[Course Creation] Warning: Document slide created but no ID returned in response`);
+        console.warn(
+            `[Course Creation] Warning: Document slide created but no ID returned in response`
+        );
     } else {
         console.log(`[Course Creation] Document slide created with ID: ${slideId}`);
     }
@@ -567,11 +627,12 @@ async function createDocumentSlide(params: CreateSlideParams): Promise<void> {
  * Creates a video slide
  */
 async function createVideoSlide(params: CreateSlideParams): Promise<void> {
-    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } = params;
+    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } =
+        params;
 
     // Strict truncation to 250 to avoid backend 511 error (character varying(255))
     const truncate = (str: string, max: number = 250) =>
-        str ? (str.length > max ? str.substring(0, max - 3) + "..." : str) : "";
+        str ? (str.length > max ? str.substring(0, max - 3) + '...' : str) : '';
 
     // Extract video URL from content or use aiVideoData
     let videoUrl = '';
@@ -580,7 +641,9 @@ async function createVideoSlide(params: CreateSlideParams): Promise<void> {
         videoUrl = slide.aiVideoData.videoId || '';
     } else if (slide.content) {
         const textContent = slide.content.toString();
-        const youtubeMatch = textContent.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        const youtubeMatch = textContent.match(
+            /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+        );
 
         if (youtubeMatch && youtubeMatch[1]) {
             videoUrl = `https://www.youtube.com/watch?v=${youtubeMatch[1]}`;
@@ -607,7 +670,10 @@ async function createVideoSlide(params: CreateSlideParams): Promise<void> {
             published_video_length_in_millis: 0,
             source_type: 'VIDEO',
             embedded_type: slide.slideType === 'ai-video' ? 'AI_VIDEO' : 'YOUTUBE',
-            embedded_data: slide.slideType === 'ai-video' && slide.aiVideoData ? JSON.stringify(slide.aiVideoData) : null,
+            embedded_data:
+                slide.slideType === 'ai-video' && slide.aiVideoData
+                    ? JSON.stringify(slide.aiVideoData)
+                    : null,
             questions: [],
         },
         status: 'PUBLISHED',
@@ -617,7 +683,9 @@ async function createVideoSlide(params: CreateSlideParams): Promise<void> {
 
     const apiUrl = `${ADD_UPDATE_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${instituteId}&packageSessionId=${packageSessionIds}&moduleId=${moduleId}&subjectId=${subjectId}`;
     console.log(`[Course Creation] Creating video slide API URL:`, apiUrl);
-    console.log(`[Course Creation] Video slide - chapterId: ${chapterId}, slideOrder: ${slideOrder}, videoUrl: ${videoUrl}`);
+    console.log(
+        `[Course Creation] Video slide - chapterId: ${chapterId}, slideOrder: ${slideOrder}, videoUrl: ${videoUrl}`
+    );
 
     const response = await authenticatedAxiosInstance.post(apiUrl, payload);
     console.log(`[Course Creation] Video slide API response:`, response.data);
@@ -627,14 +695,17 @@ async function createVideoSlide(params: CreateSlideParams): Promise<void> {
  * Creates an HTML_VIDEO slide for AI-generated videos
  */
 async function createHtmlVideoSlide(params: CreateSlideParams): Promise<void> {
-    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } = params;
+    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } =
+        params;
 
     // Strict truncation to 250 to avoid backend 511 error (character varying(255))
     const truncate = (str: string, max: number = 250) =>
-        str ? (str.length > max ? str.substring(0, max - 3) + "..." : str) : "";
+        str ? (str.length > max ? str.substring(0, max - 3) + '...' : str) : '';
 
     if (!slide.aiVideoData?.videoId) {
-        console.warn(`[Course Creation] HTML_VIDEO slide requires videoId, falling back to regular video slide`);
+        console.warn(
+            `[Course Creation] HTML_VIDEO slide requires videoId, falling back to regular video slide`
+        );
         await createVideoSlide(params);
         return;
     }
@@ -642,7 +713,7 @@ async function createHtmlVideoSlide(params: CreateSlideParams): Promise<void> {
     const safeTitle = truncate(slide.slideTitle);
     const safeDescription = truncate(slide.content || '');
     const videoId = slide.aiVideoData.videoId;
-    
+
     // Get video length from aiVideoData if available, otherwise default to 0
     // Note: videoLengthInMillis might not be in the type, so we use any access
     const videoLengthInMillis = (slide.aiVideoData as any).videoLengthInMillis || 0;
@@ -671,7 +742,9 @@ async function createHtmlVideoSlide(params: CreateSlideParams): Promise<void> {
     // Use the HTML_VIDEO slide endpoint
     const apiUrl = `${ADD_UPDATE_HTML_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${instituteId}&packageSessionId=${packageSessionIds}&moduleId=${moduleId}&subjectId=${subjectId}`;
     console.log(`[Course Creation] Creating HTML_VIDEO slide API URL:`, apiUrl);
-    console.log(`[Course Creation] HTML_VIDEO slide - chapterId: ${chapterId}, slideOrder: ${slideOrder}, videoId: ${videoId}`);
+    console.log(
+        `[Course Creation] HTML_VIDEO slide - chapterId: ${chapterId}, slideOrder: ${slideOrder}, videoId: ${videoId}`
+    );
 
     const response = await authenticatedAxiosInstance.post(apiUrl, payload);
     console.log(`[Course Creation] HTML_VIDEO slide API response:`, response.data);
@@ -681,7 +754,8 @@ async function createHtmlVideoSlide(params: CreateSlideParams): Promise<void> {
  * Creates a quiz slide
  */
 async function createQuizSlide(params: CreateSlideParams): Promise<void> {
-    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } = params;
+    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } =
+        params;
 
     let questions: any[] = [];
     try {
@@ -693,23 +767,39 @@ async function createQuizSlide(params: CreateSlideParams): Promise<void> {
                     // Map to backend complex structure
                     questions = parsedContent.questions.map((q: any) => {
                         const questionId = crypto.randomUUID();
-                        const questionText = q.question?.content || q.question?.text || q.question || 'Question';
+                        const questionText =
+                            q.question?.content || q.question?.text || q.question || 'Question';
 
                         // Format options
                         const optionsList = (q.options || []).map((opt: any) => ({
                             id: crypto.randomUUID(),
                             quiz_slide_question_id: questionId,
-                            text: { id: crypto.randomUUID(), type: 'TEXT', content: opt.content || opt.text || opt || '' },
-                            explanation_text: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
-                            explanation_text_data: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
-                            media_id: ''
+                            text: {
+                                id: crypto.randomUUID(),
+                                type: 'TEXT',
+                                content: opt.content || opt.text || opt || '',
+                            },
+                            explanation_text: {
+                                id: crypto.randomUUID(),
+                                type: 'TEXT',
+                                content: '',
+                            },
+                            explanation_text_data: {
+                                id: crypto.randomUUID(),
+                                type: 'TEXT',
+                                content: '',
+                            },
+                            media_id: '',
                         }));
 
                         // Determine correct answer index
                         let correctIndex = 0;
                         if (q.correct_options && q.correct_options.length > 0) {
                             const correctOptionId = q.correct_options[0];
-                            const found = q.options?.findIndex((opt: any) => (opt.preview_id === correctOptionId || opt.id === correctOptionId));
+                            const found = q.options?.findIndex(
+                                (opt: any) =>
+                                    opt.preview_id === correctOptionId || opt.id === correctOptionId
+                            );
                             if (found !== -1) correctIndex = found;
                         } else if (typeof q.correctAnswerIndex === 'number') {
                             correctIndex = q.correctAnswerIndex;
@@ -719,11 +809,27 @@ async function createQuizSlide(params: CreateSlideParams): Promise<void> {
 
                         return {
                             id: questionId,
-                            parent_rich_text: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
+                            parent_rich_text: {
+                                id: crypto.randomUUID(),
+                                type: 'TEXT',
+                                content: '',
+                            },
                             text: { id: crypto.randomUUID(), type: 'TEXT', content: questionText },
-                            text_data: { id: crypto.randomUUID(), type: 'TEXT', content: questionText },
-                            explanation_text: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
-                            explanation_text_data: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
+                            text_data: {
+                                id: crypto.randomUUID(),
+                                type: 'TEXT',
+                                content: questionText,
+                            },
+                            explanation_text: {
+                                id: crypto.randomUUID(),
+                                type: 'TEXT',
+                                content: '',
+                            },
+                            explanation_text_data: {
+                                id: crypto.randomUUID(),
+                                type: 'TEXT',
+                                content: '',
+                            },
                             media_id: '',
                             status: 'ACTIVE',
                             question_response_type: 'OPTION',
@@ -737,111 +843,164 @@ async function createQuizSlide(params: CreateSlideParams): Promise<void> {
                             quiz_slide_id: '',
                             can_skip: false,
                             new_question: true,
-                            options: optionsList
+                            options: optionsList,
                         };
                     });
                 }
             } catch {
                 // If not JSON, it might be the HTML format we generate
-                console.warn("Could not parse quiz content as JSON, trying HTML parsing.");
+                console.warn('Could not parse quiz content as JSON, trying HTML parsing.');
 
                 // Fallback: Parse HTML content to extract questions
-                if (slide.content && (slide.content.includes('<h3>') || slide.content.includes('Question'))) {
+                if (
+                    slide.content &&
+                    (slide.content.includes('<h3>') || slide.content.includes('Question'))
+                ) {
                     try {
                         const tempDiv = document.createElement('div');
                         tempDiv.innerHTML = slide.content;
                         const questionHeaders = tempDiv.querySelectorAll('h3');
 
                         if (questionHeaders.length > 0) {
-                            questions = Array.from(questionHeaders).map((header, index) => {
-                                let questionText = '';
-                                let currentElement = header.nextElementSibling;
-                                let listElement: Element | null = null;
+                            questions = Array.from(questionHeaders)
+                                .map((header, index) => {
+                                    let questionText = '';
+                                    let currentElement = header.nextElementSibling;
+                                    let listElement: Element | null = null;
 
-                                // Extract question text
-                                while (currentElement) {
-                                    if (currentElement.tagName === 'OL') {
-                                        listElement = currentElement;
-                                        break;
-                                    }
-                                    if (currentElement.tagName !== 'HR') {
-                                        questionText += (questionText ? '\n' : '') + (currentElement.textContent?.trim() || '');
-                                    }
-                                    currentElement = currentElement.nextElementSibling;
-                                }
-
-                                const rawOptions: string[] = [];
-                                let correctIndex = 0;
-
-                                if (listElement) {
-                                    listElement.querySelectorAll('li').forEach(li => {
-                                        const text = li.textContent?.trim() || '';
-                                        if (text) rawOptions.push(text);
-                                    });
-
-                                    let nextElement = listElement.nextElementSibling;
-                                    while (nextElement) {
-                                        const text = nextElement.textContent || '';
-                                        if (nextElement.tagName === 'HR' || nextElement.tagName === 'H3') break;
-
-                                        const correctAnswerMatch = text.match(/Correct Answer:\s*(.+)/i);
-                                        if (correctAnswerMatch?.[1]) {
-                                            const correctAnswerText = correctAnswerMatch[1].trim();
-                                            const foundIndex = rawOptions.findIndex(opt => opt.trim() === correctAnswerText);
-                                            if (foundIndex !== -1) correctIndex = foundIndex;
+                                    // Extract question text
+                                    while (currentElement) {
+                                        if (currentElement.tagName === 'OL') {
+                                            listElement = currentElement;
                                             break;
                                         }
-                                        nextElement = nextElement.nextElementSibling;
+                                        if (currentElement.tagName !== 'HR') {
+                                            questionText +=
+                                                (questionText ? '\n' : '') +
+                                                (currentElement.textContent?.trim() || '');
+                                        }
+                                        currentElement = currentElement.nextElementSibling;
                                     }
-                                }
 
-                                // Construct complex object from HTML parse result
-                                const questionId = crypto.randomUUID();
-                                const optionsList = rawOptions.map(optText => ({
-                                    id: crypto.randomUUID(),
-                                    quiz_slide_question_id: questionId,
-                                    text: { id: crypto.randomUUID(), type: 'TEXT', content: optText },
-                                    explanation_text: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
-                                    explanation_text_data: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
-                                    media_id: ''
-                                }));
+                                    const rawOptions: string[] = [];
+                                    let correctIndex = 0;
 
-                                const autoEvalJson = JSON.stringify({ correctAnswers: [correctIndex] });
+                                    if (listElement) {
+                                        listElement.querySelectorAll('li').forEach((li) => {
+                                            const text = li.textContent?.trim() || '';
+                                            if (text) rawOptions.push(text);
+                                        });
 
-                                return {
-                                    id: questionId,
-                                    parent_rich_text: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
-                                    text: { id: crypto.randomUUID(), type: 'TEXT', content: questionText || header.textContent || 'Question' },
-                                    text_data: { id: crypto.randomUUID(), type: 'TEXT', content: questionText || header.textContent || 'Question' },
-                                    explanation_text: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
-                                    explanation_text_data: { id: crypto.randomUUID(), type: 'TEXT', content: '' },
-                                    media_id: '',
-                                    status: 'ACTIVE',
-                                    question_response_type: 'OPTION',
-                                    question_type: 'MCQS',
-                                    questionType: 'MCQS',
-                                    access_level: 'INSTITUTE',
-                                    auto_evaluation_json: autoEvalJson,
-                                    evaluation_type: 'AUTO',
-                                    question_time_in_millis: 0,
-                                    question_order: index + 1,
-                                    quiz_slide_id: '',
-                                    can_skip: false,
-                                    new_question: true,
-                                    options: optionsList
-                                };
-                            }).filter(q => q.options.length > 0);
+                                        let nextElement = listElement.nextElementSibling;
+                                        while (nextElement) {
+                                            const text = nextElement.textContent || '';
+                                            if (
+                                                nextElement.tagName === 'HR' ||
+                                                nextElement.tagName === 'H3'
+                                            )
+                                                break;
 
-                            console.log(`[Course Creation] Successfully parsed ${questions.length} questions from HTML`);
+                                            const correctAnswerMatch =
+                                                text.match(/Correct Answer:\s*(.+)/i);
+                                            if (correctAnswerMatch?.[1]) {
+                                                const correctAnswerText =
+                                                    correctAnswerMatch[1].trim();
+                                                const foundIndex = rawOptions.findIndex(
+                                                    (opt) => opt.trim() === correctAnswerText
+                                                );
+                                                if (foundIndex !== -1) correctIndex = foundIndex;
+                                                break;
+                                            }
+                                            nextElement = nextElement.nextElementSibling;
+                                        }
+                                    }
+
+                                    // Construct complex object from HTML parse result
+                                    const questionId = crypto.randomUUID();
+                                    const optionsList = rawOptions.map((optText) => ({
+                                        id: crypto.randomUUID(),
+                                        quiz_slide_question_id: questionId,
+                                        text: {
+                                            id: crypto.randomUUID(),
+                                            type: 'TEXT',
+                                            content: optText,
+                                        },
+                                        explanation_text: {
+                                            id: crypto.randomUUID(),
+                                            type: 'TEXT',
+                                            content: '',
+                                        },
+                                        explanation_text_data: {
+                                            id: crypto.randomUUID(),
+                                            type: 'TEXT',
+                                            content: '',
+                                        },
+                                        media_id: '',
+                                    }));
+
+                                    const autoEvalJson = JSON.stringify({
+                                        correctAnswers: [correctIndex],
+                                    });
+
+                                    return {
+                                        id: questionId,
+                                        parent_rich_text: {
+                                            id: crypto.randomUUID(),
+                                            type: 'TEXT',
+                                            content: '',
+                                        },
+                                        text: {
+                                            id: crypto.randomUUID(),
+                                            type: 'TEXT',
+                                            content:
+                                                questionText || header.textContent || 'Question',
+                                        },
+                                        text_data: {
+                                            id: crypto.randomUUID(),
+                                            type: 'TEXT',
+                                            content:
+                                                questionText || header.textContent || 'Question',
+                                        },
+                                        explanation_text: {
+                                            id: crypto.randomUUID(),
+                                            type: 'TEXT',
+                                            content: '',
+                                        },
+                                        explanation_text_data: {
+                                            id: crypto.randomUUID(),
+                                            type: 'TEXT',
+                                            content: '',
+                                        },
+                                        media_id: '',
+                                        status: 'ACTIVE',
+                                        question_response_type: 'OPTION',
+                                        question_type: 'MCQS',
+                                        questionType: 'MCQS',
+                                        access_level: 'INSTITUTE',
+                                        auto_evaluation_json: autoEvalJson,
+                                        evaluation_type: 'AUTO',
+                                        question_time_in_millis: 0,
+                                        question_order: index + 1,
+                                        quiz_slide_id: '',
+                                        can_skip: false,
+                                        new_question: true,
+                                        options: optionsList,
+                                    };
+                                })
+                                .filter((q) => q.options.length > 0);
+
+                            console.log(
+                                `[Course Creation] Successfully parsed ${questions.length} questions from HTML`
+                            );
                         }
                     } catch (htmlError) {
-                        console.error("Error parsing quiz HTML:", htmlError);
+                        console.error('Error parsing quiz HTML:', htmlError);
                     }
                 }
             }
         }
     } catch (e) {
-        console.error("Error parsing quiz questions for payload", e);
+        console.error('Error parsing quiz questions for payload', e);
     }
 
     // Create quiz slide payload - use quiz_slide not question_slide
@@ -859,7 +1018,10 @@ async function createQuizSlide(params: CreateSlideParams): Promise<void> {
         new_slide: true,
     };
 
-    console.log(`[Course Creation] Creating quiz slide "${slide.slideTitle}" with payload:`, payload);
+    console.log(
+        `[Course Creation] Creating quiz slide "${slide.slideTitle}" with payload:`,
+        payload
+    );
 
     const apiUrl = `${ADD_UPDATE_QUIZ_SLIDE}?chapterId=${chapterId}&instituteId=${instituteId}&packageSessionId=${packageSessionIds}&subjectId=${subjectId}&moduleId=${moduleId}`;
     console.log(`[Course Creation] Quiz slide API URL:`, apiUrl);
@@ -872,7 +1034,8 @@ async function createQuizSlide(params: CreateSlideParams): Promise<void> {
  * Creates a video+code slide (video slide + split screen code editor)
  */
 async function createVideoCodeSlide(params: CreateSlideParams): Promise<void> {
-    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } = params;
+    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } =
+        params;
 
     let videoUrl = '';
     let codeContent = '';
@@ -885,17 +1048,22 @@ async function createVideoCodeSlide(params: CreateSlideParams): Promise<void> {
             try {
                 const parsed = JSON.parse(slide.content);
                 if (parsed.video) {
-                    let rawUrl = parsed.video.embedUrl || parsed.video.url || '';
+                    const rawUrl = parsed.video.embedUrl || parsed.video.url || '';
                     console.log(`[createVideoCodeSlide] Parsed JSON video URL (raw):`, rawUrl);
 
                     // Extract video ID and convert to /watch?v= format
-                    const videoIdMatch = rawUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                    const videoIdMatch = rawUrl.match(
+                        /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+                    );
                     if (videoIdMatch && videoIdMatch[1]) {
                         videoUrl = `https://www.youtube.com/watch?v=${videoIdMatch[1]}`;
                         console.log(`[createVideoCodeSlide] Converted to watch format:`, videoUrl);
                     } else {
                         videoUrl = rawUrl; // Use as-is if we can't extract ID
-                        console.warn(`[createVideoCodeSlide] Could not extract video ID from:`, rawUrl);
+                        console.warn(
+                            `[createVideoCodeSlide] Could not extract video ID from:`,
+                            rawUrl
+                        );
                     }
                 }
                 if (parsed.code) {
@@ -905,15 +1073,26 @@ async function createVideoCodeSlide(params: CreateSlideParams): Promise<void> {
             } catch (e) {
                 // If content is not JSON, it might be just text/html
                 const textContent = slide.content.toString();
-                console.log(`[createVideoCodeSlide] Content is not JSON, parsing as text. Length:`, textContent.length);
-                console.log(`[createVideoCodeSlide] Content preview:`, textContent.substring(0, 200));
+                console.log(
+                    `[createVideoCodeSlide] Content is not JSON, parsing as text. Length:`,
+                    textContent.length
+                );
+                console.log(
+                    `[createVideoCodeSlide] Content preview:`,
+                    textContent.substring(0, 200)
+                );
 
                 // Try to extract YouTube URL from content - MATCH EXACT FORMAT FROM createVideoSlide
                 // Only match /watch?v= or /youtu.be/ formats (NOT /embed/)
-                const youtubeMatch = textContent.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+                const youtubeMatch = textContent.match(
+                    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/
+                );
                 if (youtubeMatch) {
                     videoUrl = `https://www.youtube.com/watch?v=${youtubeMatch[1]}`;
-                    console.log(`[createVideoCodeSlide] Extracted from /watch or /youtu.be:`, videoUrl);
+                    console.log(
+                        `[createVideoCodeSlide] Extracted from /watch or /youtu.be:`,
+                        videoUrl
+                    );
                 }
 
                 // If no match yet, try to extract from iframe and convert to /watch format
@@ -923,20 +1102,30 @@ async function createVideoCodeSlide(params: CreateSlideParams): Promise<void> {
                         const iframeSrc = iframeMatch[1];
                         console.log(`[createVideoCodeSlide] Found iframe src:`, iframeSrc);
                         // Extract video ID from iframe embed URL
-                        const embedMatch = iframeSrc.match(/(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/);
+                        const embedMatch = iframeSrc.match(
+                            /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/
+                        );
                         if (embedMatch && embedMatch[1]) {
                             videoUrl = `https://www.youtube.com/watch?v=${embedMatch[1]}`;
-                            console.log(`[createVideoCodeSlide] Converted embed to watch URL:`, videoUrl);
+                            console.log(
+                                `[createVideoCodeSlide] Converted embed to watch URL:`,
+                                videoUrl
+                            );
                         }
                     }
                 }
 
                 // Last resort: try to find ANY YouTube video ID in the content
                 if (!videoUrl) {
-                    const anyYoutubeMatch = textContent.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                    const anyYoutubeMatch = textContent.match(
+                        /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+                    );
                     if (anyYoutubeMatch && anyYoutubeMatch[1]) {
                         videoUrl = `https://www.youtube.com/watch?v=${anyYoutubeMatch[1]}`;
-                        console.log(`[createVideoCodeSlide] Extracted video ID from any format:`, videoUrl);
+                        console.log(
+                            `[createVideoCodeSlide] Extracted video ID from any format:`,
+                            videoUrl
+                        );
                     }
                 }
 
@@ -950,14 +1139,18 @@ async function createVideoCodeSlide(params: CreateSlideParams): Promise<void> {
                 }
 
                 // Try to extract code block
-                const codeMatch = textContent.match(/```(?:python|javascript|typescript|java|html|css)?\s*\n?([\s\S]*?)\n?```/);
+                const codeMatch = textContent.match(
+                    /```(?:python|javascript|typescript|java|html|css)?\s*\n?([\s\S]*?)\n?```/
+                );
                 if (codeMatch) {
                     codeContent = codeMatch[1] || '';
                     if (codeMatch[0].includes('```python')) codeLanguage = 'python';
                     else if (codeMatch[0].includes('```javascript')) codeLanguage = 'javascript';
                 } else {
                     // Fallback: try to extract code from HTML pre/code tags (created by SortableSlideItem)
-                    const htmlCodeMatch = textContent.match(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/i);
+                    const htmlCodeMatch = textContent.match(
+                        /<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/i
+                    );
                     if (htmlCodeMatch && htmlCodeMatch[1]) {
                         codeContent = htmlCodeMatch[1];
                         // Try to extract language class
@@ -977,11 +1170,14 @@ async function createVideoCodeSlide(params: CreateSlideParams): Promise<void> {
         console.log(`[Course Creation] ========== Creating Integrated VIDEO+CODE slide ==========`);
         console.log(`[Course Creation] Title: "${slide.slideTitle}"`);
         console.log(`[Course Creation] Video URL:`, videoUrl || 'none');
-        console.log(`[Course Creation] Code:`, codeContent ? `${codeContent.length} chars` : 'none');
+        console.log(
+            `[Course Creation] Code:`,
+            codeContent ? `${codeContent.length} chars` : 'none'
+        );
 
         // Strict truncation to 250 for DB character varying(255)
         const truncate = (str: string, max: number = 250) =>
-            str ? (str.length > max ? str.substring(0, max - 3) + "..." : str) : "";
+            str ? (str.length > max ? str.substring(0, max - 3) + '...' : str) : '';
 
         const safeTitle = truncate(slide.slideTitle);
         const synchronisedVideoId = crypto.randomUUID();
@@ -995,18 +1191,24 @@ async function createVideoCodeSlide(params: CreateSlideParams): Promise<void> {
                 description: '',
                 url: videoUrl,
                 published_url: videoUrl,
-                source_type: 'VIDEO'
+                source_type: 'VIDEO',
             },
             language: codeLanguage,
             code: codeContent,
             theme: 'light',
             viewMode: 'edit',
             allLanguagesData: {
-                python: { code: codeLanguage === 'python' ? codeContent : '', lastEdited: Date.now() },
-                javascript: { code: codeLanguage === 'javascript' ? codeContent : '', lastEdited: Date.now() }
+                python: {
+                    code: codeLanguage === 'python' ? codeContent : '',
+                    lastEdited: Date.now(),
+                },
+                javascript: {
+                    code: codeLanguage === 'javascript' ? codeContent : '',
+                    lastEdited: Date.now(),
+                },
             },
             timestamp: Date.now(),
-            splitType: 'CODE'
+            splitType: 'CODE',
         };
 
         const videoPayload = {
@@ -1036,9 +1238,8 @@ async function createVideoCodeSlide(params: CreateSlideParams): Promise<void> {
         const videoApiUrl = `${ADD_UPDATE_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${instituteId}&packageSessionId=${packageSessionIds}&moduleId=${moduleId}&subjectId=${subjectId}`;
         const response = await authenticatedAxiosInstance.post(videoApiUrl, videoPayload);
         console.log(`[Course Creation] ✓ Integrated CODE slide created: ${response.status}`);
-
     } catch (e) {
-        console.error("Error creating video+code slide:", e);
+        console.error('Error creating video+code slide:', e);
         throw e; // Re-throw to be caught by the slide processing loop
     }
 }

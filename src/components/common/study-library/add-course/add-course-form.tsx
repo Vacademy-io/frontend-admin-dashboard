@@ -18,6 +18,7 @@ import { useAddSubject } from '@/routes/study-library/courses/course-details/sub
 import { useAddModule } from '@/routes/study-library/courses/course-details/subjects/modules/-services/add-module';
 import { useAddChapter } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/-services/add-chapter';
 import { SubjectType } from '@/routes/study-library/courses/course-details/-components/course-details-page';
+// Note: fetchInstituteDetails kept for backward compatibility in update flow
 import { fetchInstituteDetails } from '@/services/student-list-section/getInstituteDetails';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
@@ -37,6 +38,8 @@ import {
 } from '@/services/display-settings';
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+// New paginated batches API - more efficient for course creation
+import { findPackageSessionIdsWithRetry } from '@/services/paginated-batches';
 
 export interface Level {
     id: string;
@@ -323,14 +326,35 @@ export const AddCourseForm = ({
                 {
                     onSuccess: async (response) => {
                         try {
-                            const instituteDetails = await fetchInstituteDetails();
-                            if (!instituteDetails?.batches_for_sessions) {
-                                throw new Error('Institute details not loaded');
+                            // Use the new paginated API with retry logic
+                            // This is more efficient than loading all batches_for_sessions
+                            let packageSessionId: string;
+
+                            try {
+                                const packageSessionIdArray = await findPackageSessionIdsWithRetry(
+                                    response.data,
+                                    {
+                                        maxRetries: 3,
+                                        retryDelayMs: 2000,
+                                    }
+                                );
+                                packageSessionId = packageSessionIdArray.join(',');
+                            } catch (paginatedError) {
+                                // Fallback to legacy approach if paginated API fails
+                                console.warn(
+                                    'Paginated API failed, falling back to legacy approach:',
+                                    paginatedError
+                                );
+                                const instituteDetails = await fetchInstituteDetails();
+                                if (!instituteDetails?.batches_for_sessions) {
+                                    throw new Error('Institute details not loaded');
+                                }
+                                packageSessionId = findIdByPackageId(
+                                    instituteDetails.batches_for_sessions,
+                                    response.data
+                                );
                             }
-                            const packageSessionId = findIdByPackageId(
-                                instituteDetails.batches_for_sessions,
-                                response.data
-                            );
+
                             if (!packageSessionId) {
                                 throw new Error(
                                     'Package session ID not found for the created course'

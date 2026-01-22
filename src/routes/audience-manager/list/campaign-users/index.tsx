@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { CampaignUsersTable } from '../-components/campaign-users/campaign-users-table';
 import { z } from 'zod';
+import { zodValidator } from '@tanstack/zod-adapter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
@@ -19,7 +20,7 @@ const campaignUsersSearchSchema = z.object({
 
 export const Route = createFileRoute(CAMPAIGN_USERS_ROUTE as any)({
     component: CampaignUsersPage,
-    validateSearch: campaignUsersSearchSchema,
+    validateSearch: zodValidator(campaignUsersSearchSchema),
 });
 
 export function CampaignUsersPage() {

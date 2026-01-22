@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { zodValidator } from '@tanstack/zod-adapter';
 
 export const createAssessmentSchema = z.object({
     currentStep: z.number(),
@@ -9,7 +10,7 @@ export const createAssessmentSchema = z.object({
 export const Route = createFileRoute(
     '/homework-creation/create-assessment/$assessmentId/$examtype/'
 )({
-    validateSearch: createAssessmentSchema,
+    validateSearch: zodValidator(createAssessmentSchema),
     // Component is defined in index.lazy.tsx
 });
 

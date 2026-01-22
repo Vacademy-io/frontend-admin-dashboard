@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { zodValidator } from '@tanstack/zod-adapter';
 
 export interface OrganizationOnboardingSidebarProps {
     steps: string[];
@@ -23,6 +24,6 @@ export const onboardingParamsSchema = z.object({
 });
 
 export const Route = createFileRoute('/signup/onboarding/')({
-    validateSearch: onboardingParamsSchema,
+    validateSearch: zodValidator(onboardingParamsSchema),
 });
 
