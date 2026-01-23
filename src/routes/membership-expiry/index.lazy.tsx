@@ -4,14 +4,11 @@ import { MembershipExpiryFilters } from './-components/MembershipExpiryFilters';
 import { MembershipExpiryAnalytics } from './-components/MembershipExpiryAnalytics';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { ActiveFiltersDisplay } from '@/components/common/filters/ActiveFiltersDisplay';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { fetchMembershipExpiry, getMembershipExpiryQueryKey } from '@/services/membership-expiry';
+import { usePaginatedBatches } from '@/services/paginated-batches';
 import type { BatchForSession, PackageSessionFilter } from '@/types/payment-logs';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { useMemo } from 'react';
-
-import { keepPreviousData } from '@tanstack/react-query';
 
 export const Route = createLazyFileRoute('/membership-expiry/')({
   component: MembershipExpiryPage,
@@ -31,14 +28,22 @@ function MembershipExpiryPage() {
     packageSessionId: undefined,
   });
 
-  // Get institute details from Zustand store
-  const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
+  // Fetch batches using paginated API instead of batches_for_sessions
+  const { data: batchesData } = usePaginatedBatches({ size: 500 });
 
-  // Extract batches for sessions from institute data
+  // Extract batches for sessions from paginated API
   const batchesForSessions: BatchForSession[] = useMemo(() => {
-    const batches = instituteDetails?.batches_for_sessions;
-    return batches && Array.isArray(batches) ? (batches as unknown as BatchForSession[]) : [];
-  }, [instituteDetails]);
+    if (!batchesData?.content) return [];
+    return batchesData.content.map((batch) => ({
+      id: batch.id,
+      package_dto: batch.package_dto,
+      session: batch.session,
+      level: batch.level,
+      status: batch.status,
+      start_time: batch.start_time,
+      is_org_associated: batch.is_org_associated,
+    })) as BatchForSession[];
+  }, [batchesData]);
 
   // Build request filters
   const requestFilters = useMemo(() => {
@@ -146,11 +151,11 @@ function MembershipExpiryPage() {
           packageSessionIds={requestFilters.package_session_ids}
           onCardClick={(range) => {
             // handle analytics card click to set filters
-            // range has start, end, status. 
+            // range has start, end, status.
             // MembershipExpiryFilters handles dates.
             // But table filter by status? The table doesn't seem to support status filter in `fetchMembershipExpiry`?
             // Wait, fetchMembershipExpiry accepts `membership_statuses`.
-            // But MembershipExpiryFilters doesn't have status input. 
+            // But MembershipExpiryFilters doesn't have status input.
             // Use QuickFilter logic for dates.
             setStartDate(range.start.toISOString());
             setEndDate(range.end.toISOString());

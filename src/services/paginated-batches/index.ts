@@ -42,6 +42,7 @@ export {
     useBatchesByIds,
     useBatchesSummary,
     useBatchesByPackageId,
+    useAllBatchIds,
     useFindPackageSessionIdsWithRetry,
     useSearchBatches,
     useInfiniteBatches,

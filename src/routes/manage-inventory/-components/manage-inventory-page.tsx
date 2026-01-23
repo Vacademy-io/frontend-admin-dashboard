@@ -1,9 +1,7 @@
 import { useState, useMemo } from 'react';
 import { LayoutGrid, List, Package, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useQuery } from '@tanstack/react-query';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { useInstituteFullQuery } from '@/services/student-list-section/getInstituteDetails';
+import { usePaginatedBatches } from '@/services/paginated-batches';
 import { InventoryTableView } from './inventory-table-view';
 import { InventoryCardView } from './inventory-card-view';
 import { InventoryFilters as InventoryFiltersComponent } from './inventory-filters';
@@ -15,15 +13,10 @@ const ManageInventoryPage = () => {
     const [viewMode, setViewMode] = useState<ViewMode>('table');
     const [filters, setFilters] = useState<InventoryFilters>({});
 
-    // Fetch full institute data including batches_for_sessions
-    const instituteFullQueryOptions = useInstituteFullQuery();
-    const { isLoading: isLoadingInstitute } = useQuery(instituteFullQueryOptions);
+    // Fetch batches using paginated API instead of batches_for_sessions
+    const { data: batchesData, isLoading: isLoadingBatches } = usePaginatedBatches({ size: 500 });
 
-    const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
-    const batchesForSessions = useMemo(
-        () => instituteDetails?.batches_for_sessions || [],
-        [instituteDetails?.batches_for_sessions]
-    );
+    const batchesForSessions = useMemo(() => batchesData?.content || [], [batchesData]);
 
     // Get all package session IDs for inventory fetching
     const allPackageSessionIds = useMemo(
@@ -187,7 +180,7 @@ const ManageInventoryPage = () => {
             />
 
             {/* Content */}
-            {isLoadingInstitute ? (
+            {isLoadingBatches ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                     <Loader2 className="text-primary mb-4 size-12 animate-spin" />
                     <p className="text-muted-foreground">Loading package sessions...</p>

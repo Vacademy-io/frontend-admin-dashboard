@@ -11,7 +11,7 @@ import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 
 // Base URL for paginated batches API
-const PAGINATED_BATCHES_BASE = '/admin-core-service/institute/v1';
+const PAGINATED_BATCHES_BASE = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/admin-core-service/institute/v1`;
 
 // ============================================================================
 // Types

@@ -7,12 +7,14 @@ import { useQuery } from '@tanstack/react-query';
 import { MembershipStatsFilters } from './-components/MembershipStatsFilters';
 import { MembershipStatsTable } from './-components/MembershipStatsTable';
 import { fetchMembershipStats, getMembershipStatsQueryKey } from '@/services/membership-stats';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import {
+    usePaginatedBatches,
+    useBatchesByIds,
+    getBatchDisplayName,
+} from '@/services/paginated-batches';
 import type { SelectOption } from '@/components/design-system/SelectChips';
 import type { StudentStatsFilter } from '@/types/membership-stats';
 import type { BatchForSession, PackageSessionFilter } from '@/types/payment-logs';
-import { Card } from '@/components/ui/card';
-import { Users } from '@phosphor-icons/react';
 import { MembershipAnalytics } from './-components/MembershipAnalytics';
 import { FilterStatsCard } from './-components/FilterStatsCard';
 import { ActiveFiltersDisplay } from '@/components/common/filters/ActiveFiltersDisplay';
@@ -42,14 +44,52 @@ function MembershipStatsLayoutPage() {
         setNavHeading(<h1 className="text-lg">Membership Stats</h1>);
     }, [setNavHeading]);
 
-    // Get institute details from Zustand store
-    const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
+    // 1. Fetch batches matching the current filter criteria ONLY (for resolving IDs)
+    const { data: filteredBatchesData } = usePaginatedBatches(
+        {
+            packageId: packageSessionFilter.packageId || undefined,
+            levelId: packageSessionFilter.levelId || undefined,
+            sessionId: packageSessionFilter.sessionId || undefined,
+            size: 100, // Should cover all batches for a specific package+level+session combo
+        },
+        undefined,
+        {
+            enabled: !!packageSessionFilter.packageId, // Only fetch if package is selected
+        }
+    );
 
-    // Extract batches for sessions from institute data
+    // 2. Fetch specific batches if explicitly selected (for Filter Display names)
+    const selectedBatchIds = useMemo(() => {
+        if (packageSessionFilter.packageSessionIds?.length)
+            return packageSessionFilter.packageSessionIds;
+        if (packageSessionFilter.packageSessionId) return [packageSessionFilter.packageSessionId];
+        return [];
+    }, [packageSessionFilter]);
+
+    const { data: selectedBatchesData } = useBatchesByIds(selectedBatchIds, undefined, {
+        enabled: selectedBatchIds.length > 0,
+    });
+
+    // Create a combined list of batches for display/logic (mimics old batchesForSessions but optimized)
     const batchesForSessions: BatchForSession[] = useMemo(() => {
-        const batches = instituteDetails?.batches_for_sessions;
-        return batches && Array.isArray(batches) ? (batches as unknown as BatchForSession[]) : [];
-    }, [instituteDetails]);
+        const batches = [
+            ...(filteredBatchesData?.content || []),
+            ...(selectedBatchesData?.content || []),
+        ];
+
+        // Dedup by ID
+        const uniqueBatches = Array.from(new Map(batches.map((item) => [item.id, item])).values());
+
+        return uniqueBatches.map((batch) => ({
+            id: batch.id,
+            package_dto: batch.package_dto,
+            session: batch.session,
+            level: batch.level,
+            status: batch.status,
+            start_time: batch.start_time,
+            is_org_associated: batch.is_org_associated,
+        })) as BatchForSession[];
+    }, [filteredBatchesData, selectedBatchesData]);
 
     // Build request filters
     const requestFilters: Omit<StudentStatsFilter, 'institute_id'> = useMemo(() => {
@@ -62,23 +102,23 @@ function MembershipStatsLayoutPage() {
         };
 
         if (selectedUserTypes.length > 0) {
-            filters.user_types = selectedUserTypes.map((s) => s.value) as ("NEW_USER" | "RETAINER")[];
+            filters.user_types = selectedUserTypes.map((s) => s.value) as (
+                | 'NEW_USER'
+                | 'RETAINER'
+            )[];
         }
 
-        if (packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0) {
+        if (
+            packageSessionFilter.packageSessionIds &&
+            packageSessionFilter.packageSessionIds.length > 0
+        ) {
             filters.package_session_ids = packageSessionFilter.packageSessionIds;
         } else if (packageSessionFilter.packageSessionId) {
             filters.package_session_ids = [packageSessionFilter.packageSessionId];
         } else if (packageSessionFilter.packageId) {
-            // Resolve all matching batches for the selected package and optional level/session
-            const resolvedIds = batchesForSessions
-                .filter((batch) =>
-                    batch.package_dto.id === packageSessionFilter.packageId &&
-                    (!packageSessionFilter.levelId || batch.level.id === packageSessionFilter.levelId) &&
-                    (!packageSessionFilter.sessionId || batch.session.id === packageSessionFilter.sessionId)
-                )
-                .map((batch) => batch.id);
-
+            // Use IDs from the filtered query
+            // If filteredBatchesData is loading, this might momentarily be empty, which is fine
+            const resolvedIds = filteredBatchesData?.content.map((b) => b.id) || [];
             filters.package_session_ids = resolvedIds;
         } else {
             filters.package_session_ids = [];
@@ -90,7 +130,7 @@ function MembershipStatsLayoutPage() {
         endDate,
         selectedUserTypes,
         packageSessionFilter,
-        batchesForSessions
+        filteredBatchesData, // Update dependency
     ]);
 
     useEffect(() => {
@@ -116,17 +156,33 @@ function MembershipStatsLayoutPage() {
         staleTime: 30000,
     });
 
+    // 4. Fetch details for batches displayed in the table
+    const tableBatchIds = useMemo(() => {
+        if (!membershipStatsData?.content) return [];
+        const ids = new Set<string>();
+        membershipStatsData.content.forEach((item) => {
+            if (item.package_session_ids && Array.isArray(item.package_session_ids)) {
+                item.package_session_ids.forEach((id) => ids.add(id));
+            }
+        });
+        return Array.from(ids);
+    }, [membershipStatsData]);
+
+    const { data: tableBatchesData } = useBatchesByIds(tableBatchIds, undefined, {
+        enabled: tableBatchIds.length > 0,
+    });
+
     // Build package sessions map for display
     const packageSessionsMap = useMemo(() => {
         const map: Record<string, string> = {};
-        batchesForSessions.forEach((batch) => {
-            const packageName = batch.package_dto.package_name;
-            const sessionName = batch.session.session_name;
-            const levelName = batch.level.level_name;
-            map[batch.id] = `${packageName} - ${sessionName} - ${levelName}`;
+
+        // Add from table batches
+        tableBatchesData?.content.forEach((batch) => {
+            map[batch.id] = getBatchDisplayName(batch, 'full');
         });
+
         return map;
-    }, [batchesForSessions]);
+    }, [tableBatchesData]);
 
     // Handle page change
     const handlePageChange = (page: number) => {
@@ -169,16 +225,14 @@ function MembershipStatsLayoutPage() {
                 setCurrentPage(0);
                 break;
             case 'userType':
-                setSelectedUserTypes((prev) =>
-                    prev.filter((type) => type.value !== value)
-                );
+                setSelectedUserTypes((prev) => prev.filter((type) => type.value !== value));
                 setCurrentPage(0);
                 break;
             case 'packageSession':
                 if (value) {
-                    setPackageSessionFilter(prev => ({
+                    setPackageSessionFilter((prev) => ({
                         ...prev,
-                        packageSessionIds: prev.packageSessionIds?.filter(id => id !== value)
+                        packageSessionIds: prev.packageSessionIds?.filter((id) => id !== value),
                     }));
                 } else {
                     setPackageSessionFilter({});

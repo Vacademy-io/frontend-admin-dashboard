@@ -30,6 +30,7 @@ import {
 } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
 import { BulkActions } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/bulk-actions/bulk-actions';
 import { AssessmentSubmissionsStudentTable } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/AssessmentSubmissionsStudentTable';
+import { usePaginatedBatches } from '@/services/paginated-batches';
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -49,6 +50,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const { data: totalMarks } = useSuspenseQuery(
         handleGetAssessmentTotalMarksData({ assessmentId })
     );
+
+    // Fetch batches using the paginated API
+    const { data: paginatedBatchesData } = usePaginatedBatches({
+        page: 0,
+        size: 1000,
+    });
+    const batchesForSessions = paginatedBatchesData?.content ?? [];
     const [selectedParticipantsTab, setSelectedParticipantsTab] = useState('internal');
     const [batchSelectionTab, setBatchSelectionTab] = useState('batch');
     const [page, setPage] = useState(0);
@@ -651,7 +659,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                     type,
                                     'Attempted',
                                     // @ts-expect-error : //TODO: Fix this type error
-                                    initData?.batches_for_sessions,
+                                    batchesForSessions,
                                     totalMarks.total_achievable_marks
                                 ),
                                 total_pages: participantsData.total_pages,

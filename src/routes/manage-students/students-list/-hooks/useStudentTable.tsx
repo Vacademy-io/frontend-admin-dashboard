@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { StudentFilterRequest } from '@/types/student-table-types';
 import { useStudentList } from '@/routes/manage-students/students-list/-services/getStudentTable';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useAllBatchIds } from '@/services/paginated-batches';
 import { useStudentSidebar } from '../-context/selected-student-sidebar-context';
 
 export const useStudentTable = (
@@ -14,8 +14,11 @@ export const useStudentTable = (
     const [sortColumns, setSortColumns] = useState<Record<string, string>>({});
     const { selectedStudent, setSelectedStudent } = useStudentSidebar();
 
+    // Fetch all batch IDs using paginated API for fallback
+    const { data: allBatchIdsData } = useAllBatchIds();
+    const allBatchIds = allBatchIdsData || [];
+
     let localAppliedFilters = appliedFilters;
-    const { instituteDetails } = useInstituteDetailsStore();
 
     // Check if we have approval statuses that require global search (empty package_session_ids)
     const hasApprovalStatus = appliedFilters.statuses?.some(s =>
@@ -29,12 +32,11 @@ export const useStudentTable = (
                 ...appliedFilters,
                 package_session_ids: package_session_id,
             };
-        } else {
-            const psids: string[] =
-                instituteDetails?.batches_for_sessions.map((batch) => batch.id) || [];
+        } else if (allBatchIds.length > 0) {
+            // Use all batch IDs from paginated API as fallback
             localAppliedFilters = {
                 ...appliedFilters,
-                package_session_ids: psids,
+                package_session_ids: allBatchIds,
             };
         }
     }
@@ -59,7 +61,7 @@ export const useStudentTable = (
     }, [studentTableData?.content]);
 
     // NOTE: We removed the useEffect that called refetch() on filter changes
-    // React Query's queryKey already handles this - when the key changes, 
+    // React Query's queryKey already handles this - when the key changes,
     // it automatically fetches new data. The extra refetch() was causing duplicate API calls.
 
     const handleSort = async (columnId: string, direction: string) => {

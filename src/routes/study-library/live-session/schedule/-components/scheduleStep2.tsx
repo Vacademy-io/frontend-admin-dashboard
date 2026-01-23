@@ -36,6 +36,7 @@ import { useLiveSessionStore } from '../-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useBatchesByIds, usePaginatedBatches } from '@/services/paginated-batches';
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -68,6 +69,19 @@ export default function ScheduleStep2() {
     // Get the institute details at component level
     const { instituteDetails } = useInstituteDetailsStore();
 
+    // Get package_session_ids from sessionDetails for edit mode
+    const editPackageSessionIds = sessionDetails?.schedule?.package_session_ids ?? [];
+
+    // Fetch batch details for edit mode using the paginated API
+    const { data: editBatchesData } = useBatchesByIds(editPackageSessionIds, undefined, {
+        enabled: isEditState && editPackageSessionIds.length > 0,
+    });
+
+    // Fetch all batches for submit lookup (when converting selectedLevels to IDs)
+    const { data: allBatchesData } = usePaginatedBatches({ size: 500 }, undefined, {
+        enabled: true,
+    });
+
     /**
      * This ref helps us ensure that the heavy edit-mode form pre-population
      * logic executes only ONCE. Without this, `form.setValue` & `setCurrentSession`
@@ -85,7 +99,7 @@ export default function ScheduleStep2() {
     }, [sessionId, navigate]);
 
     useEffect(() => {
-        if (sessionDetails && !hasInitialisedEditState.current) {
+        if (sessionDetails && editBatchesData?.content && !hasInitialisedEditState.current) {
             form.setValue(
                 'accessType',
                 sessionDetails?.schedule?.access_type === 'public'
@@ -124,26 +138,15 @@ export default function ScheduleStep2() {
             form.setValue('notifySettings', defaultNotifySettings);
 
             // ------------------------------------------------------------------
-            // NEW: Pre-populate selected levels (batches) when editing classes (both PRIVATE and PUBLIC)
+            // Pre-populate selected levels (batches) when editing classes
+            // Uses editBatchesData from useBatchesByIds hook instead of batches_for_sessions
             // ------------------------------------------------------------------
-            if (instituteDetails && sessionDetails.schedule.package_session_ids?.length > 0) {
-                const selectedLevelsFromPackages = sessionDetails.schedule.package_session_ids
-                    .map((pkgId) => {
-                        const batch = instituteDetails.batches_for_sessions.find(
-                            (b) => b.id === pkgId
-                        );
-                        if (!batch) return null;
-                        return {
-                            courseId: batch.package_dto.id,
-                            sessionId: batch.session.id,
-                            levelId: batch.level.id,
-                        };
-                    })
-                    .filter(Boolean) as {
-                    courseId: string;
-                    sessionId: string;
-                    levelId: string;
-                }[];
+            if (editBatchesData.content.length > 0) {
+                const selectedLevelsFromPackages = editBatchesData.content.map((batch) => ({
+                    courseId: batch.package_dto.id,
+                    sessionId: batch.session?.id || '',
+                    levelId: batch.level?.id || '',
+                }));
 
                 if (selectedLevelsFromPackages.length) {
                     form.setValue('selectedLevels', selectedLevelsFromPackages);
@@ -160,7 +163,7 @@ export default function ScheduleStep2() {
             // Mark initialisation done so this block never runs again
             hasInitialisedEditState.current = true;
         }
-    }, [sessionDetails, instituteDetails]);
+    }, [sessionDetails, editBatchesData]);
 
     // Prepare session data first
     const sessionList: DropdownItemType[] = useMemo(
@@ -273,28 +276,13 @@ export default function ScheduleStep2() {
         form.setValue('notifyBy', { mail, whatsapp });
 
         // Load previously selected levels for both PRIVATE and PUBLIC sessions
-        if (
-            sessionDetails.schedule.package_session_ids &&
-            sessionDetails.schedule.package_session_ids.length > 0
-        ) {
-            // Initialize array for selected levels
-            const selectedLevels: { courseId: string; sessionId: string; levelId: string }[] = [];
-
-            // Process each package_session_id
-            sessionDetails.schedule.package_session_ids.forEach((packageSessionId) => {
-                // Find the matching batch in institute details
-                const matchingBatch = instituteDetails.batches_for_sessions.find(
-                    (batch) => batch.id === packageSessionId
-                );
-
-                if (matchingBatch) {
-                    selectedLevels.push({
-                        courseId: matchingBatch.package_dto.id,
-                        sessionId: matchingBatch.session.id,
-                        levelId: matchingBatch.level.id,
-                    });
-                }
-            });
+        // Uses editBatchesData from useBatchesByIds instead of batches_for_sessions
+        if (editBatchesData?.content && editBatchesData.content.length > 0) {
+            const selectedLevels = editBatchesData.content.map((batch) => ({
+                courseId: batch.package_dto.id,
+                sessionId: batch.session?.id || '',
+                levelId: batch.level?.id || '',
+            }));
 
             // Set the selected levels in the form
             if (selectedLevels.length > 0) {
@@ -310,7 +298,7 @@ export default function ScheduleStep2() {
                 }
             }
         }
-    }, [sessionDetails, instituteDetails, sessionList, form]);
+    }, [sessionDetails, editBatchesData, sessionList, form]);
 
     const addCustomFieldform = useForm<z.infer<typeof addCustomFiledSchema>>({
         resolver: zodResolver(addCustomFiledSchema),
@@ -405,14 +393,15 @@ export default function ScheduleStep2() {
 
         setIsSubmitting(true);
         try {
+            // Convert selectedLevels to package_session_ids using allBatchesData
             const packageSessionIds = data.selectedLevels.map((level) => {
-                if (!instituteDetails) return '';
+                if (!allBatchesData?.content) return '';
 
-                const matchingBatch = instituteDetails.batches_for_sessions.find(
+                const matchingBatch = allBatchesData.content.find(
                     (batch) =>
                         batch.package_dto.id === level.courseId &&
-                        batch.session.id === level.sessionId &&
-                        batch.level.id === level.levelId
+                        batch.session?.id === level.sessionId &&
+                        batch.level?.id === level.levelId
                 );
 
                 return matchingBatch?.id || '';

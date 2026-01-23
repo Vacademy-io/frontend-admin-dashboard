@@ -1,32 +1,32 @@
 import { useMemo, useCallback } from 'react';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { convertCapitalToTitleCase } from '@/lib/utils';
+import { usePaginatedBatches, getBatchDisplayName } from '@/services/paginated-batches';
 
 /**
  * Hook to get batch names from batch IDs (source_id)
  * Provides memoized batch name resolution for better performance
  */
 export const useBatchNames = () => {
-  const { instituteDetails } = useInstituteDetailsStore();
+  // Fetch batches using the paginated API
+  const { data: paginatedBatchesData } = usePaginatedBatches({
+    page: 0,
+    size: 1000,
+  });
 
   // Memoize batch lookup map for better performance
   const batchLookupMap = useMemo(() => {
-    if (!instituteDetails?.batches_for_sessions) {
+    const batches = paginatedBatchesData?.content;
+    if (!batches || batches.length === 0) {
       return new Map<string, string>();
     }
 
     const map = new Map<string, string>();
-    instituteDetails.batches_for_sessions.forEach((batch) => {
-      const batchName = convertCapitalToTitleCase(batch.level.level_name) +
-        ' ' +
-        convertCapitalToTitleCase(batch.package_dto.package_name) +
-        ' ' +
-        convertCapitalToTitleCase(batch.session.session_name);
+    batches.forEach((batch) => {
+      const batchName = getBatchDisplayName(batch, 'full');
       map.set(batch.id, batchName);
     });
 
     return map;
-  }, [instituteDetails?.batches_for_sessions]);
+  }, [paginatedBatchesData?.content]);
 
   /**
    * Get batch name from batch ID

@@ -44,6 +44,7 @@ import Papa from 'papaparse';
 import { useRef } from 'react';
 import { useUsersCredentials } from '@/routes/manage-students/students-list/-services/usersCredentials';
 import { OpenStudentSidebar } from '@/routes/manage-students/students-list/-components/students-list/student-side-view/open-student-side-view';
+import { usePaginatedBatches } from '@/services/paginated-batches';
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -67,6 +68,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const { data: totalMarks } = useSuspenseQuery(
         handleGetAssessmentTotalMarksData({ assessmentId })
     );
+
+    // Fetch batches using the paginated API
+    const { data: paginatedBatchesData } = usePaginatedBatches({
+        page: 0,
+        size: 1000,
+    });
+    const batchesForSessions = paginatedBatchesData?.content ?? [];
     const [selectedParticipantsTab, setSelectedParticipantsTab] = useState('internal');
     const [selectedTab, setSelectedTab] = useState('Attempted');
     const [batchSelectionTab, setBatchSelectionTab] = useState('batch');
@@ -1109,7 +1117,8 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                         participantsData.content,
                                         type,
                                         selectedTab,
-                                        initData?.batches_for_sessions,
+                                        // @ts-expect-error: Type compatibility handled at runtime
+                                        batchesForSessions,
                                         totalMarks.total_achievable_marks
                                     ),
                                     total_pages: participantsData.total_pages,

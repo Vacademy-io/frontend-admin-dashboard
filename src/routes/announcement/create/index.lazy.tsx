@@ -78,6 +78,7 @@ import { useCampaignsList } from '@/routes/audience-manager/list/-hooks/useCampa
 import type { CampaignItem } from '@/routes/audience-manager/list/-services/get-campaigns-list';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { usePaginatedBatches } from '@/services/paginated-batches';
 
 export const Route = createLazyFileRoute('/announcement/create/')({
     component: () => (
@@ -387,20 +388,23 @@ function CreateAnnouncementPage() {
         }
     }, [selectedFromEmail]);
 
-    // Load package session options when institute details are available
+    // Fetch batches using paginated API
+    const { data: batchesData } = usePaginatedBatches({ size: 1000 });
+
+    // Load package session options when batches data is available
     useEffect(() => {
-        if (instituteDetails?.batches_for_sessions) {
-            const options = instituteDetails.batches_for_sessions.map((batch) => ({
+        if (batchesData?.content) {
+            const options = batchesData.content.map((batch) => ({
                 id: batch.id,
                 label: `${batch.package_dto.package_name} - ${batch.level.level_name} - ${batch.session.session_name}`,
                 packageName: batch.package_dto.package_name,
                 levelName: batch.level.level_name,
                 sessionName: batch.session.session_name,
-                is_org_associated: (batch as any).is_org_associated || false,
+                is_org_associated: batch.is_org_associated || false,
             }));
             setPackageSessionOptions(options);
         }
-    }, [instituteDetails]);
+    }, [batchesData]);
 
     // Optional UX: estimate users for selected tags (ANY-of semantics)
     useEffect(() => {
@@ -702,7 +706,7 @@ function CreateAnnouncementPage() {
                 variant: 'destructive',
             });
             // Fallback to cached template if API fails
-            const template = emailTemplates.find(t => t.id === templateId);
+            const template = emailTemplates.find((t) => t.id === templateId);
             if (template) {
                 setSelectedTemplateId(templateId);
                 if (template.subject) {

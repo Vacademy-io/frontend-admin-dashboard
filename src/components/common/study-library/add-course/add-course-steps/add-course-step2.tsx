@@ -24,11 +24,11 @@ import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-compone
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { RoleTypeExceptStudent } from '@/constants/dummy-data';
 import { CourseSettingsData } from '@/types/course-settings';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { CourseCreationSettings } from '@/types/display-settings';
+import { usePaginatedBatches } from '@/services/paginated-batches';
 
 interface Level {
     id: string;
@@ -260,8 +260,39 @@ export const AddCourseStep2 = ({
     settingsLoading?: boolean;
     courseCreationDisplay?: CourseCreationSettings;
 }) => {
-    const { instituteDetails } = useInstituteDetailsStore();
-    const existingBatches = instituteDetails?.batches_for_sessions || [];
+    // Fetch existing batches using the paginated API
+    const { data: paginatedBatchesData } = usePaginatedBatches({
+        page: 0,
+        size: 1000,
+    });
+    // Map PaginatedBatch to ExistingBatch format for compatibility
+    const existingBatches: ExistingBatch[] = (paginatedBatchesData?.content ?? []).map((batch) => ({
+        id: batch.id,
+        level: {
+            id: batch.level?.id ?? '',
+            level_name: batch.level?.level_name ?? 'Default',
+            duration_in_days: batch.level?.duration_in_days ?? null,
+            thumbnail_id: batch.level?.thumbnail_id ?? null,
+        },
+        session: {
+            id: batch.session?.id ?? '',
+            session_name: batch.session?.session_name ?? 'Default',
+            status: batch.session?.status ?? 'ACTIVE',
+            start_date: batch.session?.start_date ?? '',
+        },
+        start_time: batch.start_time ?? null,
+        status: batch.status ?? 'ACTIVE',
+        package_dto: batch.package_dto,
+        group: batch.group
+            ? {
+                  id: batch.group.id,
+                  group_name: batch.group.group_name,
+                  parent_group: batch.group.parent_group ?? null,
+                  is_root: batch.group.is_root ?? null,
+                  group_value: batch.group.group_value ?? '',
+              }
+            : undefined,
+    }));
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const instituteId = getInstituteId();

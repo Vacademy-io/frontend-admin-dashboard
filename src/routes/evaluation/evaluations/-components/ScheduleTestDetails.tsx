@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
-import { getBatchNamesByIds } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper';
+import { useBatchesByIds, getBatchDisplayName } from '@/services/paginated-batches';
 import { ReverseProgressBar } from '@/components/ui/progress';
 
 const ScheduleTestDetails = ({
@@ -27,10 +27,12 @@ const ScheduleTestDetails = ({
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const navigate = useNavigate();
     const { data: instituteDetails, isLoading } = useSuspenseQuery(useInstituteQuery());
-    const batchIdsList = getBatchNamesByIds(
-        instituteDetails?.batches_for_sessions,
-        scheduleTestContent.batch_ids
+
+    const { data: batchDetails, isLoading: isBatchesLoading } = useBatchesByIds(
+        scheduleTestContent.batch_ids || []
     );
+
+    const batchIdsList = batchDetails?.content.map((b) => getBatchDisplayName(b, 'compact')) || [];
     const handleNavigateAssessment = (assessmentId: string) => {
         if (!isDialogOpen) {
             navigate({
@@ -44,7 +46,7 @@ const ScheduleTestDetails = ({
         }
     };
 
-    if (isLoading) return <DashboardLoader />;
+    if (isLoading || isBatchesLoading) return <DashboardLoader />;
     return (
         <div
             className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4"

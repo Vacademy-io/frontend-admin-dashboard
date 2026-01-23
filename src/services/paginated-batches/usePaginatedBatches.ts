@@ -176,6 +176,44 @@ export function useBatchesByPackageId(
 }
 
 /**
+ * Hook to get all batch IDs
+ *
+ * Use for "All" selection in filters where we need every batch ID.
+ * This fetches up to 1000 batches and extracts just the IDs.
+ *
+ * @param instituteId - Optional institute ID
+ * @param options - Additional options
+ *
+ * @example
+ * const { data: allBatchIds } = useAllBatchIds();
+ *
+ * // Use for "All" filter
+ * if (selectedBatch === 'all') {
+ *     updateFilters({ batch_ids: allBatchIds || [] });
+ * }
+ */
+export function useAllBatchIds(
+    instituteId?: string,
+    options?: {
+        enabled?: boolean;
+        staleTime?: number;
+    }
+) {
+    const batchesQuery = useQuery({
+        queryKey: [...paginatedBatchesKeys.all, 'allIds', instituteId],
+        queryFn: async () => {
+            // Fetch a large page to get all batches
+            const response = await fetchPaginatedBatches({ size: 1000 }, instituteId);
+            return response.content.map(batch => batch.id);
+        },
+        enabled: options?.enabled ?? true,
+        staleTime: options?.staleTime ?? 10 * 60 * 1000, // 10 minutes - batch IDs don't change often
+    });
+
+    return batchesQuery;
+}
+
+/**
  * Hook for finding package session IDs with retry (mutation)
  *
  * This is useful for the course creation flow where we need to wait

@@ -3,7 +3,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { ArrowSquareOut, Info } from '@phosphor-icons/react';
 import { useRouter } from '@tanstack/react-router';
 import { getUnresolvedDoubtsCount } from '../-services/dashboard-services';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useAllBatchIds } from '@/services/paginated-batches';
 
 interface UnresolvedDoubtsWidgetProps {
     instituteId: string;
@@ -11,10 +11,8 @@ interface UnresolvedDoubtsWidgetProps {
 
 export const UnresolvedDoubtsWidget = ({ instituteId }: UnresolvedDoubtsWidgetProps) => {
     const router = useRouter();
-    const { instituteDetails } = useInstituteDetailsStore();
-
-    // Get all batch IDs from institute details
-    const batchIds = instituteDetails?.batches_for_sessions.map((batch) => batch.id) || [];
+    // Get all batch IDs using the paginated API
+    const { data: batchIds = [] } = useAllBatchIds();
 
     const { data: doubtsData } = useSuspenseQuery(getUnresolvedDoubtsCount(instituteId, batchIds));
 

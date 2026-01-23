@@ -10,7 +10,7 @@ import { useInviteForm } from '../../-hooks/useInviteForm';
 import { CustomFieldsSection } from './CustomFieldsSection';
 import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { usePaginatedBatches, useAllBatchIds } from '@/services/paginated-batches';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
@@ -161,7 +161,16 @@ export const CreateInviteDialog = ({
         }
     }, [submitForm]);
 
-    const { instituteDetails } = useInstituteDetailsStore();
+    // Fetch batches using the new paginated API
+    const { data: allBatchIds, isLoading: batchIdsLoading } = useAllBatchIds();
+    const hasBatches = (allBatchIds ?? []).length > 0;
+
+    const { data: paginatedBatchesData, isLoading: batchesLoading } = usePaginatedBatches({
+        page: 0,
+        size: 1000, // Fetch all batches for selection
+    });
+    const batches = paginatedBatchesData?.content ?? [];
+
     const courseSelectionMode = watch('batches.courseSelectionMode');
 
     useEffect(() => {
@@ -266,7 +275,14 @@ export const CreateInviteDialog = ({
                         </div>
 
                         {/* <CourseList /> */}
-                        {instituteDetails?.batches_for_sessions.length == 0 ? (
+                        {batchIdsLoading || batchesLoading ? (
+                            <div className="flex flex-col gap-3" id="select-batch">
+                                <p className="text-subtitle font-semibold">
+                                    Batch Selection<span className="text-danger-600">*</span>
+                                </p>
+                                <p className="text-caption text-neutral-500">Loading batches...</p>
+                            </div>
+                        ) : !hasBatches ? (
                             <div className="flex flex-col gap-3" id="select-batch">
                                 <p className="text-subtitle font-semibold">
                                     Batch Selection<span className="text-danger-600">*</span>
@@ -369,7 +385,7 @@ export const CreateInviteDialog = ({
                                 <div className="ml-3">
                                     {courseSelectionMode === 'institute' ? (
                                         <div className="grid grid-cols-3 gap-1 text-caption">
-                                            {instituteDetails?.batches_for_sessions?.map((batch) => (
+                                            {batches.map((batch) => (
                                                 <FormField
                                                     key={batch.id}
                                                     control={control}
@@ -390,16 +406,17 @@ export const CreateInviteDialog = ({
                                                                             onCheckedChange={(
                                                                                 checked
                                                                             ) => {
-                                                                                const newValue = checked
-                                                                                    ? [
-                                                                                          ...currentValue,
-                                                                                          batch,
-                                                                                      ]
-                                                                                    : currentValue.filter(
-                                                                                          (b) =>
-                                                                                              b.id !==
-                                                                                              batch.id
-                                                                                      );
+                                                                                const newValue =
+                                                                                    checked
+                                                                                        ? [
+                                                                                              ...currentValue,
+                                                                                              batch,
+                                                                                          ]
+                                                                                        : currentValue.filter(
+                                                                                              (b) =>
+                                                                                                  b.id !==
+                                                                                                  batch.id
+                                                                                          );
                                                                                 field.onChange(
                                                                                     newValue
                                                                                 );
@@ -432,70 +449,67 @@ export const CreateInviteDialog = ({
                                     ) : (
                                         <div className="flex flex-col gap-2 text-caption">
                                             <div className="grid grid-cols-3 gap-x-4 gap-y-1">
-                                                {instituteDetails?.batches_for_sessions?.map(
-                                                    (batch) => (
-                                                        <FormField
-                                                            key={batch.id}
-                                                            control={control}
-                                                            name="batches.learnerChoiceCourses"
-                                                            render={({ field }) => {
-                                                                const currentValue = field.value ?? [];
-                                                                return (
-                                                                    <FormItem key={batch.id}>
-                                                                        <FormControl>
-                                                                            <div className="flex items-center gap-2">
-                                                                                <Checkbox
-                                                                                    className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
-                                                                                    checked={currentValue.some(
-                                                                                        (item) =>
-                                                                                            item.id ===
-                                                                                            batch.id
-                                                                                    )}
-                                                                                    onCheckedChange={(
+                                                {batches.map((batch) => (
+                                                    <FormField
+                                                        key={batch.id}
+                                                        control={control}
+                                                        name="batches.learnerChoiceCourses"
+                                                        render={({ field }) => {
+                                                            const currentValue = field.value ?? [];
+                                                            return (
+                                                                <FormItem key={batch.id}>
+                                                                    <FormControl>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Checkbox
+                                                                                className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+                                                                                checked={currentValue.some(
+                                                                                    (item) =>
+                                                                                        item.id ===
+                                                                                        batch.id
+                                                                                )}
+                                                                                onCheckedChange={(
+                                                                                    checked
+                                                                                ) => {
+                                                                                    const newValue =
                                                                                         checked
-                                                                                    ) => {
-                                                                                        const newValue =
-                                                                                            checked
-                                                                                                ? [
-                                                                                                      ...currentValue,
-                                                                                                      batch,
-                                                                                                  ]
-                                                                                                : currentValue.filter(
-                                                                                                      (
-                                                                                                          b
-                                                                                                      ) =>
-                                                                                                          b.id !==
-                                                                                                          batch.id
-                                                                                                  );
-                                                                                        field.onChange(
-                                                                                            newValue
-                                                                                        );
-                                                                                    }}
-                                                                                />
-                                                                                <label className="text-wrap text-neutral-600">
-                                                                                    {
-                                                                                        batch.level
-                                                                                            .level_name
-                                                                                    }{' '}
-                                                                                    {
-                                                                                        batch
-                                                                                            .package_dto
-                                                                                            .package_name
-                                                                                    }{' '}
-                                                                                    {
-                                                                                        batch
-                                                                                            .session
-                                                                                            .session_name
-                                                                                    }{' '}
-                                                                                </label>
-                                                                            </div>
-                                                                        </FormControl>
-                                                                    </FormItem>
-                                                                );
-                                                            }}
-                                                        />
-                                                    )
-                                                )}
+                                                                                            ? [
+                                                                                                  ...currentValue,
+                                                                                                  batch,
+                                                                                              ]
+                                                                                            : currentValue.filter(
+                                                                                                  (
+                                                                                                      b
+                                                                                                  ) =>
+                                                                                                      b.id !==
+                                                                                                      batch.id
+                                                                                              );
+                                                                                    field.onChange(
+                                                                                        newValue
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                            <label className="text-wrap text-neutral-600">
+                                                                                {
+                                                                                    batch.level
+                                                                                        .level_name
+                                                                                }{' '}
+                                                                                {
+                                                                                    batch
+                                                                                        .package_dto
+                                                                                        .package_name
+                                                                                }{' '}
+                                                                                {
+                                                                                    batch.session
+                                                                                        .session_name
+                                                                                }{' '}
+                                                                            </label>
+                                                                        </div>
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            );
+                                                        }}
+                                                    />
+                                                ))}
                                                 {errors.batches?.learnerChoiceCourses?.message && (
                                                     <p className="text-danger-600">
                                                         {
@@ -668,13 +682,13 @@ export const CreateInviteDialog = ({
                                     {emailList?.map((entry: EmailEntry) => (
                                         <div
                                             key={entry.id}
-                                            className="text-primary-700 flex items-center gap-2 rounded-lg border border-primary-300 bg-primary-50 px-3"
+                                            className="flex items-center gap-2 rounded-lg border border-primary-300 bg-primary-50 px-3 text-primary-700"
                                         >
                                             <span>{entry.value}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveEmail(entry.id)}
-                                                className="hover:text-primary-700 text-primary-500"
+                                                className="text-primary-500 hover:text-primary-700"
                                             >
                                                 ×
                                             </button>

@@ -54,6 +54,8 @@ import { getInstituteId } from '@/constants/helper';
 import { Step3ParticipantsListIndiviudalStudentInterface } from '@/types/assessments/student-questionwise-status';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { usePaginatedBatches } from '@/services/paginated-batches';
+import type { PaginatedBatch } from '@/services/paginated-batches/paginated-batches-service';
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
 const Step3AddingParticipants: React.FC<StepContentProps> = ({
@@ -80,7 +82,14 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     >([]);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
-    const { batches_for_sessions } = instituteDetails || {};
+
+    // Fetch batches using the paginated API
+    const { data: paginatedBatchesData } = usePaginatedBatches({
+        page: 0,
+        size: 1000,
+    });
+    const batches = paginatedBatchesData?.content ?? [];
+
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId !== 'defaultId' ? assessmentId : savedAssessmentId,
@@ -89,7 +98,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         })
     );
 
-    const sectionsInfo = getAllSessions(batches_for_sessions || []);
+    const sectionsInfo = getAllSessions(batches as any[]);
 
     const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : '');
 
@@ -101,11 +110,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     );
 
     // Filter matching batches
-    const matchedBatches = batches_for_sessions?.filter((batch: any) => batchIds.has(batch.id));
+    const matchedBatches = batches.filter((batch: PaginatedBatch) => batchIds.has(batch.id));
     const transformedBatches =
         assessmentId !== 'defaultId'
-            ? transformAllBatchData(matchedBatches || [])
-            : transformBatchData(batches_for_sessions || [], selectedSection!);
+            ? transformAllBatchData(matchedBatches as any[])
+            : transformBatchData(batches as any[], selectedSection!);
 
     const oldFormData = useRef<TestAccessFormType | null>(null);
 
@@ -1084,7 +1093,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         batches={transformedBatches}
                         form={form}
                         totalBatches={transformBatchData(
-                            batches_for_sessions || [],
+                            batches as any[],
                             selectedSection!
                         )}
                         selectedSection={selectedSection ?? ''}

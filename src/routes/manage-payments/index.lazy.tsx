@@ -8,7 +8,7 @@ import { PaymentFilters } from './-components/PaymentFilters';
 import { PaymentLogsTable } from './-components/PaymentLogsTable';
 import { ActiveFiltersDisplay } from '@/components/common/filters/ActiveFiltersDisplay';
 import { fetchPaymentLogs, getPaymentLogsQueryKey } from '@/services/payment-logs';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { usePaginatedBatches, useBatchesSummary } from '@/services/paginated-batches';
 import type { SelectOption } from '@/components/design-system/SelectChips';
 import type {
     PaymentLogsRequest,
@@ -39,23 +39,35 @@ function ManagePaymentsLayoutPage() {
     const [selectedPaymentStatuses, setSelectedPaymentStatuses] = useState<SelectOption[]>([]);
     const [selectedUserPlanStatuses, setSelectedUserPlanStatuses] = useState<SelectOption[]>([]);
     const [selectedPaymentSources, setSelectedPaymentSources] = useState<SelectOption[]>([]); // New filter
-    const [packageSessionFilter, setPackageSessionFilter] = useState<PackageSessionFilter>({}); useEffect(() => {
+    const [packageSessionFilter, setPackageSessionFilter] = useState<PackageSessionFilter>({});
+
+    useEffect(() => {
         setNavHeading(<h1 className="text-lg">Manage Payments</h1>);
-    }, [setNavHeading]);    // Get institute details from Zustand store (already loaded on app init)
-    const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
+    }, [setNavHeading]);
 
-    // Extract batches for sessions from institute data
+    // Fetch batches using paginated API instead of batches_for_sessions
+    const { data: batchesData } = usePaginatedBatches({ size: 500 });
+
+    // Fetch summary for org-associated check
+    const { data: batchesSummary } = useBatchesSummary();
+
+    // Extract batches for sessions from paginated API
     const batchesForSessions: BatchForSession[] = useMemo(() => {
-        const batches = instituteDetails?.batches_for_sessions;
-        // Cast the Zustand store batch type to the payment logs batch type
-        // The store type is compatible, just missing optional fields
-        return batches && Array.isArray(batches) ? (batches as unknown as BatchForSession[]) : [];
-    }, [instituteDetails]);
+        if (!batchesData?.content) return [];
+        // Map the paginated batch type to the payment logs batch type
+        return batchesData.content.map((batch) => ({
+            id: batch.id,
+            package_dto: batch.package_dto,
+            session: batch.session,
+            level: batch.level,
+            status: batch.status,
+            start_time: batch.start_time,
+            is_org_associated: batch.is_org_associated,
+        })) as BatchForSession[];
+    }, [batchesData]);
 
-    // Check if institute has any org-associated batches
-    const hasOrgAssociatedBatches = useMemo(() => {
-        return batchesForSessions.some((batch) => batch.is_org_associated === true);
-    }, [batchesForSessions]);
+    // Check if institute has any org-associated batches from summary
+    const hasOrgAssociatedBatches = batchesSummary?.has_org_associated ?? false;
 
     // Build request filters
     const requestFilters: Omit<PaymentLogsRequest, 'institute_id'> = useMemo(() => {
@@ -85,17 +97,23 @@ function ManagePaymentsLayoutPage() {
             filters.sources = selectedPaymentSources.map((s) => s.value) as ('USER' | 'SUB_ORG')[];
         }
 
-        if (packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0) {
+        if (
+            packageSessionFilter.packageSessionIds &&
+            packageSessionFilter.packageSessionIds.length > 0
+        ) {
             filters.package_session_ids = packageSessionFilter.packageSessionIds;
         } else if (packageSessionFilter.packageSessionId) {
             filters.package_session_ids = [packageSessionFilter.packageSessionId];
         } else if (packageSessionFilter.packageId) {
             // Resolve all matching batches for the selected package and optional level/session
             const resolvedIds = batchesForSessions
-                .filter((batch) =>
-                    batch.package_dto.id === packageSessionFilter.packageId &&
-                    (!packageSessionFilter.levelId || batch.level.id === packageSessionFilter.levelId) &&
-                    (!packageSessionFilter.sessionId || batch.session.id === packageSessionFilter.sessionId)
+                .filter(
+                    (batch) =>
+                        batch.package_dto.id === packageSessionFilter.packageId &&
+                        (!packageSessionFilter.levelId ||
+                            batch.level.id === packageSessionFilter.levelId) &&
+                        (!packageSessionFilter.sessionId ||
+                            batch.session.id === packageSessionFilter.sessionId)
                 )
                 .map((batch) => batch.id);
 
@@ -195,9 +213,9 @@ function ManagePaymentsLayoutPage() {
                 break;
             case 'packageSession':
                 if (value) {
-                    setPackageSessionFilter(prev => ({
+                    setPackageSessionFilter((prev) => ({
                         ...prev,
-                        packageSessionIds: prev.packageSessionIds?.filter(id => id !== value)
+                        packageSessionIds: prev.packageSessionIds?.filter((id) => id !== value),
                     }));
                 } else {
                     setPackageSessionFilter({});
@@ -253,7 +271,8 @@ function ManagePaymentsLayoutPage() {
                             </div>
                         )}
                     </div>
-                </Card>                {/* Active Filters Display */}
+                </Card>{' '}
+                {/* Active Filters Display */}
                 <ActiveFiltersDisplay
                     startDate={startDate}
                     endDate={endDate}
@@ -264,7 +283,6 @@ function ManagePaymentsLayoutPage() {
                     batchesForSessions={batchesForSessions}
                     onClearFilter={handleClearFilter}
                 />
-
                 {/* Filters */}
                 <PaymentFilters
                     startDate={startDate}
@@ -301,7 +319,8 @@ function ManagePaymentsLayoutPage() {
                     batchesForSessions={batchesForSessions}
                     onQuickFilterSelect={handleQuickFilterSelect}
                     onClearFilters={handleClearFilters}
-                />                {/* Payment Logs Table */}
+                />{' '}
+                {/* Payment Logs Table */}
                 <PaymentLogsTable
                     data={paymentLogsData}
                     isLoading={isLoadingPayments}

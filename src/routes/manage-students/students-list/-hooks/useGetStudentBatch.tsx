@@ -1,19 +1,17 @@
 // hooks/student-list/useGetStudentBatch.ts
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useBatchesByIds } from '@/services/paginated-batches';
 
 export const useGetStudentBatch = (
     package_session_id: string
 ): { packageName: string; levelName: string } => {
-    const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
+    // Fetch batch details using paginated API
+    const batchIds = package_session_id ? [package_session_id] : [];
+    const { data: batchesData } = useBatchesByIds(batchIds);
 
-    if (!instituteDetails) return { packageName: '', levelName: '' };
-
-    const batch = instituteDetails.batches_for_sessions.find(
-        (batch) => batch.id === package_session_id
-    );
+    const batch = batchesData?.content?.[0];
 
     return {
-        levelName: batch?.level.level_name || '',
-        packageName: batch?.package_dto.package_name || '',
+        levelName: batch?.level?.level_name || '',
+        packageName: batch?.package_dto?.package_name || '',
     };
 };

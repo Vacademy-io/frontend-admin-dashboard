@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useBatchesByIds } from '@/services/paginated-batches';
 import SelectChips, { SelectOption } from './SelectChips';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
@@ -47,7 +48,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
     initialLevelId = '',
     initialSessionId = '',
     initialPackageId = '',
-    batchesForSessions = [],
+    // batchesForSessions is deprecated - component now uses useBatchesByIds internally
 }) => {
     const {
         getAllLevels,
@@ -56,7 +57,6 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         getLevelsFromPackage,
         getSessionFromPackage,
         getDetailsFromPackageSessionId,
-        instituteDetails
     } = useInstituteDetailsStore();
 
     const [levelId, setLevelId] = useState<string>(initialLevelId);
@@ -72,18 +72,37 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
     const [selectedPackages, setSelectedPackages] = useState<AutocompletePackage[]>([]);
 
-    // Load initial packages from store if initialPackageSessionIds provided
+    // Prepare IDs for fetching batch details
+    const idsToFetch = useMemo(() => {
+        const ids: string[] = [];
+        if (multiSelect && initialPackageSessionIds && initialPackageSessionIds.length > 0) {
+            ids.push(...initialPackageSessionIds);
+        }
+        return ids;
+    }, [multiSelect, initialPackageSessionIds]);
+
+    // Fetch batch details for initial package session IDs
+    const { data: batchDetailsData } = useBatchesByIds(idsToFetch, undefined, {
+        enabled: idsToFetch.length > 0,
+    });
+
+    // Load initial packages from fetched batch details
     useEffect(() => {
-        if (multiSelect && initialPackageSessionIds && initialPackageSessionIds.length > 0 && instituteDetails?.batches_for_sessions) {
+        if (
+            multiSelect &&
+            initialPackageSessionIds &&
+            initialPackageSessionIds.length > 0 &&
+            batchDetailsData?.content
+        ) {
             const initialPkgs: AutocompletePackage[] = [];
-            initialPackageSessionIds.forEach(id => {
-                const batch = instituteDetails.batches_for_sessions.find(b => b.id === id);
+            initialPackageSessionIds.forEach((id) => {
+                const batch = batchDetailsData.content.find((b) => b.id === id);
                 if (batch) {
                     initialPkgs.push({
                         id: batch.package_dto.id,
                         package_name: batch.package_dto.package_name,
                         package_id: batch.package_dto.id,
-                        package_session_id: batch.id
+                        package_session_id: batch.id,
                     });
                 }
             });
@@ -91,7 +110,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                 setSelectedPackages(initialPkgs);
             }
         }
-    }, [initialPackageSessionIds, instituteDetails, multiSelect]);
+    }, [initialPackageSessionIds, batchDetailsData, multiSelect]);
 
     // Unified state synchronization and search term initialization
     useEffect(() => {
@@ -100,18 +119,35 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         setPackageId(initialPackageId);
 
         if (initialPackageId) {
-            // Find package name from store if packageId is set
-            if (instituteDetails?.batches_for_sessions) {
-                const batch = instituteDetails.batches_for_sessions.find(b => b.package_dto.id === initialPackageId);
-                if (batch) {
-                    setSearchTerm(batch.package_dto.package_name);
+            // Find package name using getDetailsFromPackageSessionId or search results
+            // First try to get from existing search results
+            const foundPkg = searchResults.find(
+                (pkg) => pkg.id === initialPackageId || pkg.package_id === initialPackageId
+            );
+            if (foundPkg) {
+                setSearchTerm(foundPkg.package_name);
+            } else {
+                // Try to get from store's getDetailsFromPackageSessionId
+                // Note: This may not work directly with packageId, fallback to empty
+                const details = getDetailsFromPackageSessionId({
+                    packageSessionId: initialPackageId,
+                });
+                if (details?.package_dto?.package_name) {
+                    setSearchTerm(details.package_dto.package_name);
                 }
             }
         } else if (!multiSelect) {
             setSearchTerm('');
             setSearchResults([]);
         }
-    }, [initialLevelId, initialSessionId, initialPackageId, instituteDetails, multiSelect]);
+    }, [
+        initialLevelId,
+        initialSessionId,
+        initialPackageId,
+        getDetailsFromPackageSessionId,
+        multiSelect,
+        searchResults,
+    ]);
 
     // Internal debouncing logic
     useEffect(() => {
@@ -150,7 +186,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
     const filteredLevels = useMemo(() => {
         if (packageId) {
             const packageLevels = getLevelsFromPackage({ courseId: packageId });
-            return levels.filter(l => packageLevels.some(pl => pl.id === l.id));
+            return levels.filter((l) => packageLevels.some((pl) => pl.id === l.id));
         }
         return levels;
     }, [levels, packageId, getLevelsFromPackage]);
@@ -159,20 +195,22 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         if (packageId || levelId) {
             const packageSessions = getSessionFromPackage({
                 courseId: packageId || undefined,
-                levelId: levelId || undefined
+                levelId: levelId || undefined,
             });
-            return sessions.filter(s => packageSessions.some(ps => ps.id === s.id));
+            return sessions.filter((s) => packageSessions.some((ps) => ps.id === s.id));
         }
         return sessions;
     }, [sessions, packageId, levelId, getSessionFromPackage]);
 
-    const levelOptions: SelectOption[] = useMemo(() =>
-        filteredLevels.map(l => ({ label: l.level_name, value: l.id })),
-        [filteredLevels]);
+    const levelOptions: SelectOption[] = useMemo(
+        () => filteredLevels.map((l) => ({ label: l.level_name, value: l.id })),
+        [filteredLevels]
+    );
 
-    const sessionOptions: SelectOption[] = useMemo(() =>
-        filteredSessions.map(s => ({ label: s.session_name, value: s.id })),
-        [filteredSessions]);
+    const sessionOptions: SelectOption[] = useMemo(
+        () => filteredSessions.map((s) => ({ label: s.session_name, value: s.id })),
+        [filteredSessions]
+    );
 
     // Handle Level Change
     const handleLevelChange = (selected: SelectOption[]) => {
@@ -180,18 +218,21 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         setLevelId(value);
         setSessionId(''); // Reset downstream
 
-        const psId = packageId && value ? getPackageSessionId({
-            courseId: packageId,
-            levelId: value,
-            sessionId: ''
-        }) : null;
+        const psId =
+            packageId && value
+                ? getPackageSessionId({
+                      courseId: packageId,
+                      levelId: value,
+                      sessionId: '',
+                  })
+                : null;
 
         if (multiSelect && psId) {
             handlePackageSelect({
                 id: packageId,
                 package_name: searchTerm,
                 package_id: packageId,
-                package_session_id: psId
+                package_session_id: psId,
             });
             return;
         }
@@ -201,7 +242,9 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
             levelId: value,
             sessionId: '',
             packageId: packageId,
-            packageSessionIds: multiSelect ? selectedPackages.map(p => p.package_session_id!).filter(Boolean) : []
+            packageSessionIds: multiSelect
+                ? selectedPackages.map((p) => p.package_session_id!).filter(Boolean)
+                : [],
         });
     };
 
@@ -210,18 +253,21 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         const value = selected[0]?.value || '';
         setSessionId(value);
 
-        const psId = packageId && levelId && value ? getPackageSessionId({
-            courseId: packageId,
-            levelId: levelId,
-            sessionId: value
-        }) : null;
+        const psId =
+            packageId && levelId && value
+                ? getPackageSessionId({
+                      courseId: packageId,
+                      levelId: levelId,
+                      sessionId: value,
+                  })
+                : null;
 
         if (multiSelect && psId) {
             handlePackageSelect({
                 id: packageId,
                 package_name: searchTerm,
                 package_id: packageId,
-                package_session_id: psId
+                package_session_id: psId,
             });
             return;
         }
@@ -231,7 +277,9 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
             levelId,
             sessionId: value,
             packageId: packageId,
-            packageSessionIds: multiSelect ? selectedPackages.map(p => p.package_session_id!).filter(Boolean) : []
+            packageSessionIds: multiSelect
+                ? selectedPackages.map((p) => p.package_session_id!).filter(Boolean)
+                : [],
         });
     };
 
@@ -247,17 +295,17 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                         q: debouncedSearchTerm || '',
                         instituteId: instituteId,
                         session_id: sessionId || undefined,
-                        level_id: levelId || undefined
-                    }
+                        level_id: levelId || undefined,
+                    },
                 });
 
                 const data = response.data;
                 let normalizedResults: AutocompletePackage[] = [];
 
                 if (Array.isArray(data)) {
-                    normalizedResults = data.map(pkg => ({
+                    normalizedResults = data.map((pkg) => ({
                         ...pkg,
-                        id: pkg.id || pkg.package_id || ''
+                        id: pkg.id || pkg.package_id || '',
                     }));
                 } else if (data && Array.isArray(data.suggestions)) {
                     normalizedResults = data.suggestions.map((pkg: any) => ({
@@ -268,7 +316,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                         level_id: pkg.level_id,
                         level_name: pkg.level_name,
                         session_id: pkg.session_id,
-                        session_name: pkg.session_name
+                        session_name: pkg.session_name,
                     }));
                 } else if (data && Array.isArray(data.content)) {
                     normalizedResults = data.content.map((pkg: any) => ({
@@ -277,7 +325,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                         level_id: pkg.level_id,
                         level_name: pkg.level_name,
                         session_id: pkg.session_id,
-                        session_name: pkg.session_name
+                        session_name: pkg.session_name,
                     }));
                 }
 
@@ -300,18 +348,22 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
 
         if (!psId) {
             // Fallback to store if not in API response
-            psId = getPackageSessionId({
-                courseId: pkg.id || pkg.package_id || '',
-                levelId: levelId,
-                sessionId: sessionId
-            }) || undefined;
+            psId =
+                getPackageSessionId({
+                    courseId: pkg.id || pkg.package_id || '',
+                    levelId: levelId,
+                    sessionId: sessionId,
+                }) || undefined;
         }
 
         if (multiSelect) {
             if (psId) {
                 // If we have a psId, add it to selected list
-                if (!selectedPackages.find(p => p.package_session_id === psId)) {
-                    const newSelection = [...selectedPackages, { ...pkg, package_session_id: psId }];
+                if (!selectedPackages.find((p) => p.package_session_id === psId)) {
+                    const newSelection = [
+                        ...selectedPackages,
+                        { ...pkg, package_session_id: psId },
+                    ];
                     setSelectedPackages(newSelection);
 
                     setShowResults(false);
@@ -324,7 +376,9 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                         levelId: pkg.level_id || levelId,
                         sessionId: pkg.session_id || sessionId,
                         packageId: pkg.id || pkg.package_id || '',
-                        packageSessionIds: newSelection.map(p => p.package_session_id!).filter(Boolean)
+                        packageSessionIds: newSelection
+                            .map((p) => p.package_session_id!)
+                            .filter(Boolean),
                     });
                 } else {
                     setShowResults(false);
@@ -340,7 +394,9 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                     levelId,
                     sessionId,
                     packageId: pkg.id || pkg.package_id || '',
-                    packageSessionIds: selectedPackages.map(p => p.package_session_id!).filter(Boolean)
+                    packageSessionIds: selectedPackages
+                        .map((p) => p.package_session_id!)
+                        .filter(Boolean),
                 });
             }
         } else {
@@ -354,11 +410,10 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                 packageSessionId: psId || null,
                 levelId: pkg.level_id || levelId,
                 sessionId: pkg.session_id || sessionId,
-                packageId: pkg.id || pkg.package_id || ''
+                packageId: pkg.id || pkg.package_id || '',
             });
         }
     };
-
 
     // Handle keyboard navigation
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -366,10 +421,10 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setSelectedIndex(prev => (prev < searchResults.length - 1 ? prev + 1 : prev));
+            setSelectedIndex((prev) => (prev < searchResults.length - 1 ? prev + 1 : prev));
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
         } else if (e.key === 'Enter') {
             e.preventDefault();
             const selectedPackage = searchResults[selectedIndex];
@@ -381,7 +436,6 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         }
     };
 
-
     const handleClearSearch = () => {
         setSearchTerm('');
         setSearchResults([]);
@@ -392,14 +446,14 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
     };
 
     return (
-        <div className={cn("space-y-4", className)} ref={containerRef}>
+        <div className={cn('space-y-4', className)} ref={containerRef}>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {/* 1. Package Autocomplete (First entry point) */}
                 <div className="relative space-y-2">
-                    <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <Label className="text-xs font-medium uppercase tracking-wider text-gray-700">
                         1. Search Package
                     </Label>
-                    <div className="relative group">
+                    <div className="group relative">
                         <Input
                             placeholder="Type to search packages..."
                             value={searchTerm}
@@ -410,17 +464,19 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                             onKeyDown={handleKeyDown}
                             onFocus={() => setShowResults(true)}
                             className={cn(
-                                "pl-10 pr-10 text-sm transition-all duration-200 focus-visible:ring-1 focus-visible:ring-ring",
-                                (showResults && searchResults.length > 0) ? "rounded-b-none" : "rounded-md"
+                                'pl-10 pr-10 text-sm transition-all duration-200 focus-visible:ring-1 focus-visible:ring-ring',
+                                showResults && searchResults.length > 0
+                                    ? 'rounded-b-none'
+                                    : 'rounded-md'
                             )}
                         />
-                        <MagnifyingGlass className="absolute left-3 top-1/2 size-4 -translate-y-1/2 transition-colors text-gray-400" />
+                        <MagnifyingGlass className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 transition-colors" />
 
                         {searchTerm && (
                             <button
                                 type="button"
                                 onClick={handleClearSearch}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600"
                             >
                                 <X className="size-3.5" />
                             </button>
@@ -434,74 +490,89 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                     </div>
 
                     {/* Autocomplete Results Dropdown */}
-                    {showResults && (isSearching || (Array.isArray(searchResults) && searchResults.length > 0)) && (
-                        <div className="absolute z-50 w-full rounded-b-md border border-t-0 border-gray-200 bg-white shadow-xl overflow-hidden max-h-[400px] overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
-                            {isSearching && searchResults.length === 0 ? (
-                                <div className="p-4 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
-                                    <div className="size-3 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
-                                    Loading packages...
-                                </div>
-                            ) : (
-                                Array.isArray(searchResults) &&
-                                searchResults.map((pkg, index) => (
-                                    <button
-                                        key={pkg.id || pkg.package_id}
-                                        type="button"
-                                        onClick={() => handlePackageSelect(pkg)}
-                                        onMouseEnter={() => setSelectedIndex(index)}
-                                        className={cn(
-                                            "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors",
-                                            selectedIndex === index
-                                                ? "bg-gray-100 text-gray-900 font-medium"
-                                                : "bg-white text-gray-700"
-                                        )}
-                                    >
-                                        <MagnifyingGlass className={cn(
-                                            "size-3.5",
-                                            selectedIndex === index ? "text-gray-600" : "text-gray-400"
-                                        )} weight={selectedIndex === index ? "bold" : "regular"} />
-                                        <div className="flex flex-1 flex-col truncate">
-                                            <span className="text-sm font-medium">{pkg.package_name}</span>
-                                            {(pkg.level_name || pkg.session_name) && (
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    {pkg.level_name && (
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 uppercase font-semibold border border-transparent">
-                                                            {pkg.level_name}
-                                                        </span>
-                                                    )}
-                                                    {pkg.session_name && (
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 uppercase font-semibold border border-blue-100">
-                                                            {pkg.session_name}
-                                                        </span>
-                                                    )}
-                                                </div>
+                    {showResults &&
+                        (isSearching ||
+                            (Array.isArray(searchResults) && searchResults.length > 0)) && (
+                            <div className="absolute z-50 max-h-[400px] w-full overflow-hidden overflow-y-auto rounded-b-md border border-t-0 border-gray-200 bg-white shadow-xl duration-150 animate-in fade-in slide-in-from-top-1">
+                                {isSearching && searchResults.length === 0 ? (
+                                    <div className="flex items-center justify-center gap-2 p-4 text-center text-sm text-gray-500">
+                                        <div className="size-3 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
+                                        Loading packages...
+                                    </div>
+                                ) : (
+                                    Array.isArray(searchResults) &&
+                                    searchResults.map((pkg, index) => (
+                                        <button
+                                            key={pkg.id || pkg.package_id}
+                                            type="button"
+                                            onClick={() => handlePackageSelect(pkg)}
+                                            onMouseEnter={() => setSelectedIndex(index)}
+                                            className={cn(
+                                                'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
+                                                selectedIndex === index
+                                                    ? 'bg-gray-100 font-medium text-gray-900'
+                                                    : 'bg-white text-gray-700'
                                             )}
-                                        </div>
-                                        {selectedIndex === index && <CaretRight size={14} className="text-gray-400" />}
-                                    </button>
-                                ))
-                            )}
-                        </div>
-                    )}
+                                        >
+                                            <MagnifyingGlass
+                                                className={cn(
+                                                    'size-3.5',
+                                                    selectedIndex === index
+                                                        ? 'text-gray-600'
+                                                        : 'text-gray-400'
+                                                )}
+                                                weight={
+                                                    selectedIndex === index ? 'bold' : 'regular'
+                                                }
+                                            />
+                                            <div className="flex flex-1 flex-col truncate">
+                                                <span className="text-sm font-medium">
+                                                    {pkg.package_name}
+                                                </span>
+                                                {(pkg.level_name || pkg.session_name) && (
+                                                    <div className="mt-0.5 flex items-center gap-2">
+                                                        {pkg.level_name && (
+                                                            <span className="rounded border border-transparent bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-gray-500">
+                                                                {pkg.level_name}
+                                                            </span>
+                                                        )}
+                                                        {pkg.session_name && (
+                                                            <span className="rounded border border-blue-100 bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-blue-600">
+                                                                {pkg.session_name}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {selectedIndex === index && (
+                                                <CaretRight size={14} className="text-gray-400" />
+                                            )}
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        )}
 
                     {showResults && searchTerm && searchResults.length === 0 && !isSearching && (
-                        <div className="absolute z-50 w-full rounded-b-md border border-t-0 border-gray-200 bg-white p-6 shadow-xl text-center animate-in fade-in slide-in-from-top-1 duration-200">
-                            <div className="mx-auto size-10 rounded-full bg-gray-50 flex items-center justify-center mb-3">
+                        <div className="absolute z-50 w-full rounded-b-md border border-t-0 border-gray-200 bg-white p-6 text-center shadow-xl duration-200 animate-in fade-in slide-in-from-top-1">
+                            <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-gray-50">
                                 <MagnifyingGlass className="size-5 text-gray-300" />
                             </div>
-                            <p className="text-sm font-medium text-gray-900">No result found for "{searchTerm}"</p>
+                            <p className="text-sm font-medium text-gray-900">
+                                No result found for "{searchTerm}"
+                            </p>
                         </div>
                     )}
                 </div>
 
                 {/* 2. Level Selector */}
                 <div className="space-y-2">
-                    <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <Label className="text-xs font-medium uppercase tracking-wider text-gray-700">
                         2. Select Level
                     </Label>
                     <SelectChips
                         options={levelOptions}
-                        selected={levelOptions.filter(o => o.value === levelId)}
+                        selected={levelOptions.filter((o) => o.value === levelId)}
                         onChange={handleLevelChange}
                         placeholder="Choose Level"
                         multiSelect={false}
@@ -511,12 +582,12 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
 
                 {/* 3. Session Selector */}
                 <div className="space-y-2">
-                    <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <Label className="text-xs font-medium uppercase tracking-wider text-gray-700">
                         3. Select Session
                     </Label>
                     <SelectChips
                         options={sessionOptions}
-                        selected={sessionOptions.filter(o => o.value === sessionId)}
+                        selected={sessionOptions.filter((o) => o.value === sessionId)}
                         onChange={handleSessionChange}
                         placeholder="Choose Session"
                         multiSelect={false}
@@ -525,15 +596,15 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                 </div>
             </div>
 
-
             {/* Hint message if not fully selected */}
-            {(!packageId) && selectedPackages.length === 0 && (
-                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50/50 border border-blue-100/50">
-                    <div className="mt-0.5 size-4 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <Info className="size-2.5 text-blue-600 fill-blue-600" />
+            {!packageId && selectedPackages.length === 0 && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-blue-100/50 bg-blue-50/50 p-3">
+                    <div className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                        <Info className="size-2.5 fill-blue-600 text-blue-600" />
                     </div>
-                    <p className="text-xs text-blue-700 leading-relaxed font-normal">
-                        Start by searching for a <span className="font-bold">Package</span> to filter by level and session.
+                    <p className="text-xs font-normal leading-relaxed text-blue-700">
+                        Start by searching for a <span className="font-bold">Package</span> to
+                        filter by level and session.
                     </p>
                 </div>
             )}

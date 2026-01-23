@@ -15,6 +15,7 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { usePaginatedBatches, getBatchDisplayName } from '@/services/paginated-batches';
 import { useStudyLibraryQuery } from '@/routes/study-library/courses/-services/getStudyLibraryDetails';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
@@ -28,9 +29,15 @@ interface BatchSubjectFormProps {
 }
 
 export default function BatchSubjectForm({ initialBatchId }: BatchSubjectFormProps) {
-    const { instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
+    const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const { isLoading } = useSuspenseQuery(useStudyLibraryQuery());
     const form = useFormContext<z.infer<typeof inviteUsersSchema>>();
+
+    // Fetch batches using the paginated API
+    const { data: paginatedBatchesData, isLoading: batchesLoading } = usePaginatedBatches({
+        page: 0,
+        size: 1000,
+    });
 
     // State to track which batches are selected via checkbox
     const [selectedBatches, setSelectedBatches] = useState<string[]>(
@@ -39,14 +46,11 @@ export default function BatchSubjectForm({ initialBatchId }: BatchSubjectFormPro
     // State to track subject selections for each batch
     const [subjectSelections, setSubjectSelections] = useState<Record<string, string[]>>({});
 
-    // Get batches from the store
-    const batches =
-        instituteDetails?.batches_for_sessions?.map((batch) => ({
-            id: batch.id,
-            name: batch.level.id === 'DEFAULT' 
-                ? `${batch.package_dto.package_name.replace(/^default\s+/i, '')}, ${batch.session.session_name}`.trim()
-                : `${batch.level.level_name.replace(/^default\s+/i, '')} ${batch.package_dto.package_name.replace(/^default\s+/i, '')}, ${batch.session.session_name}`.trim(),
-        })) || [];
+    // Get batches from the paginated API
+    const batches = (paginatedBatchesData?.content ?? []).map((batch) => ({
+        id: batch.id,
+        name: getBatchDisplayName(batch, 'full'),
+    }));
 
     // Get subjects for a specific batch
     const getSubjectsByBatchId = (batchId: string) => {
@@ -107,7 +111,7 @@ export default function BatchSubjectForm({ initialBatchId }: BatchSubjectFormPro
         }
     }, [selectedBatches, subjectSelections, form]);
 
-    if (isLoading) {
+    if (isLoading || batchesLoading) {
         return <Loader className="size-6 animate-spin text-primary-500" />;
     }
 
