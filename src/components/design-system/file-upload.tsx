@@ -16,6 +16,7 @@ export const FileUploadComponent = <T extends FieldValues>({
     isUploading,
     error,
     className,
+    disableClick = false,
 }: FileUploadComponentProps<T>) => {
     const onDrop = useCallback(
         (acceptedFiles: File[]) => {
@@ -37,7 +38,7 @@ export const FileUploadComponent = <T extends FieldValues>({
         maxFiles: 1,
         multiple: false,
         disabled: isUploading,
-        noClick: true, // Disable internal click handling since we use an external button
+        noClick: disableClick, // Use the passed prop, default is false
         noKeyboard: true,
     });
 
