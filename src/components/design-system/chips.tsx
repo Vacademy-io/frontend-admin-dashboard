@@ -103,7 +103,12 @@ export const FilterChips = ({
     clearFilters,
     handleSelect,
     handleClearFilters,
-}: FilterChipsProps) => {
+    onSearchChange,
+    shouldFilter = true,
+}: FilterChipsProps & {
+    onSearchChange?: (value: string) => void;
+    shouldFilter?: boolean;
+}) => {
     const { isCompact } = useCompactMode();
 
     useEffect(() => {
@@ -160,8 +165,11 @@ export const FilterChips = ({
                 </button>
             </PopoverTrigger>
             <PopoverContent className="w-[200px] p-0" align="start">
-                <Command>
-                    <CommandInput placeholder="Search" />
+                <Command shouldFilter={shouldFilter}>
+                    <CommandInput
+                        placeholder="Search"
+                        onValueChange={onSearchChange}
+                    />
                     <CommandList>
                         <CommandEmpty>filters_no_results_found</CommandEmpty>
                         <CommandGroup>

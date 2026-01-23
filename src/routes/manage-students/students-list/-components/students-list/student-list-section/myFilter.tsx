@@ -1,9 +1,13 @@
 import { FilterChips } from '@/components/design-system/chips';
 import {
-    FilterId,
     FilterProps,
 } from '@/routes/manage-students/students-list/-types/students-list-types';
 import { useEffect, useState } from 'react';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { PACKAGE_AUTOCOMPLETE_URL } from '@/constants/urls';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
+import { useSearch } from '@tanstack/react-router';
+import { removeDefaultPrefix } from '@/utils/helpers/removeDefaultPrefix';
 
 type SelectedFilterListType = Record<string, { id: string; label: string }[]>;
 
@@ -15,12 +19,15 @@ export const Filters = ({
     columnFilters,
 }: FilterProps) => {
     const [selectedFilterList, setSelectedFilterList] = useState<SelectedFilterListType>({});
+    const [searchTerm, setSearchTerm] = useState('');
+    const [dynamicFilterList, setDynamicFilterList] = useState<{ id: string; label: string }[]>(filterDetails.filters || []);
+    const INSTITUTE_ID = getCurrentInstituteId();
+    const searchParams = useSearch({ strict: false }) as Record<string, any>;
 
-    // Sync local state with parent columnFilters on mount and when columnFilters change
+    // Sync local state with parent columnFilters
     useEffect(() => {
         const existingFilter = columnFilters?.find((filter) => filter.id === filterId);
         if (existingFilter) {
-            // Deduplicate values when syncing to prevent count mismatch
             const uniqueValues = Array.from(
                 new Map(existingFilter.value.map(v => [v.id, v])).values()
             );
@@ -29,13 +36,60 @@ export const Filters = ({
                 [filterId]: uniqueValues,
             }));
         } else if (clearFilters) {
-            // When clearFilters is true, reset local state
             setSelectedFilterList((prev) => ({
                 ...prev,
                 [filterId]: [],
             }));
         }
     }, [columnFilters, filterId, clearFilters]);
+
+    // Async search for batch
+    useEffect(() => {
+        if (filterId !== 'batch') {
+            setDynamicFilterList(filterDetails.filters || []);
+            return;
+        }
+
+        const fetchBatches = async () => {
+            try {
+                const response = await authenticatedAxiosInstance.get(PACKAGE_AUTOCOMPLETE_URL, {
+                    params: {
+                        q: searchTerm,
+                        instituteId: INSTITUTE_ID,
+                        session_id: searchParams.session || undefined,
+                    },
+                });
+
+                const data = response.data;
+                let normalizedResults: { id: string; label: string }[] = [];
+
+                const processItem = (item: any) => ({
+                    id: item.package_session_id || item.package_id || item.id,
+                    label: `${removeDefaultPrefix(item.package_name || item.course_name || '')}${item.level_name && item.level_name !== 'DEFAULT' ? ` - ${removeDefaultPrefix(item.level_name)}` : ''}`.trim()
+                });
+
+                if (Array.isArray(data?.suggestions)) {
+                    normalizedResults = data.suggestions.map(processItem);
+                } else if (Array.isArray(data?.content)) {
+                    normalizedResults = data.content.map(processItem);
+                } else if (Array.isArray(data)) {
+                    normalizedResults = data.map(processItem);
+                } else if (searchTerm === '' && filterDetails.filters) {
+                    normalizedResults = filterDetails.filters;
+                }
+
+                setDynamicFilterList(normalizedResults);
+            } catch (error) {
+                console.error('Error fetching batches:', error);
+                if (searchTerm === '') {
+                    setDynamicFilterList(filterDetails.filters || []);
+                }
+            }
+        };
+
+        const timeoutId = setTimeout(fetchBatches, 300);
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm, filterId, INSTITUTE_ID, searchParams.session, filterDetails.filters]);
 
     const handleSelectDeSelect = (option: { id: string; label: string }) => {
         let updatedValue: { id: string; label: string }[] = [];
@@ -44,24 +98,19 @@ export const Filters = ({
         if (existingFilter) {
             const alreadyExists = existingFilter.value.some((filter) => filter.id === option.id);
             if (alreadyExists) {
-                // Remove the option if it exists
                 updatedValue = existingFilter.value.filter((filter) => filter.id !== option.id);
             } else {
-                // Add the option if it doesn't exist
                 updatedValue = [...existingFilter.value, option];
             }
         } else {
-            // If no filter exists for this ID, create a new one with just this option
             updatedValue = [option];
         }
 
-        // Update the local state
         setSelectedFilterList((prev) => ({
             ...prev,
             [filterId]: updatedValue,
         }));
 
-        // Notify parent component of the change
         if (onFilterChange) {
             onFilterChange(updatedValue);
         }
@@ -82,11 +131,13 @@ export const Filters = ({
         <div className="hover:scale-102 group transition-all duration-200">
             <FilterChips
                 label={filterDetails.label}
-                filterList={filterDetails.filters || []}
+                filterList={dynamicFilterList}
                 selectedFilters={selectedFilterList[filterId] || []}
                 clearFilters={clearFilters}
                 handleSelect={handleSelectDeSelect}
                 handleClearFilters={handleClearFilters}
+                onSearchChange={filterId === 'batch' ? setSearchTerm : undefined}
+                shouldFilter={filterId !== 'batch'}
             />
         </div>
     );
