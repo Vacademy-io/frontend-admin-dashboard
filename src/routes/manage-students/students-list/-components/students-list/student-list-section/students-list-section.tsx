@@ -38,14 +38,13 @@ import { InviteFormProvider } from '@/routes/manage-students/invite/-context/use
 import { Users, FileMagnifyingGlass } from '@phosphor-icons/react';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
-import { convertCapitalToTitleCase } from '@/lib/utils';
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } =
+    const { getCourseFromPackage, instituteDetails } =
         useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
 
@@ -169,71 +168,6 @@ export const StudentsListSection = () => {
     );
 
 
-    useEffect(() => {
-        let batchIds: string[] = [];
-
-        if (Array.isArray(search.batch)) {
-            batchIds = search.batch;
-        } else if (typeof search.batch === 'string') {
-            batchIds = search.batch.split(',');
-        } else if (search.package_session_id) {
-            batchIds = [search.package_session_id];
-        }
-
-        if (batchIds.length > 0 && instituteDetails) {
-            const validPackages: import('@/routes/manage-students/students-list/-types/students-list-types').AutocompletePackage[] = [];
-
-            batchIds.forEach(id => {
-                const details = getDetailsFromPackageSessionId({
-                    packageSessionId: id,
-                });
-                if (details) {
-                    validPackages.push({
-                        package_name: details.package_dto.package_name,
-                        package_id: details.package_dto.id,
-                        course_name: details.package_dto.package_name, // Assuming course name is package name for display or available elsewhere, or acceptable to be same. Actually `batch.package_dto.package_name` is likely package name. Course name is technically package name in many contexts here or derived. Let's use what we have.
-                        package_session_id: details.id,
-                        level_name: details.level.level_name
-                    });
-                }
-            });
-
-            if (validPackages.length > 0) {
-                const batchOptions = validPackages.map(p => ({
-                    id: p.package_session_id || p.package_id,
-                    label: `${p.package_name}${p.level_name ? ` - ${p.level_name}` : ''}`
-                }));
-
-                setColumnFilters((prev) => {
-                    const others = prev.filter((f) => f.id !== 'batch');
-                    return [...others, { id: 'batch', value: batchOptions }];
-                });
-
-                setAppliedFilters((prev) => ({
-                    ...prev,
-                    package_session_ids: validPackages.map(p => p.package_session_id!).filter(Boolean),
-                    name: ''
-                }));
-
-                setSelectedPackages(validPackages);
-
-                // Also ensure session is set if possible (using the first one's session)
-                if (validPackages[0]) {
-                    const details = getDetailsFromPackageSessionId({
-                        packageSessionId: validPackages[0].package_session_id!,
-                    });
-                    if (details) {
-                        const session: DropdownItemType = {
-                            id: details.session.id,
-                            name: details.session.session_name,
-                        };
-                        handleSessionChange(session);
-                    }
-                }
-            }
-        }
-    }, [search.batch, search.package_session_id, instituteDetails]);
-
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
 
@@ -270,93 +204,8 @@ export const StudentsListSection = () => {
         </div>
     );
 
-    // in students-list-section.tsx
-    const [selectedPackages, setSelectedPackages] = useState<import('@/routes/manage-students/students-list/-types/students-list-types').AutocompletePackage[]>([]);
-
-    const handlePackageSelect = (pkg: import('@/routes/manage-students/students-list/-types/students-list-types').AutocompletePackage) => {
-        if (!pkg.package_session_id) return;
-
-        // Check if already selected
-        if (selectedPackages.some(p => (p.package_session_id || p.package_id) === (pkg.package_session_id || pkg.package_id))) {
-            return;
-        }
-
-        const newSelectedPackages = [...selectedPackages, pkg];
-        setSelectedPackages(newSelectedPackages);
-
-        // 1. Clear Search Box Input
-        handleSearchInputChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>);
-
-        // 2. Clear "Name" filter to prevent conflict, but keep visual input empty
-        // set appliedFilters.name to empty.
-
-        // 3. Update Column Filters for visual chip (Batch)
-        // We accumulate batch options
-        const batchOptions = newSelectedPackages.map(p => ({
-            id: p.package_session_id || p.package_id,
-            label: `${p.package_name}${p.level_name ? ` - ${p.level_name}` : ''}`
-        }));
-
-        setColumnFilters((prev) => {
-            const others = prev.filter((f) => f.id !== 'batch');
-            return [...others, { id: 'batch', value: batchOptions }];
-        });
-
-        // 4. Update Applied Filters (Triggers Table Refresh)
-        const newPackageSessionIds = newSelectedPackages.map(p => p.package_session_id!).filter(Boolean);
-        setAppliedFilters((prev) => ({
-            ...prev,
-            package_session_ids: newPackageSessionIds,
-            name: '' // Clear student name search to prevent conflict
-        }));
-
-        // 5. Update URL
-        const currentParams = new URLSearchParams(window.location.search);
-        // We'll join IDs with commas for the URL to keep it simple, or use repeating params
-        currentParams.set('batch', newPackageSessionIds.join(','));
-        currentParams.delete('name');
-        const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
-        window.history.replaceState({}, '', newUrl);
-    };
-
-    const handlePackageRemove = (pkgId: string) => {
-        const newSelectedPackages = selectedPackages.filter(p => (p.package_session_id || p.package_id) !== pkgId);
-        setSelectedPackages(newSelectedPackages);
-
-        // Update Column Filters
-        const batchOptions = newSelectedPackages.map(p => ({
-            id: p.package_session_id || p.package_id,
-            label: `${p.package_name}${p.level_name ? ` - ${p.level_name}` : ''}`
-        }));
-
-        setColumnFilters((prev) => {
-            const others = prev.filter((f) => f.id !== 'batch');
-            // If no packages left, remove the filter entirely? Or keep empty? Usually remove.
-            if (batchOptions.length === 0) return others;
-            return [...others, { id: 'batch', value: batchOptions }];
-        });
-
-        // Update Applied Filters
-        const newPackageSessionIds = newSelectedPackages.map(p => p.package_session_id!).filter(Boolean);
-        setAppliedFilters((prev) => ({
-            ...prev,
-            package_session_ids: newPackageSessionIds.length > 0 ? newPackageSessionIds : undefined,
-        }));
-
-        // Update URL
-        const currentParams = new URLSearchParams(window.location.search);
-        if (newPackageSessionIds.length > 0) {
-            currentParams.set('batch', newPackageSessionIds.join(','));
-        } else {
-            currentParams.delete('batch');
-        }
-        const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
-        window.history.replaceState({}, '', newUrl);
-    };
-
     const handleResetAll = () => {
         handleClearFilters();
-        setSelectedPackages([]);
     };
 
     return (
@@ -387,9 +236,6 @@ export const StudentsListSection = () => {
                         pageSize={10}
                         totalElements={studentTableData?.total_elements || 0}
                         sessionList={sessionList}
-                        onPackageSelect={handlePackageSelect}
-                        selectedPackages={selectedPackages}
-                        onPackageRemove={handlePackageRemove}
                     />
 
                     {loadingData ? (
