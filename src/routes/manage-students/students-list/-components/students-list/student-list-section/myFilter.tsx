@@ -20,6 +20,7 @@ export const Filters = ({
 }: FilterProps) => {
     const [selectedFilterList, setSelectedFilterList] = useState<SelectedFilterListType>({});
     const [searchTerm, setSearchTerm] = useState('');
+    const [isOpen, setIsOpen] = useState(false);
     const [dynamicFilterList, setDynamicFilterList] = useState<{ id: string; label: string }[]>(filterDetails.filters || []);
     const INSTITUTE_ID = getCurrentInstituteId();
     const searchParams = useSearch({ strict: false }) as Record<string, any>;
@@ -50,6 +51,14 @@ export const Filters = ({
             return;
         }
 
+        // Only fetch if open and we have search input
+        if (!isOpen || searchTerm.length === 0) {
+            if (searchTerm.length === 0) {
+                setDynamicFilterList(filterDetails.filters || []);
+            }
+            return;
+        }
+
         const fetchBatches = async () => {
             try {
                 const response = await authenticatedAxiosInstance.get(PACKAGE_AUTOCOMPLETE_URL, {
@@ -74,22 +83,17 @@ export const Filters = ({
                     normalizedResults = data.content.map(processItem);
                 } else if (Array.isArray(data)) {
                     normalizedResults = data.map(processItem);
-                } else if (searchTerm === '' && filterDetails.filters) {
-                    normalizedResults = filterDetails.filters;
                 }
 
                 setDynamicFilterList(normalizedResults);
             } catch (error) {
                 console.error('Error fetching batches:', error);
-                if (searchTerm === '') {
-                    setDynamicFilterList(filterDetails.filters || []);
-                }
             }
         };
 
         const timeoutId = setTimeout(fetchBatches, 300);
         return () => clearTimeout(timeoutId);
-    }, [searchTerm, filterId, INSTITUTE_ID, searchParams.session, filterDetails.filters]);
+    }, [searchTerm, filterId, INSTITUTE_ID, searchParams.session, filterDetails.filters, isOpen]);
 
     const handleSelectDeSelect = (option: { id: string; label: string }) => {
         let updatedValue: { id: string; label: string }[] = [];
@@ -138,6 +142,12 @@ export const Filters = ({
                 handleClearFilters={handleClearFilters}
                 onSearchChange={filterId === 'batch' ? setSearchTerm : undefined}
                 shouldFilter={filterId !== 'batch'}
+                onOpenChange={(open) => {
+                    setIsOpen(open);
+                    if (!open) {
+                        setSearchTerm('');
+                    }
+                }}
             />
         </div>
     );

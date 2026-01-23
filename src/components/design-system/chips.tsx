@@ -105,9 +105,11 @@ export const FilterChips = ({
     handleClearFilters,
     onSearchChange,
     shouldFilter = true,
+    onOpenChange,
 }: FilterChipsProps & {
     onSearchChange?: (value: string) => void;
     shouldFilter?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }) => {
     const { isCompact } = useCompactMode();
 
@@ -116,7 +118,7 @@ export const FilterChips = ({
     }, [clearFilters]);
 
     return (
-        <Popover>
+        <Popover onOpenChange={onOpenChange}>
             <PopoverTrigger className="flex items-center">
                 <button>
                     <ChipsWrapper

@@ -2,6 +2,7 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { FilterConfig } from '@/routes/manage-students/students-list/-types/students-list-types';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { InstituteDetailsType } from '@/schemas/student/student-list/institute-schema';
+import { removeDefaultPrefix } from '@/utils/helpers/removeDefaultPrefix';
 
 export const GetFilterData = (instituteDetails: InstituteDetailsType, _currentSession: string) => {
     const statuses = instituteDetails?.student_statuses.map((status, index) => ({
@@ -28,7 +29,14 @@ export const GetFilterData = (instituteDetails: InstituteDetailsType, _currentSe
         {
             id: 'batch',
             title: getTerminology(ContentTerms.Batch, SystemTerms.Batch),
-            filterList: [],
+            filterList: (
+                instituteDetails?.batches_for_sessions
+                    ?.filter((batch) => batch.session.id === _currentSession)
+                    .map((batch) => ({
+                        id: batch.id,
+                        label: `${removeDefaultPrefix(batch.package_dto.package_name)}${batch.level.level_name && batch.level.level_name !== 'DEFAULT' ? ` - ${removeDefaultPrefix(batch.level.level_name)}` : ''}`.trim(),
+                    })) || []
+            ).slice(0, 10),
         },
         {
             id: 'statuses',
