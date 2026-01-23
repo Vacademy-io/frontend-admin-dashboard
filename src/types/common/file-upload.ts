@@ -28,4 +28,5 @@ export interface FileUploadComponentProps<T extends FieldValues> {
     isUploading?: boolean;
     error?: string | null;
     className?: string;
+    disableClick?: boolean;
 }
