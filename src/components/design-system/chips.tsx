@@ -171,7 +171,7 @@ export const FilterChips = ({
                         onValueChange={onSearchChange}
                     />
                     <CommandList>
-                        <CommandEmpty>filters_no_results_found</CommandEmpty>
+                        <CommandEmpty>No results found</CommandEmpty>
                         <CommandGroup>
                             {filterList?.map((option) => (
                                 <CommandItem
