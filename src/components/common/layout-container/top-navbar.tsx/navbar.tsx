@@ -213,7 +213,7 @@ export function Navbar() {
     return (
         <div
             className={cn(
-                'sticky top-0 z-10 flex items-center justify-between border-b bg-neutral-50',
+                'sticky top-0 z-50 flex items-center justify-between border-b bg-neutral-50',
                 isCompact ? 'h-12 px-4 py-2' : 'h-14 px-4 py-2 md:h-[72px] md:px-8 md:py-4'
             )}
         >

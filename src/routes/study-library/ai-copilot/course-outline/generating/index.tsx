@@ -7,7 +7,7 @@ import { MyButton } from '@/components/design-system/button';
 import { BASE_URL, AI_SERVICE_BASE_URL } from '@/constants/urls';
 
 import { getInstituteId } from '@/constants/helper';
-import { CircularProgress, SortableSessionItem, SortableSlideItem, OutlineGeneratingLoader } from './components';
+import { CircularProgress, SortableSessionItem, SortableSlideItem, OutlineGeneratingLoader, SplitViewLayout } from './components';
 import { useCourseGeneration } from './hooks/useCourseGeneration';
 import { useSlideHandlers } from './hooks/useSlideHandlers';
 import { useSessionHandlers } from './hooks/useSessionHandlers';
@@ -1433,6 +1433,51 @@ export function RouteComponent() {
                     <title>Generating Course Outline...</title>
                 </Helmet>
                 <OutlineGeneratingLoader estimatedTimeRemaining={estimatedTimeRemaining} />
+            </LayoutContainer>
+        );
+    }
+
+    // Split view - show when generating content or content is generated
+    if (isGeneratingContent || isContentGenerated) {
+        return (
+            <LayoutContainer>
+                <Helmet>
+                    <title>{isGeneratingContent ? 'Generating Content...' : 'Edit Course Content'}</title>
+                    <meta name="description" content="Review and edit your AI-generated course content." />
+                </Helmet>
+                <SplitViewLayout
+                    sessionsWithProgress={sessionsWithProgress}
+                    slides={slides}
+                    courseMetadata={courseMetadata}
+                    isGeneratingContent={isGeneratingContent}
+                    isContentGenerated={isContentGenerated}
+                    contentGenerationProgress={contentGenerationProgress}
+                    isCreatingCourse={isCreatingCourse}
+                    isTeacher={isTeacher}
+                    onBack={handleBack}
+                    onSlideContentChange={handleSlideContentEdit}
+                    onSlideSave={(slideId) => {
+                        // Content is auto-saved via onSlideContentChange
+                        console.log('Slide saved:', slideId);
+                    }}
+                    onMetadataSave={(metadata) => {
+                        setCourseMetadata((prev: any) => ({ ...prev, ...metadata }));
+                    }}
+                    onCreateCourse={handleCreateCourse}
+                    onGenerateContent={() => setGenerateCourseAssetsDialogOpen(true)}
+                />
+                {/* Keep dialogs available */}
+                <GenerateCourseAssetsDialog
+                    open={generateCourseAssetsDialogOpen}
+                    onOpenChange={setGenerateCourseAssetsDialogOpen}
+                    onConfirm={isContentGenerated ? () => handleCreateCourse('ACTIVE') : handleConfirmGenerateCourseAssets}
+                />
+                <BackToLibraryDialog
+                    open={backToLibraryDialogOpen}
+                    onOpenChange={setBackToLibraryDialogOpen}
+                    onDiscard={handleDiscardCourse}
+                    onSaveToDrafts={handleSaveToDrafts}
+                />
             </LayoutContainer>
         );
     }
