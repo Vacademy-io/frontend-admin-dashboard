@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { GET_VIDEO_URLS } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { AIVideoPlayer } from '@/components/ai-video-player/AIVideoPlayer';
+import { SplitScreenSlide } from './split-screen-slide';
 
 const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedUrl?: string }) => {
     const { videoSeekTime, clearVideoSeekTime } = useMediaNavigationStore();
@@ -51,28 +52,45 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
 
             const htmlVideoSlide = (activeItem as any).html_video_slide;
             if (!htmlVideoSlide?.ai_gen_video_id) {
-                console.warn('HTML_VIDEO slide missing ai_gen_video_id');
-                setError('Video ID not found');
+                console.warn('[VideoSlidePreview] HTML_VIDEO slide missing ai_gen_video_id');
                 setIsLoadingHtmlVideo(false);
                 return;
             }
 
+            console.log('[VideoSlidePreview] Fetching HTML video URLs for ai_gen_video_id:', htmlVideoSlide.ai_gen_video_id);
             setIsLoadingHtmlVideo(true);
             setError(null);
 
             try {
-                const response = await authenticatedAxiosInstance.get(
-                    GET_VIDEO_URLS(htmlVideoSlide.ai_gen_video_id)
-                );
+                const videoUrlsEndpoint = GET_VIDEO_URLS(htmlVideoSlide.ai_gen_video_id);
+                console.log('[VideoSlidePreview] Calling GET_VIDEO_URLS:', videoUrlsEndpoint);
+                
+                const response = await authenticatedAxiosInstance.get(videoUrlsEndpoint);
+                
+                console.log('[VideoSlidePreview] Video URLs response:', {
+                    html_url: response.data.html_url,
+                    audio_url: response.data.audio_url,
+                });
+                
+                if (!response.data.html_url || !response.data.audio_url) {
+                    throw new Error('Invalid response: missing html_url or audio_url');
+                }
                 
                 setHtmlVideoData({
                     htmlUrl: response.data.html_url,
                     audioUrl: response.data.audio_url,
                 });
             } catch (err: any) {
-                console.error('Error fetching HTML video URLs:', err);
+                console.error('[VideoSlidePreview] Error fetching HTML video URLs:', err);
+                console.error('[VideoSlidePreview] Error details:', {
+                    status: err.response?.status,
+                    statusText: err.response?.statusText,
+                    data: err.response?.data,
+                });
                 if (err.response?.status === 404) {
-                    setError(`Video ${htmlVideoSlide.ai_gen_video_id} not found`);
+                    // Video might still be generating - don't set error, show "generating" message instead
+                    console.log('[VideoSlidePreview] Video not found (404) - may still be generating');
+                    setError(null);
                 } else {
                     setError('Failed to load video URLs');
                 }
@@ -192,6 +210,80 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
 
     // HTML_VIDEO rendering
     if (videoSourceType === 'HTML_VIDEO') {
+        // Check if code_editor_config is present
+        const htmlVideoSlide = (activeItem as any).html_video_slide;
+        let codeEditorConfig: any = null;
+        
+        if (htmlVideoSlide?.code_editor_config) {
+            try {
+                codeEditorConfig = typeof htmlVideoSlide.code_editor_config === 'string' 
+                    ? JSON.parse(htmlVideoSlide.code_editor_config)
+                    : htmlVideoSlide.code_editor_config;
+            } catch (e) {
+                console.warn('Failed to parse code_editor_config:', e);
+            }
+        }
+
+        // If code editor is enabled, show split screen view (even if video is not ready yet)
+        if (codeEditorConfig?.enabled) {
+            const layout = codeEditorConfig.layout || 'split-right';
+            const codeLanguage = codeEditorConfig.language || 'python';
+            const initialCode = codeEditorConfig.initial_code || '';
+            const theme = codeEditorConfig.theme || 'dark';
+
+            // Create split screen data structure
+            // Always include htmlVideoData if available (will be undefined if not ready yet)
+            const splitScreenData = {
+                splitScreen: true,
+                videoSlideId: activeItem.id,
+                layout: layout,
+                originalVideoData: {
+                    id: activeItem.id,
+                    title: activeItem.title || '',
+                    description: '',
+                    url: htmlVideoSlide?.ai_gen_video_id || htmlVideoSlide?.url || '',
+                    source_type: 'HTML_VIDEO',
+                    // Store ai_gen_video_id explicitly for use in split-screen-slide
+                    ai_gen_video_id: htmlVideoSlide?.ai_gen_video_id || '',
+                },
+                language: codeLanguage,
+                code: initialCode,
+                theme: theme,
+                viewMode: 'edit',
+                allLanguagesData: {
+                    python: { code: codeLanguage === 'python' ? initialCode : '', lastEdited: Date.now() },
+                    javascript: { code: codeLanguage === 'javascript' ? initialCode : '', lastEdited: Date.now() },
+                },
+                timestamp: Date.now(),
+                splitType: 'CODE',
+                // Include htmlVideoData if available (will trigger re-render when fetched)
+                ...(htmlVideoData?.htmlUrl && htmlVideoData?.audioUrl ? {
+                    htmlVideoData: {
+                        htmlUrl: htmlVideoData.htmlUrl,
+                        audioUrl: htmlVideoData.audioUrl,
+                    }
+                } : {
+                    // Mark video as not ready if URLs are not available
+                    videoNotReady: true,
+                }),
+            };
+
+            return (
+                <div key={`html-video-split-${activeItem.id}-${htmlVideoData?.htmlUrl ? 'ready' : 'generating'}`} className="w-full h-full">
+                    <SplitScreenSlide
+                        splitScreenData={splitScreenData as any}
+                        slideType="SPLIT_CODE"
+                        isEditable={activeItem.status !== 'PUBLISHED'}
+                        currentSlideId={activeItem.id}
+                        onDataChange={(updatedSplitData) => {
+                            console.log('Code editor data changed:', updatedSplitData);
+                        }}
+                    />
+                </div>
+            );
+        }
+
+        // Regular HTML_VIDEO rendering without code editor
         if (isLoadingHtmlVideo) {
             return (
                 <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
@@ -203,7 +295,8 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
             );
         }
 
-        if (error) {
+        // Show error only if it's a real error (not 404 which means video is still generating)
+        if (error && error !== 'Video ID not found') {
             return (
                 <div className="flex h-64 flex-col items-center justify-center rounded-lg bg-red-50 p-4">
                     <p className="mb-2 font-medium text-red-500">{error}</p>
@@ -211,19 +304,8 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
             );
         }
 
-        // Show processing loader when video data is not available yet
-        if (!htmlVideoData?.htmlUrl || !htmlVideoData?.audioUrl) {
-            return (
-                <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
-                    <div className="flex flex-col items-center gap-3">
-                        <div className="size-12 animate-spin rounded-full border-y-2 border-primary-500"></div>
-                        <p className="text-sm text-gray-600">Processing video...</p>
-                    </div>
-                </div>
-            );
-        }
-
-        if (htmlVideoData.htmlUrl && htmlVideoData.audioUrl) {
+        // Show video if data is available
+        if (htmlVideoData?.htmlUrl && htmlVideoData?.audioUrl) {
             return (
                 <div key={`html-video-${activeItem.id}`} className="w-full overflow-hidden rounded-lg flex flex-col" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                     <AIVideoPlayer
@@ -235,9 +317,14 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
             );
         }
 
+        // Show "Video is being generated" message when video data is not available yet
         return (
             <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
-                <p className="text-gray-500">Video not available</p>
+                <div className="flex flex-col items-center gap-3">
+                    <div className="size-12 animate-spin rounded-full border-y-2 border-primary-500"></div>
+                    <p className="text-sm text-gray-600">Video is being generated...</p>
+                    <p className="text-xs text-gray-500">This may take a few minutes. Please check back later.</p>
+                </div>
             </div>
         );
     }
@@ -311,3 +398,4 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
 };
 
 export default VideoSlidePreview;
+

@@ -2059,6 +2059,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
                 // Check if AI video is ready
                 const isVideoReady = videoData?.status === 'COMPLETED' && videoData?.timelineUrl && videoData?.audioUrl;
+                const hasScript = slide.aiVideoData?.scriptUrl;
+                const isGenerating = (slide.status as string) === 'generating';
+                // Show script if scriptUrl is available and video is not ready
+                const shouldShowScript = hasScript && !isVideoReady;
 
                 return (
                     <div className="mt-3 ml-8">
@@ -2075,6 +2079,22 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                     </button>
                                 </div>
                             )}
+                            
+                            {/* Show script when available and video is not ready */}
+                            {shouldShowScript && slide.aiVideoData?.scriptUrl && (
+                                <div className="mb-4">
+                                    <ScriptDisplay scriptUrl={slide.aiVideoData.scriptUrl} />
+                                </div>
+                            )}
+
+                            {/* Only show loader when actively generating, not when pending */}
+                            {isGenerating && !hasScript && !isVideoReady && (
+                                <div className="mb-4 flex items-center gap-2">
+                                    <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                                    <span className="text-sm text-neutral-600">Generating video... {slide.progress || 0}%</span>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 {/* AI Video Section */}
                                 <div className="bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden">

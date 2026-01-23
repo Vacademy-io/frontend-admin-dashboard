@@ -429,6 +429,14 @@ export async function createCourseWithContent(
                     console.log(
                         `[Course Creation] Creating slide ${slideIndex + 1}/${session.slides.length}: "${slide.slideTitle}" (type: ${slide.slideType})`
                     );
+                    console.log(`[Course Creation] Slide details:`, {
+                        id: slide.id,
+                        title: slide.slideTitle,
+                        type: slide.slideType,
+                        status: slide.status,
+                        hasContent: !!slide.content,
+                        hasAiVideoData: !!slide.aiVideoData,
+                    });
                     try {
                         await createSlide({
                             slide,
@@ -439,14 +447,15 @@ export async function createCourseWithContent(
                             instituteId: INSTITUTE_ID,
                             slideOrder: slideIndex,
                         });
-                        console.log(
-                            `[Course Creation] Slide "${slide.slideTitle}" created successfully`
-                        );
+                        console.log(`[Course Creation] ✓ Slide "${slide.slideTitle}" (type: ${slide.slideType}) created successfully`);
                     } catch (slideError) {
-                        console.error(
-                            `[Course Creation] Failed to create slide "${slide.slideTitle}":`,
-                            slideError
-                        );
+                        console.error(`[Course Creation] ❌ Failed to create slide "${slide.slideTitle}" (type: ${slide.slideType}):`, slideError);
+                        if (slideError instanceof Error) {
+                            console.error(`[Course Creation] Error details:`, {
+                                message: slideError.message,
+                                stack: slideError.stack,
+                            });
+                        }
                         // Continue with next slide instead of failing entire process
                     }
                 }
@@ -495,45 +504,64 @@ interface CreateSlideParams {
  * Creates a slide based on its type
  */
 async function createSlide(params: CreateSlideParams): Promise<void> {
-    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } =
-        params;
+    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } = params;
+
+    console.log(`[Course Creation] createSlide called for: "${slide.slideTitle}" (type: ${slide.slideType})`);
 
     try {
         switch (slide.slideType) {
             case 'doc':
             case 'objectives':
+                console.log(`[Course Creation] Routing to createDocumentSlide for: ${slide.slideTitle}`);
                 await createDocumentSlide(params);
                 break;
             case 'video':
+                console.log(`[Course Creation] Routing to createVideoSlide for: ${slide.slideTitle}`);
                 await createVideoSlide(params);
                 break;
             case 'ai-video':
-                // For ai-video, create HTML_VIDEO slide type if videoId is available
-                if (slide.aiVideoData?.videoId) {
-                    await createHtmlVideoSlide(params);
-                } else {
-                    // Fallback to regular video slide if no videoId yet
-                    await createVideoSlide(params);
-                }
+                // For ai-video, ALWAYS create HTML_VIDEO slide type
+                // Allow creation after script generation, video can generate in background
+                console.log(`[Course Creation] Routing to createHtmlVideoSlide for: ${slide.slideTitle}`);
+                await createHtmlVideoSlide(params);
                 break;
             case 'quiz':
             case 'assessment':
+                console.log(`[Course Creation] Routing to createQuizSlide for: ${slide.slideTitle}`);
                 await createQuizSlide(params);
                 break;
             case 'video-code':
-            case 'ai-video-code':
-                // For video+code, we'll create a document slide with the code content
-                // The video will be embedded in the document
+                // For regular video-code (YouTube), use the existing method
+                console.log(`[Course Creation] Routing to createVideoCodeSlide for: ${slide.slideTitle}`);
                 await createVideoCodeSlide(params);
+                break;
+            case 'ai-video-code':
+                // For ai-video-code, ALWAYS create HTML_VIDEO slide with code_editor_config
+                // Allow creation after script generation, video can generate in background
+                console.log(`[Course Creation] Routing to createHtmlVideoSlideWithCode for: ${slide.slideTitle}`);
+                console.log(`[Course Creation] AI Video Data:`, {
+                    hasVideoId: !!slide.aiVideoData?.videoId,
+                    hasScriptUrl: !!slide.aiVideoData?.scriptUrl,
+                    videoId: slide.aiVideoData?.videoId,
+                    scriptUrl: slide.aiVideoData?.scriptUrl,
+                });
+                await createHtmlVideoSlideWithCode(params);
                 break;
             default:
                 // Default to document slide for unknown types
+                console.log(`[Course Creation] Unknown slide type "${slide.slideType}", routing to createDocumentSlide for: ${slide.slideTitle}`);
                 await createDocumentSlide(params);
                 break;
         }
+        console.log(`[Course Creation] ✓ Successfully completed createSlide for: "${slide.slideTitle}"`);
     } catch (error) {
-        console.error(`Failed to create slide ${slide.slideTitle}:`, error);
-        // Continue with other slides even if one fails
+        console.error(`[Course Creation] ❌ Failed to create slide "${slide.slideTitle}" (type: ${slide.slideType}):`, error);
+        if (error instanceof Error) {
+            console.error(`[Course Creation] Error message: ${error.message}`);
+            console.error(`[Course Creation] Error stack: ${error.stack}`);
+        }
+        // Re-throw the error so it can be caught by the calling function
+        throw error;
     }
 }
 
@@ -702,21 +730,17 @@ async function createHtmlVideoSlide(params: CreateSlideParams): Promise<void> {
     const truncate = (str: string, max: number = 250) =>
         str ? (str.length > max ? str.substring(0, max - 3) + '...' : str) : '';
 
-    if (!slide.aiVideoData?.videoId) {
-        console.warn(
-            `[Course Creation] HTML_VIDEO slide requires videoId, falling back to regular video slide`
-        );
-        await createVideoSlide(params);
-        return;
-    }
-
     const safeTitle = truncate(slide.slideTitle);
     const safeDescription = truncate(slide.content || '');
     const videoId = slide.aiVideoData.videoId;
 
+    // Use videoId if available, otherwise use scriptUrl, or a placeholder that will be updated when video is ready
+    // For AI_VIDEO slides, we always create HTML_VIDEO type even if video isn't ready yet
+    const videoId = slide.aiVideoData?.videoId || slide.aiVideoData?.scriptUrl || 'pending';
+
     // Get video length from aiVideoData if available, otherwise default to 0
     // Note: videoLengthInMillis might not be in the type, so we use any access
-    const videoLengthInMillis = (slide.aiVideoData as any).videoLengthInMillis || 0;
+    const videoLengthInMillis = slide.aiVideoData ? ((slide.aiVideoData as any).videoLengthInMillis || 0) : 0;
 
     // Build payload for HTML_VIDEO slide
     // Note: The backend should accept this structure with source_type: 'HTML_VIDEO'
@@ -741,13 +765,172 @@ async function createHtmlVideoSlide(params: CreateSlideParams): Promise<void> {
 
     // Use the HTML_VIDEO slide endpoint
     const apiUrl = `${ADD_UPDATE_HTML_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${instituteId}&packageSessionId=${packageSessionIds}&moduleId=${moduleId}&subjectId=${subjectId}`;
-    console.log(`[Course Creation] Creating HTML_VIDEO slide API URL:`, apiUrl);
-    console.log(
-        `[Course Creation] HTML_VIDEO slide - chapterId: ${chapterId}, slideOrder: ${slideOrder}, videoId: ${videoId}`
-    );
+    console.log(`[Course Creation] ========== Creating HTML_VIDEO slide ==========`);
+    console.log(`[Course Creation] API URL:`, apiUrl);
+    console.log(`[Course Creation] Slide details:`, {
+        title: safeTitle,
+        chapterId,
+        slideOrder,
+        videoId,
+    });
+    console.log(`[Course Creation] Full payload:`, JSON.stringify(payload, null, 2));
 
-    const response = await authenticatedAxiosInstance.post(apiUrl, payload);
-    console.log(`[Course Creation] HTML_VIDEO slide API response:`, response.data);
+    try {
+        const response = await authenticatedAxiosInstance.post(apiUrl, payload);
+        console.log(`[Course Creation] ✓ HTML_VIDEO slide API response:`, response.data);
+        console.log(`[Course Creation] Response status: ${response.status}`);
+    } catch (apiError: any) {
+        console.error(`[Course Creation] ❌ API Error creating HTML_VIDEO slide:`, apiError);
+        console.error(`[Course Creation] Error response:`, apiError.response?.data);
+        console.error(`[Course Creation] Error status:`, apiError.response?.status);
+        console.error(`[Course Creation] Error message:`, apiError.message);
+        throw apiError; // Re-throw to be caught by createSlide
+    }
+}
+
+/**
+ * Creates an HTML_VIDEO slide with code editor config for AI-generated videos with code
+ */
+async function createHtmlVideoSlideWithCode(params: CreateSlideParams): Promise<void> {
+    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } = params;
+
+    // Strict truncation to 250 to avoid backend 511 error (character varying(255))
+    const truncate = (str: string, max: number = 250) =>
+        str ? (str.length > max ? str.substring(0, max - 3) + "..." : str) : "";
+
+    const safeTitle = truncate(slide.slideTitle);
+    const safeDescription = truncate(slide.content || '');
+
+    // Extract videoId from multiple possible sources:
+    // 1. slide.aiVideoData.videoId (primary source)
+    // 2. slide.aiVideoData.scriptUrl (fallback)
+    // 3. slide.content parsed as JSON with video.videoId (for AI_VIDEO_CODE structure)
+    // 4. 'pending' as last resort
+    let videoId = slide.aiVideoData?.videoId || slide.aiVideoData?.scriptUrl || null;
+
+    // Get video length from aiVideoData if available, otherwise default to 0
+    const videoLengthInMillis = slide.aiVideoData ? ((slide.aiVideoData as any).videoLengthInMillis || 0) : 0;
+
+    // Extract code content and language from slide content
+    let codeContent = '';
+    let codeLanguage = 'python';
+    let codeTheme = 'dark';
+    let layout = 'split-right';
+
+    try {
+        if (slide.content) {
+            try {
+                const parsed = JSON.parse(slide.content);
+
+                // Check if videoId is in parsed.video.videoId (for AI_VIDEO_CODE structure)
+                if (!videoId && parsed.video?.videoId) {
+                    videoId = parsed.video.videoId;
+                    console.log(`[Course Creation] Extracted videoId from content.video.videoId: ${videoId}`);
+                }
+
+                // Also check parsed.video.scriptUrl as fallback
+                if (!videoId && parsed.video?.scriptUrl) {
+                    videoId = parsed.video.scriptUrl;
+                    console.log(`[Course Creation] Extracted videoId from content.video.scriptUrl: ${videoId}`);
+                }
+
+                if (parsed.code) {
+                    codeContent = parsed.code.content || '';
+                    codeLanguage = parsed.code.language || 'python';
+                    codeTheme = parsed.code.theme || 'dark';
+                    layout = parsed.code.layout || 'split-right';
+                }
+            } catch (e) {
+                // If content is not JSON, try to extract from text/HTML
+                const textContent = slide.content.toString();
+
+                // Try to extract code block
+                const codeMatch = textContent.match(/```(?:python|javascript|typescript|java|html|css)?\s*\n?([\s\S]*?)\n?```/);
+                if (codeMatch) {
+                    codeContent = codeMatch[1] || '';
+                    if (codeMatch[0].includes('```python')) codeLanguage = 'python';
+                    else if (codeMatch[0].includes('```javascript')) codeLanguage = 'javascript';
+                } else {
+                    // Fallback: try to extract code from HTML pre/code tags
+                    const htmlCodeMatch = textContent.match(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/i);
+                    if (htmlCodeMatch && htmlCodeMatch[1]) {
+                        codeContent = htmlCodeMatch[1];
+                        const langMatch = textContent.match(/<code class="language-([a-z]+)"/i);
+                        if (langMatch && langMatch[1]) {
+                            codeLanguage = langMatch[1];
+                        }
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('[Course Creation] Error extracting code content:', error);
+    }
+
+    // Final fallback: if videoId is still not found, use 'pending'
+    if (!videoId) {
+        videoId = 'pending';
+        console.warn(`[Course Creation] videoId not found for slide "${slide.slideTitle}", using 'pending'`);
+    }
+
+    console.log(`[Course Creation] Final videoId for HTML_VIDEO+CODE slide:`, videoId);
+
+    // Build code_editor_config JSON string
+    const codeEditorConfig = JSON.stringify({
+        enabled: true,
+        layout: layout, // 'split-right' or 'split-left'
+        language: codeLanguage,
+        initial_code: codeContent,
+        theme: codeTheme,
+    });
+
+    // Build payload for HTML_VIDEO slide with code_editor_config
+    const payload = {
+        id: crypto.randomUUID(),
+        title: safeTitle,
+        name: safeTitle,
+        description: safeDescription,
+        image_file_id: '',
+        slide_order: slideOrder,
+        source_type: 'HTML_VIDEO',
+        html_video_slide: {
+            id: crypto.randomUUID(),
+            url: videoId,
+            video_length_in_millis: videoLengthInMillis,
+            ai_gen_video_id: videoId,
+            code_editor_config: codeEditorConfig,
+        },
+        status: 'PUBLISHED',
+        new_slide: true,
+        notify: false,
+    };
+
+    // Use the HTML_VIDEO slide endpoint
+    const apiUrl = `${ADD_UPDATE_HTML_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${instituteId}&packageSessionId=${packageSessionIds}&moduleId=${moduleId}&subjectId=${subjectId}`;
+    console.log(`[Course Creation] ========== Creating HTML_VIDEO slide with code editor ==========`);
+    console.log(`[Course Creation] API URL:`, apiUrl);
+    console.log(`[Course Creation] Slide details:`, {
+        title: safeTitle,
+        chapterId,
+        slideOrder,
+        videoId,
+        codeLanguage,
+        codeContentLength: codeContent.length,
+        codeEditorConfig,
+    });
+    console.log(`[Course Creation] Full payload:`, JSON.stringify(payload, null, 2));
+
+    try {
+        const response = await authenticatedAxiosInstance.post(apiUrl, payload);
+        console.log(`[Course Creation] ✓ HTML_VIDEO slide with code API response:`, response.data);
+        console.log(`[Course Creation] Response status: ${response.status}`);
+    } catch (apiError: any) {
+        console.error(`[Course Creation] ❌ API Error creating HTML_VIDEO slide with code:`, apiError);
+        console.error(`[Course Creation] Error response:`, apiError.response?.data);
+        console.error(`[Course Creation] Error status:`, apiError.response?.status);
+        console.error(`[Course Creation] Error message:`, apiError.message);
+        throw apiError; // Re-throw to be caught by createSlide
+    }
 }
 
 /**
