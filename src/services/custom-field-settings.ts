@@ -1,6 +1,10 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { getInstituteId } from '@/constants/helper';
-import { GET_INSITITUTE_SETTINGS, UPDATE_CUSTOM_FIELD_SETTINGS } from '@/constants/urls';
+import {
+    GET_CUSTOM_FIELD_LIST_WITH_USAGE,
+    GET_INSITITUTE_SETTINGS,
+    UPDATE_CUSTOM_FIELD_SETTINGS,
+} from '@/constants/urls';
 
 const CUSTOM_FIELD_SETTINGS_KEY = 'CUSTOM_FIELD_SETTING';
 const LOCALSTORAGE_KEY = 'custom-field-settings-cache';
@@ -72,6 +76,23 @@ export interface ApiCustomFieldResponse {
     };
 }
 
+export interface ApiCustomFieldUsageItem {
+    custom_field: {
+        id: string; // uuid
+        fieldKey: string;
+        fieldName: string;
+        fieldType: string;
+        instituteId: string;
+        status: string;
+        config?: string;
+    };
+    enroll_invite_count: number;
+    audience_count: number;
+    default?: boolean;
+}
+
+export type ApiCustomFieldUsageResponse = ApiCustomFieldUsageItem[];
+
 // API Request Types (what we send to UPDATE_CUSTOM_FIELD_SETTINGS)
 // Note: The API expects snake_case field names
 export interface ApiCustomFieldRequest {
@@ -101,10 +122,16 @@ export interface SystemField {
     visibility: boolean;
 }
 
-// UI Types (for our components)
+export interface CustomFieldUsage {
+    enrollInviteCount: number;
+    audienceCount: number;
+    isDefault: boolean;
+}
+
+// Field Visibility Interface
 export interface FieldVisibility {
-    learnersList: boolean;
     campaign: boolean;
+    learnersList: boolean;
     learnerEnrollment: boolean;
     enrollRequestList: boolean;
     inviteList: boolean;
@@ -113,18 +140,35 @@ export interface FieldVisibility {
     learnerProfile: boolean;
 }
 
+// Fixed Field (system/fixed but editable visibility)
+export interface FixedField {
+    id: string; // uuid
+    name: string;
+    type: string; // usually 'text'
+    required: boolean;
+    visibility: FieldVisibility;
+    order: number;
+    canBeDeleted: boolean;
+    canBeEdited: boolean;
+    canBeRenamed: boolean; // Usually false for fixed fields
+    groupName: string | null;
+    usage?: CustomFieldUsage;
+}
+
+// Custom Field (fully editable)
 export interface CustomField {
-    id: string; // customFieldId from API
+    id: string; // uuid
     name: string;
     type: 'text' | 'dropdown' | 'number';
-    options?: string[];
-    visibility: FieldVisibility;
+    options?: string[]; // for dropdown
     required: boolean;
+    visibility: FieldVisibility;
+    order: number;
     canBeDeleted: boolean;
     canBeEdited: boolean;
     canBeRenamed: boolean;
-    order: number;
-    groupName?: string | null; // Comma-separated group names if field is in multiple groups
+    groupName: string | null;
+    usage?: CustomFieldUsage;
 }
 
 // Type for creating new custom fields (without ID - backend will assign)
@@ -135,18 +179,6 @@ export interface NewCustomField {
     visibility: FieldVisibility;
     required: boolean;
     order?: number;
-}
-
-export interface FixedField {
-    id: string; // customFieldId from API
-    name: string;
-    visibility: FieldVisibility;
-    required: boolean;
-    canBeDeleted: boolean;
-    canBeEdited: boolean;
-    canBeRenamed: boolean;
-    order: number;
-    groupName?: string | null; // Comma-separated group names if field is in multiple groups
 }
 
 export interface FieldGroup {
@@ -168,7 +200,7 @@ export interface GroupField {
     canBeRenamed: boolean;
     order: number;
     groupInternalOrder: number;
-    groupName?: string | null; // Comma-separated group names if field is in multiple groups
+    groupName: string | null; // Comma-separated group names if field is in multiple groups
 }
 
 // Type for creating new group fields (without ID - backend will assign)
@@ -451,6 +483,7 @@ const mapApiFieldToFixedField = (apiField: ApiCustomField): FixedField => {
     return {
         id: apiField.customFieldId,
         name: apiField.fieldName,
+        type: apiField.fieldType,
         visibility: mapLocationsToVisibility(apiField.locations),
         required: true, // System fields are typically required
         canBeDeleted: apiField.canBeDeleted,
@@ -1217,29 +1250,165 @@ const fetchCustomFieldSettingsFromAPI = async (): Promise<CustomFieldSettingsDat
             throw new Error('Institute ID not found. Please log in again.');
         }
 
-        const response = await authenticatedAxiosInstance.get<ApiCustomFieldResponse>(
-            GET_INSITITUTE_SETTINGS,
-            {
+        const [settingsResponse, usageResponse] = await Promise.all([
+            authenticatedAxiosInstance.get<ApiCustomFieldResponse>(GET_INSITITUTE_SETTINGS, {
                 params: {
                     instituteId,
                     settingKey: CUSTOM_FIELD_SETTINGS_KEY,
                 },
-            }
-        );
+            }),
+            authenticatedAxiosInstance.get<ApiCustomFieldUsageResponse>(
+                GET_CUSTOM_FIELD_LIST_WITH_USAGE,
+                {
+                    params: {
+                        instituteId,
+                    },
+                }
+            ),
+        ]);
 
         let settings: CustomFieldSettingsData;
 
         // If we get a successful response with data, map it to UI format
-        if (response.data && response.data.data) {
+        if (settingsResponse.data && settingsResponse.data.data) {
+            const apiData = settingsResponse.data.data.data;
+
+            // Merge usage data into apiData
+            if (usageResponse.data && Array.isArray(usageResponse.data)) {
+                const existingFieldIds = new Set<string>();
+
+                // Track existing fields from currentCustomFieldsAndGroups
+                if (Array.isArray(apiData.currentCustomFieldsAndGroups)) {
+                    apiData.currentCustomFieldsAndGroups.forEach((f) =>
+                        existingFieldIds.add(f.customFieldId)
+                    );
+                }
+
+                // Track existing fields from customGroup
+                if (apiData.customGroup) {
+                    Object.values(apiData.customGroup).forEach((f) =>
+                        existingFieldIds.add(f.customFieldId)
+                    );
+                }
+
+                // Track fixed fields to avoid duplicates
+                if (Array.isArray(apiData.fixedCustomFields)) {
+                    apiData.fixedCustomFields.forEach((id) => existingFieldIds.add(id));
+                }
+
+                usageResponse.data.forEach((usageItem) => {
+                    const fieldId = usageItem.custom_field.id;
+                    if (!fieldId) return;
+
+                    if (!existingFieldIds.has(fieldId)) {
+                        console.log(
+                            `[DEBUG] Found new field in usage list: ${usageItem.custom_field.fieldName} (${fieldId})`
+                        );
+
+                        // Construct a default ApiCustomField
+                        // We default to 'text' if type is unknown or missing, though usageItem should have it
+                        const newField: ApiCustomField = {
+                            id: '', // Backend internal ID (different from customFieldId usually, but here likely unused or generated)
+                            customFieldId: fieldId,
+                            instituteId: usageItem.custom_field.instituteId || instituteId,
+                            groupName: null,
+                            fieldName: usageItem.custom_field.fieldName,
+                            fieldType:
+                                (usageItem.custom_field.fieldType as
+                                    | 'text'
+                                    | 'number'
+                                    | 'dropdown') || 'text',
+                            individualOrder: 999, // Append to end
+                            groupInternalOrder: null,
+                            canBeDeleted: true,
+                            canBeEdited: true, // Assuming editable
+                            canBeRenamed: true,
+                            locations: [], // Default to no visibility until configured
+                            status: usageItem.custom_field.status || 'ACTIVE',
+                            config: usageItem.custom_field.config,
+                        };
+
+                        // Add to currentCustomFieldsAndGroups
+                        if (!apiData.currentCustomFieldsAndGroups) {
+                            apiData.currentCustomFieldsAndGroups = [];
+                        }
+                        apiData.currentCustomFieldsAndGroups.push(newField);
+
+                        // Add to allCustomFields
+                        if (!apiData.allCustomFields) {
+                            apiData.allCustomFields = [];
+                        }
+                        apiData.allCustomFields.push(fieldId);
+
+                        // Add to customFieldsNames
+                        if (!apiData.customFieldsNames) {
+                            apiData.customFieldsNames = [];
+                        }
+                        apiData.customFieldsNames.push(newField.fieldName);
+
+                        // Add to existing IDs set to prevent double adding if logic changes
+                        existingFieldIds.add(fieldId);
+                    }
+                });
+            }
+
             // Store original API data for preservation during save operations
-            setOriginalApiData(response.data.data.data);
+            setOriginalApiData(apiData);
 
             // Check if the data has the expected structure
-            if (!response.data.data.data?.allCustomFields) {
+            if (!settingsResponse.data.data.data?.allCustomFields) {
                 console.warn('🚨 [DEBUG] API response missing allCustomFields - using empty array');
             }
 
-            settings = mapApiResponseToUI(response.data);
+            settings = mapApiResponseToUI(settingsResponse.data);
+
+            // Attach usage data
+            if (usageResponse.data && Array.isArray(usageResponse.data)) {
+                const usageMap = new Map<string, CustomFieldUsage>();
+                usageResponse.data.forEach((item) => {
+                    if (item.custom_field?.id) {
+                        usageMap.set(item.custom_field.id, {
+                            enrollInviteCount: item.enroll_invite_count,
+                            audienceCount: item.audience_count,
+                            isDefault: item.default ?? false,
+                        });
+                    }
+                });
+
+                // Attach to instituteFields
+                settings.instituteFields.forEach((field) => {
+                    if (usageMap.has(field.id)) {
+                        field.usage = usageMap.get(field.id);
+                    }
+                });
+
+                // Attach to customFields
+                settings.customFields.forEach((field) => {
+                    if (usageMap.has(field.id)) {
+                        field.usage = usageMap.get(field.id);
+                    }
+                });
+
+                // Attach to fixedFields (if applicable, though IDs usually match customFieldId)
+                settings.fixedFields.forEach((field) => {
+                    if (usageMap.has(field.id)) {
+                        field.usage = usageMap.get(field.id);
+                    }
+                });
+
+                // Attach to group fields
+                settings.fieldGroups.forEach((group) => {
+                    group.fields.forEach((field) => {
+                        if (usageMap.has(field.id)) {
+                            // Cast to any because GroupField interface needs update too if we want strict typing there
+                            // But since GroupField extends CustomField variants effectively in UI, it might work if Types imply it.
+                            // Actually safely casting or adding to interface is better.
+                            // Let's assume usage is on the base object.
+                            (field as unknown as CustomField).usage = usageMap.get(field.id);
+                        }
+                    });
+                });
+            }
 
             // Validate that we actually got some fields
             const totalFields =
@@ -1253,12 +1422,10 @@ const fetchCustomFieldSettingsFromAPI = async (): Promise<CustomFieldSettingsDat
             }
         } else {
             // If no data found, throw error - we must have backend data
-
             throw new Error('No custom field settings found in backend. Please contact support.');
         }
 
         // Cache the settings - this is critical for the UI to work
-
         setCachedSettings(settings);
 
         return settings;
@@ -1573,6 +1740,7 @@ export const createCustomFieldWorkflow = async (
         canBeDeleted: true,
         canBeEdited: true,
         canBeRenamed: true,
+        groupName: null,
     };
 
     return simulatedBackendResponse;

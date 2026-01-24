@@ -69,7 +69,6 @@ import {
     getCustomFieldSettings,
     saveCustomFieldSettings,
     createTempCustomField,
-    isTempField,
     type CustomFieldSettingsData,
     type CustomField as ServiceCustomField,
     type FixedField as ServiceFixedField,
@@ -78,6 +77,7 @@ import {
     type FieldVisibility as ServiceFieldVisibility,
     type SystemField as ServiceSystemField,
 } from '@/services/custom-field-settings';
+import { SystemToCustomFieldMapping } from './SystemToCustomFieldMapping';
 import { toast } from 'sonner';
 
 // Use service types for the component
@@ -796,16 +796,17 @@ const CustomFieldsSettings: React.FC = () => {
 
     const handleAddGroup = () => {
         if (newGroup.name && newGroup.fields && newGroup.fields.length > 0) {
+            const groupName = newGroup.name;
             // Create a new group with proper structure and add groupName to each field
             const groupWithId: FieldGroup = {
                 id: `temp_group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                name: newGroup.name,
+                name: groupName,
                 fields: newGroup.fields.map((field, index) => {
                     // Add or append group name to the field
                     const existingGroupName = field.groupName;
                     const updatedGroupName = existingGroupName
-                        ? `${existingGroupName},${newGroup.name}`
-                        : newGroup.name;
+                        ? `${existingGroupName},${groupName}`
+                        : groupName;
 
                     return {
                         ...field,
@@ -823,8 +824,8 @@ const CustomFieldsSettings: React.FC = () => {
                     if (selectedFields.has(field.id)) {
                         const existingGroupName = field.groupName;
                         const updatedGroupName = existingGroupName
-                            ? `${existingGroupName},${newGroup.name}`
-                            : newGroup.name;
+                            ? `${existingGroupName},${groupName}`
+                            : groupName;
                         return { ...field, groupName: updatedGroupName };
                     }
                     return field;
@@ -837,8 +838,8 @@ const CustomFieldsSettings: React.FC = () => {
                     if (selectedFields.has(field.id)) {
                         const existingGroupName = field.groupName;
                         const updatedGroupName = existingGroupName
-                            ? `${existingGroupName},${newGroup.name}`
-                            : newGroup.name;
+                            ? `${existingGroupName},${groupName}`
+                            : groupName;
                         return { ...field, groupName: updatedGroupName };
                     }
                     return field;
@@ -851,8 +852,8 @@ const CustomFieldsSettings: React.FC = () => {
                     if (selectedFields.has(field.id)) {
                         const existingGroupName = field.groupName;
                         const updatedGroupName = existingGroupName
-                            ? `${existingGroupName},${newGroup.name}`
-                            : newGroup.name;
+                            ? `${existingGroupName},${groupName}`
+                            : groupName;
                         return { ...field, groupName: updatedGroupName };
                     }
                     return field;
@@ -871,8 +872,8 @@ const CustomFieldsSettings: React.FC = () => {
                                     fields: g.fields.map((field) => {
                                         const existingGroupName = field.groupName;
                                         const updatedGroupName = existingGroupName
-                                            ? `${existingGroupName},${newGroup.name}`
-                                            : newGroup.name;
+                                            ? `${existingGroupName},${groupName}`
+                                            : groupName;
                                         return { ...field, groupName: updatedGroupName };
                                     }),
                                 };
@@ -1642,6 +1643,49 @@ const CustomFieldsSettings: React.FC = () => {
                                                     </Button>
                                                 </div>
 
+                                                {/* Usage Information */}
+                                                <div className="mb-3 ml-8 flex items-center gap-3">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-blue-200 bg-blue-50 text-[10px] text-blue-700 hover:bg-blue-100"
+                                                    >
+                                                        Custom Field
+                                                    </Badge>
+                                                    {field.usage && (
+                                                        <>
+                                                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                                                                <span
+                                                                    className="flex items-center gap-1.5"
+                                                                    title="Number of times used in invite lists"
+                                                                >
+                                                                    <span className="font-medium text-gray-700">
+                                                                        Invites:
+                                                                    </span>
+                                                                    {field.usage.enrollInviteCount}
+                                                                </span>
+                                                                <span className="h-3 w-px bg-gray-300" />
+                                                                <span
+                                                                    className="flex items-center gap-1.5"
+                                                                    title="Number of times used in audience lists"
+                                                                >
+                                                                    <span className="font-medium text-gray-700">
+                                                                        Audience:
+                                                                    </span>
+                                                                    {field.usage.audienceCount}
+                                                                </span>
+                                                            </div>
+                                                            {field.usage.isDefault && (
+                                                                <Badge
+                                                                    variant="secondary"
+                                                                    className="bg-gray-100 text-[10px] text-gray-600 hover:bg-gray-200"
+                                                                >
+                                                                    Default
+                                                                </Badge>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
+
                                                 {/* Visibility Controls */}
                                                 <div className="mb-3">
                                                     <div className="flex flex-wrap gap-2">
@@ -1755,6 +1799,49 @@ const CustomFieldsSettings: React.FC = () => {
                                                     >
                                                         <Trash2 className="size-4" />
                                                     </Button>
+                                                </div>
+
+                                                {/* Usage Information */}
+                                                <div className="mb-3 ml-8 flex items-center gap-3">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-blue-200 bg-blue-50 text-[10px] text-blue-700 hover:bg-blue-100"
+                                                    >
+                                                        Custom Field
+                                                    </Badge>
+                                                    {field.usage && (
+                                                        <>
+                                                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                                                                <span
+                                                                    className="flex items-center gap-1.5"
+                                                                    title="Number of times used in invite lists"
+                                                                >
+                                                                    <span className="font-medium text-gray-700">
+                                                                        Invites:
+                                                                    </span>
+                                                                    {field.usage.enrollInviteCount}
+                                                                </span>
+                                                                <span className="h-3 w-px bg-gray-300" />
+                                                                <span
+                                                                    className="flex items-center gap-1.5"
+                                                                    title="Number of times used in audience lists"
+                                                                >
+                                                                    <span className="font-medium text-gray-700">
+                                                                        Audience:
+                                                                    </span>
+                                                                    {field.usage.audienceCount}
+                                                                </span>
+                                                            </div>
+                                                            {field.usage.isDefault && (
+                                                                <Badge
+                                                                    variant="secondary"
+                                                                    className="bg-gray-100 text-[10px] text-gray-600 hover:bg-gray-200"
+                                                                >
+                                                                    Default
+                                                                </Badge>
+                                                            )}
+                                                        </>
+                                                    )}
                                                 </div>
 
                                                 {/* Visibility Controls */}
@@ -2443,6 +2530,9 @@ const CustomFieldsSettings: React.FC = () => {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
+                {/* System Field Mapping Section */}
+                <SystemToCustomFieldMapping />
             </div>
         </DndContext>
     );
