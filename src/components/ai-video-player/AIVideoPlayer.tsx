@@ -42,6 +42,23 @@ class HtmlContentProcessor {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+        <!-- Rough Notation for Hand-drawn Annotations -->
+        <script src="https://unpkg.com/rough-notation/lib/rough-notation.iife.js"></script>
+
+        <!-- Vivus.js for SVG Path Animations -->
+        <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.6/dist/vivus.min.js"></script>
+
+        <!-- KaTeX for Math Equations -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyFAMyFwhgL+EPtI1z9dyxF3XuhMjPMJa1UpXed96V7f23ON0UZw12hZ9k/2sH" crossorigin="anonymous"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+
+        <!-- Prism.js for Syntax Highlighting -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
         <style>
             /* Visual cues for interactive elements */
             .hover-target:hover {
@@ -60,10 +77,187 @@ class HtmlContentProcessor {
             }
         </style>
         <script>
+            // ========== AI VIDEO HELPER FUNCTIONS ==========
+
+            // Re-render Math using KaTeX
+            window.renderMath = function(selector) {
+                if (window.renderMathInElement) {
+                     const el = selector ? (typeof selector === 'string' ? document.querySelector(selector) : selector) : document.body;
+                     if(el) {
+                         renderMathInElement(el, {
+                            delimiters: [
+                                {left: '$$', right: '$$', display: true},
+                                {left: '$', right: '$', display: false},
+                                {left: '\\(', right: '\\)', display: false},
+                                {left: '\\[', right: '\\]', display: true}
+                            ],
+                            throwOnError : false
+                        });
+                     }
+                }
+            };
+
+            // Highlight Code using Prism
+            window.highlightCode = function() {
+                if (window.Prism) {
+                    Prism.highlightAll();
+                }
+            };
+
+            // SVG drawing animation
+            window.animateSVG = function(svgIdOrEl, duration, callback) {
+              if (window.Vivus) {
+                try {
+                    // Vivus accepts ID string or element. If it's a selector string that isn't an ID, find the element.
+                    let target = svgIdOrEl;
+                    if (typeof svgIdOrEl === 'string' && svgIdOrEl.includes('#') === false && svgIdOrEl.includes('.') === true) {
+                        target = document.querySelector(svgIdOrEl);
+                    }
+
+                    if (target) {
+                        new Vivus(target, {
+                          duration: duration || 100,
+                          type: 'oneByOne',
+                          animTimingFunction: Vivus.EASE_OUT
+                        }, callback || function() {});
+                    }
+                } catch (e) {
+                    console.warn('Vivus error:', e);
+                }
+              }
+            };
+
+            // Hand-drawn annotation (underline, circle, highlight, box)
+            window.annotate = function(selectorOrEl, options) {
+              if (window.RoughNotation) {
+                const el = typeof selectorOrEl === 'string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+                if (el) {
+                  const annotation = RoughNotation.annotate(el, {
+                    type: options.type || 'underline',
+                    color: options.color || '#dc2626',
+                    strokeWidth: options.strokeWidth || 3,
+                    padding: options.padding || 5,
+                    animationDuration: options.duration || 800
+                  });
+                  annotation.show();
+                  return annotation;
+                }
+              }
+              return null;
+            };
+
+            // Simple fade in
+            window.fadeIn = function(selector, duration, delay) {
+              try {
+                  gsap.fromTo(selector,
+                    {opacity: 0},
+                    {opacity: 1, duration: duration || 0.5, delay: delay || 0, ease: 'power2.out'}
+                  );
+              } catch (e) { console.warn('fadeIn error', e); }
+            };
+
+            // Typewriter effect
+            window.typewriter = function(selectorOrEl, duration, delay) {
+              const el = typeof selectorOrEl === 'string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+              if (!el) return;
+              const text = el.textContent;
+              el.textContent = '';
+              el.style.opacity = '1';
+              let i = 0;
+              const speed = (duration || 1) * 1000 / text.length;
+              setTimeout(() => {
+                const interval = setInterval(() => {
+                  if (i < text.length) {
+                    el.textContent += text.charAt(i);
+                    i++;
+                  } else {
+                    clearInterval(interval);
+                  }
+                }, speed);
+              }, (delay || 0) * 1000);
+            };
+
+            // Pop in with scale
+            window.popIn = function(selector, duration, delay) {
+              try {
+                  gsap.fromTo(selector,
+                    {opacity: 0, scale: 0.85},
+                    {opacity: 1, scale: 1, duration: duration || 0.4, delay: delay || 0, ease: 'back.out(1.7)'}
+                  );
+              } catch (e) { console.warn('popIn error', e); }
+            };
+
+            // Slide up from below
+            window.slideUp = function(selector, duration, delay) {
+              try {
+                  gsap.fromTo(selector,
+                    {opacity: 0, y: 30},
+                    {opacity: 1, y: 0, duration: duration || 0.5, delay: delay || 0, ease: 'power2.out'}
+                  );
+              } catch (e) { console.warn('slideUp error', e); }
+            };
+
+            // Reveal lines with stagger
+            window.revealLines = function(selectorOrEl, staggerDelay) {
+              const el = typeof selectorOrEl === 'string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+              if (!el) return;
+              const lines = el.querySelectorAll('.line');
+              if (lines.length === 0) {
+                window.fadeIn(el, 0.5);
+                return;
+              }
+              gsap.fromTo(lines,
+                {opacity: 0, y: 20},
+                {opacity: 1, y: 0, duration: 0.4, stagger: staggerDelay || 0.3, ease: 'power2.out'}
+              );
+            };
+
+            // Show text then annotate a key term
+            window.showThenAnnotate = function(textSelector, termSelector, annotationType, annotationColor, textDelay, annotationDelay) {
+              window.fadeIn(textSelector, 0.5, textDelay || 0);
+              setTimeout(() => {
+                window.annotate(termSelector, {
+                  type: annotationType || 'underline',
+                  color: annotationColor || '#dc2626',
+                  duration: 600
+                });
+              }, ((textDelay || 0) + (annotationDelay || 0.8)) * 1000);
+            };
+
+            // Sound effects (optional)
+            window.sounds = {
+              pop: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
+              click: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
+              whoosh: 'https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3',
+              success: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'
+            };
+
+            // Play sound effect
+            window.playSound = function(soundName) {
+              if (window.sounds && window.sounds[soundName]) {
+                const audio = new Audio(window.sounds[soundName]);
+                audio.volume = 0.5;
+                audio.play().catch(e => console.log('Sound play failed:', e));
+              }
+            };
+
+            // Render Mermaid
+            window.renderMermaid = function(selector) {
+                if (window.mermaid) {
+                    try {
+                        mermaid.init(undefined, selector ? document.querySelectorAll(selector) : document.querySelectorAll('.mermaid'));
+                    } catch (e) {
+                        console.error('Mermaid render error:', e);
+                    }
+                }
+            };
+
             window.addEventListener('load', () => {
                 // Initialize Libraries
                 if(window.gsap && window.MotionPathPlugin) gsap.registerPlugin(MotionPathPlugin);
                 if(window.mermaid) mermaid.initialize({startOnLoad:true});
+                if(window.renderMathInElement) window.renderMath();
+                if(window.Prism) window.highlightCode();
             });
         </script>
     `;
