@@ -82,6 +82,59 @@ class HtmlContentProcessor {
                 cursor: text;
                 min-width: 10px;
             }
+
+            /* Key Takeaway Card */
+            .key-takeaway {
+              display: flex;
+              align-items: center;
+              gap: 20px;
+              padding: 24px 32px;
+              border-left: 5px solid #10b981;
+              background: rgba(16, 185, 129, 0.1);
+              margin: 20px 0;
+            }
+            .takeaway-icon { font-size: 48px; }
+            .takeaway-label {
+              font-size: 14px;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              color: #10b981;
+              font-weight: 700;
+            }
+            .takeaway-text {
+              font-size: 28px;
+              margin-top: 8px;
+              font-weight: 600;
+            }
+
+            /* Wrong vs Right Pattern */
+            .wrong-right-container {
+              display: flex;
+              gap: 40px;
+              width: 100%;
+            }
+            .wrong-box, .right-box {
+              flex: 1;
+              padding: 24px;
+              border-radius: 12px;
+            }
+            .wrong-box {
+              border: 3px solid #ef4444;
+              background: rgba(239, 68, 68, 0.1);
+            }
+            .right-box {
+              border: 3px solid #10b981;
+              background: rgba(16, 185, 129, 0.1);
+            }
+            .wr-header {
+              font-size: 18px;
+              font-weight: 700;
+              margin-bottom: 12px;
+            }
+            .wrong-box .wr-header { color: #ef4444; }
+            .right-box .wr-header { color: #10b981; }
+            .wr-icon { font-size: 24px; margin-right: 8px; }
+            .wr-text { font-size: 24px; }
         </style>
         <script>
             // ========== AI VIDEO HELPER FUNCTIONS ==========
@@ -118,24 +171,31 @@ class HtmlContentProcessor {
             // SVG drawing animation
             window.animateSVG = function(svgId, duration, callback) {
               if (window.Vivus) {
+                var cb = typeof callback === 'function' ? callback : undefined;
                 try {
-                    var cb = typeof callback === 'function' ? callback : undefined;
-                    // Vivus accepts ID string or element. If it's a selector string that isn't an ID, find the element.
-                    let target = svgId;
-                    if (typeof svgId === 'string' && svgId.includes('#') === false && svgId.includes('.') === true) {
-                        target = document.querySelector(svgId);
-                    }
+                    // Check if svgId is a selector string that isn't an ID, and if so, handle it to avoid Vivus constructor error if it expects ID or element
+                    // The user requested simpler version matches: new Vivus(svgId, { ... }, cb);
+                    // However, we must ensure 'svgId' is valid for Vivus (ID string or Element).
+                    // Vivus constructor: new Vivus('my-svg-id', ...) OR new Vivus(document.getElementById('...'), ...)
 
-                    if (target) {
-                        new Vivus(target, {
+                    let target = svgId;
+                    if (typeof svgId === 'string' && !svgId.startsWith('#') && !document.getElementById(svgId)) {
+                        // If it's a string but not an ID ref, maybe it's a query selector?
+                        // User request: window.animateSVG = function(svgId, duration, callback) { ... new Vivus(svgId ... }
+                        // I will implement exactly as requested but wrap in try-catch for safety
+                        new Vivus(svgId, {
+                          duration: duration || 100,
+                          type: 'oneByOne',
+                          animTimingFunction: Vivus.EASE_OUT
+                        }, cb);
+                    } else {
+                         new Vivus(svgId, {
                           duration: duration || 100,
                           type: 'oneByOne',
                           animTimingFunction: Vivus.EASE_OUT
                         }, cb);
                     }
-                } catch (e) {
-                    console.warn('Vivus error:', e);
-                }
+                } catch(e) { console.warn('Vivus init error', e); }
               }
             };
 
