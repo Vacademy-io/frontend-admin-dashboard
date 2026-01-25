@@ -41,6 +41,13 @@ class HtmlContentProcessor {
         const libs = `
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MorphSVGPlugin.min.js"></script>
+        <script>
+            // Fallback for MorphSVGPlugin to prevent ReferenceErrors if CDN fails (premium plugin)
+            if (typeof window.MorphSVGPlugin === 'undefined') {
+                window.MorphSVGPlugin = { version: '3.12.5', name: 'MorphSVGPlugin', default: {} };
+            }
+        </script>
         <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 
         <!-- Rough Notation for Hand-drawn Annotations -->
@@ -50,9 +57,9 @@ class HtmlContentProcessor {
         <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.6/dist/vivus.min.js"></script>
 
         <!-- KaTeX for Math Equations -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyFAMyFwhgL+EPtI1z9dyxF3XuhMjPMJa1UpXed96V7f23ON0UZw12hZ9k/2sH" crossorigin="anonymous"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
         <!-- Prism.js for Syntax Highlighting -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
@@ -81,18 +88,22 @@ class HtmlContentProcessor {
 
             // Re-render Math using KaTeX
             window.renderMath = function(selector) {
-                if (window.renderMathInElement) {
+                if (window.renderMathInElement && window.katex) {
                      const el = selector ? (typeof selector === 'string' ? document.querySelector(selector) : selector) : document.body;
                      if(el) {
-                         renderMathInElement(el, {
-                            delimiters: [
-                                {left: '$$', right: '$$', display: true},
-                                {left: '$', right: '$', display: false},
-                                {left: '\\(', right: '\\)', display: false},
-                                {left: '\\[', right: '\\]', display: true}
-                            ],
-                            throwOnError : false
-                        });
+                         try {
+                             renderMathInElement(el, {
+                                delimiters: [
+                                    {left: '$$', right: '$$', display: true},
+                                    {left: '$', right: '$', display: false},
+                                    {left: '\\(', right: '\\)', display: false},
+                                    {left: '\\[', right: '\\]', display: true}
+                                ],
+                                throwOnError : false
+                            });
+                         } catch (e) {
+                             console.warn('KaTeX render error:', e);
+                         }
                      }
                 }
             };
@@ -105,13 +116,14 @@ class HtmlContentProcessor {
             };
 
             // SVG drawing animation
-            window.animateSVG = function(svgIdOrEl, duration, callback) {
+            window.animateSVG = function(svgId, duration, callback) {
               if (window.Vivus) {
                 try {
+                    var cb = typeof callback === 'function' ? callback : undefined;
                     // Vivus accepts ID string or element. If it's a selector string that isn't an ID, find the element.
-                    let target = svgIdOrEl;
-                    if (typeof svgIdOrEl === 'string' && svgIdOrEl.includes('#') === false && svgIdOrEl.includes('.') === true) {
-                        target = document.querySelector(svgIdOrEl);
+                    let target = svgId;
+                    if (typeof svgId === 'string' && svgId.includes('#') === false && svgId.includes('.') === true) {
+                        target = document.querySelector(svgId);
                     }
 
                     if (target) {
@@ -119,7 +131,7 @@ class HtmlContentProcessor {
                           duration: duration || 100,
                           type: 'oneByOne',
                           animTimingFunction: Vivus.EASE_OUT
-                        }, callback || function() {});
+                        }, cb);
                     }
                 } catch (e) {
                     console.warn('Vivus error:', e);
@@ -254,9 +266,30 @@ class HtmlContentProcessor {
 
             window.addEventListener('load', () => {
                 // Initialize Libraries
-                if(window.gsap && window.MotionPathPlugin) gsap.registerPlugin(MotionPathPlugin);
+                if(window.gsap) {
+                   if(window.MotionPathPlugin) gsap.registerPlugin(MotionPathPlugin);
+                   if(window.MorphSVGPlugin && typeof window.MorphSVGPlugin.version === 'string') {
+                       // Only register if it looks like a real plugin (or our mock if safe)
+                       // If it's the mock, registering it might fail if GSAP expects specific structure.
+                       // Actually, registerPlugin simply adds it.
+                       try { gsap.registerPlugin(MorphSVGPlugin); } catch(e) { console.warn('MorphSVG registration failed', e); }
+                   }
+                }
+
+                // Shim RoughNotation.annotateAll if missing
+                if (window.RoughNotation && !window.RoughNotation.annotateAll) {
+                    window.RoughNotation.annotateAll = function(annotations) {
+                        if (Array.isArray(annotations) && window.RoughNotation.annotationGroup) {
+                             const group = window.RoughNotation.annotationGroup(annotations);
+                             group.show();
+                        } else if (Array.isArray(annotations)) {
+                             annotations.forEach(a => a.show && a.show());
+                        }
+                    };
+                }
+
                 if(window.mermaid) mermaid.initialize({startOnLoad:true});
-                if(window.renderMathInElement) window.renderMath();
+                if(window.renderMathInElement && window.katex) window.renderMath();
                 if(window.Prism) window.highlightCode();
             });
         </script>
