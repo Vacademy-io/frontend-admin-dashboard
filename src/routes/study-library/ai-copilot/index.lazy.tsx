@@ -8,9 +8,22 @@ import { MyButton } from '@/components/design-system/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from '@/components/ui/dialog';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -21,8 +34,31 @@ import { getInstituteId } from '@/constants/helper';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { toast } from 'sonner';
-import { X, FileText, Sparkles, Link, AlertTriangle, Plus, Trash2, Info, Key, CheckCircle, BookOpen, Clock, Layers, Code, Video, HelpCircle, FileQuestion, Lightbulb, Upload, ChevronDown } from 'lucide-react';
+import {
+    X,
+    FileText,
+    Sparkles,
+    Link,
+    AlertTriangle,
+    Plus,
+    Trash2,
+    Info,
+    Key,
+    CheckCircle,
+    BookOpen,
+    Clock,
+    Layers,
+    Code,
+    Video,
+    HelpCircle,
+    FileQuestion,
+    Lightbulb,
+    Upload,
+    ChevronDown,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { scrapeUrlContent } from '@/services/aiCourseApi';
+import { Loader2 } from 'lucide-react';
 
 export const Route = createLazyFileRoute('/study-library/ai-copilot/')({
     component: RouteComponent,
@@ -43,19 +79,21 @@ interface PrerequisiteFile {
 interface PrerequisiteUrl {
     url: string;
     id: string;
+    title?: string;
+    content?: string;
 }
 
 // Bubble Button Component
-const BubbleButton = ({ 
-    icon: Icon, 
-    label, 
-    value, 
-    onClick, 
+const BubbleButton = ({
+    icon: Icon,
+    label,
+    value,
+    onClick,
     isActive = false,
     status,
-}: { 
-    icon: React.ComponentType<{ className?: string }>; 
-    label: string; 
+}: {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
     value?: string;
     onClick: () => void;
     isActive?: boolean;
@@ -64,7 +102,8 @@ const BubbleButton = ({
     const statusColors = {
         success: 'border-green-300 bg-green-50 text-green-700',
         warning: 'border-amber-300 bg-amber-50 text-amber-700',
-        default: 'border-neutral-200 bg-white text-neutral-700 hover:border-indigo-300 hover:bg-indigo-50',
+        default:
+            'border-neutral-200 bg-white text-neutral-700 hover:border-indigo-300 hover:bg-indigo-50',
     };
 
     return (
@@ -75,13 +114,15 @@ const BubbleButton = ({
             whileTap={{ scale: 0.98 }}
             className={cn(
                 'flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm transition-all',
-                isActive ? 'border-indigo-400 bg-indigo-100 text-indigo-700' : statusColors[status || 'default']
+                isActive
+                    ? 'border-indigo-400 bg-indigo-100 text-indigo-700'
+                    : statusColors[status || 'default']
             )}
         >
-            <Icon className="h-3.5 w-3.5" />
+            <Icon className="size-3.5" />
             <span>{label}</span>
             {value && <span className="text-[10px] opacity-70">({value})</span>}
-            {status === 'success' && <CheckCircle className="h-3 w-3 text-green-600" />}
+            {status === 'success' && <CheckCircle className="size-3 text-green-600" />}
         </motion.button>
     );
 };
@@ -139,12 +180,17 @@ function RouteComponent() {
     });
     const [models, setModels] = useState<Array<{ id: string; name: string; provider: string }>>([]);
     const [isLoadingModels, setIsLoadingModels] = useState(false);
+    const [isScraping, setIsScraping] = useState(false);
 
     // Dialog states for bubbles
     const [showKeysDialog, setShowKeysDialog] = useState(false);
     const [showStructureDialog, setShowStructureDialog] = useState(false);
     const [showContentDialog, setShowContentDialog] = useState(false);
     const [showReferencesDialog, setShowReferencesDialog] = useState(false);
+    const [viewingReference, setViewingReference] = useState<{
+        title?: string;
+        content?: string;
+    } | null>(null);
 
     const instituteId = getInstituteId();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -155,9 +201,7 @@ function RouteComponent() {
     const checkUserKeys = useCallback(async () => {
         if (!userId) return;
         try {
-            const url = new URL(
-                `${AI_SERVICE_BASE_URL}/api-keys/v1/user/${userId}`
-            );
+            const url = new URL(`${AI_SERVICE_BASE_URL}/api-keys/v1/user/${userId}`);
             if (instituteId) {
                 url.searchParams.append('institute_id', instituteId);
             }
@@ -207,9 +251,9 @@ function RouteComponent() {
     const fetchModels = useCallback(async () => {
         setIsLoadingModels(true);
         try {
-            const response = await authenticatedAxiosInstance.get<{ models: Array<{ id: string; name: string; provider: string }> }>(
-                `${AI_SERVICE_BASE_URL}/models/v1/list`
-            );
+            const response = await authenticatedAxiosInstance.get<{
+                models: Array<{ id: string; name: string; provider: string }>;
+            }>(`${AI_SERVICE_BASE_URL}/models/v1/list`);
             setModels(response.data.models || []);
         } catch (error) {
             console.error('Error fetching models:', error);
@@ -246,7 +290,12 @@ function RouteComponent() {
 
     const handleDeleteUserKey = async (type: 'openai' | 'gemini') => {
         if (!userId) return;
-        if (!confirm(`Are you sure you want to delete the ${type === 'openai' ? 'OpenRouter' : 'Gemini'} key?`)) return;
+        if (
+            !confirm(
+                `Are you sure you want to delete the ${type === 'openai' ? 'OpenRouter' : 'Gemini'} key?`
+            )
+        )
+            return;
 
         try {
             await authenticatedAxiosInstance.delete(
@@ -301,53 +350,68 @@ function RouteComponent() {
         setPrerequisiteUrls((prev) => prev.filter((url) => url.id !== id));
     };
 
-    const onPrerequisiteDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
-        if (rejectedFiles.length > 0) {
-            rejectedFiles.forEach((rejection) => {
-                if (rejection.errors) {
-                    rejection.errors.forEach((error: any) => {
-                        if (error.code === 'file-too-large') {
-                            alert(`File "${rejection.file.name}" exceeds the maximum size of 512 MB`);
-                        } else if (error.code === 'file-invalid-type') {
-                            alert(`File "${rejection.file.name}" is not a valid type. Only PDF, DOC, DOCX, CSV, and XLSX files are allowed.`);
-                        } else {
-                            alert(`Error with file "${rejection.file.name}": ${error.message}`);
-                        }
-                    });
+    const onPrerequisiteDrop = useCallback(
+        (acceptedFiles: File[], rejectedFiles: any[]) => {
+            if (rejectedFiles.length > 0) {
+                rejectedFiles.forEach((rejection) => {
+                    if (rejection.errors) {
+                        rejection.errors.forEach((error: any) => {
+                            if (error.code === 'file-too-large') {
+                                alert(
+                                    `File "${rejection.file.name}" exceeds the maximum size of 512 MB`
+                                );
+                            } else if (error.code === 'file-invalid-type') {
+                                alert(
+                                    `File "${rejection.file.name}" is not a valid type. Only PDF, DOC, DOCX, CSV, and XLSX files are allowed.`
+                                );
+                            } else {
+                                alert(`Error with file "${rejection.file.name}": ${error.message}`);
+                            }
+                        });
+                    }
+                });
+            }
+
+            const maxFileSize = 512 * 1024 * 1024;
+            const validFiles = acceptedFiles.filter((file) => {
+                if (file.size > maxFileSize) {
+                    alert(`File "${file.name}" exceeds the maximum size of 512 MB`);
+                    return false;
                 }
+                return true;
             });
-        }
 
-        const maxFileSize = 512 * 1024 * 1024;
-        const validFiles = acceptedFiles.filter((file) => {
-            if (file.size > maxFileSize) {
-                alert(`File "${file.name}" exceeds the maximum size of 512 MB`);
-                return false;
+            const currentFileCount = prerequisiteFiles.length;
+            const newFileCount = validFiles.length;
+            if (currentFileCount + newFileCount > 5) {
+                const remainingSlots = 5 - currentFileCount;
+                if (remainingSlots > 0) {
+                    alert(
+                        `You can only upload up to 5 files. ${remainingSlots} slot(s) remaining. Only the first ${remainingSlots} file(s) will be added.`
+                    );
+                    validFiles.splice(remainingSlots);
+                } else {
+                    alert(
+                        'You have already reached the maximum limit of 5 files. Please remove some files before adding new ones.'
+                    );
+                    return;
+                }
             }
-            return true;
-        });
 
-        const currentFileCount = prerequisiteFiles.length;
-        const newFileCount = validFiles.length;
-        if (currentFileCount + newFileCount > 5) {
-            const remainingSlots = 5 - currentFileCount;
-            if (remainingSlots > 0) {
-                alert(`You can only upload up to 5 files. ${remainingSlots} slot(s) remaining. Only the first ${remainingSlots} file(s) will be added.`);
-                validFiles.splice(remainingSlots);
-            } else {
-                alert('You have already reached the maximum limit of 5 files. Please remove some files before adding new ones.');
-                return;
-            }
-        }
+            const newFiles: PrerequisiteFile[] = validFiles.map((file) => ({
+                file,
+                id: `${Date.now()}-${Math.random()}`,
+            }));
+            setPrerequisiteFiles((prev) => [...prev, ...newFiles]);
+        },
+        [prerequisiteFiles]
+    );
 
-        const newFiles: PrerequisiteFile[] = validFiles.map((file) => ({
-            file,
-            id: `${Date.now()}-${Math.random()}`,
-        }));
-        setPrerequisiteFiles((prev) => [...prev, ...newFiles]);
-    }, [prerequisiteFiles]);
-
-    const { getRootProps: getPrerequisiteRootProps, getInputProps: getPrerequisiteInputProps, isDragActive: isPrerequisiteDragActive } = useDropzone({
+    const {
+        getRootProps: getPrerequisiteRootProps,
+        getInputProps: getPrerequisiteInputProps,
+        isDragActive: isPrerequisiteDragActive,
+    } = useDropzone({
         onDrop: onPrerequisiteDrop,
         accept: {
             'application/pdf': ['.pdf'],
@@ -366,13 +430,39 @@ function RouteComponent() {
         setPrerequisiteFiles((prev) => prev.filter((f) => f.id !== id));
     };
 
-    const handleAddReferenceUrl = () => {
+    const handleAddReferenceUrl = async () => {
         if (newReferenceUrl.trim()) {
-            setReferenceUrls((prev) => [
-                ...prev,
-                { url: newReferenceUrl.trim(), id: `${Date.now()}-${Math.random()}` },
-            ]);
-            setNewReferenceUrl('');
+            const urlToAdd = newReferenceUrl.trim();
+            setIsScraping(true);
+            try {
+                // Optimistically add to list with loading state
+                const tempId = `${Date.now()}-${Math.random()}`;
+
+                // Fetch content
+                const data = await scrapeUrlContent(urlToAdd);
+
+                setReferenceUrls((prev) => [
+                    ...prev,
+                    {
+                        url: urlToAdd,
+                        id: tempId,
+                        title: data.title,
+                        content: data.content,
+                    },
+                ]);
+                toast.success('URL added and content fetched successfully');
+            } catch (error) {
+                console.error('Failed to scrape URL:', error);
+                toast.error('Could not fetch URL content, but added as reference');
+                // Add without content if scraping fails
+                setReferenceUrls((prev) => [
+                    ...prev,
+                    { url: urlToAdd, id: `${Date.now()}-${Math.random()}` },
+                ]);
+            } finally {
+                setIsScraping(false);
+                setNewReferenceUrl('');
+            }
         }
     };
 
@@ -380,53 +470,68 @@ function RouteComponent() {
         setReferenceUrls((prev) => prev.filter((url) => url.id !== id));
     };
 
-    const onReferenceDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
-        if (rejectedFiles.length > 0) {
-            rejectedFiles.forEach((rejection) => {
-                if (rejection.errors) {
-                    rejection.errors.forEach((error: any) => {
-                        if (error.code === 'file-too-large') {
-                            alert(`File "${rejection.file.name}" exceeds the maximum size of 512 MB`);
-                        } else if (error.code === 'file-invalid-type') {
-                            alert(`File "${rejection.file.name}" is not a valid type. Only PDF, DOC, DOCX, CSV, and XLSX files are allowed.`);
-                        } else {
-                            alert(`Error with file "${rejection.file.name}": ${error.message}`);
-                        }
-                    });
+    const onReferenceDrop = useCallback(
+        (acceptedFiles: File[], rejectedFiles: any[]) => {
+            if (rejectedFiles.length > 0) {
+                rejectedFiles.forEach((rejection) => {
+                    if (rejection.errors) {
+                        rejection.errors.forEach((error: any) => {
+                            if (error.code === 'file-too-large') {
+                                alert(
+                                    `File "${rejection.file.name}" exceeds the maximum size of 512 MB`
+                                );
+                            } else if (error.code === 'file-invalid-type') {
+                                alert(
+                                    `File "${rejection.file.name}" is not a valid type. Only PDF, DOC, DOCX, CSV, and XLSX files are allowed.`
+                                );
+                            } else {
+                                alert(`Error with file "${rejection.file.name}": ${error.message}`);
+                            }
+                        });
+                    }
+                });
+            }
+
+            const maxFileSize = 512 * 1024 * 1024;
+            const validFiles = acceptedFiles.filter((file) => {
+                if (file.size > maxFileSize) {
+                    alert(`File "${file.name}" exceeds the maximum size of 512 MB`);
+                    return false;
                 }
+                return true;
             });
-        }
 
-        const maxFileSize = 512 * 1024 * 1024;
-        const validFiles = acceptedFiles.filter((file) => {
-            if (file.size > maxFileSize) {
-                alert(`File "${file.name}" exceeds the maximum size of 512 MB`);
-                return false;
+            const currentFileCount = referenceFiles.length;
+            const newFileCount = validFiles.length;
+            if (currentFileCount + newFileCount > 5) {
+                const remainingSlots = 5 - currentFileCount;
+                if (remainingSlots > 0) {
+                    alert(
+                        `You can only upload up to 5 files. ${remainingSlots} slot(s) remaining. Only the first ${remainingSlots} file(s) will be added.`
+                    );
+                    validFiles.splice(remainingSlots);
+                } else {
+                    alert(
+                        'You have already reached the maximum limit of 5 files. Please remove some files before adding new ones.'
+                    );
+                    return;
+                }
             }
-            return true;
-        });
 
-        const currentFileCount = referenceFiles.length;
-        const newFileCount = validFiles.length;
-        if (currentFileCount + newFileCount > 5) {
-            const remainingSlots = 5 - currentFileCount;
-            if (remainingSlots > 0) {
-                alert(`You can only upload up to 5 files. ${remainingSlots} slot(s) remaining. Only the first ${remainingSlots} file(s) will be added.`);
-                validFiles.splice(remainingSlots);
-            } else {
-                alert('You have already reached the maximum limit of 5 files. Please remove some files before adding new ones.');
-                return;
-            }
-        }
+            const newFiles: PrerequisiteFile[] = validFiles.map((file) => ({
+                file,
+                id: `${Date.now()}-${Math.random()}`,
+            }));
+            setReferenceFiles((prev) => [...prev, ...newFiles]);
+        },
+        [referenceFiles]
+    );
 
-        const newFiles: PrerequisiteFile[] = validFiles.map((file) => ({
-            file,
-            id: `${Date.now()}-${Math.random()}`,
-        }));
-        setReferenceFiles((prev) => [...prev, ...newFiles]);
-    }, [referenceFiles]);
-
-    const { getRootProps: getReferenceRootProps, getInputProps: getReferenceInputProps, isDragActive: isReferenceDragActive } = useDropzone({
+    const {
+        getRootProps: getReferenceRootProps,
+        getInputProps: getReferenceInputProps,
+        isDragActive: isReferenceDragActive,
+    } = useDropzone({
         onDrop: onReferenceDrop,
         accept: {
             'application/pdf': ['.pdf'],
@@ -462,8 +567,19 @@ function RouteComponent() {
     const handleConfirmGenerate = () => {
         const finalCourseLength = chapterLength === 'custom' ? customChapterLength : chapterLength;
 
+        // Prepare context from references
+        let contextData = '';
+        if (referenceUrls.some((u) => u.content)) {
+            contextData += '\n\nREFERENCE MATERIALS:\n';
+            referenceUrls.forEach((url, idx) => {
+                if (url.content) {
+                    contextData += `\n--- Source ${idx + 1}: ${url.title || url.url} ---\n${url.content}\n`;
+                }
+            });
+        }
+
         const courseConfig = {
-            prompt: courseGoal,
+            prompt: courseGoal + contextData,
             learnerProfile: {
                 ageRange: ageRange || undefined,
                 skillLevel: skillLevel || undefined,
@@ -512,7 +628,7 @@ function RouteComponent() {
         sessionStorage.setItem('courseConfig', JSON.stringify(courseConfig));
         setShowConfirmDialog(false);
         navigate({
-            to: '/study-library/ai-copilot/course-outline/generating'
+            to: '/study-library/ai-copilot/course-outline/generating',
         });
     };
 
@@ -549,14 +665,15 @@ function RouteComponent() {
                         transition={{ duration: 0.4 }}
                         className="mb-4 text-center"
                     >
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                            <Sparkles className="h-6 w-6 text-indigo-500" />
+                        <div className="mb-2 flex items-center justify-center gap-2">
+                            <Sparkles className="size-6 text-indigo-500" />
                             <h1 className="text-2xl font-semibold text-neutral-900">
                                 Create Course with AI
                             </h1>
                         </div>
                         <p className="text-sm text-gray-600">
-                            Describe your course idea and let AI generate a complete learning experience
+                            Describe your course idea and let AI generate a complete learning
+                            experience
                         </p>
                     </motion.div>
 
@@ -567,7 +684,7 @@ function RouteComponent() {
                         transition={{ duration: 0.4, delay: 0.1 }}
                         className="mb-3"
                     >
-                        <div className="flex flex-wrap gap-1.5 justify-center">
+                        <div className="flex flex-wrap justify-center gap-1.5">
                             {examplePrompts.map((prompt, index) => (
                                 <button
                                     key={index}
@@ -600,14 +717,16 @@ function RouteComponent() {
 
                         {/* Bubbles Row 1 - Core Settings */}
                         <div className="mb-1">
-                            <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Course Settings</span>
+                            <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-400">
+                                Course Settings
+                            </span>
                         </div>
-                        <div className="flex flex-wrap gap-2 mb-3">
+                        <div className="mb-3 flex flex-wrap gap-2">
                             {/* Skill Level Dropdown */}
                             <Select value={skillLevel} onValueChange={setSkillLevel}>
-                                <SelectTrigger className="w-auto h-8 rounded-full border-neutral-200 bg-white px-3 text-xs">
+                                <SelectTrigger className="h-8 w-auto rounded-full border-neutral-200 bg-white px-3 text-xs">
                                     <div className="flex items-center gap-1.5">
-                                        <Layers className="h-3.5 w-3.5 text-neutral-500" />
+                                        <Layers className="size-3.5 text-neutral-500" />
                                         <SelectValue placeholder="Skill Level" />
                                     </div>
                                 </SelectTrigger>
@@ -620,16 +739,18 @@ function RouteComponent() {
 
                             {/* AI Model Dropdown */}
                             <Select value={selectedModel} onValueChange={setSelectedModel}>
-                                <SelectTrigger className="w-auto h-8 rounded-full border-neutral-200 bg-white px-3 text-xs">
+                                <SelectTrigger className="h-8 w-auto rounded-full border-neutral-200 bg-white px-3 text-xs">
                                     <div className="flex items-center gap-1.5">
-                                        <Sparkles className="h-3.5 w-3.5 text-neutral-500" />
+                                        <Sparkles className="size-3.5 text-neutral-500" />
                                         <SelectValue placeholder="AI Model" />
                                     </div>
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="auto">Auto (Smart)</SelectItem>
                                     {isLoadingModels ? (
-                                        <div className="px-2 py-1.5 text-xs text-gray-500">Loading...</div>
+                                        <div className="px-2 py-1.5 text-xs text-gray-500">
+                                            Loading...
+                                        </div>
                                     ) : models.length > 0 ? (
                                         models.map((model) => (
                                             <SelectItem key={model.id} value={model.id}>
@@ -639,9 +760,15 @@ function RouteComponent() {
                                     ) : (
                                         <>
                                             <SelectItem value="openai/gpt-4o">GPT-4o</SelectItem>
-                                            <SelectItem value="openai/gpt-4o-mini">GPT-4o Mini</SelectItem>
-                                            <SelectItem value="google/gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
-                                            <SelectItem value="google/gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
+                                            <SelectItem value="openai/gpt-4o-mini">
+                                                GPT-4o Mini
+                                            </SelectItem>
+                                            <SelectItem value="google/gemini-1.5-pro">
+                                                Gemini 1.5 Pro
+                                            </SelectItem>
+                                            <SelectItem value="google/gemini-1.5-flash">
+                                                Gemini 1.5 Flash
+                                            </SelectItem>
                                         </>
                                     )}
                                 </SelectContent>
@@ -649,9 +776,9 @@ function RouteComponent() {
 
                             {/* Number of Chapters Dropdown */}
                             <Select value={numberOfChapters} onValueChange={setNumberOfChapters}>
-                                <SelectTrigger className="w-auto h-8 rounded-full border-neutral-200 bg-white px-3 text-xs">
+                                <SelectTrigger className="h-8 w-auto rounded-full border-neutral-200 bg-white px-3 text-xs">
                                     <div className="flex items-center gap-1.5">
-                                        <BookOpen className="h-3.5 w-3.5 text-neutral-500" />
+                                        <BookOpen className="size-3.5 text-neutral-500" />
                                         <SelectValue placeholder="Chapters" />
                                     </div>
                                 </SelectTrigger>
@@ -667,9 +794,9 @@ function RouteComponent() {
 
                             {/* Course Length Dropdown */}
                             <Select value={chapterLength} onValueChange={setChapterLength}>
-                                <SelectTrigger className="w-auto h-8 rounded-full border-neutral-200 bg-white px-3 text-xs">
+                                <SelectTrigger className="h-8 w-auto rounded-full border-neutral-200 bg-white px-3 text-xs">
                                     <div className="flex items-center gap-1.5">
-                                        <Clock className="h-3.5 w-3.5 text-neutral-500" />
+                                        <Clock className="size-3.5 text-neutral-500" />
                                         <SelectValue placeholder="Duration" />
                                     </div>
                                 </SelectTrigger>
@@ -685,9 +812,9 @@ function RouteComponent() {
 
                             {/* Slides per Chapter Dropdown */}
                             <Select value={slidesPerChapter} onValueChange={setSlidesPerChapter}>
-                                <SelectTrigger className="w-auto h-8 rounded-full border-neutral-200 bg-white px-3 text-xs">
+                                <SelectTrigger className="h-8 w-auto rounded-full border-neutral-200 bg-white px-3 text-xs">
                                     <div className="flex items-center gap-1.5">
-                                        <FileText className="h-3.5 w-3.5 text-neutral-500" />
+                                        <FileText className="size-3.5 text-neutral-500" />
                                         <SelectValue placeholder="Slides/Chapter" />
                                     </div>
                                 </SelectTrigger>
@@ -703,14 +830,16 @@ function RouteComponent() {
 
                         {/* Custom inputs for chapters/duration if needed */}
                         {(numberOfChapters === 'custom' || chapterLength === 'custom') && (
-                            <div className="flex gap-2 mb-3">
+                            <div className="mb-3 flex gap-2">
                                 {numberOfChapters === 'custom' && (
                                     <Input
                                         type="number"
-                                        value={numberOfChapters === 'custom' ? '' : numberOfChapters}
+                                        value={
+                                            numberOfChapters === 'custom' ? '' : numberOfChapters
+                                        }
                                         onChange={(e) => setNumberOfChapters(e.target.value)}
                                         placeholder="Enter number of chapters"
-                                        className="h-8 text-xs w-40"
+                                        className="h-8 w-40 text-xs"
                                     />
                                 )}
                                 {chapterLength === 'custom' && (
@@ -719,7 +848,7 @@ function RouteComponent() {
                                         value={customChapterLength}
                                         onChange={(e) => setCustomChapterLength(e.target.value)}
                                         placeholder="Minutes"
-                                        className="h-8 text-xs w-32"
+                                        className="h-8 w-32 text-xs"
                                     />
                                 )}
                             </div>
@@ -727,14 +856,20 @@ function RouteComponent() {
 
                         {/* Bubbles Row 2 - Content Options & Actions */}
                         <div className="mb-1">
-                            <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Additional Options</span>
+                            <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-400">
+                                Additional Options
+                            </span>
                         </div>
-                        <div className="flex flex-wrap gap-2 mb-4">
+                        <div className="mb-4 flex flex-wrap gap-2">
                             {/* Content Options Bubble */}
                             <BubbleButton
                                 icon={Lightbulb}
                                 label="Content Options"
-                                value={activeContentOptions > 0 ? `${activeContentOptions} selected` : undefined}
+                                value={
+                                    activeContentOptions > 0
+                                        ? `${activeContentOptions} selected`
+                                        : undefined
+                                }
                                 onClick={() => setShowContentDialog(true)}
                                 isActive={activeContentOptions > 0}
                             />
@@ -744,7 +879,11 @@ function RouteComponent() {
                                 <BubbleButton
                                     icon={Layers}
                                     label="Structure"
-                                    value={numberOfModules || numberOfSubjects ? 'Configured' : undefined}
+                                    value={
+                                        numberOfModules || numberOfSubjects
+                                            ? 'Configured'
+                                            : undefined
+                                    }
                                     onClick={() => setShowStructureDialog(true)}
                                     isActive={!!(numberOfModules || numberOfSubjects)}
                                 />
@@ -764,7 +903,11 @@ function RouteComponent() {
                                 icon={Key}
                                 label="API Keys"
                                 onClick={() => setShowKeysDialog(true)}
-                                status={userKeysStatus.hasOpenAI || userKeysStatus.hasGemini ? 'success' : 'default'}
+                                status={
+                                    userKeysStatus.hasOpenAI || userKeysStatus.hasGemini
+                                        ? 'success'
+                                        : 'default'
+                                }
                             />
                         </div>
 
@@ -775,7 +918,7 @@ function RouteComponent() {
                             disabled={!courseGoal.trim()}
                             className="w-full shadow-lg shadow-indigo-200"
                         >
-                            <Sparkles className="h-4 w-4 mr-2" />
+                            <Sparkles className="mr-2 size-4" />
                             Generate Course Outline
                         </MyButton>
                     </motion.div>
@@ -787,77 +930,94 @@ function RouteComponent() {
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <Lightbulb className="h-5 w-5 text-indigo-600" />
+                            <Lightbulb className="size-5 text-indigo-600" />
                             Content Options
                         </DialogTitle>
-                        <DialogDescription>
-                            Select what to include in your course
-                        </DialogDescription>
+                        <DialogDescription>Select what to include in your course</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-4">
                         <div className="grid grid-cols-2 gap-3">
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex cursor-pointer items-center gap-2">
                                 <Checkbox
                                     checked={includeDiagrams}
-                                    onCheckedChange={(checked) => setIncludeDiagrams(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        setIncludeDiagrams(checked === true)
+                                    }
                                 />
                                 <span className="text-sm">Diagrams</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex cursor-pointer items-center gap-2">
                                 <Checkbox
                                     checked={includeCodeSnippets}
-                                    onCheckedChange={(checked) => setIncludeCodeSnippets(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        setIncludeCodeSnippets(checked === true)
+                                    }
                                 />
                                 <span className="text-sm">Code Snippets</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex cursor-pointer items-center gap-2">
                                 <Checkbox
                                     checked={includePracticeProblems}
-                                    onCheckedChange={(checked) => setIncludePracticeProblems(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        setIncludePracticeProblems(checked === true)
+                                    }
                                 />
                                 <span className="text-sm">Practice Problems</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex cursor-pointer items-center gap-2">
                                 <Checkbox
                                     checked={includeQuizzes}
-                                    onCheckedChange={(checked) => setIncludeQuizzes(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        setIncludeQuizzes(checked === true)
+                                    }
                                 />
                                 <span className="text-sm">Quizzes</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex cursor-pointer items-center gap-2">
                                 <Checkbox
                                     checked={includeHomework}
-                                    onCheckedChange={(checked) => setIncludeHomework(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        setIncludeHomework(checked === true)
+                                    }
                                 />
                                 <span className="text-sm">Assignments</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex cursor-pointer items-center gap-2">
                                 <Checkbox
                                     checked={includeSolutions}
-                                    onCheckedChange={(checked) => setIncludeSolutions(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        setIncludeSolutions(checked === true)
+                                    }
                                 />
                                 <span className="text-sm">Solutions</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex cursor-pointer items-center gap-2">
                                 <Checkbox
                                     checked={includeYouTubeVideo}
-                                    onCheckedChange={(checked) => setIncludeYouTubeVideo(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        setIncludeYouTubeVideo(checked === true)
+                                    }
                                 />
                                 <span className="text-sm">YouTube Videos</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex cursor-pointer items-center gap-2">
                                 <Checkbox
                                     checked={includeAIGeneratedVideo}
-                                    onCheckedChange={(checked) => setIncludeAIGeneratedVideo(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        setIncludeAIGeneratedVideo(checked === true)
+                                    }
                                 />
                                 <span className="text-sm">AI Videos</span>
                             </label>
                         </div>
 
                         {includeCodeSnippets && (
-                            <div className="pt-2 border-t">
-                                <Label className="text-sm mb-2 block">Programming Language</Label>
-                                <Select value={programmingLanguage} onValueChange={setProgrammingLanguage}>
+                            <div className="border-t pt-2">
+                                <Label className="mb-2 block text-sm">Programming Language</Label>
+                                <Select
+                                    value={programmingLanguage}
+                                    onValueChange={setProgrammingLanguage}
+                                >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select language" />
                                     </SelectTrigger>
@@ -892,18 +1052,19 @@ function RouteComponent() {
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <Layers className="h-5 w-5 text-indigo-600" />
+                            <Layers className="size-5 text-indigo-600" />
                             Course Structure
                         </DialogTitle>
-                        <DialogDescription>
-                            Configure advanced course hierarchy
-                        </DialogDescription>
+                        <DialogDescription>Configure advanced course hierarchy</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         {courseDepth > 4 && (
                             <div>
-                                <Label className="text-sm mb-2 block">Number of Subjects</Label>
-                                <Select value={numberOfSubjects} onValueChange={setNumberOfSubjects}>
+                                <Label className="mb-2 block text-sm">Number of Subjects</Label>
+                                <Select
+                                    value={numberOfSubjects}
+                                    onValueChange={setNumberOfSubjects}
+                                >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select subjects" />
                                     </SelectTrigger>
@@ -919,7 +1080,7 @@ function RouteComponent() {
                         )}
                         {courseDepth > 3 && (
                             <div>
-                                <Label className="text-sm mb-2 block">Number of Modules</Label>
+                                <Label className="mb-2 block text-sm">Number of Modules</Label>
                                 <Select value={numberOfModules} onValueChange={setNumberOfModules}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select modules" />
@@ -936,7 +1097,10 @@ function RouteComponent() {
                         )}
                     </div>
                     <DialogFooter>
-                        <MyButton buttonType="primary" onClick={() => setShowStructureDialog(false)}>
+                        <MyButton
+                            buttonType="primary"
+                            onClick={() => setShowStructureDialog(false)}
+                        >
                             Done
                         </MyButton>
                     </DialogFooter>
@@ -948,17 +1112,17 @@ function RouteComponent() {
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <Link className="h-5 w-5 text-indigo-600" />
+                            <Link className="size-5 text-indigo-600" />
                             References
                         </DialogTitle>
                         <DialogDescription>
                             Add URLs or files for the AI to reference
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4 max-h-[400px] overflow-y-auto">
+                    <div className="max-h-[400px] space-y-4 overflow-y-auto py-4">
                         {/* URL Input */}
                         <div>
-                            <Label className="text-sm mb-2 block">Add URL</Label>
+                            <Label className="mb-2 block text-sm">Add URL</Label>
                             <div className="flex gap-2">
                                 <Input
                                     value={newReferenceUrl}
@@ -976,9 +1140,13 @@ function RouteComponent() {
                                     type="button"
                                     variant="outline"
                                     onClick={handleAddReferenceUrl}
-                                    disabled={!newReferenceUrl.trim()}
+                                    disabled={!newReferenceUrl.trim() || isScraping}
                                 >
-                                    <Plus className="h-4 w-4" />
+                                    {isScraping ? (
+                                        <Loader2 className="size-4 animate-spin" />
+                                    ) : (
+                                        <Plus className="size-4" />
+                                    )}
                                 </Button>
                             </div>
                         </div>
@@ -991,14 +1159,36 @@ function RouteComponent() {
                                         key={url.id}
                                         className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
                                     >
-                                        <Link className="h-3.5 w-3.5" />
-                                        <span className="max-w-[200px] truncate">{url.url}</span>
+                                        <Link className="size-3.5" />
+                                        <button
+                                            type="button"
+                                            className="max-w-[200px] truncate text-left hover:underline"
+                                            onClick={() => {
+                                                if (url.content) {
+                                                    setViewingReference({
+                                                        title: url.title || url.url,
+                                                        content: url.content,
+                                                    });
+                                                }
+                                            }}
+                                            title={
+                                                url.content
+                                                    ? 'Click to view content'
+                                                    : 'No content fetched'
+                                            }
+                                            disabled={!url.content}
+                                        >
+                                            {url.url}
+                                        </button>
+                                        {url.content && (
+                                            <CheckCircle className="size-3 text-green-500" />
+                                        )}
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveReferenceUrl(url.id)}
                                             className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
                                         >
-                                            <X className="h-3 w-3" />
+                                            <X className="size-3" />
                                         </button>
                                     </div>
                                 ))}
@@ -1007,7 +1197,7 @@ function RouteComponent() {
 
                         {/* File Upload */}
                         <div>
-                            <Label className="text-sm mb-2 block">Upload Files</Label>
+                            <Label className="mb-2 block text-sm">Upload Files</Label>
                             <div
                                 {...getReferenceRootProps()}
                                 className={cn(
@@ -1018,7 +1208,7 @@ function RouteComponent() {
                                 )}
                             >
                                 <input {...getReferenceInputProps()} />
-                                <Upload className="h-5 w-5 text-neutral-400" />
+                                <Upload className="size-5 text-neutral-400" />
                                 <span className="text-xs text-neutral-500">
                                     Drop files or click (PDF, DOC, CSV, XLSX)
                                 </span>
@@ -1033,14 +1223,16 @@ function RouteComponent() {
                                         key={file.id}
                                         className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
                                     >
-                                        <FileText className="h-3.5 w-3.5" />
-                                        <span className="max-w-[150px] truncate">{file.file.name}</span>
+                                        <FileText className="size-3.5" />
+                                        <span className="max-w-[150px] truncate">
+                                            {file.file.name}
+                                        </span>
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveReferenceFile(file.id)}
                                             className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
                                         >
-                                            <X className="h-3 w-3" />
+                                            <X className="size-3" />
                                         </button>
                                     </div>
                                 ))}
@@ -1048,9 +1240,32 @@ function RouteComponent() {
                         )}
                     </div>
                     <DialogFooter>
-                        <MyButton buttonType="primary" onClick={() => setShowReferencesDialog(false)}>
+                        <MyButton
+                            buttonType="primary"
+                            onClick={() => setShowReferencesDialog(false)}
+                        >
                             Done
                         </MyButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* View Reference Content Dialog */}
+            <Dialog
+                open={!!viewingReference}
+                onOpenChange={(open) => !open && setViewingReference(null)}
+            >
+                <DialogContent className="flex max-h-[80vh] max-w-2xl flex-col">
+                    <DialogHeader>
+                        <DialogTitle className="truncate pr-8">
+                            {viewingReference?.title || 'Reference Content'}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-y-auto whitespace-pre-wrap rounded-md border bg-neutral-50 p-4 font-mono text-sm">
+                        {viewingReference?.content}
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setViewingReference(null)}>Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -1060,21 +1275,19 @@ function RouteComponent() {
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <Key className="h-5 w-5 text-indigo-600" />
+                            <Key className="size-5 text-indigo-600" />
                             API Keys
                         </DialogTitle>
-                        <DialogDescription>
-                            Add your API keys for AI generation
-                        </DialogDescription>
+                        <DialogDescription>Add your API keys for AI generation</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         {/* OpenRouter Key */}
                         <div>
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="mb-2 flex items-center justify-between">
                                 <Label className="text-sm">OpenRouter API Key</Label>
                                 {userKeysStatus.hasOpenAI && (
                                     <span className="flex items-center gap-1 text-xs text-green-600">
-                                        <CheckCircle className="h-3 w-3" />
+                                        <CheckCircle className="size-3" />
                                         Added
                                     </span>
                                 )}
@@ -1096,7 +1309,7 @@ function RouteComponent() {
                                         onClick={() => handleSaveUserKey('openai')}
                                         disabled={!openaiKey}
                                     >
-                                        <Plus className="h-4 w-4" />
+                                        <Plus className="size-4" />
                                     </Button>
                                 ) : (
                                     <Button
@@ -1105,7 +1318,7 @@ function RouteComponent() {
                                         onClick={() => handleDeleteUserKey('openai')}
                                         className="text-red-600 hover:text-red-700"
                                     >
-                                        <Trash2 className="h-4 w-4" />
+                                        <Trash2 className="size-4" />
                                     </Button>
                                 )}
                             </div>
@@ -1113,11 +1326,11 @@ function RouteComponent() {
 
                         {/* Gemini Key */}
                         <div>
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="mb-2 flex items-center justify-between">
                                 <Label className="text-sm">Gemini API Key</Label>
                                 {userKeysStatus.hasGemini && (
                                     <span className="flex items-center gap-1 text-xs text-green-600">
-                                        <CheckCircle className="h-3 w-3" />
+                                        <CheckCircle className="size-3" />
                                         Added
                                     </span>
                                 )}
@@ -1139,7 +1352,7 @@ function RouteComponent() {
                                         onClick={() => handleSaveUserKey('gemini')}
                                         disabled={!geminiKey}
                                     >
-                                        <Plus className="h-4 w-4" />
+                                        <Plus className="size-4" />
                                     </Button>
                                 ) : (
                                     <Button
@@ -1148,21 +1361,31 @@ function RouteComponent() {
                                         onClick={() => handleDeleteUserKey('gemini')}
                                         className="text-red-600 hover:text-red-700"
                                     >
-                                        <Trash2 className="h-4 w-4" />
+                                        <Trash2 className="size-4" />
                                     </Button>
                                 )}
                             </div>
                         </div>
 
                         {/* Info Box */}
-                        <div className="rounded-lg bg-indigo-50 p-3 border border-indigo-100">
+                        <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3">
                             <p className="text-xs text-indigo-700">
                                 <strong>How to get keys:</strong> Visit{' '}
-                                <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="underline">
+                                <a
+                                    href="https://openrouter.ai"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline"
+                                >
                                     openrouter.ai
                                 </a>{' '}
                                 or{' '}
-                                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline">
+                                <a
+                                    href="https://aistudio.google.com/app/apikey"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline"
+                                >
                                     Google AI Studio
                                 </a>
                             </p>
@@ -1178,34 +1401,39 @@ function RouteComponent() {
 
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-                <DialogContent className="w-[90vw] max-w-[900px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
-                    <DialogHeader className="flex-shrink-0 bg-white border-b border-neutral-200 px-6 pt-6 pb-4">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
-                                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                <DialogContent className="flex max-h-[90vh] w-[90vw] max-w-[900px] flex-col overflow-hidden p-0">
+                    <DialogHeader className="shrink-0 border-b border-neutral-200 bg-white px-6 pb-4 pt-6">
+                        <div className="mb-2 flex items-center gap-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-amber-100">
+                                <AlertTriangle className="size-5 text-amber-600" />
                             </div>
                             <DialogTitle className="text-xl font-semibold text-neutral-900">
                                 Review Course Details
                             </DialogTitle>
                         </div>
-                        <DialogDescription className="text-sm text-neutral-600 pt-2">
-                            Please review your course configuration below. Once you proceed, you won't be able to return and edit this information.
+                        <DialogDescription className="pt-2 text-sm text-neutral-600">
+                            Please review your course configuration below. Once you proceed, you
+                            won't be able to return and edit this information.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex-1 overflow-y-auto px-6 min-h-0">
+                    <div className="min-h-0 flex-1 overflow-y-auto px-6">
                         <div className="space-y-4 py-4">
                             <div>
-                                <h4 className="text-sm font-semibold text-neutral-900 mb-2">Course Goal</h4>
-                                <p className="text-sm text-neutral-600 bg-neutral-50 rounded-md p-3 border border-neutral-200">
+                                <h4 className="mb-2 text-sm font-semibold text-neutral-900">
+                                    Course Goal
+                                </h4>
+                                <p className="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-600">
                                     {courseGoal || 'Not provided'}
                                 </p>
                             </div>
 
                             {learningOutcome && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-2">Learning Outcome</h4>
-                                    <p className="text-sm text-neutral-600 bg-neutral-50 rounded-md p-3 border border-neutral-200">
+                                    <h4 className="mb-2 text-sm font-semibold text-neutral-900">
+                                        Learning Outcome
+                                    </h4>
+                                    <p className="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-600">
                                         {learningOutcome}
                                     </p>
                                 </div>
@@ -1214,72 +1442,144 @@ function RouteComponent() {
                             <div className="grid grid-cols-2 gap-4">
                                 {skillLevel && (
                                     <div>
-                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Skill Level</h4>
-                                        <p className="text-sm text-neutral-600 capitalize">{skillLevel}</p>
+                                        <h4 className="mb-1 text-sm font-semibold text-neutral-900">
+                                            Skill Level
+                                        </h4>
+                                        <p className="text-sm capitalize text-neutral-600">
+                                            {skillLevel}
+                                        </p>
                                     </div>
                                 )}
                                 {numberOfSubjects && (
                                     <div>
-                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Subjects</h4>
-                                        <p className="text-sm text-neutral-600">{numberOfSubjects}</p>
+                                        <h4 className="mb-1 text-sm font-semibold text-neutral-900">
+                                            Number of Subjects
+                                        </h4>
+                                        <p className="text-sm text-neutral-600">
+                                            {numberOfSubjects}
+                                        </p>
                                     </div>
                                 )}
                                 {numberOfModules && (
                                     <div>
-                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Modules</h4>
-                                        <p className="text-sm text-neutral-600">{numberOfModules}</p>
+                                        <h4 className="mb-1 text-sm font-semibold text-neutral-900">
+                                            Number of Modules
+                                        </h4>
+                                        <p className="text-sm text-neutral-600">
+                                            {numberOfModules}
+                                        </p>
                                     </div>
                                 )}
                                 {numberOfChapters && (
                                     <div>
-                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Chapters</h4>
-                                        <p className="text-sm text-neutral-600">{numberOfChapters}</p>
+                                        <h4 className="mb-1 text-sm font-semibold text-neutral-900">
+                                            Number of Chapters
+                                        </h4>
+                                        <p className="text-sm text-neutral-600">
+                                            {numberOfChapters}
+                                        </p>
                                     </div>
                                 )}
                                 {(chapterLength || customChapterLength) && (
                                     <div>
-                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Course Length</h4>
+                                        <h4 className="mb-1 text-sm font-semibold text-neutral-900">
+                                            Course Length
+                                        </h4>
                                         <p className="text-sm text-neutral-600">
-                                            {chapterLength === 'custom' ? `${customChapterLength} minutes` : chapterLength ? `${chapterLength} minutes` : ''}
+                                            {chapterLength === 'custom'
+                                                ? `${customChapterLength} minutes`
+                                                : chapterLength
+                                                  ? `${chapterLength} minutes`
+                                                  : ''}
                                         </p>
                                     </div>
                                 )}
                                 {slidesPerChapter && (
                                     <div>
-                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Slides per Chapter</h4>
-                                        <p className="text-sm text-neutral-600">{slidesPerChapter}</p>
+                                        <h4 className="mb-1 text-sm font-semibold text-neutral-900">
+                                            Slides per Chapter
+                                        </h4>
+                                        <p className="text-sm text-neutral-600">
+                                            {slidesPerChapter}
+                                        </p>
                                     </div>
                                 )}
                             </div>
 
                             {activeContentOptions > 0 && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-2">What to Include</h4>
+                                    <h4 className="mb-2 text-sm font-semibold text-neutral-900">
+                                        What to Include
+                                    </h4>
                                     <div className="flex flex-wrap gap-2">
-                                        {includeDiagrams && <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Diagrams</span>}
-                                        {includeCodeSnippets && <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Code Snippets{programmingLanguage ? ` (${programmingLanguage})` : ''}</span>}
-                                        {includePracticeProblems && <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Practice Problems</span>}
-                                        {includeQuizzes && <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Quizzes</span>}
-                                        {includeHomework && <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Assignments</span>}
-                                        {includeSolutions && <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Solutions</span>}
-                                        {includeYouTubeVideo && <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">YouTube Video</span>}
-                                        {includeAIGeneratedVideo && <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">AI Generated Video</span>}
+                                        {includeDiagrams && (
+                                            <span className="rounded-md bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700">
+                                                Diagrams
+                                            </span>
+                                        )}
+                                        {includeCodeSnippets && (
+                                            <span className="rounded-md bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700">
+                                                Code Snippets
+                                                {programmingLanguage
+                                                    ? ` (${programmingLanguage})`
+                                                    : ''}
+                                            </span>
+                                        )}
+                                        {includePracticeProblems && (
+                                            <span className="rounded-md bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700">
+                                                Practice Problems
+                                            </span>
+                                        )}
+                                        {includeQuizzes && (
+                                            <span className="rounded-md bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700">
+                                                Quizzes
+                                            </span>
+                                        )}
+                                        {includeHomework && (
+                                            <span className="rounded-md bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700">
+                                                Assignments
+                                            </span>
+                                        )}
+                                        {includeSolutions && (
+                                            <span className="rounded-md bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700">
+                                                Solutions
+                                            </span>
+                                        )}
+                                        {includeYouTubeVideo && (
+                                            <span className="rounded-md bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700">
+                                                YouTube Video
+                                            </span>
+                                        )}
+                                        {includeAIGeneratedVideo && (
+                                            <span className="rounded-md bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700">
+                                                AI Generated Video
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             )}
 
                             {totalReferences > 0 && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-2">References</h4>
+                                    <h4 className="mb-2 text-sm font-semibold text-neutral-900">
+                                        References
+                                    </h4>
                                     <div className="space-y-2">
                                         {referenceUrls.length > 0 && (
                                             <p className="text-sm text-neutral-600">
-                                                <span className="font-medium">{referenceUrls.length}</span> URL{referenceUrls.length !== 1 ? 's' : ''} added
+                                                <span className="font-medium">
+                                                    {referenceUrls.length}
+                                                </span>{' '}
+                                                URL{referenceUrls.length !== 1 ? 's' : ''} added
                                             </p>
                                         )}
                                         {referenceFiles.length > 0 && (
                                             <p className="text-sm text-neutral-600">
-                                                <span className="font-medium">{referenceFiles.length}</span> file{referenceFiles.length !== 1 ? 's' : ''} uploaded
+                                                <span className="font-medium">
+                                                    {referenceFiles.length}
+                                                </span>{' '}
+                                                file{referenceFiles.length !== 1 ? 's' : ''}{' '}
+                                                uploaded
                                             </p>
                                         )}
                                     </div>
@@ -1288,17 +1588,14 @@ function RouteComponent() {
                         </div>
                     </div>
 
-                    <DialogFooter className="flex-shrink-0 bg-white border-t border-neutral-200 px-6 py-4">
+                    <DialogFooter className="shrink-0 border-t border-neutral-200 bg-white px-6 py-4">
                         <MyButton
                             buttonType="secondary"
                             onClick={() => setShowConfirmDialog(false)}
                         >
                             Go back and Edit
                         </MyButton>
-                        <MyButton
-                            buttonType="primary"
-                            onClick={handleConfirmGenerate}
-                        >
+                        <MyButton buttonType="primary" onClick={handleConfirmGenerate}>
                             Continue
                         </MyButton>
                     </DialogFooter>

@@ -475,7 +475,7 @@ export function RouteComponent() {
                 console.log('Course Depth:', courseConfig.courseDepth);
 
                 // Build user prompt from courseConfig - simple comma-separated format
-                let userPrompt = courseConfig.courseGoal || '';
+                let userPrompt = courseConfig.prompt || courseConfig.courseGoal || '';
 
                 // Build array of additional requirements to append
                 const requirements: string[] = [];
