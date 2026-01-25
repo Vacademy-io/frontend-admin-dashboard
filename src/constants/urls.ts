@@ -8,6 +8,7 @@ export const AI_SERVICE_BASE_URL =
 
 // AI Video URLs API
 export const GET_VIDEO_URLS = (videoId: string) => `${AI_SERVICE_BASE_URL}/video/urls/${videoId}`;
+export const SCRAPE_URL = `${AI_SERVICE_BASE_URL}/utils/scrape-url`;
 
 // Institute AI Settings APIs
 export const GET_INSTITUTE_AI_SETTINGS = (instituteId: string) =>
