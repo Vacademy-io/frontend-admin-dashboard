@@ -10,10 +10,7 @@ import { submitForReview } from '@/routes/study-library/courses/-services/approv
 /**
  * Custom hook for handling course creation
  */
-export const useCourseCreation = (
-    courseMetadata: any,
-    sessionsWithProgress: SessionProgress[]
-) => {
+export const useCourseCreation = (courseMetadata: any, sessionsWithProgress: SessionProgress[]) => {
     const navigate = useNavigate();
     const [isCreatingCourse, setIsCreatingCourse] = useState(false);
     const [creationProgress, setCreationProgress] = useState<string>('');
@@ -39,28 +36,60 @@ export const useCourseCreation = (
 
         try {
             // Extract course name - check multiple possible field names
-            const courseName = courseMetadata.course_name || courseMetadata.courseName || courseMetadata.title || 'New Course';
+            const courseName =
+                courseMetadata.course_name ||
+                courseMetadata.courseName ||
+                courseMetadata.title ||
+                'New Course';
             console.log('[Course Creation] Extracted course name:', courseName);
 
             setCreationProgress('Creating course...');
-            // Extract metadata fields - handle both API response format and UI format
+            // Extract metadata fields - using confirmed API structure with UI edit fallbacks
             const metadata = {
-                aboutCourse: courseMetadata.aboutCourse || courseMetadata.about_the_course_html || courseMetadata.aboutCourse || '',
-                learningOutcome: courseMetadata.learningOutcome || courseMetadata.why_learn_html || courseMetadata.why_learn || '',
-                targetAudience: courseMetadata.targetAudience || courseMetadata.who_should_learn_html || courseMetadata.who_should_learn || '',
-                description: courseMetadata.description || courseMetadata.course_html_description || courseMetadata.courseDescription || '',
-                coursePreview: courseMetadata.coursePreview || courseMetadata.course_preview_image_media_id || courseMetadata.mediaImageUrl || courseMetadata.previewImageUrl || courseMetadata.thumbnail_file_id || courseMetadata.thumbnail_id || courseMetadata.cover_image_id || courseMetadata.file_id || '',
-                courseBanner: courseMetadata.courseBanner || courseMetadata.course_banner_media_id || courseMetadata.bannerImageUrl || courseMetadata.thumbnail_file_id || courseMetadata.thumbnail_id || '',
-                courseMedia: courseMetadata.courseMedia || (courseMetadata.course_media_id ? (typeof courseMetadata.course_media_id === 'string' ? JSON.parse(courseMetadata.course_media_id) : courseMetadata.course_media_id) : null),
+                aboutCourse:
+                    courseMetadata.about_the_course_html || courseMetadata.aboutCourse || '',
+                learningOutcome:
+                    courseMetadata.why_learn_html || courseMetadata.learningOutcome || '',
+                targetAudience:
+                    courseMetadata.who_should_learn_html || courseMetadata.targetAudience || '',
+                description:
+                    courseMetadata.course_html_description || courseMetadata.description || '',
+
+                // Images: The API returns both 'previewImageUrl' (direct S3 URL) and 'course_preview_image_media_id' (filename/ID)
+                // We prefer the URL for display if available, but the ID is what we often need for backend references.
+                // Our updated isValidFileId service now accepts URLs, so we can safely pass either.
+                coursePreview:
+                    courseMetadata.previewImageUrl ||
+                    courseMetadata.course_preview_image_media_id ||
+                    courseMetadata.coursePreview ||
+                    '',
+                courseBanner:
+                    courseMetadata.bannerImageUrl ||
+                    courseMetadata.course_banner_media_id ||
+                    courseMetadata.courseBanner ||
+                    '',
+
+                courseMedia:
+                    courseMetadata.mediaImageUrl ||
+                    courseMetadata.courseMedia ||
+                    (courseMetadata.course_media_id
+                        ? typeof courseMetadata.course_media_id === 'string'
+                            ? JSON.parse(courseMetadata.course_media_id)
+                            : courseMetadata.course_media_id
+                        : null),
+
                 tags: courseMetadata.tags || [],
-                levelStructure: courseMetadata.course_depth || courseMetadata.levelStructure || courseMetadata.depth || 2,
+                levelStructure: courseMetadata.course_depth || courseMetadata.levelStructure || 2,
             };
 
             console.log('[Course Creation] Full courseMetadata object:', courseMetadata);
             console.log('[Course Creation] Course metadata being sent:', metadata);
             console.log('[Course Creation] Course name:', courseName);
             console.log('[Course Creation] Number of sessions:', sessionsWithProgress.length);
-            console.log('[Course Creation] Total slides:', sessionsWithProgress.reduce((sum, session) => sum + session.slides.length, 0));
+            console.log(
+                '[Course Creation] Total slides:',
+                sessionsWithProgress.reduce((sum, session) => sum + session.slides.length, 0)
+            );
 
             // If user is a teacher and status is ACTIVE, we create as DRAFT first then submit
             const accessToken = getTokenFromCookie(TokenKey.accessToken);

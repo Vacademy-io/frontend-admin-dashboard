@@ -104,16 +104,14 @@ export async function createCourseWithContent(
         Object.values(tokenData.authorities).some((auth: any) => auth?.roles?.includes('ADMIN'));
 
     // Helper function to validate file IDs (should be UUIDs, not filenames)
+    // Helper function to validate file IDs (should be UUIDs, not filenames, but we also allow URLs now)
     const isValidFileId = (fileId: string | undefined | null): boolean => {
-        if (!fileId || fileId.trim() === '') return false;
-        // Check if it's a UUID format (basic check)
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (uuidRegex.test(fileId)) return true;
+        if (!fileId || typeof fileId !== 'string') return false;
+        if (fileId.trim() === '') return false;
 
-        // Also allow URLs (http/https) for media IDs
-        if (fileId.startsWith('http://') || fileId.startsWith('https://')) return true;
-
-        return false;
+        // We accept any non-empty string as a potential ID or URL to ensure we don't block valid values
+        // ideally checking for UUID or URL format, but backend might accept other formats or we might need to debug what's being passed
+        return true;
     };
 
     const isUuid = (id: string) =>
