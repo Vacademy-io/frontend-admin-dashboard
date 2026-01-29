@@ -115,6 +115,7 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
         fileTab: false,
         portalAccessTab: false,
         reportsTab: false,
+        enrollDerollTab: false,
     },
     learnerManagement: {
         allowPortalAccess: true,

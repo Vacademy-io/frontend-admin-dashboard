@@ -36,6 +36,7 @@ const STUDENT_SIDE_VIEW_DEFAULTS: StudentSideViewSettings = {
     fileTab: false,
     portalAccessTab: false,
     reportsTab: false,
+    enrollDerollTab: false,
 };
 
 const STUDENT_SIDE_VIEW_OPTIONS: Array<{
@@ -43,44 +44,49 @@ const STUDENT_SIDE_VIEW_OPTIONS: Array<{
     label: string;
     defaultValue: boolean;
 }> = [
-    {
-        key: 'overviewTab',
-        label: 'Overview Tab',
-        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.overviewTab,
-    },
-    { key: 'testTab', label: 'Test Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.testTab },
-    {
-        key: 'progressTab',
-        label: 'Progress Tab',
-        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.progressTab,
-    },
-    {
-        key: 'notificationTab',
-        label: 'Notification Tab',
-        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.notificationTab,
-    },
-    {
-        key: 'membershipTab',
-        label: 'Membership Tab',
-        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.membershipTab,
-    },
-    {
-        key: 'userTaggingTab',
-        label: 'User Tagging Tab',
-        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.userTaggingTab,
-    },
-    { key: 'fileTab', label: 'File Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.fileTab },
-    {
-        key: 'portalAccessTab',
-        label: 'Portal Access Tab',
-        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.portalAccessTab,
-    },
-    {
-        key: 'reportsTab',
-        label: 'Reports Tab',
-        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.reportsTab,
-    },
-];
+        {
+            key: 'overviewTab',
+            label: 'Overview Tab',
+            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.overviewTab,
+        },
+        { key: 'testTab', label: 'Test Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.testTab },
+        {
+            key: 'progressTab',
+            label: 'Progress Tab',
+            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.progressTab,
+        },
+        {
+            key: 'notificationTab',
+            label: 'Notification Tab',
+            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.notificationTab,
+        },
+        {
+            key: 'membershipTab',
+            label: 'Membership Tab',
+            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.membershipTab,
+        },
+        {
+            key: 'userTaggingTab',
+            label: 'User Tagging Tab',
+            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.userTaggingTab,
+        },
+        { key: 'fileTab', label: 'File Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.fileTab },
+        {
+            key: 'portalAccessTab',
+            label: 'Portal Access Tab',
+            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.portalAccessTab,
+        },
+        {
+            key: 'reportsTab',
+            label: 'Reports Tab',
+            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.reportsTab,
+        },
+        {
+            key: 'enrollDerollTab',
+            label: 'Enroll/Deroll Tab',
+            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.enrollDerollTab,
+        },
+    ];
 
 const LEARNER_MANAGEMENT_DEFAULTS: LearnerManagementSettings = {
     allowPortalAccess: true,
@@ -93,22 +99,22 @@ const LEARNER_MANAGEMENT_OPTIONS: Array<{
     label: string;
     defaultValue: boolean;
 }> = [
-    {
-        key: 'allowPortalAccess',
-        label: 'Allow Learner Portal Access',
-        defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowPortalAccess,
-    },
-    {
-        key: 'allowViewPassword',
-        label: 'Allow Viewing Learner Password',
-        defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowViewPassword,
-    },
-    {
-        key: 'allowSendResetPasswordMail',
-        label: 'Allow Sending Reset Password Mail',
-        defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowSendResetPasswordMail,
-    },
-];
+        {
+            key: 'allowPortalAccess',
+            label: 'Allow Learner Portal Access',
+            defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowPortalAccess,
+        },
+        {
+            key: 'allowViewPassword',
+            label: 'Allow Viewing Learner Password',
+            defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowViewPassword,
+        },
+        {
+            key: 'allowSendResetPasswordMail',
+            label: 'Allow Sending Reset Password Mail',
+            defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowSendResetPasswordMail,
+        },
+    ];
 
 export default function TeacherDisplaySettings() {
     const [settings, setSettings] = useState<DisplaySettingsData | null>(null);
@@ -473,8 +479,8 @@ export default function TeacherDisplaySettings() {
                         const enforcedVisible = isForcedVisible
                             ? true
                             : isForcedHidden
-                              ? false
-                              : cfg.visible;
+                                ? false
+                                : cfg.visible;
                         return (
                             <div
                                 key={id}
@@ -493,9 +499,9 @@ export default function TeacherDisplaySettings() {
                                                     tabs: (prev.courseList?.tabs || []).map((t) =>
                                                         t.id === id
                                                             ? {
-                                                                  ...t,
-                                                                  order: Number(e.target.value),
-                                                              }
+                                                                ...t,
+                                                                order: Number(e.target.value),
+                                                            }
                                                             : t
                                                     ),
                                                     defaultTab:
@@ -597,9 +603,9 @@ export default function TeacherDisplaySettings() {
                                                         (t) =>
                                                             t.id === id
                                                                 ? {
-                                                                      ...t,
-                                                                      order: Number(e.target.value),
-                                                                  }
+                                                                    ...t,
+                                                                    order: Number(e.target.value),
+                                                                }
                                                                 : t
                                                     ),
                                                     defaultTab:
@@ -735,9 +741,9 @@ export default function TeacherDisplaySettings() {
                                                     sidebar: prev.sidebar.map((t) =>
                                                         t.id === tab.id
                                                             ? {
-                                                                  ...t,
-                                                                  order: Number(e.target.value),
-                                                              }
+                                                                ...t,
+                                                                order: Number(e.target.value),
+                                                            }
                                                             : t
                                                     ),
                                                 }))
@@ -811,20 +817,20 @@ export default function TeacherDisplaySettings() {
                                                                 sidebar: prev.sidebar.map((t) =>
                                                                     t.id === tab.id
                                                                         ? {
-                                                                              ...t,
-                                                                              subTabs: (
-                                                                                  t.subTabs || []
-                                                                              ).map((s) =>
-                                                                                  s.id === sub.id
-                                                                                      ? {
-                                                                                            ...s,
-                                                                                            label: e
-                                                                                                .target
-                                                                                                .value,
-                                                                                        }
-                                                                                      : s
-                                                                              ),
-                                                                          }
+                                                                            ...t,
+                                                                            subTabs: (
+                                                                                t.subTabs || []
+                                                                            ).map((s) =>
+                                                                                s.id === sub.id
+                                                                                    ? {
+                                                                                        ...s,
+                                                                                        label: e
+                                                                                            .target
+                                                                                            .value,
+                                                                                    }
+                                                                                    : s
+                                                                            ),
+                                                                        }
                                                                         : t
                                                                 ),
                                                             }))
@@ -841,22 +847,22 @@ export default function TeacherDisplaySettings() {
                                                                 sidebar: prev.sidebar.map((t) =>
                                                                     t.id === tab.id
                                                                         ? {
-                                                                              ...t,
-                                                                              subTabs: (
-                                                                                  t.subTabs || []
-                                                                              ).map((s) =>
-                                                                                  s.id === sub.id
-                                                                                      ? {
-                                                                                            ...s,
-                                                                                            order: Number(
-                                                                                                e
-                                                                                                    .target
-                                                                                                    .value
-                                                                                            ),
-                                                                                        }
-                                                                                      : s
-                                                                              ),
-                                                                          }
+                                                                            ...t,
+                                                                            subTabs: (
+                                                                                t.subTabs || []
+                                                                            ).map((s) =>
+                                                                                s.id === sub.id
+                                                                                    ? {
+                                                                                        ...s,
+                                                                                        order: Number(
+                                                                                            e
+                                                                                                .target
+                                                                                                .value
+                                                                                        ),
+                                                                                    }
+                                                                                    : s
+                                                                            ),
+                                                                        }
                                                                         : t
                                                                 ),
                                                             }))
@@ -872,20 +878,20 @@ export default function TeacherDisplaySettings() {
                                                                 sidebar: prev.sidebar.map((t) =>
                                                                     t.id === tab.id
                                                                         ? {
-                                                                              ...t,
-                                                                              subTabs: (
-                                                                                  t.subTabs || []
-                                                                              ).map((s) =>
-                                                                                  s.id === sub.id
-                                                                                      ? {
-                                                                                            ...s,
-                                                                                            route: e
-                                                                                                .target
-                                                                                                .value,
-                                                                                        }
-                                                                                      : s
-                                                                              ),
-                                                                          }
+                                                                            ...t,
+                                                                            subTabs: (
+                                                                                t.subTabs || []
+                                                                            ).map((s) =>
+                                                                                s.id === sub.id
+                                                                                    ? {
+                                                                                        ...s,
+                                                                                        route: e
+                                                                                            .target
+                                                                                            .value,
+                                                                                    }
+                                                                                    : s
+                                                                            ),
+                                                                        }
                                                                         : t
                                                                 ),
                                                             }))
@@ -901,19 +907,19 @@ export default function TeacherDisplaySettings() {
                                                                 sidebar: prev.sidebar.map((t) =>
                                                                     t.id === tab.id
                                                                         ? {
-                                                                              ...t,
-                                                                              subTabs: (
-                                                                                  t.subTabs || []
-                                                                              ).map((s) =>
-                                                                                  s.id === sub.id
-                                                                                      ? {
-                                                                                            ...s,
-                                                                                            visible:
-                                                                                                checked,
-                                                                                        }
-                                                                                      : s
-                                                                              ),
-                                                                          }
+                                                                            ...t,
+                                                                            subTabs: (
+                                                                                t.subTabs || []
+                                                                            ).map((s) =>
+                                                                                s.id === sub.id
+                                                                                    ? {
+                                                                                        ...s,
+                                                                                        visible:
+                                                                                            checked,
+                                                                                    }
+                                                                                    : s
+                                                                            ),
+                                                                        }
                                                                         : t
                                                                 ),
                                                             }))
@@ -1225,9 +1231,9 @@ export default function TeacherDisplaySettings() {
                                                     widgets: prev.dashboard.widgets.map((x) =>
                                                         x.id === w.id
                                                             ? {
-                                                                  ...x,
-                                                                  order: Number(e.target.value),
-                                                              }
+                                                                ...x,
+                                                                order: Number(e.target.value),
+                                                            }
                                                             : x
                                                     ),
                                                 },
@@ -1282,7 +1288,7 @@ export default function TeacherDisplaySettings() {
                             <Switch
                                 checked={
                                     settings.permissions[
-                                        key as keyof DisplaySettingsData['permissions']
+                                    key as keyof DisplaySettingsData['permissions']
                                     ]
                                 }
                                 onCheckedChange={(checked) =>

@@ -110,6 +110,7 @@ export interface StudentSideViewSettings {
     fileTab: boolean;
     portalAccessTab: boolean;
     reportsTab: boolean;
+    enrollDerollTab: boolean;
 }
 
 export interface LearnerManagementSettings {

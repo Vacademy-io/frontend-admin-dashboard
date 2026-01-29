@@ -436,6 +436,11 @@ export const GET_MY_SYSTEM_FILES = `${BASE_URL}/admin-core-service/system-files/
 export const GET_LEARNER_PORTAL_ACCESS = `${BASE_URL}/admin-core-service/admin/learner-portal/v1/access`;
 export const SEND_LEARNER_RESET_PASSWORD = `${BASE_URL}/admin-core-service/admin/learner-portal/v1/send-cred`;
 
+// Enrollment & User Plan Actions
+export const ENROLL_LEARNER_V2 = `${BASE_URL}/admin-core-service/v2/learner/enroll`;
+export const CANCEL_USER_PLAN = (user_plan_id: string) =>
+    `${BASE_URL}/admin-core-service/v1/user-plan/${user_plan_id}/cancel`;
+
 // Planning Logs
 export const PLANNING_LOGS_BASE = `https://backend-stage.vacademy.io/admin-core-service/planning-logs/v1`;
 export const CREATE_PLANNING_LOGS = `${PLANNING_LOGS_BASE}/create`;
