@@ -67,6 +67,121 @@ class HtmlContentProcessor {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600&family=Fira+Code&display=swap');
+
+            /* --- THEME VARIABLES (Default to Light/White Theme) --- */
+            :root {
+                --text-color: #1e293b;
+                --text-secondary: #475569;
+                --primary-color: #2563eb;
+                --accent-color: #f59e0b;
+                --background-color: #ffffff;
+            }
+            /* For Dark Mode (Optional) */
+            /*
+            [data-theme="dark"] {
+                --text-color: #f8fafc;
+                --text-secondary: #cbd5e1;
+                --primary-color: #3b82f6;
+                --background-color: #0f172a;
+            }
+            */
+
+            /* --- TYPOGRAPHY MATCHING BACKEND --- */
+            .text-display { font-family: 'Montserrat', sans-serif; font-size: 64px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; color: var(--text-color); }
+            .text-h2 { font-family: 'Montserrat', sans-serif; font-size: 48px; font-weight: 700; margin-bottom: 16px; color: var(--text-color); }
+            .text-body { font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 400; color: var(--text-secondary); line-height: 1.5; }
+            .text-label { font-family: 'Fira Code', monospace; font-size: 18px; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; display: block; }
+
+            /* --- REQUIRED UTILITY CLASSES --- */
+            .full-screen-center {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                box-sizing: border-box;
+                padding: 60px 80px;
+            }
+            .highlight {
+                background: linear-gradient(120deg, rgba(255, 226, 89, 0.6) 0%, rgba(255, 233, 148, 0.4) 100%);
+                padding: 0 4px;
+                border-radius: 4px;
+                display: inline-block;
+                box-decoration-break: clone;
+                -webkit-box-decoration-break: clone;
+            }
+            .emphasis { color: var(--primary-color); font-weight: bold; }
+            .mermaid { display: flex; justify-content: center; width: 100%; margin: 20px auto; }
+
+            /* --- LAYOUT GRIDS --- */
+            .layout-split {
+                display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+                width: 90%; max-width: 1700px; align-items: center; justify-items: center;
+                text-align: left;
+            }
+            .layout-split.reverse { direction: rtl; }
+            .layout-split.reverse > * { direction: ltr; }
+            .layout-split.golden-left { grid-template-columns: 1.2fr 0.8fr; }
+            .layout-split.golden-right { grid-template-columns: 0.8fr 1.2fr; }
+            .layout-hero {
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                text-align: center; width: 80%; max-width: 1200px; gap: 32px;
+            }
+            .layout-code-split {
+                display: grid; grid-template-columns: 40% 60%; gap: 40px;
+                width: 95%; max-width: 1800px; align-items: center;
+                text-align: left;
+            }
+            .layout-bento {
+                display: grid; grid-template-columns: repeat(2, 1fr);
+                gap: 40px; width: 90%; max-width: 1600px; align-content: center;
+            }
+
+            /* --- COMPONENTS --- */
+            .content-section, .bento-card {
+                padding: 24px;
+                color: var(--text-color);
+            }
+            .bento-card { border-left: 3px solid var(--primary-color); }
+            .bento-card.center { text-align: center; }
+            .key-term {
+                color: var(--accent-color);
+                font-weight: 700;
+                border-bottom: 3px solid var(--accent-color);
+            }
+            .step-item {
+                display: flex; align-items: flex-start; margin: 20px 0; color: var(--text-color);
+            }
+            .step-number {
+                display: inline-flex; align-items: center; justify-content: center;
+                width: 48px; height: 48px;
+                background: var(--primary-color);
+                color: #fff; font-weight: 800; font-size: 24px;
+                border-radius: 50%; margin-right: 16px; flex-shrink: 0;
+            }
+            .divider {
+                width: 100%; height: 2px;
+                background: var(--primary-color);
+                margin: 24px 0; opacity: 0.5;
+            }
+            .arrow-right {
+                display: inline-block; width: 0; height: 0;
+                border-top: 12px solid transparent;
+                border-bottom: 12px solid transparent;
+                border-left: 20px solid var(--primary-color);
+                margin: 0 16px;
+            }
+            .label-tag {
+                display: inline-block; padding: 4px 12px;
+                background: var(--primary-color);
+                color: #fff; font-size: 14px;
+                border-radius: 4px; font-weight: 600; text-transform: uppercase;
+                margin-right: 8px; margin-bottom: 8px;
+            }
+
             /* Visual cues for interactive elements */
             .hover-target:hover {
                 outline: 2px dashed #3b82f6;
@@ -172,30 +287,81 @@ class HtmlContentProcessor {
             window.animateSVG = function(svgId, duration, callback) {
               if (window.Vivus) {
                 var cb = typeof callback === 'function' ? callback : undefined;
-                try {
-                    // Check if svgId is a selector string that isn't an ID, and if so, handle it to avoid Vivus constructor error if it expects ID or element
-                    // The user requested simpler version matches: new Vivus(svgId, { ... }, cb);
-                    // However, we must ensure 'svgId' is valid for Vivus (ID string or Element).
-                    // Vivus constructor: new Vivus('my-svg-id', ...) OR new Vivus(document.getElementById('...'), ...)
 
-                    let target = svgId;
-                    if (typeof svgId === 'string' && !svgId.startsWith('#') && !document.getElementById(svgId)) {
-                        // If it's a string but not an ID ref, maybe it's a query selector?
-                        // User request: window.animateSVG = function(svgId, duration, callback) { ... new Vivus(svgId ... }
-                        // I will implement exactly as requested but wrap in try-catch for safety
-                        new Vivus(svgId, {
-                          duration: duration || 100,
-                          type: 'oneByOne',
-                          animTimingFunction: Vivus.EASE_OUT
-                        }, cb);
-                    } else {
-                         new Vivus(svgId, {
-                          duration: duration || 100,
-                          type: 'oneByOne',
-                          animTimingFunction: Vivus.EASE_OUT
-                        }, cb);
+                // Helper to resolve the actual SVG element
+                var findSvg = function(id) {
+                    try {
+                        var el = null;
+                        if (typeof id === 'string') {
+                            if (id.startsWith('#')) {
+                                el = document.querySelector(id);
+                            } else {
+                                el = document.getElementById(id);
+                            }
+                        } else {
+                            el = id;
+                        }
+
+                        if (!el) return null;
+
+                        // Strict check: if it is explicitly an SVG element
+                        if (el.tagName && el.tagName.toLowerCase() === 'svg') return el;
+
+                        // If element is a container, look inside for an SVG
+                        if (el.querySelector) {
+                            var inner = el.querySelector('svg');
+                            if (inner) return inner;
+                        }
+
+                        return null;
+                    } catch(e) { return null; }
+                };
+
+                var initVivus = function() {
+                    try {
+                        var targetSvg = findSvg(svgId);
+
+                        // Strict validation before passing to Vivus
+                        var isValidSvg = targetSvg && (
+                            (window.SVGElement && targetSvg instanceof window.SVGElement) ||
+                            (targetSvg.tagName && targetSvg.tagName.toLowerCase() === 'svg')
+                        );
+
+                        if (isValidSvg) {
+                             new Vivus(targetSvg, {
+                              duration: duration || 100,
+                              type: 'oneByOne',
+                              animTimingFunction: Vivus.EASE_OUT
+                            }, cb);
+                        } else if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var retrySvg = findSvg(svgId);
+                                var retryValid = retrySvg && (
+                                    (window.SVGElement && retrySvg instanceof window.SVGElement) ||
+                                    (retrySvg.tagName && retrySvg.tagName.toLowerCase() === 'svg')
+                                );
+
+                                if (retryValid) {
+                                    new Vivus(retrySvg, {
+                                      duration: duration || 100,
+                                      type: 'oneByOne',
+                                      animTimingFunction: Vivus.EASE_OUT
+                                    }, cb);
+                                } else {
+                                    // Debug only, don't warn as it might be expected
+                                    console.debug('Vivus init skipped: SVG not found after load', svgId);
+                                }
+                            });
+                        } else {
+                            console.debug('Vivus init skipped: SVG not found', svgId);
+                        }
+                    } catch(e) {
+                        // Only log real errors, not anticipated "element missing" ones
+                        console.warn('Vivus init error', e);
                     }
-                } catch(e) { console.warn('Vivus init error', e); }
+                };
+
+                initVivus();
               }
             };
 

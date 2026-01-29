@@ -47,16 +47,21 @@ export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps)
                     }}
                 >
                     <div
-                        className={`flex w-full cursor-pointer items-center gap-1 rounded-lg px-4 py-2 ${hover || routeMatches ? 'bg-white' : 'bg-none'
-                            }`}
+                        className={`flex w-full cursor-pointer items-center gap-1 rounded-lg px-4 py-2 ${
+                            hover || routeMatches ? 'bg-white' : 'bg-none'
+                        }`}
                     >
                         <div className="flex items-center">
                             {icon &&
                                 React.createElement(icon, {
                                     className: cn(
                                         state === 'expanded'
-                                            ? (isCompact ? 'size-6' : 'size-7')
-                                            : (isCompact ? 'size-5' : 'size-6'),
+                                            ? isCompact
+                                                ? 'size-6'
+                                                : 'size-7'
+                                            : isCompact
+                                              ? 'size-5'
+                                              : 'size-6',
                                         hover || routeMatches
                                             ? 'text-primary-500'
                                             : 'text-neutral-400'
@@ -76,7 +81,7 @@ export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps)
                         <SidebarGroup className="ml-auto w-fit group-data-[collapsible=icon]:hidden">
                             <ChevronDown
                                 className={cn(
-                                    "ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180",
+                                    'ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180',
                                     hover || routeMatches ? 'text-primary-500' : 'text-neutral-600',
                                     isCompact ? 'size-4' : 'size-6'
                                 )}
@@ -91,7 +96,7 @@ export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps)
                         <Link to={obj.subItemLink} key={key}>
                             <div
                                 className={cn(
-                                    "cursor-pointer font-regular hover:text-primary-500",
+                                    'cursor-pointer font-regular hover:text-primary-500',
                                     obj.subItemLink && currentRoute.includes(obj.subItemLink)
                                         ? 'text-primary-500'
                                         : 'text-neutral-600',

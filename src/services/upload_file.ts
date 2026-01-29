@@ -109,6 +109,7 @@ export const getPublicUrl = async (fileId: string | undefined | null): Promise<s
     }
 
     if (cleanFileId.startsWith('http://') || cleanFileId.startsWith('https://')) {
+        console.log('[getPublicUrl] Skipping API call for URL:', cleanFileId);
         return cleanFileId;
     }
     const response = await authenticatedAxiosInstance.get(GET_PUBLIC_URL, {

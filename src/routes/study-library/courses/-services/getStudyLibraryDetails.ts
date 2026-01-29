@@ -9,7 +9,19 @@ import { TokenKey } from '@/constants/auth/tokens';
 const getInstituteId = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
-    return tokenData && Object.keys(tokenData.authorities)[0];
+
+    const authorities = tokenData?.authorities;
+    if (!authorities) return undefined;
+
+    const instituteIds = Object.keys(authorities);
+
+    // Prioritize institute where the user is NOT a STUDENT
+    const nonStudentInstituteId = instituteIds.find((id) => {
+        const roles = authorities[id]?.roles;
+        return roles && !roles.includes('STUDENT');
+    });
+
+    return nonStudentInstituteId || instituteIds[0];
 };
 
 // Fetch all courses study library data (no courseId)

@@ -1,6 +1,6 @@
 /**
  * Compact Mode Hook
- * 
+ *
  * Provides unified detection and control of compact mode across the application.
  * Supports multiple methods:
  * 1. Route prefix: /cm/
@@ -81,17 +81,17 @@ export interface CompactModeHook {
 
 /**
  * Main hook for compact mode detection and control
- * 
+ *
  * Priority order:
  * 1. Route prefix (/cm/)
  * 2. Query parameter (?compact=true)
  * 3. User preference (localStorage/backend)
- * 
+ *
  * @example
  * ```tsx
  * function MyComponent() {
  *   const { isCompact, toggleCompactMode } = useCompactMode();
- *   
+ *
  *   return (
  *     <div className={cn(isCompact ? 'p-2' : 'p-6')}>
  *       <button onClick={toggleCompactMode}>
@@ -111,8 +111,10 @@ export function useCompactMode(): CompactModeHook {
     const isCompactRoute = location.pathname.startsWith('/cm/');
 
     // Method 2: Check query parameter
-    const searchParams = new URLSearchParams(location.search as string);
-    const isCompactParam = searchParams.get('compact') === 'true';
+    // Method 2: Check query parameter
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const searchParams = location.search as any;
+    const isCompactParam = searchParams?.compact === 'true' || searchParams?.compact === true;
 
     // Method 3: Check user preference
     const isCompactPreference = userPreference === true;
@@ -219,7 +221,7 @@ export function useCompactMode(): CompactModeHook {
 
 /**
  * Get compact-aware class names for a component
- * 
+ *
  * @example
  * ```tsx
  * const { isCompact } = useCompactMode();
@@ -236,7 +238,7 @@ export function getCompactClass(
 
 /**
  * Get multiple compact-aware classes
- * 
+ *
  * @example
  * ```tsx
  * const { isCompact } = useCompactMode();

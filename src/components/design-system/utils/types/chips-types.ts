@@ -50,4 +50,11 @@ export type ActivityStatus =
     | 'PAID'
     | 'PAYMENT_PENDING'
     | 'ongoing'
-    | 'success';
+    | 'success'
+    | 'DRAFT'
+    | 'PUBLISHED'
+    | 'DELETED'
+    | 'ARCHIVED'
+    | 'COMPLETED'
+    | 'UNPUBLISHED'
+    | 'TERMINATED';

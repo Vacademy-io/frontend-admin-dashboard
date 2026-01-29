@@ -13,6 +13,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as SettingsRouteImport } from "./routes/settings"
 import { Route as AgentChatRouteImport } from "./routes/agent-chat"
+import { Route as VideoApiStudioIndexRouteImport } from "./routes/video-api-studio/index"
 import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/index"
 import { Route as SignupIndexRouteImport } from "./routes/signup/index"
 import { Route as PlanningIndexRouteImport } from "./routes/planning/index"
@@ -36,8 +37,10 @@ import { Route as ChallengeAnalyticsIndexRouteImport } from "./routes/challenge-
 import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
 import { Route as AiVideoStudioIndexRouteImport } from "./routes/ai-video-studio/index"
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
+import { Route as AdminPackageManagementIndexRouteImport } from "./routes/admin-package-management/index"
 import { Route as WorkflowListIndexRouteImport } from "./routes/workflow/list/index"
 import { Route as WorkflowWorkflowIdIndexRouteImport } from "./routes/workflow/$workflowId/index"
+import { Route as VideoApiStudioConsoleIndexRouteImport } from "./routes/video-api-studio/console/index"
 import { Route as UserTagsLinkIndexRouteImport } from "./routes/user-tags/link/index"
 import { Route as UserTagsInstituteIndexRouteImport } from "./routes/user-tags/institute/index"
 import { Route as TemplatesCreateIndexRouteImport } from "./routes/templates/create/index"
@@ -78,6 +81,7 @@ import { Route as AnnouncementCreateIndexRouteImport } from "./routes/announceme
 import { Route as AnnouncementApprovalIndexRouteImport } from "./routes/announcement/approval/index"
 import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center/my-resources/index"
 import { Route as AiCenterAiToolsIndexRouteImport } from "./routes/ai-center/ai-tools/index"
+import { Route as AdminPackageManagementBulkCreateIndexRouteImport } from "./routes/admin-package-management/bulk-create/index"
 import { Route as TemplatesEditTemplateIdRouteImport } from "./routes/templates/edit/$templateId"
 import { Route as SignupOauthCallbackRouteImport } from "./routes/signup/oauth/callback"
 import { Route as PlanningPlanningLogIdRouteImport } from "./routes/planning/planning/$logId"
@@ -161,6 +165,13 @@ const AssessmentIndexLazyRoute = AssessmentIndexLazyRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() =>
   import("./routes/assessment/index.lazy").then((d) => d.Route),
+)
+const VideoApiStudioIndexRoute = VideoApiStudioIndexRouteImport.update({
+  id: "/video-api-studio/",
+  path: "/video-api-studio/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/video-api-studio/index.lazy").then((d) => d.Route),
 )
 const StudyLibraryIndexRoute = StudyLibraryIndexRouteImport.update({
   id: "/study-library/",
@@ -315,6 +326,14 @@ const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/ai-center/index.lazy").then((d) => d.Route),
 )
+const AdminPackageManagementIndexRoute =
+  AdminPackageManagementIndexRouteImport.update({
+    id: "/admin-package-management/",
+    path: "/admin-package-management/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admin-package-management/index.lazy").then((d) => d.Route),
+  )
 const WorkflowListIndexRoute = WorkflowListIndexRouteImport.update({
   id: "/workflow/list/",
   path: "/workflow/list/",
@@ -329,6 +348,14 @@ const WorkflowWorkflowIdIndexRoute = WorkflowWorkflowIdIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/workflow/$workflowId/index.lazy").then((d) => d.Route),
 )
+const VideoApiStudioConsoleIndexRoute =
+  VideoApiStudioConsoleIndexRouteImport.update({
+    id: "/video-api-studio/console/",
+    path: "/video-api-studio/console/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/video-api-studio/console/index.lazy").then((d) => d.Route),
+  )
 const UserTagsLinkIndexRoute = UserTagsLinkIndexRouteImport.update({
   id: "/user-tags/link/",
   path: "/user-tags/link/",
@@ -660,6 +687,16 @@ const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/ai-center/ai-tools/index.lazy").then((d) => d.Route),
 )
+const AdminPackageManagementBulkCreateIndexRoute =
+  AdminPackageManagementBulkCreateIndexRouteImport.update({
+    id: "/admin-package-management/bulk-create/",
+    path: "/admin-package-management/bulk-create/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admin-package-management/bulk-create/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const TemplatesEditTemplateIdRoute = TemplatesEditTemplateIdRouteImport.update({
   id: "/templates/edit/$templateId",
   path: "/templates/edit/$templateId",
@@ -1043,6 +1080,7 @@ export interface FileRoutesByFullPath {
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
+  "/admin-package-management/": typeof AdminPackageManagementIndexRoute
   "/ai-center/": typeof AiCenterIndexRoute
   "/ai-video-studio/": typeof AiVideoStudioIndexRoute
   "/auth-transfer/": typeof AuthTransferIndexRoute
@@ -1066,6 +1104,7 @@ export interface FileRoutesByFullPath {
   "/planning/": typeof PlanningIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
+  "/video-api-studio/": typeof VideoApiStudioIndexRoute
   "/assessment/": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
@@ -1073,6 +1112,7 @@ export interface FileRoutesByFullPath {
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
+  "/admin-package-management/bulk-create/": typeof AdminPackageManagementBulkCreateIndexRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval/": typeof AnnouncementApprovalIndexRoute
@@ -1113,6 +1153,7 @@ export interface FileRoutesByFullPath {
   "/templates/create/": typeof TemplatesCreateIndexRoute
   "/user-tags/institute/": typeof UserTagsInstituteIndexRoute
   "/user-tags/link/": typeof UserTagsLinkIndexRoute
+  "/video-api-studio/console/": typeof VideoApiStudioConsoleIndexRoute
   "/workflow/$workflowId/": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list/": typeof WorkflowListIndexRoute
   "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
@@ -1159,6 +1200,7 @@ export interface FileRoutesByTo {
   "/settings": typeof SettingsRoute
   "/landing": typeof LandingLazyRoute
   "/pricing": typeof PricingLazyRoute
+  "/admin-package-management": typeof AdminPackageManagementIndexRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/ai-video-studio": typeof AiVideoStudioIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
@@ -1182,6 +1224,7 @@ export interface FileRoutesByTo {
   "/planning": typeof PlanningIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
+  "/video-api-studio": typeof VideoApiStudioIndexRoute
   "/assessment": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
@@ -1189,6 +1232,7 @@ export interface FileRoutesByTo {
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
+  "/admin-package-management/bulk-create": typeof AdminPackageManagementBulkCreateIndexRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval": typeof AnnouncementApprovalIndexRoute
@@ -1229,6 +1273,7 @@ export interface FileRoutesByTo {
   "/templates/create": typeof TemplatesCreateIndexRoute
   "/user-tags/institute": typeof UserTagsInstituteIndexRoute
   "/user-tags/link": typeof UserTagsLinkIndexRoute
+  "/video-api-studio/console": typeof VideoApiStudioConsoleIndexRoute
   "/workflow/$workflowId": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list": typeof WorkflowListIndexRoute
   "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
@@ -1277,6 +1322,7 @@ export interface FileRoutesById {
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
+  "/admin-package-management/": typeof AdminPackageManagementIndexRoute
   "/ai-center/": typeof AiCenterIndexRoute
   "/ai-video-studio/": typeof AiVideoStudioIndexRoute
   "/auth-transfer/": typeof AuthTransferIndexRoute
@@ -1300,6 +1346,7 @@ export interface FileRoutesById {
   "/planning/": typeof PlanningIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
+  "/video-api-studio/": typeof VideoApiStudioIndexRoute
   "/assessment/": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
@@ -1307,6 +1354,7 @@ export interface FileRoutesById {
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
+  "/admin-package-management/bulk-create/": typeof AdminPackageManagementBulkCreateIndexRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval/": typeof AnnouncementApprovalIndexRoute
@@ -1347,6 +1395,7 @@ export interface FileRoutesById {
   "/templates/create/": typeof TemplatesCreateIndexRoute
   "/user-tags/institute/": typeof UserTagsInstituteIndexRoute
   "/user-tags/link/": typeof UserTagsLinkIndexRoute
+  "/video-api-studio/console/": typeof VideoApiStudioConsoleIndexRoute
   "/workflow/$workflowId/": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list/": typeof WorkflowListIndexRoute
   "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
@@ -1396,6 +1445,7 @@ export interface FileRouteTypes {
     | "/landing"
     | "/learner-insights"
     | "/pricing"
+    | "/admin-package-management/"
     | "/ai-center/"
     | "/ai-video-studio/"
     | "/auth-transfer/"
@@ -1419,6 +1469,7 @@ export interface FileRouteTypes {
     | "/planning/"
     | "/signup/"
     | "/study-library/"
+    | "/video-api-studio/"
     | "/assessment/"
     | "/login/oauth/redirect"
     | "/manage-pages/editor/$tagName"
@@ -1426,6 +1477,7 @@ export interface FileRouteTypes {
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
+    | "/admin-package-management/bulk-create/"
     | "/ai-center/ai-tools/"
     | "/ai-center/my-resources/"
     | "/announcement/approval/"
@@ -1466,6 +1518,7 @@ export interface FileRouteTypes {
     | "/templates/create/"
     | "/user-tags/institute/"
     | "/user-tags/link/"
+    | "/video-api-studio/console/"
     | "/workflow/$workflowId/"
     | "/workflow/list/"
     | "/study-library/live-session/view/$sessionId"
@@ -1512,6 +1565,7 @@ export interface FileRouteTypes {
     | "/settings"
     | "/landing"
     | "/pricing"
+    | "/admin-package-management"
     | "/ai-center"
     | "/ai-video-studio"
     | "/auth-transfer"
@@ -1535,6 +1589,7 @@ export interface FileRouteTypes {
     | "/planning"
     | "/signup"
     | "/study-library"
+    | "/video-api-studio"
     | "/assessment"
     | "/login/oauth/redirect"
     | "/manage-pages/editor/$tagName"
@@ -1542,6 +1597,7 @@ export interface FileRouteTypes {
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
+    | "/admin-package-management/bulk-create"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
     | "/announcement/approval"
@@ -1582,6 +1638,7 @@ export interface FileRouteTypes {
     | "/templates/create"
     | "/user-tags/institute"
     | "/user-tags/link"
+    | "/video-api-studio/console"
     | "/workflow/$workflowId"
     | "/workflow/list"
     | "/study-library/live-session/view/$sessionId"
@@ -1629,6 +1686,7 @@ export interface FileRouteTypes {
     | "/landing"
     | "/learner-insights"
     | "/pricing"
+    | "/admin-package-management/"
     | "/ai-center/"
     | "/ai-video-studio/"
     | "/auth-transfer/"
@@ -1652,6 +1710,7 @@ export interface FileRouteTypes {
     | "/planning/"
     | "/signup/"
     | "/study-library/"
+    | "/video-api-studio/"
     | "/assessment/"
     | "/login/oauth/redirect"
     | "/manage-pages/editor/$tagName"
@@ -1659,6 +1718,7 @@ export interface FileRouteTypes {
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
+    | "/admin-package-management/bulk-create/"
     | "/ai-center/ai-tools/"
     | "/ai-center/my-resources/"
     | "/announcement/approval/"
@@ -1699,6 +1759,7 @@ export interface FileRouteTypes {
     | "/templates/create/"
     | "/user-tags/institute/"
     | "/user-tags/link/"
+    | "/video-api-studio/console/"
     | "/workflow/$workflowId/"
     | "/workflow/list/"
     | "/study-library/live-session/view/$sessionId"
@@ -1747,6 +1808,7 @@ export interface RootRouteChildren {
   LandingLazyRoute: typeof LandingLazyRoute
   LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
   PricingLazyRoute: typeof PricingLazyRoute
+  AdminPackageManagementIndexRoute: typeof AdminPackageManagementIndexRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AiVideoStudioIndexRoute: typeof AiVideoStudioIndexRoute
   AuthTransferIndexRoute: typeof AuthTransferIndexRoute
@@ -1769,6 +1831,7 @@ export interface RootRouteChildren {
   PlanningIndexRoute: typeof PlanningIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
+  VideoApiStudioIndexRoute: typeof VideoApiStudioIndexRoute
   AssessmentIndexLazyRoute: typeof AssessmentIndexLazyRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
   ManagePagesEditorTagNameRoute: typeof ManagePagesEditorTagNameRoute
@@ -1776,6 +1839,7 @@ export interface RootRouteChildren {
   PlanningPlanningLogIdRoute: typeof PlanningPlanningLogIdRoute
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
   TemplatesEditTemplateIdRoute: typeof TemplatesEditTemplateIdRoute
+  AdminPackageManagementBulkCreateIndexRoute: typeof AdminPackageManagementBulkCreateIndexRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
   AnnouncementApprovalIndexRoute: typeof AnnouncementApprovalIndexRoute
@@ -1816,6 +1880,7 @@ export interface RootRouteChildren {
   TemplatesCreateIndexRoute: typeof TemplatesCreateIndexRoute
   UserTagsInstituteIndexRoute: typeof UserTagsInstituteIndexRoute
   UserTagsLinkIndexRoute: typeof UserTagsLinkIndexRoute
+  VideoApiStudioConsoleIndexRoute: typeof VideoApiStudioConsoleIndexRoute
   WorkflowWorkflowIdIndexRoute: typeof WorkflowWorkflowIdIndexRoute
   WorkflowListIndexRoute: typeof WorkflowListIndexRoute
   StudyLibraryLiveSessionViewSessionIdRoute: typeof StudyLibraryLiveSessionViewSessionIdRoute
@@ -1900,6 +1965,13 @@ declare module "@tanstack/react-router" {
       path: "/assessment"
       fullPath: "/assessment/"
       preLoaderRoute: typeof AssessmentIndexLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/video-api-studio/": {
+      id: "/video-api-studio/"
+      path: "/video-api-studio"
+      fullPath: "/video-api-studio/"
+      preLoaderRoute: typeof VideoApiStudioIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/": {
@@ -2063,6 +2135,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AiCenterIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/admin-package-management/": {
+      id: "/admin-package-management/"
+      path: "/admin-package-management"
+      fullPath: "/admin-package-management/"
+      preLoaderRoute: typeof AdminPackageManagementIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/workflow/list/": {
       id: "/workflow/list/"
       path: "/workflow/list"
@@ -2075,6 +2154,13 @@ declare module "@tanstack/react-router" {
       path: "/workflow/$workflowId"
       fullPath: "/workflow/$workflowId/"
       preLoaderRoute: typeof WorkflowWorkflowIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/video-api-studio/console/": {
+      id: "/video-api-studio/console/"
+      path: "/video-api-studio/console"
+      fullPath: "/video-api-studio/console/"
+      preLoaderRoute: typeof VideoApiStudioConsoleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/user-tags/link/": {
@@ -2355,6 +2441,13 @@ declare module "@tanstack/react-router" {
       path: "/ai-center/ai-tools"
       fullPath: "/ai-center/ai-tools/"
       preLoaderRoute: typeof AiCenterAiToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admin-package-management/bulk-create/": {
+      id: "/admin-package-management/bulk-create/"
+      path: "/admin-package-management/bulk-create"
+      fullPath: "/admin-package-management/bulk-create/"
+      preLoaderRoute: typeof AdminPackageManagementBulkCreateIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/templates/edit/$templateId": {
@@ -2685,6 +2778,7 @@ const rootRouteChildren: RootRouteChildren = {
   LandingLazyRoute: LandingLazyRoute,
   LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,
   PricingLazyRoute: PricingLazyRoute,
+  AdminPackageManagementIndexRoute: AdminPackageManagementIndexRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
   AiVideoStudioIndexRoute: AiVideoStudioIndexRoute,
   AuthTransferIndexRoute: AuthTransferIndexRoute,
@@ -2707,6 +2801,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanningIndexRoute: PlanningIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
+  VideoApiStudioIndexRoute: VideoApiStudioIndexRoute,
   AssessmentIndexLazyRoute: AssessmentIndexLazyRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
   ManagePagesEditorTagNameRoute: ManagePagesEditorTagNameRoute,
@@ -2714,6 +2809,8 @@ const rootRouteChildren: RootRouteChildren = {
   PlanningPlanningLogIdRoute: PlanningPlanningLogIdRoute,
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
   TemplatesEditTemplateIdRoute: TemplatesEditTemplateIdRoute,
+  AdminPackageManagementBulkCreateIndexRoute:
+    AdminPackageManagementBulkCreateIndexRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
   AnnouncementApprovalIndexRoute: AnnouncementApprovalIndexRoute,
@@ -2759,6 +2856,7 @@ const rootRouteChildren: RootRouteChildren = {
   TemplatesCreateIndexRoute: TemplatesCreateIndexRoute,
   UserTagsInstituteIndexRoute: UserTagsInstituteIndexRoute,
   UserTagsLinkIndexRoute: UserTagsLinkIndexRoute,
+  VideoApiStudioConsoleIndexRoute: VideoApiStudioConsoleIndexRoute,
   WorkflowWorkflowIdIndexRoute: WorkflowWorkflowIdIndexRoute,
   WorkflowListIndexRoute: WorkflowListIndexRoute,
   StudyLibraryLiveSessionViewSessionIdRoute:
