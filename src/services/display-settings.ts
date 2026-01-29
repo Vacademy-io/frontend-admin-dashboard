@@ -54,7 +54,10 @@ function mergeArrayById<T extends { id: string }>(
     (partial || []).forEach((p) => {
         if (!p.id) return;
         if (!merged.some((m) => m.id === p.id)) {
-            merged.push(p as T);
+            // Only preserve if explicitly custom; otherwise likely a stale default
+            if ((p as any).isCustom) {
+                merged.push(p as T);
+            }
         }
     });
     return merged;

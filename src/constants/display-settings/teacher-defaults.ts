@@ -22,6 +22,8 @@ function mapSidebarToTeacherConfig(menu: SidebarItemsType[]): SidebarTabConfig[]
                 item.id !== 'manage-payments' &&
                 item.id !== 'membership-expiry' &&
                 item.id !== 'membership-stats' &&
+                item.id !== 'membership-management' &&
+                item.id !== 'automations' &&
                 item.id !== 'manage-contacts'
                     ? true
                     : false,
