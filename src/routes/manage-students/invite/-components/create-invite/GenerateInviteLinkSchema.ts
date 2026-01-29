@@ -79,6 +79,7 @@ const testInputFieldSchema = z.object({
             })
         )
         .optional(),
+    _id: z.string().optional(), // Custom field ID (custom_field.id) - preserved from GET API
 });
 
 // Schema for the form
