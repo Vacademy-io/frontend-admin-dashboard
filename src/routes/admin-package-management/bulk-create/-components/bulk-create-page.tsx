@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FloppyDisk, Eye, ArrowClockwise, CheckCircle } from '@phosphor-icons/react';
+import { ArrowLeft, Eye, ArrowClockwise, CheckCircle } from '@phosphor-icons/react';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useBulkCreate } from '../-hooks/useBulkCreate';
 import { GlobalDefaultsSection } from './global-defaults-section';
 import { BulkCreateTable } from './bulk-create-table';
+import { CsvImportDialog } from './csv-import-dialog';
+import { FileCsv } from '@phosphor-icons/react';
 import { PreviewDialog } from './preview-dialog';
 import { createLevel, createSession } from '../-services/bulk-create-service';
 import { LevelOption, SessionOption } from '../-types/bulk-create-types';
@@ -18,6 +20,7 @@ export function BulkCreatePage() {
     const queryClient = useQueryClient();
     const [localLevels, setLocalLevels] = useState<LevelOption[]>([]);
     const [localSessions, setLocalSessions] = useState<SessionOption[]>([]);
+    const [showCsvImport, setShowCsvImport] = useState(false);
 
     const {
         courses,
@@ -33,6 +36,7 @@ export function BulkCreatePage() {
         dryRunResult,
         submitResult,
         addCourse,
+        importCourses,
         removeCourse,
         duplicateCourse,
         updateCourse,
@@ -118,6 +122,15 @@ export function BulkCreatePage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowCsvImport(true)}
+                        className="h-9"
+                    >
+                        <FileCsv className="mr-1 size-4" />
+                        Import CSV
+                    </Button>
                     <Button variant="outline" size="sm" onClick={handleReset} className="h-9">
                         <ArrowClockwise className="mr-1 size-4" />
                         Reset
@@ -228,6 +241,14 @@ export function BulkCreatePage() {
                 dryRunResult={dryRunResult}
                 isSubmitting={isSubmitting}
                 onConfirm={handleSubmit}
+            />
+
+            <CsvImportDialog
+                open={showCsvImport}
+                onOpenChange={setShowCsvImport}
+                levels={allLevels}
+                sessions={allSessions}
+                onImport={importCourses}
             />
         </section>
     );

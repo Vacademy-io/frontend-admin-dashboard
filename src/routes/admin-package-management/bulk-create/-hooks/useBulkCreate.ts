@@ -77,6 +77,10 @@ export const useBulkCreate = () => {
         setCourses((prev) => [...prev, { id: uuidv4(), ...DEFAULT_COURSE_ITEM }]);
     }, []);
 
+    const importCourses = useCallback((newCourses: BulkCourseItem[]) => {
+        setCourses((prev) => [...prev, ...newCourses]);
+    }, []);
+
     const removeCourse = useCallback((id: string) => {
         setCourses((prev) => {
             if (prev.length <= 1) {
@@ -319,7 +323,9 @@ export const useBulkCreate = () => {
         dryRunResult: dryRunMutation.data,
         submitResult: submitMutation.data,
         addCourse,
+        importCourses,
         removeCourse,
+
         duplicateCourse,
         updateCourse,
         updateGlobalDefaults,
