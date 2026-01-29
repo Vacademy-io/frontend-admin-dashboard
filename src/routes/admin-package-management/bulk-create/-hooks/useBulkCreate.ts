@@ -170,12 +170,6 @@ export const useBulkCreate = () => {
 
     const buildRequest = useCallback(
         (dryRun: boolean): BulkCreateRequest => {
-            const mapBatchToApi = (batch: BatchConfig) => ({
-                level_id: batch.level_id,
-                session_id: batch.session_id,
-                inventory_config: batch.inventory_config,
-            });
-
             const mapPaymentToApi = (config: PaymentConfig): PaymentConfig => {
                 if (config.payment_option_id) {
                     return {
@@ -193,6 +187,15 @@ export const useBulkCreate = () => {
                 };
             };
 
+            const mapBatchToApi = (batch: BatchConfig) => ({
+                level_id: batch.level_id,
+                session_id: batch.session_id,
+                inventory_config: batch.inventory_config,
+                payment_config: batch.payment_config
+                    ? mapPaymentToApi(batch.payment_config)
+                    : undefined,
+            });
+
             return {
                 apply_to_all: {
                     enabled: globalDefaults.enabled,
@@ -204,25 +207,42 @@ export const useBulkCreate = () => {
                     tags: globalDefaults.tags,
                     publish_to_catalogue: globalDefaults.publish_to_catalogue,
                 },
-                courses: courses.map((course) => ({
-                    course_name: course.course_name,
-                    course_type: course.course_type,
-                    tags: course.tags,
-                    publish_to_catalogue: course.publish_to_catalogue,
-                    batches: course.batches.map(mapBatchToApi),
-                    payment_config: mapPaymentToApi(course.payment_config),
-                    inventory_config: course.inventory_config,
-                    thumbnail_file_id: course.thumbnail_file_id,
-                    course_preview_image_media_id: course.course_preview_image_media_id,
-                    course_banner_media_id: course.course_banner_media_id,
-                    course_media_id: course.course_media_id,
-                    why_learn_html: course.why_learn_html,
-                    who_should_learn_html: course.who_should_learn_html,
-                    about_the_course_html: course.about_the_course_html,
-                    course_html_description: course.course_html_description,
-                    faculty_user_ids: course.faculty_user_ids,
-                    course_depth: course.course_depth,
-                })),
+                courses: courses.map((course) => {
+                    const mappedBatches = course.batches.map(mapBatchToApi);
+
+                    // Check if batches have their own configs - if so, don't override with course-level
+                    const hasBatchLevelPayment = mappedBatches.some(
+                        (b) => b.payment_config !== undefined
+                    );
+                    const hasBatchLevelInventory = mappedBatches.some(
+                        (b) => b.inventory_config !== undefined
+                    );
+
+                    return {
+                        course_name: course.course_name,
+                        course_type: course.course_type,
+                        tags: course.tags,
+                        publish_to_catalogue: course.publish_to_catalogue,
+                        batches: mappedBatches,
+                        // Only send course-level configs if batches don't have their own
+                        payment_config: hasBatchLevelPayment
+                            ? undefined
+                            : mapPaymentToApi(course.payment_config),
+                        inventory_config: hasBatchLevelInventory
+                            ? undefined
+                            : course.inventory_config,
+                        thumbnail_file_id: course.thumbnail_file_id,
+                        course_preview_image_media_id: course.course_preview_image_media_id,
+                        course_banner_media_id: course.course_banner_media_id,
+                        course_media_id: course.course_media_id,
+                        why_learn_html: course.why_learn_html,
+                        who_should_learn_html: course.who_should_learn_html,
+                        about_the_course_html: course.about_the_course_html,
+                        course_html_description: course.course_html_description,
+                        faculty_user_ids: course.faculty_user_ids,
+                        course_depth: course.course_depth,
+                    };
+                }),
                 dry_run: dryRun,
             };
         },

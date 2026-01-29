@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus } from '@phosphor-icons/react';
-import { BatchConfig, LevelOption, SessionOption } from '../-types/bulk-create-types';
+import { BatchConfig, LevelOption, SessionOption, PaymentType } from '../-types/bulk-create-types';
 import { toast } from 'sonner';
 
 interface BatchSelectorDialogProps {
@@ -32,6 +32,13 @@ interface BatchSelectorDialogProps {
     onSelect: (batch: BatchConfig) => void;
     existingBatches?: BatchConfig[];
 }
+
+const PAYMENT_TYPES: { value: PaymentType; label: string }[] = [
+    { value: 'FREE', label: 'Free' },
+    { value: 'ONE_TIME', label: 'One-Time Payment' },
+    { value: 'SUBSCRIPTION', label: 'Subscription' },
+    { value: 'DONATION', label: 'Donation' },
+];
 
 export function BatchSelectorDialog({
     open,
@@ -49,7 +56,14 @@ export function BatchSelectorDialog({
     const [newSessionName, setNewSessionName] = useState('');
     const [isCreatingLevel, setIsCreatingLevel] = useState(false);
     const [isCreatingSession, setIsCreatingSession] = useState(false);
+
+    // Inventory config
     const [maxSlots, setMaxSlots] = useState<string>('');
+
+    // Payment config - now at batch level
+    const [paymentType, setPaymentType] = useState<PaymentType>('FREE');
+    const [price, setPrice] = useState<string>('');
+    const [validityDays, setValidityDays] = useState<string>('');
 
     const handleCreateLevel = async () => {
         if (!newLevelName.trim()) {
@@ -90,12 +104,21 @@ export function BatchSelectorDialog({
     };
 
     const handleConfirm = () => {
-        const levelOption = levels.find((l) => l.id === selectedLevel);
-        const sessionOption = sessions.find((s) => s.id === selectedSession);
+        const effectiveLevelId = selectedLevel === 'DEFAULT_VALUE' ? '' : selectedLevel;
+        const effectiveSessionId = selectedSession === 'DEFAULT_VALUE' ? '' : selectedSession;
+
+        const levelOption = levels.find((l) => l.id === effectiveLevelId);
+        const sessionOption = sessions.find((s) => s.id === effectiveSessionId);
+
+        // Validate price for paid types
+        if ((paymentType === 'ONE_TIME' || paymentType === 'SUBSCRIPTION') && !price) {
+            toast.error('Please enter a price for paid courses');
+            return;
+        }
 
         const batch: BatchConfig = {
-            level_id: selectedLevel || null,
-            session_id: selectedSession || null,
+            level_id: effectiveLevelId || null,
+            session_id: effectiveSessionId || null,
             level_name: levelOption?.name || 'DEFAULT',
             session_name: sessionOption?.name || 'DEFAULT',
             inventory_config: maxSlots
@@ -104,6 +127,12 @@ export function BatchSelectorDialog({
                       available_slots: Number(maxSlots),
                   }
                 : undefined,
+            payment_config: {
+                payment_type: paymentType,
+                price: price ? Number(price) : undefined,
+                validity_in_days: validityDays ? Number(validityDays) : undefined,
+                currency: 'INR',
+            },
         };
 
         const isDuplicate = existingBatches.some(
@@ -125,7 +154,12 @@ export function BatchSelectorDialog({
         setNewLevelName('');
         setNewSessionName('');
         setMaxSlots('');
+        setPaymentType('FREE');
+        setPrice('');
+        setValidityDays('');
     };
+
+    const showPriceField = paymentType === 'ONE_TIME' || paymentType === 'SUBSCRIPTION';
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -133,7 +167,7 @@ export function BatchSelectorDialog({
                 <DialogHeader>
                     <DialogTitle>Add Batch</DialogTitle>
                     <DialogDescription>
-                        Select or create a level-session combination for this batch.
+                        Configure level, session, payment, and inventory for this batch.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -156,7 +190,7 @@ export function BatchSelectorDialog({
                                         <SelectValue placeholder="Select level (or leave for DEFAULT)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">DEFAULT</SelectItem>
+                                        <SelectItem value="DEFAULT_VALUE">DEFAULT</SelectItem>
                                         {levels.map((level) => (
                                             <SelectItem key={level.id} value={level.id}>
                                                 {level.name}
@@ -203,7 +237,7 @@ export function BatchSelectorDialog({
                                         <SelectValue placeholder="Select session (or leave for DEFAULT)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">DEFAULT</SelectItem>
+                                        <SelectItem value="DEFAULT_VALUE">DEFAULT</SelectItem>
                                         {sessions.map((session) => (
                                             <SelectItem key={session.id} value={session.id}>
                                                 {session.name}
@@ -231,6 +265,59 @@ export function BatchSelectorDialog({
                             </TabsContent>
                         </Tabs>
                     </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-neutral-200 pt-2">
+                        <p className="text-xs font-medium text-neutral-500">
+                            Payment & Inventory (Batch-level)
+                        </p>
+                    </div>
+
+                    {/* Payment Type */}
+                    <div className="space-y-2">
+                        <Label className="text-sm">Payment Type</Label>
+                        <Select
+                            value={paymentType}
+                            onValueChange={(val) => setPaymentType(val as PaymentType)}
+                        >
+                            <SelectTrigger className="h-9 text-sm">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {PAYMENT_TYPES.map((type) => (
+                                    <SelectItem key={type.value} value={type.value}>
+                                        {type.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Price - only show for paid types */}
+                    {showPriceField && (
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-sm">Price (₹) *</Label>
+                                <Input
+                                    type="number"
+                                    placeholder="e.g., 499"
+                                    value={price}
+                                    onChange={(e) => setPrice(e.target.value)}
+                                    className="h-9 text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-sm">Validity (Days)</Label>
+                                <Input
+                                    type="number"
+                                    placeholder="e.g., 365"
+                                    value={validityDays}
+                                    onChange={(e) => setValidityDays(e.target.value)}
+                                    className="h-9 text-sm"
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     {/* Max Slots */}
                     <div className="space-y-2">

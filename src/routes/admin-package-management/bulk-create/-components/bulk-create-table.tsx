@@ -19,26 +19,16 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-    Plus,
-    Trash,
-    Copy,
-    Warning,
-    CurrencyInr,
-    FileText,
-} from '@phosphor-icons/react';
+import { Plus, Trash, Copy, Warning, FileText } from '@phosphor-icons/react';
 import {
     BulkCourseItem,
     CourseType,
-    PaymentType,
     LevelOption,
     SessionOption,
-    PaymentOptionItem,
     ValidationError,
     BatchConfig,
 } from '../-types/bulk-create-types';
 import { BatchSelectorDialog } from './batch-selector-dialog';
-import { PaymentConfigDialog } from './payment-config-dialog';
 import { CourseContentDialog } from './course-content-dialog';
 import { cn } from '@/lib/utils';
 
@@ -46,7 +36,6 @@ interface BulkCreateTableProps {
     courses: BulkCourseItem[];
     levels: LevelOption[];
     sessions: SessionOption[];
-    paymentOptions: PaymentOptionItem[];
     validationErrors: ValidationError[];
     onAddCourse: () => void;
     onRemoveCourse: (id: string) => void;
@@ -64,18 +53,10 @@ const COURSE_TYPES: { value: CourseType; label: string }[] = [
     { value: 'SERVICE', label: 'Service' },
 ];
 
-const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = {
-    FREE: 'Free',
-    ONE_TIME: 'One-Time',
-    SUBSCRIPTION: 'Subscription',
-    DONATION: 'Donation',
-};
-
 export function BulkCreateTable({
     courses,
     levels,
     sessions,
-    paymentOptions,
     validationErrors,
     onAddCourse,
     onRemoveCourse,
@@ -86,7 +67,6 @@ export function BulkCreateTable({
     getErrorsForCourse,
 }: BulkCreateTableProps) {
     const [batchDialogOpen, setBatchDialogOpen] = useState(false);
-    const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
     const [contentDialogOpen, setContentDialogOpen] = useState(false);
     const [activeCourseId, setActiveCourseId] = useState<string | null>(null);
     const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
@@ -94,11 +74,6 @@ export function BulkCreateTable({
     const handleOpenBatchDialog = (courseId: string) => {
         setActiveCourseId(courseId);
         setBatchDialogOpen(true);
-    };
-
-    const handleOpenPaymentDialog = (courseId: string) => {
-        setActiveCourseId(courseId);
-        setPaymentDialogOpen(true);
     };
 
     const handleOpenContentDialog = (courseId: string) => {
@@ -165,8 +140,9 @@ export function BulkCreateTable({
                             <TableHead className="w-10 text-center text-xs">#</TableHead>
                             <TableHead className="min-w-[200px] text-xs">Course Name *</TableHead>
                             <TableHead className="w-[120px] text-xs">Type</TableHead>
-                            <TableHead className="min-w-[180px] text-xs">Payment</TableHead>
-                            <TableHead className="min-w-[200px] text-xs">Batches</TableHead>
+                            <TableHead className="min-w-[280px] text-xs">
+                                Batches (with Payment)
+                            </TableHead>
                             <TableHead className="min-w-[150px] text-xs">Tags</TableHead>
                             <TableHead className="w-[100px] text-xs">Content</TableHead>
                             <TableHead className="w-[80px] text-center text-xs">Publish</TableHead>
@@ -248,39 +224,7 @@ export function BulkCreateTable({
                                         </Select>
                                     </TableCell>
 
-                                    {/* Payment */}
-                                    <TableCell>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 w-full justify-start text-xs"
-                                            onClick={() => handleOpenPaymentDialog(course.id)}
-                                        >
-                                            <CurrencyInr className="mr-1 size-3" />
-                                            {course.payment_config.payment_option_id ? (
-                                                <span className="truncate">
-                                                    {paymentOptions.find(
-                                                        (p) =>
-                                                            p.id ===
-                                                            course.payment_config.payment_option_id
-                                                    )?.name || 'Custom'}
-                                                </span>
-                                            ) : (
-                                                <span>
-                                                    {
-                                                        PAYMENT_TYPE_LABELS[
-                                                            course.payment_config.payment_type
-                                                        ]
-                                                    }
-                                                    {course.payment_config.price
-                                                        ? ` - ₹${course.payment_config.price}`
-                                                        : ''}
-                                                </span>
-                                            )}
-                                        </Button>
-                                    </TableCell>
-
-                                    {/* Batches */}
+                                    {/* Batches (with Payment) */}
                                     <TableCell>
                                         <div className="flex flex-wrap items-center gap-1">
                                             {course.batches.length === 0 ? (
@@ -289,21 +233,83 @@ export function BulkCreateTable({
                                                 </span>
                                             ) : (
                                                 course.batches.slice(0, 2).map((batch, bIdx) => (
-                                                    <Badge
-                                                        key={bIdx}
-                                                        variant="secondary"
-                                                        className="text-[10px]"
-                                                    >
-                                                        {batch.level_name}/{batch.session_name}
-                                                        <button
-                                                            onClick={() =>
-                                                                handleRemoveBatch(course.id, bIdx)
-                                                            }
-                                                            className="ml-1 hover:text-red-500"
-                                                        >
-                                                            ×
-                                                        </button>
-                                                    </Badge>
+                                                    <TooltipProvider key={bIdx}>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Badge
+                                                                    variant="secondary"
+                                                                    className="cursor-help text-[10px]"
+                                                                >
+                                                                    {batch.level_name}/
+                                                                    {batch.session_name}
+                                                                    {batch.payment_config?.price && (
+                                                                        <span className="ml-1 text-green-600">
+                                                                            ₹
+                                                                            {
+                                                                                batch.payment_config
+                                                                                    .price
+                                                                            }
+                                                                        </span>
+                                                                    )}
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleRemoveBatch(
+                                                                                course.id,
+                                                                                bIdx
+                                                                            );
+                                                                        }}
+                                                                        className="ml-1 hover:text-red-500"
+                                                                    >
+                                                                        ×
+                                                                    </button>
+                                                                </Badge>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <div className="text-xs">
+                                                                    <p>
+                                                                        <strong>
+                                                                            {batch.level_name} /{' '}
+                                                                            {batch.session_name}
+                                                                        </strong>
+                                                                    </p>
+                                                                    {batch.payment_config && (
+                                                                        <>
+                                                                            <p>
+                                                                                Type:{' '}
+                                                                                {
+                                                                                    batch
+                                                                                        .payment_config
+                                                                                        .payment_type
+                                                                                }
+                                                                            </p>
+                                                                            {batch.payment_config
+                                                                                .price && (
+                                                                                <p>
+                                                                                    Price: ₹
+                                                                                    {
+                                                                                        batch
+                                                                                            .payment_config
+                                                                                            .price
+                                                                                    }
+                                                                                </p>
+                                                                            )}
+                                                                        </>
+                                                                    )}
+                                                                    {batch.inventory_config
+                                                                        ?.max_slots && (
+                                                                        <p>
+                                                                            Slots:{' '}
+                                                                            {
+                                                                                batch.inventory_config
+                                                                                    .max_slots
+                                                                            }
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
                                                 ))
                                             )}
                                             {course.batches.length > 2 && (
@@ -480,19 +486,6 @@ export function BulkCreateTable({
                 onSelect={handleBatchSelect}
                 existingBatches={activeCourse?.batches || []}
             />
-
-            {/* Payment Config Dialog */}
-            {activeCourse && (
-                <PaymentConfigDialog
-                    open={paymentDialogOpen}
-                    onOpenChange={setPaymentDialogOpen}
-                    currentConfig={activeCourse.payment_config}
-                    paymentOptions={paymentOptions}
-                    onSave={(config) => {
-                        onUpdateCourse(activeCourse.id, { payment_config: config });
-                    }}
-                />
-            )}
 
             {/* Course Content Dialog */}
             {activeCourse && (

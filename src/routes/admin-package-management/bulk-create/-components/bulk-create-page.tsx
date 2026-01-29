@@ -27,7 +27,6 @@ export function BulkCreatePage() {
         globalDefaults,
         levels,
         sessions,
-        paymentOptions,
         isLoadingPaymentOptions,
         validationErrors,
         showPreview,
@@ -205,7 +204,6 @@ export function BulkCreatePage() {
                     courses={courses}
                     levels={allLevels}
                     sessions={allSessions}
-                    paymentOptions={paymentOptions}
                     validationErrors={validationErrors}
                     onAddCourse={addCourse}
                     onRemoveCourse={removeCourse}
@@ -237,7 +235,6 @@ export function BulkCreatePage() {
                 onOpenChange={setShowPreview}
                 courses={courses}
                 globalDefaults={globalDefaults}
-                paymentOptions={paymentOptions}
                 dryRunResult={dryRunResult}
                 isSubmitting={isSubmitting}
                 onConfirm={handleSubmit}

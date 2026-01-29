@@ -7,6 +7,7 @@ export interface BatchConfig {
     level_name?: string;
     session_name?: string;
     inventory_config?: InventoryConfig;
+    payment_config?: PaymentConfig;
 }
 
 export interface InventoryConfig {
@@ -65,9 +66,30 @@ export interface GlobalDefaults {
     publish_to_catalogue: boolean;
 }
 
+// API request course item - payment_config is optional when batches have their own
+export interface BulkCreateCourseRequest {
+    course_name: string;
+    course_type: CourseType;
+    tags: string[];
+    publish_to_catalogue: boolean;
+    batches: BatchConfig[];
+    payment_config?: PaymentConfig;
+    inventory_config?: InventoryConfig;
+    thumbnail_file_id?: string | null;
+    course_preview_image_media_id?: string | null;
+    course_banner_media_id?: string | null;
+    course_media_id?: string | null;
+    why_learn_html?: string | null;
+    who_should_learn_html?: string | null;
+    about_the_course_html?: string | null;
+    course_html_description?: string | null;
+    faculty_user_ids?: string[];
+    course_depth?: number;
+}
+
 export interface BulkCreateRequest {
     apply_to_all: GlobalDefaults;
-    courses: Omit<BulkCourseItem, 'id'>[];
+    courses: BulkCreateCourseRequest[];
     dry_run: boolean;
 }
 
@@ -114,3 +136,27 @@ export interface ValidationError {
     field: string;
     message: string;
 }
+
+// For CSV import - represents a pre-selected level+session combination
+export interface SelectedBatchCombination {
+    levelId: string;
+    levelName: string;
+    sessionId: string;
+    sessionName: string;
+    // Generated key for CSV column naming (e.g., "class1-2025")
+    columnKey: string;
+}
+
+// Helper to generate column key from level and session names
+export function generateColumnKey(levelName: string, sessionName: string): string {
+    const sanitize = (str: string) =>
+        str
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[^a-z0-9]/g, '');
+    return `${sanitize(levelName)}-${sanitize(sessionName)}`;
+}
+
+// CSV batch column fields
+export const BATCH_CSV_FIELDS = ['price', 'payment_type', 'max_slots', 'validity_days'] as const;
+export type BatchCsvField = (typeof BATCH_CSV_FIELDS)[number];

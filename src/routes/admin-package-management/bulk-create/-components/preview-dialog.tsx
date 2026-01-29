@@ -9,20 +9,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CheckCircle, XCircle, Package, CurrencyInr, Users } from '@phosphor-icons/react';
-import {
-    BulkCourseItem,
-    GlobalDefaults,
-    BulkCreateResponse,
-    PaymentOptionItem,
-} from '../-types/bulk-create-types';
+import { CheckCircle, XCircle, Package, Users } from '@phosphor-icons/react';
+import { BulkCourseItem, GlobalDefaults, BulkCreateResponse, BatchConfig } from '../-types/bulk-create-types';
 
 interface PreviewDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     courses: BulkCourseItem[];
     globalDefaults: GlobalDefaults;
-    paymentOptions: PaymentOptionItem[];
     dryRunResult?: BulkCreateResponse;
     isSubmitting: boolean;
     onConfirm: () => void;
@@ -40,35 +34,26 @@ export function PreviewDialog({
     onOpenChange,
     courses,
     globalDefaults,
-    paymentOptions,
     dryRunResult,
     isSubmitting,
     onConfirm,
 }: PreviewDialogProps) {
-    const getEffectivePayment = (course: BulkCourseItem) => {
-        if (course.payment_config.payment_option_id) {
-            const option = paymentOptions.find(
-                (p) => p.id === course.payment_config.payment_option_id
-            );
-            return option ? `${option.name}` : 'Custom Option';
-        }
-
-        const config = course.payment_config.payment_type
-            ? course.payment_config
-            : globalDefaults.enabled
-              ? globalDefaults.payment_config
-              : course.payment_config;
-
-        if (config.payment_type === 'FREE') return 'Free';
-        if (config.price) return `₹${config.price} (${PAYMENT_TYPE_LABELS[config.payment_type]})`;
-        return PAYMENT_TYPE_LABELS[config.payment_type];
-    };
-
     const getEffectiveBatches = (course: BulkCourseItem) => {
         if (course.batches.length > 0) return course.batches;
         if (globalDefaults.enabled && globalDefaults.batches.length > 0)
             return globalDefaults.batches;
-        return [{ level_name: 'DEFAULT', session_name: 'DEFAULT', level_id: null, session_id: null }];
+        return [
+            { level_name: 'DEFAULT', session_name: 'DEFAULT', level_id: null, session_id: null },
+        ];
+    };
+
+    const getBatchPaymentDisplay = (batch: BatchConfig) => {
+        const config = batch.payment_config;
+        if (!config) return 'Free';
+
+        if (config.payment_type === 'FREE') return 'Free';
+        if (config.price) return `₹${config.price}`;
+        return PAYMENT_TYPE_LABELS[config.payment_type] || 'Free';
     };
 
     return (
@@ -137,20 +122,15 @@ export function PreviewDialog({
                                         )}
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-3 text-xs">
-                                        <div className="flex items-center gap-1.5 text-neutral-600">
-                                            <CurrencyInr className="size-3.5" />
-                                            <span>{getEffectivePayment(course)}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 text-neutral-600">
-                                            <Users className="size-3.5" />
-                                            <span>
-                                                {batches.length} batch
-                                                {batches.length !== 1 ? 'es' : ''}
-                                            </span>
-                                        </div>
+                                    <div className="flex items-center gap-1.5 text-xs text-neutral-600">
+                                        <Users className="size-3.5" />
+                                        <span>
+                                            {batches.length} batch
+                                            {batches.length !== 1 ? 'es' : ''}
+                                        </span>
                                     </div>
 
+                                    {/* Batches with payment info */}
                                     <div className="mt-2 flex flex-wrap gap-1">
                                         {batches.map((batch, bIdx) => (
                                             <Badge
@@ -160,6 +140,11 @@ export function PreviewDialog({
                                             >
                                                 {batch.level_name || 'DEFAULT'}/
                                                 {batch.session_name || 'DEFAULT'}
+                                                {batch.payment_config && (
+                                                    <span className="ml-1 text-green-600">
+                                                        {getBatchPaymentDisplay(batch)}
+                                                    </span>
+                                                )}
                                             </Badge>
                                         ))}
                                     </div>
