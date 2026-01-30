@@ -248,6 +248,7 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
                 id: string;
                 package_name: string;
                 thumbnail_file_id: string | null;
+                package_type: string;
             };
             level: Array<{
                 level_dto: {
@@ -276,6 +277,7 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
                         id: batch.package_dto.id,
                         package_name: batch.package_dto.package_name,
                         thumbnail_file_id: batch.package_dto.thumbnail_id || '',
+                        package_type: (batch.package_dto as any).package_type || '',
                     },
                     level: [],
                 };
