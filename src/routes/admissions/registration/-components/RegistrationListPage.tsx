@@ -3,6 +3,7 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { Helmet } from 'react-helmet';
 import { MyButton } from '@/components/design-system/button';
 import { useNavigate } from '@tanstack/react-router';
+import { MagnifyingGlass, Plus, CaretRight } from '@phosphor-icons/react';
 
 // Mock Data for Registrations
 const MOCK_REGISTRATIONS = [
@@ -85,7 +86,7 @@ export function RegistrationListPage() {
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className="relative">
-                        <span className="i-ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                        <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                         <input
                             type="text"
                             placeholder="Search registrations..."
@@ -108,7 +109,7 @@ export function RegistrationListPage() {
                 </div>
 
                 <MyButton buttonType="primary" onClick={handleNewRegistration}>
-                    <span className="i-ph-plus mr-2" />
+                    <Plus className="mr-2 size-4" />
                     New Registration
                 </MyButton>
             </div>
@@ -158,7 +159,7 @@ export function RegistrationListPage() {
                                 </td>
                                 <td className="whitespace-nowrap px-6 py-4 text-right">
                                     <button className="text-neutral-400 hover:text-primary-600">
-                                        <span className="i-ph-caret-right size-5" />
+                                        <CaretRight className="size-5" />
                                     </button>
                                 </td>
                             </tr>

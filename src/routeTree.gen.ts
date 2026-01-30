@@ -679,9 +679,7 @@ const AdmissionsRegistrationIndexRoute =
     id: "/admissions/registration/",
     path: "/admissions/registration/",
     getParentRoute: () => rootRouteImport,
-  } as any).lazy(() =>
-    import("./routes/admissions/registration/index.lazy").then((d) => d.Route),
-  )
+  } as any)
 const AdmissionsPaymentIndexRoute = AdmissionsPaymentIndexRouteImport.update({
   id: "/admissions/payment/",
   path: "/admissions/payment/",
@@ -935,11 +933,7 @@ const AdmissionsRegistrationNewIndexRoute =
     id: "/admissions/registration/new/",
     path: "/admissions/registration/new/",
     getParentRoute: () => rootRouteImport,
-  } as any).lazy(() =>
-    import("./routes/admissions/registration/new/index.lazy").then(
-      (d) => d.Route,
-    ),
-  )
+  } as any)
 const AdmissionsInquiryNewIndexRoute =
   AdmissionsInquiryNewIndexRouteImport.update({
     id: "/admissions/inquiry/new/",

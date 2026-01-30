@@ -1,5 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { RegistrationFormPage } from '../-components/RegistrationFormPage';
 
 export const Route = createFileRoute('/admissions/registration/new/')({
-    // Component is lazy loaded from index.lazy.tsx
+    component: RegistrationRoute,
 });
+
+function RegistrationRoute() {
+    return (
+        <LayoutContainer>
+            <RegistrationFormPage />
+        </LayoutContainer>
+    );
+}
