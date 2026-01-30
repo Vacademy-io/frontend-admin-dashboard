@@ -97,7 +97,8 @@ export const StudentEnrollDeroll = () => {
 
     // Simplified Filtering Logic based on 'name'
     const { activeMemberships, rentedBooks } = useMemo(() => {
-        const plans = plansData?.content || [];
+        // First, filter out any TERMINATED plans to ensure they never appear
+        const plans = (plansData?.content || []).filter(plan => plan.status == 'ACTIVE');
 
         const memberships = plans.filter(plan => {
             const name = (plan.enroll_invite?.name || '').trim().toUpperCase();
