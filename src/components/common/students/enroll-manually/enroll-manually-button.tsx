@@ -37,7 +37,7 @@ export const EnrollManuallyButton = ({
     const step2FormSubmitRef = useRef(() => {});
     const step3FormSubmitRef = useRef(() => {});
     const step4FormSubmitRef = useRef(() => {});
-    const step5FormSubmitRef = useRef<() => Promise<void>>(async () => { });
+    const step5FormSubmitRef = useRef<() => Promise<void>>(async () => {});
 
     const submitFn1 = (fn: () => void) => (step1FormSubmitRef.current = fn);
     const submitFn2 = (fn: () => void) => (step2FormSubmitRef.current = fn);

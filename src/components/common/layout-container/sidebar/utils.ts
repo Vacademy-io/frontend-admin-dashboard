@@ -15,6 +15,7 @@ import {
     ChartBar,
     AddressBook,
     Sparkle,
+    ClipboardText,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
 import {
@@ -97,6 +98,43 @@ export const SidebarItemsData: SidebarItemsType[] = [
         title: 'Learner Live Activities',
         id: 'learner-insights',
         to: '/learner-insights',
+    },
+    {
+        icon: ClipboardText,
+        title: 'Admissions',
+        id: 'admissions',
+        subItems: [
+            {
+                subItem: 'Inquiry',
+                subItemLink: '/admissions/inquiry',
+                subItemId: 'inquiry',
+            },
+            {
+                subItem: 'Registration',
+                subItemLink: '/admissions/registration',
+                subItemId: 'registration',
+            },
+            {
+                subItem: 'Admission',
+                subItemLink: '/admissions/admission',
+                subItemId: 'admission',
+            },
+            {
+                subItem: 'Payment',
+                subItemLink: '/admissions/payment',
+                subItemId: 'payment',
+            },
+            {
+                subItem: 'Documents',
+                subItemLink: '/admissions/documents',
+                subItemId: 'documents',
+            },
+            {
+                subItem: 'Reports',
+                subItemLink: '/admissions/reports',
+                subItemId: 'reports',
+            },
+        ],
     },
     {
         icon: UsersFour,

@@ -36,6 +36,7 @@ import { Route as ChallengeAnalyticsIndexRouteImport } from "./routes/challenge-
 import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
 import { Route as AiVideoStudioIndexRouteImport } from "./routes/ai-video-studio/index"
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
+import { Route as AdmissionsIndexRouteImport } from "./routes/admissions/index"
 import { Route as WorkflowListIndexRouteImport } from "./routes/workflow/list/index"
 import { Route as WorkflowWorkflowIdIndexRouteImport } from "./routes/workflow/$workflowId/index"
 import { Route as UserTagsLinkIndexRouteImport } from "./routes/user-tags/link/index"
@@ -78,12 +79,18 @@ import { Route as AnnouncementCreateIndexRouteImport } from "./routes/announceme
 import { Route as AnnouncementApprovalIndexRouteImport } from "./routes/announcement/approval/index"
 import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center/my-resources/index"
 import { Route as AiCenterAiToolsIndexRouteImport } from "./routes/ai-center/ai-tools/index"
+import { Route as AdmissionsRegistrationIndexRouteImport } from "./routes/admissions/registration/index"
+import { Route as AdmissionsPaymentIndexRouteImport } from "./routes/admissions/payment/index"
+import { Route as AdmissionsInquiryIndexRouteImport } from "./routes/admissions/inquiry/index"
+import { Route as AdmissionsDocumentsIndexRouteImport } from "./routes/admissions/documents/index"
+import { Route as AdmissionsAdmissionIndexRouteImport } from "./routes/admissions/admission/index"
 import { Route as TemplatesEditTemplateIdRouteImport } from "./routes/templates/edit/$templateId"
 import { Route as SignupOauthCallbackRouteImport } from "./routes/signup/oauth/callback"
 import { Route as PlanningPlanningLogIdRouteImport } from "./routes/planning/planning/$logId"
 import { Route as PlanningActivityLogsLogIdRouteImport } from "./routes/planning/activity-logs/$logId"
 import { Route as ManagePagesEditorTagNameRouteImport } from "./routes/manage-pages/editor/$tagName"
 import { Route as LoginOauthRedirectRouteImport } from "./routes/login/oauth/redirect"
+import { Route as AdmissionsAdmissionAdmissionIdRouteImport } from "./routes/admissions/admission/$admissionId"
 import { Route as StudyLibraryVoltAddIndexRouteImport } from "./routes/study-library/volt/add/index"
 import { Route as StudyLibraryLiveSessionScheduleIndexRouteImport } from "./routes/study-library/live-session/schedule/index"
 import { Route as StudyLibraryCoursesCourseDetailsIndexRouteImport } from "./routes/study-library/courses/course-details/index"
@@ -104,6 +111,8 @@ import { Route as AiCenterAiToolsVsmartFeedbackIndexRouteImport } from "./routes
 import { Route as AiCenterAiToolsVsmartExtractIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-extract/index"
 import { Route as AiCenterAiToolsVsmartChatIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-chat/index"
 import { Route as AiCenterAiToolsVsmartAudioIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-audio/index"
+import { Route as AdmissionsRegistrationNewIndexRouteImport } from "./routes/admissions/registration/new/index"
+import { Route as AdmissionsInquiryNewIndexRouteImport } from "./routes/admissions/inquiry/new/index"
 import { Route as StudyLibraryLiveSessionViewSessionIdRouteImport } from "./routes/study-library/live-session/view/$sessionId"
 import { Route as StudyLibraryLiveSessionScheduleStep2IndexRouteImport } from "./routes/study-library/live-session/schedule/step2/index"
 import { Route as StudyLibraryLiveSessionScheduleStep1IndexRouteImport } from "./routes/study-library/live-session/schedule/step1/index"
@@ -315,6 +324,11 @@ const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/ai-center/index.lazy").then((d) => d.Route),
 )
+const AdmissionsIndexRoute = AdmissionsIndexRouteImport.update({
+  id: "/admissions/",
+  path: "/admissions/",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkflowListIndexRoute = WorkflowListIndexRouteImport.update({
   id: "/workflow/list/",
   path: "/workflow/list/",
@@ -660,6 +674,44 @@ const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/ai-center/ai-tools/index.lazy").then((d) => d.Route),
 )
+const AdmissionsRegistrationIndexRoute =
+  AdmissionsRegistrationIndexRouteImport.update({
+    id: "/admissions/registration/",
+    path: "/admissions/registration/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admissions/registration/index.lazy").then((d) => d.Route),
+  )
+const AdmissionsPaymentIndexRoute = AdmissionsPaymentIndexRouteImport.update({
+  id: "/admissions/payment/",
+  path: "/admissions/payment/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/admissions/payment/index.lazy").then((d) => d.Route),
+)
+const AdmissionsInquiryIndexRoute = AdmissionsInquiryIndexRouteImport.update({
+  id: "/admissions/inquiry/",
+  path: "/admissions/inquiry/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/admissions/inquiry/index.lazy").then((d) => d.Route),
+)
+const AdmissionsDocumentsIndexRoute =
+  AdmissionsDocumentsIndexRouteImport.update({
+    id: "/admissions/documents/",
+    path: "/admissions/documents/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admissions/documents/index.lazy").then((d) => d.Route),
+  )
+const AdmissionsAdmissionIndexRoute =
+  AdmissionsAdmissionIndexRouteImport.update({
+    id: "/admissions/admission/",
+    path: "/admissions/admission/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admissions/admission/index.lazy").then((d) => d.Route),
+  )
 const TemplatesEditTemplateIdRoute = TemplatesEditTemplateIdRouteImport.update({
   id: "/templates/edit/$templateId",
   path: "/templates/edit/$templateId",
@@ -698,6 +750,16 @@ const LoginOauthRedirectRoute = LoginOauthRedirectRouteImport.update({
   path: "/login/oauth/redirect",
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdmissionsAdmissionAdmissionIdRoute =
+  AdmissionsAdmissionAdmissionIdRouteImport.update({
+    id: "/admissions/admission/$admissionId",
+    path: "/admissions/admission/$admissionId",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admissions/admission/$admissionId.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const StudyLibraryVoltAddIndexRoute =
   StudyLibraryVoltAddIndexRouteImport.update({
     id: "/study-library/volt/add/",
@@ -867,6 +929,24 @@ const AiCenterAiToolsVsmartAudioIndexRoute =
     import("./routes/ai-center/ai-tools/vsmart-audio/index.lazy").then(
       (d) => d.Route,
     ),
+  )
+const AdmissionsRegistrationNewIndexRoute =
+  AdmissionsRegistrationNewIndexRouteImport.update({
+    id: "/admissions/registration/new/",
+    path: "/admissions/registration/new/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admissions/registration/new/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
+const AdmissionsInquiryNewIndexRoute =
+  AdmissionsInquiryNewIndexRouteImport.update({
+    id: "/admissions/inquiry/new/",
+    path: "/admissions/inquiry/new/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admissions/inquiry/new/index.lazy").then((d) => d.Route),
   )
 const StudyLibraryLiveSessionViewSessionIdRoute =
   StudyLibraryLiveSessionViewSessionIdRouteImport.update({
@@ -1043,6 +1123,7 @@ export interface FileRoutesByFullPath {
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
+  "/admissions": typeof AdmissionsIndexRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/ai-video-studio": typeof AiVideoStudioIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
@@ -1067,12 +1148,18 @@ export interface FileRoutesByFullPath {
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment": typeof AssessmentIndexLazyRoute
+  "/admissions/admission/$admissionId": typeof AdmissionsAdmissionAdmissionIdRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
+  "/admissions/admission": typeof AdmissionsAdmissionIndexRoute
+  "/admissions/documents": typeof AdmissionsDocumentsIndexRoute
+  "/admissions/inquiry": typeof AdmissionsInquiryIndexRoute
+  "/admissions/payment": typeof AdmissionsPaymentIndexRoute
+  "/admissions/registration": typeof AdmissionsRegistrationIndexRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval": typeof AnnouncementApprovalIndexRoute
@@ -1116,6 +1203,8 @@ export interface FileRoutesByFullPath {
   "/workflow/$workflowId": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list": typeof WorkflowListIndexRoute
   "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
+  "/admissions/inquiry/new": typeof AdmissionsInquiryNewIndexRoute
+  "/admissions/registration/new": typeof AdmissionsRegistrationNewIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1159,6 +1248,7 @@ export interface FileRoutesByTo {
   "/settings": typeof SettingsRoute
   "/landing": typeof LandingLazyRoute
   "/pricing": typeof PricingLazyRoute
+  "/admissions": typeof AdmissionsIndexRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/ai-video-studio": typeof AiVideoStudioIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
@@ -1183,12 +1273,18 @@ export interface FileRoutesByTo {
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment": typeof AssessmentIndexLazyRoute
+  "/admissions/admission/$admissionId": typeof AdmissionsAdmissionAdmissionIdRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
+  "/admissions/admission": typeof AdmissionsAdmissionIndexRoute
+  "/admissions/documents": typeof AdmissionsDocumentsIndexRoute
+  "/admissions/inquiry": typeof AdmissionsInquiryIndexRoute
+  "/admissions/payment": typeof AdmissionsPaymentIndexRoute
+  "/admissions/registration": typeof AdmissionsRegistrationIndexRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval": typeof AnnouncementApprovalIndexRoute
@@ -1232,6 +1328,8 @@ export interface FileRoutesByTo {
   "/workflow/$workflowId": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list": typeof WorkflowListIndexRoute
   "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
+  "/admissions/inquiry/new": typeof AdmissionsInquiryNewIndexRoute
+  "/admissions/registration/new": typeof AdmissionsRegistrationNewIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1277,6 +1375,7 @@ export interface FileRoutesById {
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
+  "/admissions/": typeof AdmissionsIndexRoute
   "/ai-center/": typeof AiCenterIndexRoute
   "/ai-video-studio/": typeof AiVideoStudioIndexRoute
   "/auth-transfer/": typeof AuthTransferIndexRoute
@@ -1301,12 +1400,18 @@ export interface FileRoutesById {
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
   "/assessment/": typeof AssessmentIndexLazyRoute
+  "/admissions/admission/$admissionId": typeof AdmissionsAdmissionAdmissionIdRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
+  "/admissions/admission/": typeof AdmissionsAdmissionIndexRoute
+  "/admissions/documents/": typeof AdmissionsDocumentsIndexRoute
+  "/admissions/inquiry/": typeof AdmissionsInquiryIndexRoute
+  "/admissions/payment/": typeof AdmissionsPaymentIndexRoute
+  "/admissions/registration/": typeof AdmissionsRegistrationIndexRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval/": typeof AnnouncementApprovalIndexRoute
@@ -1350,6 +1455,8 @@ export interface FileRoutesById {
   "/workflow/$workflowId/": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list/": typeof WorkflowListIndexRoute
   "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
+  "/admissions/inquiry/new/": typeof AdmissionsInquiryNewIndexRoute
+  "/admissions/registration/new/": typeof AdmissionsRegistrationNewIndexRoute
   "/ai-center/ai-tools/vsmart-audio/": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat/": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract/": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1396,6 +1503,7 @@ export interface FileRouteTypes {
     | "/landing"
     | "/learner-insights"
     | "/pricing"
+    | "/admissions"
     | "/ai-center"
     | "/ai-video-studio"
     | "/auth-transfer"
@@ -1420,12 +1528,18 @@ export interface FileRouteTypes {
     | "/signup"
     | "/study-library"
     | "/assessment"
+    | "/admissions/admission/$admissionId"
     | "/login/oauth/redirect"
     | "/manage-pages/editor/$tagName"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
+    | "/admissions/admission"
+    | "/admissions/documents"
+    | "/admissions/inquiry"
+    | "/admissions/payment"
+    | "/admissions/registration"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
     | "/announcement/approval"
@@ -1469,6 +1583,8 @@ export interface FileRouteTypes {
     | "/workflow/$workflowId"
     | "/workflow/list"
     | "/study-library/live-session/view/$sessionId"
+    | "/admissions/inquiry/new"
+    | "/admissions/registration/new"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -1512,6 +1628,7 @@ export interface FileRouteTypes {
     | "/settings"
     | "/landing"
     | "/pricing"
+    | "/admissions"
     | "/ai-center"
     | "/ai-video-studio"
     | "/auth-transfer"
@@ -1536,12 +1653,18 @@ export interface FileRouteTypes {
     | "/signup"
     | "/study-library"
     | "/assessment"
+    | "/admissions/admission/$admissionId"
     | "/login/oauth/redirect"
     | "/manage-pages/editor/$tagName"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
+    | "/admissions/admission"
+    | "/admissions/documents"
+    | "/admissions/inquiry"
+    | "/admissions/payment"
+    | "/admissions/registration"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
     | "/announcement/approval"
@@ -1585,6 +1708,8 @@ export interface FileRouteTypes {
     | "/workflow/$workflowId"
     | "/workflow/list"
     | "/study-library/live-session/view/$sessionId"
+    | "/admissions/inquiry/new"
+    | "/admissions/registration/new"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -1629,6 +1754,7 @@ export interface FileRouteTypes {
     | "/landing"
     | "/learner-insights"
     | "/pricing"
+    | "/admissions/"
     | "/ai-center/"
     | "/ai-video-studio/"
     | "/auth-transfer/"
@@ -1653,12 +1779,18 @@ export interface FileRouteTypes {
     | "/signup/"
     | "/study-library/"
     | "/assessment/"
+    | "/admissions/admission/$admissionId"
     | "/login/oauth/redirect"
     | "/manage-pages/editor/$tagName"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
+    | "/admissions/admission/"
+    | "/admissions/documents/"
+    | "/admissions/inquiry/"
+    | "/admissions/payment/"
+    | "/admissions/registration/"
     | "/ai-center/ai-tools/"
     | "/ai-center/my-resources/"
     | "/announcement/approval/"
@@ -1702,6 +1834,8 @@ export interface FileRouteTypes {
     | "/workflow/$workflowId/"
     | "/workflow/list/"
     | "/study-library/live-session/view/$sessionId"
+    | "/admissions/inquiry/new/"
+    | "/admissions/registration/new/"
     | "/ai-center/ai-tools/vsmart-audio/"
     | "/ai-center/ai-tools/vsmart-chat/"
     | "/ai-center/ai-tools/vsmart-extract/"
@@ -1747,6 +1881,7 @@ export interface RootRouteChildren {
   LandingLazyRoute: typeof LandingLazyRoute
   LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
   PricingLazyRoute: typeof PricingLazyRoute
+  AdmissionsIndexRoute: typeof AdmissionsIndexRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AiVideoStudioIndexRoute: typeof AiVideoStudioIndexRoute
   AuthTransferIndexRoute: typeof AuthTransferIndexRoute
@@ -1770,12 +1905,18 @@ export interface RootRouteChildren {
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
   AssessmentIndexLazyRoute: typeof AssessmentIndexLazyRoute
+  AdmissionsAdmissionAdmissionIdRoute: typeof AdmissionsAdmissionAdmissionIdRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
   ManagePagesEditorTagNameRoute: typeof ManagePagesEditorTagNameRoute
   PlanningActivityLogsLogIdRoute: typeof PlanningActivityLogsLogIdRoute
   PlanningPlanningLogIdRoute: typeof PlanningPlanningLogIdRoute
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
   TemplatesEditTemplateIdRoute: typeof TemplatesEditTemplateIdRoute
+  AdmissionsAdmissionIndexRoute: typeof AdmissionsAdmissionIndexRoute
+  AdmissionsDocumentsIndexRoute: typeof AdmissionsDocumentsIndexRoute
+  AdmissionsInquiryIndexRoute: typeof AdmissionsInquiryIndexRoute
+  AdmissionsPaymentIndexRoute: typeof AdmissionsPaymentIndexRoute
+  AdmissionsRegistrationIndexRoute: typeof AdmissionsRegistrationIndexRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
   AnnouncementApprovalIndexRoute: typeof AnnouncementApprovalIndexRoute
@@ -1819,6 +1960,8 @@ export interface RootRouteChildren {
   WorkflowWorkflowIdIndexRoute: typeof WorkflowWorkflowIdIndexRoute
   WorkflowListIndexRoute: typeof WorkflowListIndexRoute
   StudyLibraryLiveSessionViewSessionIdRoute: typeof StudyLibraryLiveSessionViewSessionIdRoute
+  AdmissionsInquiryNewIndexRoute: typeof AdmissionsInquiryNewIndexRoute
+  AdmissionsRegistrationNewIndexRoute: typeof AdmissionsRegistrationNewIndexRoute
   AiCenterAiToolsVsmartAudioIndexRoute: typeof AiCenterAiToolsVsmartAudioIndexRoute
   AiCenterAiToolsVsmartChatIndexRoute: typeof AiCenterAiToolsVsmartChatIndexRoute
   AiCenterAiToolsVsmartExtractIndexRoute: typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -2061,6 +2204,13 @@ declare module "@tanstack/react-router" {
       path: "/ai-center"
       fullPath: "/ai-center"
       preLoaderRoute: typeof AiCenterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/": {
+      id: "/admissions/"
+      path: "/admissions"
+      fullPath: "/admissions"
+      preLoaderRoute: typeof AdmissionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/workflow/list/": {
@@ -2357,6 +2507,41 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AiCenterAiToolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/admissions/registration/": {
+      id: "/admissions/registration/"
+      path: "/admissions/registration"
+      fullPath: "/admissions/registration"
+      preLoaderRoute: typeof AdmissionsRegistrationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/payment/": {
+      id: "/admissions/payment/"
+      path: "/admissions/payment"
+      fullPath: "/admissions/payment"
+      preLoaderRoute: typeof AdmissionsPaymentIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/inquiry/": {
+      id: "/admissions/inquiry/"
+      path: "/admissions/inquiry"
+      fullPath: "/admissions/inquiry"
+      preLoaderRoute: typeof AdmissionsInquiryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/documents/": {
+      id: "/admissions/documents/"
+      path: "/admissions/documents"
+      fullPath: "/admissions/documents"
+      preLoaderRoute: typeof AdmissionsDocumentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/admission/": {
+      id: "/admissions/admission/"
+      path: "/admissions/admission"
+      fullPath: "/admissions/admission"
+      preLoaderRoute: typeof AdmissionsAdmissionIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/templates/edit/$templateId": {
       id: "/templates/edit/$templateId"
       path: "/templates/edit/$templateId"
@@ -2397,6 +2582,13 @@ declare module "@tanstack/react-router" {
       path: "/login/oauth/redirect"
       fullPath: "/login/oauth/redirect"
       preLoaderRoute: typeof LoginOauthRedirectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/admission/$admissionId": {
+      id: "/admissions/admission/$admissionId"
+      path: "/admissions/admission/$admissionId"
+      fullPath: "/admissions/admission/$admissionId"
+      preLoaderRoute: typeof AdmissionsAdmissionAdmissionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/volt/add/": {
@@ -2537,6 +2729,20 @@ declare module "@tanstack/react-router" {
       path: "/ai-center/ai-tools/vsmart-audio"
       fullPath: "/ai-center/ai-tools/vsmart-audio"
       preLoaderRoute: typeof AiCenterAiToolsVsmartAudioIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/registration/new/": {
+      id: "/admissions/registration/new/"
+      path: "/admissions/registration/new"
+      fullPath: "/admissions/registration/new"
+      preLoaderRoute: typeof AdmissionsRegistrationNewIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/inquiry/new/": {
+      id: "/admissions/inquiry/new/"
+      path: "/admissions/inquiry/new"
+      fullPath: "/admissions/inquiry/new"
+      preLoaderRoute: typeof AdmissionsInquiryNewIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/live-session/view/$sessionId": {
@@ -2685,6 +2891,7 @@ const rootRouteChildren: RootRouteChildren = {
   LandingLazyRoute: LandingLazyRoute,
   LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,
   PricingLazyRoute: PricingLazyRoute,
+  AdmissionsIndexRoute: AdmissionsIndexRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
   AiVideoStudioIndexRoute: AiVideoStudioIndexRoute,
   AuthTransferIndexRoute: AuthTransferIndexRoute,
@@ -2708,12 +2915,18 @@ const rootRouteChildren: RootRouteChildren = {
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
   AssessmentIndexLazyRoute: AssessmentIndexLazyRoute,
+  AdmissionsAdmissionAdmissionIdRoute: AdmissionsAdmissionAdmissionIdRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
   ManagePagesEditorTagNameRoute: ManagePagesEditorTagNameRoute,
   PlanningActivityLogsLogIdRoute: PlanningActivityLogsLogIdRoute,
   PlanningPlanningLogIdRoute: PlanningPlanningLogIdRoute,
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
   TemplatesEditTemplateIdRoute: TemplatesEditTemplateIdRoute,
+  AdmissionsAdmissionIndexRoute: AdmissionsAdmissionIndexRoute,
+  AdmissionsDocumentsIndexRoute: AdmissionsDocumentsIndexRoute,
+  AdmissionsInquiryIndexRoute: AdmissionsInquiryIndexRoute,
+  AdmissionsPaymentIndexRoute: AdmissionsPaymentIndexRoute,
+  AdmissionsRegistrationIndexRoute: AdmissionsRegistrationIndexRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
   AnnouncementApprovalIndexRoute: AnnouncementApprovalIndexRoute,
@@ -2763,6 +2976,8 @@ const rootRouteChildren: RootRouteChildren = {
   WorkflowListIndexRoute: WorkflowListIndexRoute,
   StudyLibraryLiveSessionViewSessionIdRoute:
     StudyLibraryLiveSessionViewSessionIdRoute,
+  AdmissionsInquiryNewIndexRoute: AdmissionsInquiryNewIndexRoute,
+  AdmissionsRegistrationNewIndexRoute: AdmissionsRegistrationNewIndexRoute,
   AiCenterAiToolsVsmartAudioIndexRoute: AiCenterAiToolsVsmartAudioIndexRoute,
   AiCenterAiToolsVsmartChatIndexRoute: AiCenterAiToolsVsmartChatIndexRoute,
   AiCenterAiToolsVsmartExtractIndexRoute:
