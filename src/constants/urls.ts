@@ -8,6 +8,7 @@ export const AI_SERVICE_BASE_URL =
 
 // AI Video URLs API
 export const GET_VIDEO_URLS = (videoId: string) => `${AI_SERVICE_BASE_URL}/video/urls/${videoId}`;
+export const SCRAPE_URL = `${AI_SERVICE_BASE_URL}/utils/scrape-url`;
 
 // Institute AI Settings APIs
 export const GET_INSTITUTE_AI_SETTINGS = (instituteId: string) =>
@@ -34,6 +35,10 @@ export const AUDIENCE_CAMPAIGN = `${BASE_URL}/admin-core-service/v1/audience/cam
 export const AUDIENCE_CAMPAIGNS_LIST = `${BASE_URL}/admin-core-service/v1/audience/campaigns`;
 export const GET_CAMPAIGN_USERS = `${BASE_URL}/admin-core-service/v1/audience/leads`;
 export const GET_CUSTOM_FIELD_SETUP = `${BASE_URL}/admin-core-service/common/custom-fields/setup`;
+
+// Field Mapping
+export const FIELD_MAPPING_BASE_URL = `${BASE_URL}/admin-core-service/common/field-mapping`;
+
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
 export const SIGNUP_URL = `${BASE_URL}/auth-service/v1/signup-root`;
@@ -64,6 +69,12 @@ export const GET_DASHBOARD_ASSESSMENT_COUNT_URL = `${BASE_URL}/assessment-servic
 export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details`;
 export const INIT_INSTITUTE_WITHOUT_BATCHES = `${BASE_URL}/admin-core-service/institute/v1/details-non-batches`;
 export const INIT_INSTITUTE_SETUP = `${BASE_URL}/admin-core-service/institute/v1/setup-without-batches`;
+
+// Package Management APIs
+export const PAGINATED_BATCHES = `${BASE_URL}/admin-core-service/institute/v1/paginated-batches`;
+export const BATCHES_BY_IDS = `${BASE_URL}/admin-core-service/institute/v1/batches-by-ids`;
+export const BATCHES_SUMMARY = `${BASE_URL}/admin-core-service/institute/v1/batches-summary`;
+
 export const ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-details/get`;
 export const GET_STUDENTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all`;
 export const GET_ASSESSMENT_DETAILS = `${BASE_URL}/assessment-service/assessment/create/v1/status`;
@@ -165,6 +176,7 @@ export const COPY_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/copy`;
 export const MOVE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/move`;
 
 export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
+export const BULK_ADD_COURSES = `${BASE_URL}/admin-core-service/course/v1/bulk-add-courses`;
 export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;
 export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course-details`;
 
@@ -216,6 +228,16 @@ export const GET_SLIDES_COUNT = `${BASE_URL}/admin-core-service/slide/v1/slide-c
 export const GET_INVITE_LINKS = `${BASE_URL}/admin-core-service/v1/enroll-invite/get-enroll-invite`;
 export const MAKE_INVITE_LINK_DEFAULT = `${BASE_URL}/admin-core-service/v1/enroll-invite/update-default-enroll-invite-config`;
 export const GET_SINGLE_INVITE_DETAILS = `${BASE_URL}/admin-core-service/v1/enroll-invite/{instituteId}/{enrollInviteId}`;
+export const DELETE_INVITES = `${BASE_URL}/admin-core-service/v1/enroll-invite/enroll-invites`;
+
+export const GET_COURSE_DETAILS = `${BASE_URL}/admin-core-service/packages/v1/package-detail`;
+export const UPDATE_COURSE_BY_ID = `${BASE_URL}/admin-core-service/course/v1/update-course`;
+
+export const GET_FACULTY_ASSIGNMENTS = `${BASE_URL}/admin-core-service/institute/v1/faculty/batch-subject-assignments`;
+export const UPDATE_FACULTY_ASSIGNMENTS = `${BASE_URL}/admin-core-service/institute/v1/faculty/update-assign-subjects-and-batches`;
+
+export const GET_COURSE_BATCHES = `${BASE_URL}/admin-core-service/course/v1`;
+export const UPDATE_BATCH_INVENTORY = `${BASE_URL}/admin-core-service/package-session`;
 
 export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
@@ -384,6 +406,7 @@ export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-optio
 
 export const GET_INSITITUTE_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/get`;
 export const UPDATE_CUSTOM_FIELD_SETTINGS = `${BASE_URL}/admin-core-service/institute/v1/custom-field/create-or-update`;
+export const GET_CUSTOM_FIELD_LIST_WITH_USAGE = `${BASE_URL}/admin-core-service/institute/v1/custom-field/list-with-usage`;
 // Message Templates
 export const MESSAGE_TEMPLATE_BASE = `${BASE_URL}/admin-core-service/institute/template/v1`;
 export const CREATE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/create`;

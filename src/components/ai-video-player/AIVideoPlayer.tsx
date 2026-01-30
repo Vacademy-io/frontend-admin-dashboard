@@ -41,8 +41,147 @@ class HtmlContentProcessor {
         const libs = `
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MorphSVGPlugin.min.js"></script>
+        <script>
+            // Fallback for MorphSVGPlugin to prevent ReferenceErrors if CDN fails (premium plugin)
+            if (typeof window.MorphSVGPlugin === 'undefined') {
+                window.MorphSVGPlugin = { version: '3.12.5', name: 'MorphSVGPlugin', default: {} };
+            }
+        </script>
         <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+        <!-- Rough Notation for Hand-drawn Annotations -->
+        <script src="https://unpkg.com/rough-notation/lib/rough-notation.iife.js"></script>
+
+        <!-- Vivus.js for SVG Path Animations -->
+        <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.6/dist/vivus.min.js"></script>
+
+        <!-- KaTeX for Math Equations -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+        <!-- Prism.js for Syntax Highlighting -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600&family=Fira+Code&display=swap');
+
+            /* --- THEME VARIABLES (Default to Light/White Theme) --- */
+            :root {
+                --text-color: #1e293b;
+                --text-secondary: #475569;
+                --primary-color: #2563eb;
+                --accent-color: #f59e0b;
+                --background-color: #ffffff;
+            }
+            /* For Dark Mode (Optional) */
+            /*
+            [data-theme="dark"] {
+                --text-color: #f8fafc;
+                --text-secondary: #cbd5e1;
+                --primary-color: #3b82f6;
+                --background-color: #0f172a;
+            }
+            */
+
+            /* --- TYPOGRAPHY MATCHING BACKEND --- */
+            .text-display { font-family: 'Montserrat', sans-serif; font-size: 64px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; color: var(--text-color); }
+            .text-h2 { font-family: 'Montserrat', sans-serif; font-size: 48px; font-weight: 700; margin-bottom: 16px; color: var(--text-color); }
+            .text-body { font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 400; color: var(--text-secondary); line-height: 1.5; }
+            .text-label { font-family: 'Fira Code', monospace; font-size: 18px; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; display: block; }
+
+            /* --- REQUIRED UTILITY CLASSES --- */
+            .full-screen-center {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                box-sizing: border-box;
+                padding: 60px 80px;
+            }
+            .highlight {
+                background: linear-gradient(120deg, rgba(255, 226, 89, 0.6) 0%, rgba(255, 233, 148, 0.4) 100%);
+                padding: 0 4px;
+                border-radius: 4px;
+                display: inline-block;
+                box-decoration-break: clone;
+                -webkit-box-decoration-break: clone;
+            }
+            .emphasis { color: var(--primary-color); font-weight: bold; }
+            .mermaid { display: flex; justify-content: center; width: 100%; margin: 20px auto; }
+
+            /* --- LAYOUT GRIDS --- */
+            .layout-split {
+                display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+                width: 90%; max-width: 1700px; align-items: center; justify-items: center;
+                text-align: left;
+            }
+            .layout-split.reverse { direction: rtl; }
+            .layout-split.reverse > * { direction: ltr; }
+            .layout-split.golden-left { grid-template-columns: 1.2fr 0.8fr; }
+            .layout-split.golden-right { grid-template-columns: 0.8fr 1.2fr; }
+            .layout-hero {
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                text-align: center; width: 80%; max-width: 1200px; gap: 32px;
+            }
+            .layout-code-split {
+                display: grid; grid-template-columns: 40% 60%; gap: 40px;
+                width: 95%; max-width: 1800px; align-items: center;
+                text-align: left;
+            }
+            .layout-bento {
+                display: grid; grid-template-columns: repeat(2, 1fr);
+                gap: 40px; width: 90%; max-width: 1600px; align-content: center;
+            }
+
+            /* --- COMPONENTS --- */
+            .content-section, .bento-card {
+                padding: 24px;
+                color: var(--text-color);
+            }
+            .bento-card { border-left: 3px solid var(--primary-color); }
+            .bento-card.center { text-align: center; }
+            .key-term {
+                color: var(--accent-color);
+                font-weight: 700;
+                border-bottom: 3px solid var(--accent-color);
+            }
+            .step-item {
+                display: flex; align-items: flex-start; margin: 20px 0; color: var(--text-color);
+            }
+            .step-number {
+                display: inline-flex; align-items: center; justify-content: center;
+                width: 48px; height: 48px;
+                background: var(--primary-color);
+                color: #fff; font-weight: 800; font-size: 24px;
+                border-radius: 50%; margin-right: 16px; flex-shrink: 0;
+            }
+            .divider {
+                width: 100%; height: 2px;
+                background: var(--primary-color);
+                margin: 24px 0; opacity: 0.5;
+            }
+            .arrow-right {
+                display: inline-block; width: 0; height: 0;
+                border-top: 12px solid transparent;
+                border-bottom: 12px solid transparent;
+                border-left: 20px solid var(--primary-color);
+                margin: 0 16px;
+            }
+            .label-tag {
+                display: inline-block; padding: 4px 12px;
+                background: var(--primary-color);
+                color: #fff; font-size: 14px;
+                border-radius: 4px; font-weight: 600; text-transform: uppercase;
+                margin-right: 8px; margin-bottom: 8px;
+            }
+
             /* Visual cues for interactive elements */
             .hover-target:hover {
                 outline: 2px dashed #3b82f6;
@@ -58,12 +197,326 @@ class HtmlContentProcessor {
                 cursor: text;
                 min-width: 10px;
             }
+
+            /* Key Takeaway Card */
+            .key-takeaway {
+              display: flex;
+              align-items: center;
+              gap: 20px;
+              padding: 24px 32px;
+              border-left: 5px solid #10b981;
+              background: rgba(16, 185, 129, 0.1);
+              margin: 20px 0;
+            }
+            .takeaway-icon { font-size: 48px; }
+            .takeaway-label {
+              font-size: 14px;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              color: #10b981;
+              font-weight: 700;
+            }
+            .takeaway-text {
+              font-size: 28px;
+              margin-top: 8px;
+              font-weight: 600;
+            }
+
+            /* Wrong vs Right Pattern */
+            .wrong-right-container {
+              display: flex;
+              gap: 40px;
+              width: 100%;
+            }
+            .wrong-box, .right-box {
+              flex: 1;
+              padding: 24px;
+              border-radius: 12px;
+            }
+            .wrong-box {
+              border: 3px solid #ef4444;
+              background: rgba(239, 68, 68, 0.1);
+            }
+            .right-box {
+              border: 3px solid #10b981;
+              background: rgba(16, 185, 129, 0.1);
+            }
+            .wr-header {
+              font-size: 18px;
+              font-weight: 700;
+              margin-bottom: 12px;
+            }
+            .wrong-box .wr-header { color: #ef4444; }
+            .right-box .wr-header { color: #10b981; }
+            .wr-icon { font-size: 24px; margin-right: 8px; }
+            .wr-text { font-size: 24px; }
         </style>
         <script>
+            // ========== AI VIDEO HELPER FUNCTIONS ==========
+
+            // Re-render Math using KaTeX
+            window.renderMath = function(selector) {
+                if (window.renderMathInElement && window.katex) {
+                     const el = selector ? (typeof selector === 'string' ? document.querySelector(selector) : selector) : document.body;
+                     if(el) {
+                         try {
+                             renderMathInElement(el, {
+                                delimiters: [
+                                    {left: '$$', right: '$$', display: true},
+                                    {left: '$', right: '$', display: false},
+                                    {left: '\\(', right: '\\)', display: false},
+                                    {left: '\\[', right: '\\]', display: true}
+                                ],
+                                throwOnError : false
+                            });
+                         } catch (e) {
+                             console.warn('KaTeX render error:', e);
+                         }
+                     }
+                }
+            };
+
+            // Highlight Code using Prism
+            window.highlightCode = function() {
+                if (window.Prism) {
+                    Prism.highlightAll();
+                }
+            };
+
+            // SVG drawing animation
+            window.animateSVG = function(svgId, duration, callback) {
+              if (window.Vivus) {
+                var cb = typeof callback === 'function' ? callback : undefined;
+
+                // Helper to resolve the actual SVG element
+                var findSvg = function(id) {
+                    try {
+                        var el = null;
+                        if (typeof id === 'string') {
+                            if (id.startsWith('#')) {
+                                el = document.querySelector(id);
+                            } else {
+                                el = document.getElementById(id);
+                            }
+                        } else {
+                            el = id;
+                        }
+
+                        if (!el) return null;
+
+                        // Strict check: if it is explicitly an SVG element
+                        if (el.tagName && el.tagName.toLowerCase() === 'svg') return el;
+
+                        // If element is a container, look inside for an SVG
+                        if (el.querySelector) {
+                            var inner = el.querySelector('svg');
+                            if (inner) return inner;
+                        }
+
+                        return null;
+                    } catch(e) { return null; }
+                };
+
+                var initVivus = function() {
+                    try {
+                        var targetSvg = findSvg(svgId);
+
+                        // Strict validation before passing to Vivus
+                        var isValidSvg = targetSvg && (
+                            (window.SVGElement && targetSvg instanceof window.SVGElement) ||
+                            (targetSvg.tagName && targetSvg.tagName.toLowerCase() === 'svg')
+                        );
+
+                        if (isValidSvg) {
+                             new Vivus(targetSvg, {
+                              duration: duration || 100,
+                              type: 'oneByOne',
+                              animTimingFunction: Vivus.EASE_OUT
+                            }, cb);
+                        } else if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var retrySvg = findSvg(svgId);
+                                var retryValid = retrySvg && (
+                                    (window.SVGElement && retrySvg instanceof window.SVGElement) ||
+                                    (retrySvg.tagName && retrySvg.tagName.toLowerCase() === 'svg')
+                                );
+
+                                if (retryValid) {
+                                    new Vivus(retrySvg, {
+                                      duration: duration || 100,
+                                      type: 'oneByOne',
+                                      animTimingFunction: Vivus.EASE_OUT
+                                    }, cb);
+                                } else {
+                                    // Debug only, don't warn as it might be expected
+                                    console.debug('Vivus init skipped: SVG not found after load', svgId);
+                                }
+                            });
+                        } else {
+                            console.debug('Vivus init skipped: SVG not found', svgId);
+                        }
+                    } catch(e) {
+                        // Only log real errors, not anticipated "element missing" ones
+                        console.warn('Vivus init error', e);
+                    }
+                };
+
+                initVivus();
+              }
+            };
+
+            // Hand-drawn annotation (underline, circle, highlight, box)
+            window.annotate = function(selectorOrEl, options) {
+              if (window.RoughNotation) {
+                const el = typeof selectorOrEl === 'string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+                if (el) {
+                  const annotation = RoughNotation.annotate(el, {
+                    type: options.type || 'underline',
+                    color: options.color || '#dc2626',
+                    strokeWidth: options.strokeWidth || 3,
+                    padding: options.padding || 5,
+                    animationDuration: options.duration || 800
+                  });
+                  annotation.show();
+                  return annotation;
+                }
+              }
+              return null;
+            };
+
+            // Simple fade in
+            window.fadeIn = function(selector, duration, delay) {
+              try {
+                  gsap.fromTo(selector,
+                    {opacity: 0},
+                    {opacity: 1, duration: duration || 0.5, delay: delay || 0, ease: 'power2.out'}
+                  );
+              } catch (e) { console.warn('fadeIn error', e); }
+            };
+
+            // Typewriter effect
+            window.typewriter = function(selectorOrEl, duration, delay) {
+              const el = typeof selectorOrEl === 'string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+              if (!el) return;
+              const text = el.textContent;
+              el.textContent = '';
+              el.style.opacity = '1';
+              let i = 0;
+              const speed = (duration || 1) * 1000 / text.length;
+              setTimeout(() => {
+                const interval = setInterval(() => {
+                  if (i < text.length) {
+                    el.textContent += text.charAt(i);
+                    i++;
+                  } else {
+                    clearInterval(interval);
+                  }
+                }, speed);
+              }, (delay || 0) * 1000);
+            };
+
+            // Pop in with scale
+            window.popIn = function(selector, duration, delay) {
+              try {
+                  gsap.fromTo(selector,
+                    {opacity: 0, scale: 0.85},
+                    {opacity: 1, scale: 1, duration: duration || 0.4, delay: delay || 0, ease: 'back.out(1.7)'}
+                  );
+              } catch (e) { console.warn('popIn error', e); }
+            };
+
+            // Slide up from below
+            window.slideUp = function(selector, duration, delay) {
+              try {
+                  gsap.fromTo(selector,
+                    {opacity: 0, y: 30},
+                    {opacity: 1, y: 0, duration: duration || 0.5, delay: delay || 0, ease: 'power2.out'}
+                  );
+              } catch (e) { console.warn('slideUp error', e); }
+            };
+
+            // Reveal lines with stagger
+            window.revealLines = function(selectorOrEl, staggerDelay) {
+              const el = typeof selectorOrEl === 'string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+              if (!el) return;
+              const lines = el.querySelectorAll('.line');
+              if (lines.length === 0) {
+                window.fadeIn(el, 0.5);
+                return;
+              }
+              gsap.fromTo(lines,
+                {opacity: 0, y: 20},
+                {opacity: 1, y: 0, duration: 0.4, stagger: staggerDelay || 0.3, ease: 'power2.out'}
+              );
+            };
+
+            // Show text then annotate a key term
+            window.showThenAnnotate = function(textSelector, termSelector, annotationType, annotationColor, textDelay, annotationDelay) {
+              window.fadeIn(textSelector, 0.5, textDelay || 0);
+              setTimeout(() => {
+                window.annotate(termSelector, {
+                  type: annotationType || 'underline',
+                  color: annotationColor || '#dc2626',
+                  duration: 600
+                });
+              }, ((textDelay || 0) + (annotationDelay || 0.8)) * 1000);
+            };
+
+            // Sound effects (optional)
+            window.sounds = {
+              pop: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
+              click: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
+              whoosh: 'https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3',
+              success: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'
+            };
+
+            // Play sound effect
+            window.playSound = function(soundName) {
+              if (window.sounds && window.sounds[soundName]) {
+                const audio = new Audio(window.sounds[soundName]);
+                audio.volume = 0.5;
+                audio.play().catch(e => console.log('Sound play failed:', e));
+              }
+            };
+
+            // Render Mermaid
+            window.renderMermaid = function(selector) {
+                if (window.mermaid) {
+                    try {
+                        mermaid.init(undefined, selector ? document.querySelectorAll(selector) : document.querySelectorAll('.mermaid'));
+                    } catch (e) {
+                        console.error('Mermaid render error:', e);
+                    }
+                }
+            };
+
             window.addEventListener('load', () => {
                 // Initialize Libraries
-                if(window.gsap && window.MotionPathPlugin) gsap.registerPlugin(MotionPathPlugin);
+                if(window.gsap) {
+                   if(window.MotionPathPlugin) gsap.registerPlugin(MotionPathPlugin);
+                   if(window.MorphSVGPlugin && typeof window.MorphSVGPlugin.version === 'string') {
+                       // Only register if it looks like a real plugin (or our mock if safe)
+                       // If it's the mock, registering it might fail if GSAP expects specific structure.
+                       // Actually, registerPlugin simply adds it.
+                       try { gsap.registerPlugin(MorphSVGPlugin); } catch(e) { console.warn('MorphSVG registration failed', e); }
+                   }
+                }
+
+                // Shim RoughNotation.annotateAll if missing
+                if (window.RoughNotation && !window.RoughNotation.annotateAll) {
+                    window.RoughNotation.annotateAll = function(annotations) {
+                        if (Array.isArray(annotations) && window.RoughNotation.annotationGroup) {
+                             const group = window.RoughNotation.annotationGroup(annotations);
+                             group.show();
+                        } else if (Array.isArray(annotations)) {
+                             annotations.forEach(a => a.show && a.show());
+                        }
+                    };
+                }
+
                 if(window.mermaid) mermaid.initialize({startOnLoad:true});
+                if(window.renderMathInElement && window.katex) window.renderMath();
+                if(window.Prism) window.highlightCode();
             });
         </script>
     `;

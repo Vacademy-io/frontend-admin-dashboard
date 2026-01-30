@@ -170,12 +170,15 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
         const options = isDropdown ? field.options?.map((opt) => opt.value).join(',') : '';
 
         return {
+            // Only set id (mapping ID) if _id (custom field ID) is present, indicating an existing field
+            // For new fields, id should be empty so the backend can create a new mapping
+            id: field._id ? (field.id || '') : '',
             institute_id: instituteId,
             type: field.type,
             type_id: '',
             custom_field: {
                 guestId: '',
-                id: field._id || '', // Use _id from localStorage (custom field ID)
+                id: field._id || '', // Use _id for the custom field ID (custom_field.id)
                 fieldKey: toSnakeCase(field.name),
                 fieldName: field.name,
                 fieldType: field.type,
@@ -221,7 +224,7 @@ export function ReTransformCustomFields(inviteDetails: IndividualInviteLinkDetai
             : undefined;
 
         return {
-            id: field.id,
+            id: field.id, // Preserve the mapping ID (InstituteCustomField.id)
             type: field.type,
             name: field.custom_field.fieldName,
             oldKey: false,
@@ -231,6 +234,7 @@ export function ReTransformCustomFields(inviteDetails: IndividualInviteLinkDetai
                 .replace(/[^a-z0-9]+/g, '_')
                 .replace(/^_+|_+$/g, ''),
             order: index,
+            _id: field.custom_field.id, // Preserve the custom field ID (custom_field.id)
             ...(options && { options }),
         };
     });
@@ -252,7 +256,8 @@ export function convertInviteData(
     paymentPlans: PaymentOption[],
     referralProgramDetails: ReferralData[],
     instituteLogoFileId: string,
-    inviteId?: string
+    inviteId?: string,
+    existingInviteDetails?: IndividualInviteLinkDetails | null
 ) {
     const instituteId = getInstituteId();
     const isBundle = selectedBatches.length > 1;
@@ -305,8 +310,8 @@ export function convertInviteData(
         invite_code: '',
         status: 'ACTIVE',
         institute_id: instituteId,
-        vendor: 'STRIPE',
-        vendor_id: 'STRIPE',
+        vendor: existingInviteDetails?.vendor || 'STRIPE',
+        vendor_id: existingInviteDetails?.vendor_id || 'STRIPE',
         currency: '',
         tag: '',
         is_bundled: isBundle,

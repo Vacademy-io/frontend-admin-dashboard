@@ -7,6 +7,8 @@ import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 
+import { SCRAPE_URL } from '@/constants/urls';
+
 export interface ChatApiRequest {
     prompt: string;
     model: string;
@@ -441,5 +443,17 @@ export const sendChatMessageStreaming = async (
         }
     } catch (error: any) {
         onError(error);
+    }
+};
+
+export const scrapeUrlContent = async (
+    url: string
+): Promise<{ content: string; title: string }> => {
+    try {
+        const response = await authenticatedAxiosInstance.post(SCRAPE_URL, { url });
+        return response.data;
+    } catch (error) {
+        console.error('Error scraping URL:', error);
+        throw error;
     }
 };

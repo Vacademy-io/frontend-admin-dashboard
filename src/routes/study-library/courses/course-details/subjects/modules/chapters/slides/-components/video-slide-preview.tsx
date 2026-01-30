@@ -27,7 +27,7 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isUrlExpired, setIsUrlExpired] = useState(false);
-    
+
     // HTML_VIDEO state
     const [htmlVideoData, setHtmlVideoData] = useState<{
         htmlUrl: string;
@@ -64,18 +64,25 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
             try {
                 const videoUrlsEndpoint = GET_VIDEO_URLS(htmlVideoSlide.ai_gen_video_id);
                 console.log('[VideoSlidePreview] Calling GET_VIDEO_URLS:', videoUrlsEndpoint);
-                
+
                 const response = await authenticatedAxiosInstance.get(videoUrlsEndpoint);
-                
+
                 console.log('[VideoSlidePreview] Video URLs response:', {
                     html_url: response.data.html_url,
                     audio_url: response.data.audio_url,
+                    status: response.data.status,
                 });
-                
+
+                if (response.data.status === 'IN_PROGRESS') {
+                    setError('work in progress');
+                    setIsLoadingHtmlVideo(false);
+                    return;
+                }
+
                 if (!response.data.html_url || !response.data.audio_url) {
                     throw new Error('Invalid response: missing html_url or audio_url');
                 }
-                
+
                 setHtmlVideoData({
                     htmlUrl: response.data.html_url,
                     audioUrl: response.data.audio_url,
@@ -213,10 +220,10 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
         // Check if code_editor_config is present
         const htmlVideoSlide = (activeItem as any).html_video_slide;
         let codeEditorConfig: any = null;
-        
+
         if (htmlVideoSlide?.code_editor_config) {
             try {
-                codeEditorConfig = typeof htmlVideoSlide.code_editor_config === 'string' 
+                codeEditorConfig = typeof htmlVideoSlide.code_editor_config === 'string'
                     ? JSON.parse(htmlVideoSlide.code_editor_config)
                     : htmlVideoSlide.code_editor_config;
             } catch (e) {
@@ -296,7 +303,7 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
         }
 
         // Show error only if it's a real error (not 404 which means video is still generating)
-        if (error && error !== 'Video ID not found') {
+        if (error && error !== 'Video ID not found' && error !== 'work in progress') {
             return (
                 <div className="flex h-64 flex-col items-center justify-center rounded-lg bg-red-50 p-4">
                     <p className="mb-2 font-medium text-red-500">{error}</p>
@@ -322,7 +329,7 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
             <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
                 <div className="flex flex-col items-center gap-3">
                     <div className="size-12 animate-spin rounded-full border-y-2 border-primary-500"></div>
-                    <p className="text-sm text-gray-600">Video is being generated...</p>
+                    <p className="text-sm text-gray-600">{error === 'work in progress' ? 'Work in progress' : 'Video is being generated...'}</p>
                     <p className="text-xs text-gray-500">This may take a few minutes. Please check back later.</p>
                 </div>
             </div>
