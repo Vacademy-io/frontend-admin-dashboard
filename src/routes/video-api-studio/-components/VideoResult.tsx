@@ -2,63 +2,87 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, RefreshCw, CheckCircle2, ExternalLink } from 'lucide-react';
-import { AIVideoPlayer } from '@/components/ai-video-player/AIVideoPlayer';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CheckCircle2, Copy, Check, Code2, Link2, Share2 } from 'lucide-react';
+import { AIContentPlayer } from '@/components/ai-video-player/AIContentPlayer';
+import { ContentType, getContentTypeLabel } from '../-services/video-generation';
 
 interface VideoResultProps {
+    videoId: string;
     htmlUrl: string;
-    audioUrl: string;
-    videoUrl?: string;
-    isRenderComplete: boolean;
+    audioUrl?: string;
+    contentType?: ContentType;
     prompt: string;
 }
 
 export function VideoResult({
+    videoId,
     htmlUrl,
     audioUrl,
-    videoUrl,
-    isRenderComplete,
+    contentType = 'VIDEO',
     prompt,
 }: VideoResultProps) {
-    const [isDownloading, setIsDownloading] = useState(false);
+    const [copiedUrl, setCopiedUrl] = useState(false);
+    const [copiedEmbed, setCopiedEmbed] = useState(false);
 
-    const handleDownload = async () => {
-        if (!videoUrl) return;
+    // Build the shareable URL
+    const baseUrl = window.location.origin;
+    const shareableUrl = `${baseUrl}/content/${videoId}?timeline=${encodeURIComponent(htmlUrl)}${audioUrl ? `&audio=${encodeURIComponent(audioUrl)}` : ''}`;
 
-        setIsDownloading(true);
+    // Build the embed code
+    const embedCode = `<iframe 
+  src="${shareableUrl}" 
+  width="100%" 
+  height="600" 
+  frameborder="0" 
+  allowfullscreen
+  allow="autoplay; fullscreen"
+  style="border-radius: 12px; overflow: hidden;"
+></iframe>`;
+
+    const handleCopyUrl = async () => {
         try {
-            const response = await fetch(videoUrl);
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ai-video-${Date.now()}.mp4`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            await navigator.clipboard.writeText(shareableUrl);
+            setCopiedUrl(true);
+            setTimeout(() => setCopiedUrl(false), 2000);
         } catch (error) {
-            console.error('Download failed:', error);
-            // Fallback: open in new tab
-            window.open(videoUrl, '_blank');
-        } finally {
-            setIsDownloading(false);
+            console.error('Failed to copy URL:', error);
         }
     };
 
+    const handleCopyEmbed = async () => {
+        try {
+            await navigator.clipboard.writeText(embedCode);
+            setCopiedEmbed(true);
+            setTimeout(() => setCopiedEmbed(false), 2000);
+        } catch (error) {
+            console.error('Failed to copy embed code:', error);
+        }
+    };
+
+    const contentLabel = getContentTypeLabel(contentType);
+
     return (
-        <div className="w-full max-w-4xl mx-auto space-y-4">
+        <div className="mx-auto w-full max-w-4xl space-y-4">
             {/* Prompt Display */}
             <Card className="bg-muted/30">
                 <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground mb-1">Prompt</p>
-                    <p className="text-foreground">{prompt}</p>
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                            <p className="mb-1 text-sm text-muted-foreground">Prompt</p>
+                            <p className="text-foreground">{prompt}</p>
+                        </div>
+                        <Badge variant="secondary" className="shrink-0">
+                            {contentLabel}
+                        </Badge>
+                    </div>
                 </CardContent>
             </Card>
 
-            {/* Video Player */}
-            <div className="rounded-xl overflow-hidden border shadow-lg">
-                <AIVideoPlayer
+            {/* Content Player */}
+            <div className="overflow-hidden rounded-xl border shadow-lg">
+                <AIContentPlayer
                     timelineUrl={htmlUrl}
                     audioUrl={audioUrl}
                     width={1920}
@@ -66,47 +90,96 @@ export function VideoResult({
                 />
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-center gap-4">
-                {isRenderComplete && videoUrl ? (
-                    <Button onClick={handleDownload} disabled={isDownloading} className="gap-2">
-                        {isDownloading ? (
-                            <RefreshCw className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <Download className="h-4 w-4" />
-                        )}
-                        Download MP4
-                    </Button>
-                ) : (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <RefreshCw className="h-4 w-4 animate-spin" />
-                        <span>Rendering MP4... Download will be available soon</span>
-                    </div>
-                )}
+            {/* Share Actions */}
+            <Card>
+                <CardContent className="p-4">
+                    <div className="space-y-4">
+                        {/* Shareable URL */}
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 text-sm font-medium">
+                                <Link2 className="size-4" />
+                                Shareable URL
+                            </label>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={shareableUrl}
+                                    readOnly
+                                    className="font-mono text-xs"
+                                    onClick={(e) => e.currentTarget.select()}
+                                />
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={handleCopyUrl}
+                                    className="shrink-0"
+                                >
+                                    {copiedUrl ? (
+                                        <Check className="size-4 text-green-600" />
+                                    ) : (
+                                        <Copy className="size-4" />
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
 
-                {videoUrl && (
-                    <Button variant="outline" asChild className="gap-2">
-                        <a href={videoUrl} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4" />
-                            Open in New Tab
-                        </a>
-                    </Button>
-                )}
-            </div>
+                        {/* Embed Code */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Share2 className="size-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">
+                                    Share or embed this content
+                                </span>
+                            </div>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" size="sm" className="gap-2">
+                                        <Code2 className="size-4" />
+                                        Embed Code
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-96" align="end">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="font-medium">Embed Code</h4>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handleCopyEmbed}
+                                                className="h-7 gap-1.5 text-xs"
+                                            >
+                                                {copiedEmbed ? (
+                                                    <>
+                                                        <Check className="size-3 text-green-600" />
+                                                        Copied!
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Copy className="size-3" />
+                                                        Copy
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                        <pre className="max-h-48 overflow-auto rounded-lg bg-muted p-3 font-mono text-xs">
+                                            {embedCode}
+                                        </pre>
+                                        <p className="text-xs text-muted-foreground">
+                                            Paste this code into your website to embed the content.
+                                        </p>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Status Badge */}
             <div className="flex justify-center">
-                {isRenderComplete ? (
-                    <Badge className="gap-1 bg-green-100 text-green-800 hover:bg-green-100">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Video Ready
-                    </Badge>
-                ) : (
-                    <Badge variant="secondary" className="gap-1">
-                        <RefreshCw className="h-3 w-3 animate-spin" />
-                        Rendering in Progress
-                    </Badge>
-                )}
+                <Badge className="gap-1 bg-green-100 text-green-800 hover:bg-green-100">
+                    <CheckCircle2 className="size-3" />
+                    Content Ready
+                </Badge>
             </div>
         </div>
     );

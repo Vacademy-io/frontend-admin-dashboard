@@ -6,8 +6,111 @@ export type VideoStatusType = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
 export type VoiceGender = 'female' | 'male';
 export type TtsProvider = 'edge' | 'google';
 
+/**
+ * All supported content types from the API
+ */
+export type ContentType =
+    | 'VIDEO' // Time-synced HTML overlays with audio (default)
+    | 'QUIZ' // Question-based assessments
+    | 'STORYBOOK' // Page-by-page narratives
+    | 'INTERACTIVE_GAME' // Self-contained HTML games
+    | 'PUZZLE_BOOK' // Collection of puzzles (crossword, word search)
+    | 'SIMULATION' // Physics/economic sandboxes
+    | 'FLASHCARDS' // Spaced-repetition cards
+    | 'MAP_EXPLORATION' // Interactive SVG maps
+    | 'WORKSHEET' // Printable/interactive homework
+    | 'CODE_PLAYGROUND' // Interactive code exercises
+    | 'TIMELINE' // Chronological event visualization
+    | 'CONVERSATION'; // Language learning dialogues
+
+/**
+ * Navigation modes for content playback
+ */
+export type NavigationMode = 'time_driven' | 'user_driven' | 'self_contained';
+
+/**
+ * Mapping of content types to navigation modes
+ */
+export const CONTENT_TYPE_NAVIGATION: Record<ContentType, NavigationMode> = {
+    VIDEO: 'time_driven',
+    QUIZ: 'user_driven',
+    STORYBOOK: 'user_driven',
+    INTERACTIVE_GAME: 'self_contained',
+    PUZZLE_BOOK: 'user_driven',
+    SIMULATION: 'self_contained',
+    FLASHCARDS: 'user_driven',
+    MAP_EXPLORATION: 'user_driven',
+    WORKSHEET: 'user_driven',
+    CODE_PLAYGROUND: 'self_contained',
+    TIMELINE: 'user_driven',
+    CONVERSATION: 'user_driven',
+};
+
+/**
+ * Content type options with labels and emojis for UI
+ */
+export const CONTENT_TYPES = [
+    {
+        value: 'VIDEO' as ContentType,
+        label: '📹 Video',
+        description: 'Time-synced HTML overlays with audio',
+    },
+    { value: 'QUIZ' as ContentType, label: '❓ Quiz', description: 'Question-based assessments' },
+    {
+        value: 'STORYBOOK' as ContentType,
+        label: '📚 Storybook',
+        description: 'Page-by-page narratives',
+    },
+    {
+        value: 'INTERACTIVE_GAME' as ContentType,
+        label: '🎮 Interactive Game',
+        description: 'Self-contained HTML games',
+    },
+    {
+        value: 'PUZZLE_BOOK' as ContentType,
+        label: '🧩 Puzzle Book',
+        description: 'Crossword, word search puzzles',
+    },
+    {
+        value: 'SIMULATION' as ContentType,
+        label: '🔬 Simulation',
+        description: 'Physics/science sandboxes',
+    },
+    {
+        value: 'FLASHCARDS' as ContentType,
+        label: '📇 Flashcards',
+        description: 'Spaced-repetition cards',
+    },
+    {
+        value: 'MAP_EXPLORATION' as ContentType,
+        label: '🗺️ Map Exploration',
+        description: 'Interactive SVG maps',
+    },
+    {
+        value: 'WORKSHEET' as ContentType,
+        label: '📝 Worksheet',
+        description: 'Printable/interactive homework',
+    },
+    {
+        value: 'CODE_PLAYGROUND' as ContentType,
+        label: '💻 Code Playground',
+        description: 'Interactive code exercises',
+    },
+    {
+        value: 'TIMELINE' as ContentType,
+        label: '⏳ Timeline',
+        description: 'Chronological event visualization',
+    },
+    {
+        value: 'CONVERSATION' as ContentType,
+        label: '💬 Conversation',
+        description: 'Language learning dialogues',
+    },
+] as const;
+
 export interface GenerateVideoRequest {
     prompt: string;
+    content_type?: ContentType; // NEW: Default "VIDEO"
     language: string;
     voice_gender: VoiceGender;
     tts_provider: TtsProvider;
@@ -16,6 +119,7 @@ export interface GenerateVideoRequest {
     target_audience: string;
     target_duration: string;
     model: string;
+    video_id?: string; // Optional: auto-generated if not provided
 }
 
 export interface ProgressEvent {
@@ -24,6 +128,7 @@ export interface ProgressEvent {
     message: string;
     percentage: number;
     video_id: string;
+    content_type?: ContentType; // NEW: Included in events
     files?: {
         script?: { file_id: string; s3_url: string };
         audio?: { file_id: string; s3_url: string };
@@ -35,20 +140,33 @@ export interface ProgressEvent {
 
 export interface CompletedEvent {
     type: 'completed';
+    video_id?: string;
+    content_type?: ContentType; // NEW: Included in events
     files: {
         video?: string;
         script?: string;
         audio?: string;
+        timeline?: string;
+        words?: string;
     };
     percentage: number;
+}
+
+export interface InfoEvent {
+    type: 'info';
+    message: string;
+    video_id?: string;
+    content_type?: ContentType;
 }
 
 export interface ErrorEvent {
     type: 'error';
     message: string;
+    stage?: VideoStage;
+    video_id?: string;
 }
 
-export type SSEEvent = ProgressEvent | CompletedEvent | ErrorEvent;
+export type SSEEvent = ProgressEvent | CompletedEvent | InfoEvent | ErrorEvent;
 
 export interface VideoUrls {
     video_id: string;
@@ -75,12 +193,15 @@ export interface HistoryItem {
     id: string;
     video_id: string;
     prompt: string;
+    content_type: ContentType; // NEW: Track content type
     status: 'pending' | 'generating' | 'completed' | 'failed';
     stage: VideoStage;
     created_at: string;
     html_url?: string;
     audio_url?: string;
     video_url?: string;
+    timeline_url?: string;
+    words_url?: string;
     options: Omit<GenerateVideoRequest, 'prompt'>;
 }
 
@@ -166,6 +287,7 @@ export const TARGET_DURATIONS = [
 ];
 
 export const DEFAULT_OPTIONS: Omit<GenerateVideoRequest, 'prompt'> = {
+    content_type: 'VIDEO',
     language: 'English (US)',
     voice_gender: 'female',
     tts_provider: 'edge',
@@ -180,18 +302,33 @@ export function generateVideoId(): string {
     return `vid_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
+/**
+ * Response metadata from generation API
+ */
+export interface GenerationResponse {
+    videoId: string;
+    contentType: ContentType;
+    abort: () => void;
+}
+
+/**
+ * Generate content (video, quiz, storybook, etc.)
+ */
 export function generateVideo(
     request: GenerateVideoRequest,
     apiKey: string,
     onProgress: (event: SSEEvent) => void,
-    onError: (error: Error) => void
-): { abort: () => void; videoId: string } {
-    const videoId = generateVideoId();
+    onError: (error: Error) => void,
+    onHeadersReceived?: (headers: { videoId: string; contentType: ContentType }) => void
+): GenerationResponse {
+    const videoId = request.video_id || generateVideoId();
     const controller = new AbortController();
+    const contentType = request.content_type || 'VIDEO';
 
     const body = {
         ...request,
         video_id: videoId,
+        content_type: contentType,
     };
 
     fetch(`${AI_SERVICE_BASE_URL}/external/video/v1/generate`, {
@@ -205,7 +342,21 @@ export function generateVideo(
     })
         .then(async (response) => {
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text().catch(() => response.statusText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            // Read content type from response headers
+            const responseVideoId = response.headers.get('X-Video-ID') || videoId;
+            const responseContentType =
+                (response.headers.get('X-Content-Type') as ContentType) || contentType;
+
+            // Notify caller of headers
+            if (onHeadersReceived) {
+                onHeadersReceived({
+                    videoId: responseVideoId,
+                    contentType: responseContentType,
+                });
             }
 
             const reader = response.body?.getReader();
@@ -216,6 +367,7 @@ export function generateVideo(
             const decoder = new TextDecoder();
             let buffer = '';
 
+            // eslint-disable-next-line no-constant-condition
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -229,13 +381,12 @@ export function generateVideo(
                         try {
                             let jsonStr = line.slice(6).trim();
                             // Handle Python-style single quotes by converting to double quotes
-                            // Replace single quotes with double quotes for JSON compatibility
                             jsonStr = jsonStr
                                 .replace(/'/g, '"')
                                 .replace(/None/g, 'null')
                                 .replace(/True/g, 'true')
                                 .replace(/False/g, 'false');
-                            const data = JSON.parse(jsonStr);
+                            const data = JSON.parse(jsonStr) as SSEEvent;
                             onProgress(data);
                         } catch (e) {
                             console.warn('SSE parse error:', e, 'Line:', line);
@@ -253,18 +404,16 @@ export function generateVideo(
     return {
         abort: () => controller.abort(),
         videoId,
+        contentType,
     };
 }
 
 export async function getVideoUrls(videoId: string, apiKey: string): Promise<VideoUrls> {
-    const response = await fetch(
-        `${AI_SERVICE_BASE_URL}/external/video/v1/urls/${videoId}`,
-        {
-            headers: {
-                'X-Institute-Key': apiKey,
-            },
-        }
-    );
+    const response = await fetch(`${AI_SERVICE_BASE_URL}/external/video/v1/urls/${videoId}`, {
+        headers: {
+            'X-Institute-Key': apiKey,
+        },
+    });
 
     if (!response.ok) {
         throw new Error(`Failed to get video URLs: ${response.statusText}`);
@@ -277,14 +426,11 @@ export async function getVideoStatus(
     videoId: string,
     apiKey: string
 ): Promise<VideoStatusResponse> {
-    const response = await fetch(
-        `${AI_SERVICE_BASE_URL}/external/video/v1/status/${videoId}`,
-        {
-            headers: {
-                'X-Institute-Key': apiKey,
-            },
-        }
-    );
+    const response = await fetch(`${AI_SERVICE_BASE_URL}/external/video/v1/status/${videoId}`, {
+        headers: {
+            'X-Institute-Key': apiKey,
+        },
+    });
 
     if (!response.ok) {
         throw new Error(`Failed to get video status: ${response.statusText}`);
@@ -324,4 +470,26 @@ export function deleteFromHistory(videoId: string): void {
 
 export function clearHistory(): void {
     localStorage.removeItem(HISTORY_STORAGE_KEY);
+}
+
+/**
+ * Get navigation mode for a content type
+ */
+export function getNavigationMode(contentType: ContentType): NavigationMode {
+    return CONTENT_TYPE_NAVIGATION[contentType] || 'time_driven';
+}
+
+/**
+ * Check if content type requires audio
+ */
+export function requiresAudio(contentType: ContentType): boolean {
+    return getNavigationMode(contentType) === 'time_driven';
+}
+
+/**
+ * Get content type label for display
+ */
+export function getContentTypeLabel(contentType: ContentType): string {
+    const found = CONTENT_TYPES.find((ct) => ct.value === contentType);
+    return found?.label || contentType;
 }

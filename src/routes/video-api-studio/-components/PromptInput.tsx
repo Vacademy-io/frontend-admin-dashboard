@@ -12,7 +12,18 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Send, Sparkles, Globe, Clock, Users, Captions, Wand2, Mic, Volume2 } from 'lucide-react';
+import {
+    Send,
+    Sparkles,
+    Globe,
+    Clock,
+    Users,
+    Captions,
+    Wand2,
+    Mic,
+    Volume2,
+    Layers,
+} from 'lucide-react';
 import {
     GenerateVideoRequest,
     AVAILABLE_MODELS,
@@ -22,8 +33,10 @@ import {
     TARGET_AUDIENCES,
     TARGET_DURATIONS,
     DEFAULT_OPTIONS,
+    CONTENT_TYPES,
     VoiceGender,
     TtsProvider,
+    ContentType,
 } from '../-services/video-generation';
 
 interface PromptInputProps {
@@ -92,12 +105,45 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
     };
 
     const selectedModel = AVAILABLE_MODELS.find((m) => m.id === options.model);
+    const selectedContentType = CONTENT_TYPES.find((c) => c.value === options.content_type);
 
     return (
         <div className="border-t bg-background/95 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:p-3">
             <div className="mx-auto max-w-4xl space-y-2">
                 {/* Option Bubbles */}
                 <div className="flex flex-wrap items-center gap-1.5">
+                    {/* Content Type Selector - First */}
+                    <OptionBubble
+                        icon={<Layers className="size-3" />}
+                        label="Type"
+                        value={selectedContentType?.label || '📹 Video'}
+                    >
+                        <Select
+                            value={options.content_type || 'VIDEO'}
+                            onValueChange={(v) => updateOption('content_type', v as ContentType)}
+                        >
+                            <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-80">
+                                {CONTENT_TYPES.map((type) => (
+                                    <SelectItem
+                                        key={type.value}
+                                        value={type.value}
+                                        className="text-xs"
+                                    >
+                                        <div className="flex flex-col">
+                                            <span>{type.label}</span>
+                                            <span className="text-[10px] text-muted-foreground">
+                                                {type.description}
+                                            </span>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </OptionBubble>
+
                     <OptionBubble
                         icon={<Sparkles className="size-3" />}
                         label="Model"
