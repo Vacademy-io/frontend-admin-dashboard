@@ -69,6 +69,7 @@ import { Route as EvaluatorAiEvaluationIndexRouteImport } from "./routes/evaluat
 import { Route as EvaluatorAiAssessmentIndexRouteImport } from "./routes/evaluator-ai/assessment/index"
 import { Route as EvaluationEvaluationsIndexRouteImport } from "./routes/evaluation/evaluations/index"
 import { Route as EvaluationEvaluationToolIndexRouteImport } from "./routes/evaluation/evaluation-tool/index"
+import { Route as ContentContentIdIndexRouteImport } from "./routes/content/$contentId/index"
 import { Route as CommunityQuestionPaperIndexRouteImport } from "./routes/community/question-paper/index"
 import { Route as CertificateGenerationStudentDataIndexRouteImport } from "./routes/certificate-generation/student-data/index"
 import { Route as AudienceManagerListIndexRouteImport } from "./routes/audience-manager/list/index"
@@ -585,6 +586,13 @@ const EvaluationEvaluationToolIndexRoute =
       (d) => d.Route,
     ),
   )
+const ContentContentIdIndexRoute = ContentContentIdIndexRouteImport.update({
+  id: "/content/$contentId/",
+  path: "/content/$contentId/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/content/$contentId/index.lazy").then((d) => d.Route),
+)
 const CommunityQuestionPaperIndexRoute =
   CommunityQuestionPaperIndexRouteImport.update({
     id: "/community/question-paper/",
@@ -1125,6 +1133,7 @@ export interface FileRoutesByFullPath {
   "/audience-manager/list/": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data/": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper/": typeof CommunityQuestionPaperIndexRoute
+  "/content/$contentId/": typeof ContentContentIdIndexRoute
   "/evaluation/evaluation-tool/": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations/": typeof EvaluationEvaluationsIndexRoute
   "/evaluator-ai/assessment/": typeof EvaluatorAiAssessmentIndexRoute
@@ -1245,6 +1254,7 @@ export interface FileRoutesByTo {
   "/audience-manager/list": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper": typeof CommunityQuestionPaperIndexRoute
+  "/content/$contentId": typeof ContentContentIdIndexRoute
   "/evaluation/evaluation-tool": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations": typeof EvaluationEvaluationsIndexRoute
   "/evaluator-ai/assessment": typeof EvaluatorAiAssessmentIndexRoute
@@ -1367,6 +1377,7 @@ export interface FileRoutesById {
   "/audience-manager/list/": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data/": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper/": typeof CommunityQuestionPaperIndexRoute
+  "/content/$contentId/": typeof ContentContentIdIndexRoute
   "/evaluation/evaluation-tool/": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations/": typeof EvaluationEvaluationsIndexRoute
   "/evaluator-ai/assessment/": typeof EvaluatorAiAssessmentIndexRoute
@@ -1490,6 +1501,7 @@ export interface FileRouteTypes {
     | "/audience-manager/list/"
     | "/certificate-generation/student-data/"
     | "/community/question-paper/"
+    | "/content/$contentId/"
     | "/evaluation/evaluation-tool/"
     | "/evaluation/evaluations/"
     | "/evaluator-ai/assessment/"
@@ -1610,6 +1622,7 @@ export interface FileRouteTypes {
     | "/audience-manager/list"
     | "/certificate-generation/student-data"
     | "/community/question-paper"
+    | "/content/$contentId"
     | "/evaluation/evaluation-tool"
     | "/evaluation/evaluations"
     | "/evaluator-ai/assessment"
@@ -1731,6 +1744,7 @@ export interface FileRouteTypes {
     | "/audience-manager/list/"
     | "/certificate-generation/student-data/"
     | "/community/question-paper/"
+    | "/content/$contentId/"
     | "/evaluation/evaluation-tool/"
     | "/evaluation/evaluations/"
     | "/evaluator-ai/assessment/"
@@ -1852,6 +1866,7 @@ export interface RootRouteChildren {
   AudienceManagerListIndexRoute: typeof AudienceManagerListIndexRoute
   CertificateGenerationStudentDataIndexRoute: typeof CertificateGenerationStudentDataIndexRoute
   CommunityQuestionPaperIndexRoute: typeof CommunityQuestionPaperIndexRoute
+  ContentContentIdIndexRoute: typeof ContentContentIdIndexRoute
   EvaluationEvaluationToolIndexRoute: typeof EvaluationEvaluationToolIndexRoute
   EvaluationEvaluationsIndexRoute: typeof EvaluationEvaluationsIndexRoute
   EvaluatorAiAssessmentIndexRoute: typeof EvaluatorAiAssessmentIndexRoute
@@ -2359,6 +2374,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof EvaluationEvaluationToolIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/content/$contentId/": {
+      id: "/content/$contentId/"
+      path: "/content/$contentId"
+      fullPath: "/content/$contentId/"
+      preLoaderRoute: typeof ContentContentIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/community/question-paper/": {
       id: "/community/question-paper/"
       path: "/community/question-paper"
@@ -2825,6 +2847,7 @@ const rootRouteChildren: RootRouteChildren = {
   CertificateGenerationStudentDataIndexRoute:
     CertificateGenerationStudentDataIndexRoute,
   CommunityQuestionPaperIndexRoute: CommunityQuestionPaperIndexRoute,
+  ContentContentIdIndexRoute: ContentContentIdIndexRoute,
   EvaluationEvaluationToolIndexRoute: EvaluationEvaluationToolIndexRoute,
   EvaluationEvaluationsIndexRoute: EvaluationEvaluationsIndexRoute,
   EvaluatorAiAssessmentIndexRoute: EvaluatorAiAssessmentIndexRoute,
