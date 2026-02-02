@@ -11,10 +11,30 @@ export interface Frame {
     html: string;
     id: string;
     z: number;
-    htmlStartX: number;
-    htmlStartY: number;
-    htmlEndX: number;
-    htmlEndY: number;
+    htmlStartX?: number;
+    htmlStartY?: number;
+    htmlEndX?: number;
+    htmlEndY?: number;
+}
+
+/**
+ * Timeline metadata for video branding integration
+ */
+export interface TimelineMeta {
+    audio_start_at: number;
+    total_duration: number;
+    intro_duration?: number;
+    outro_duration?: number;
+    content_starts_at?: number;
+    content_ends_at?: number;
+}
+
+/**
+ * New timeline data structure supporting branding
+ */
+export interface TimelineData {
+    meta: TimelineMeta;
+    entries: Frame[];
 }
 
 /**
@@ -530,43 +550,6 @@ class HtmlContentProcessor {
 }
 
 /**
- * Frame Manager
- * Responsible for managing frame data and finding current frame
- * Single Responsibility: Frame management only
- */
-class FrameManager {
-    private frames: Frame[];
-
-    constructor(frames: Frame[]) {
-        this.frames = frames;
-    }
-
-    /**
-     * Find the current frame index based on time
-     */
-    findCurrentFrameIndex(currentTime: number): number {
-        const index = this.frames.findIndex(
-            (f) => currentTime >= f.inTime && currentTime < f.exitTime
-        );
-        return index !== -1 ? index : 0;
-    }
-
-    /**
-     * Get frame by index
-     */
-    getFrame(index: number): Frame | undefined {
-        return this.frames[index];
-    }
-
-    /**
-     * Get all frames
-     */
-    getAllFrames(): Frame[] {
-        return this.frames;
-    }
-}
-
-/**
  * Scale Calculator
  * Responsible for calculating scale to fit video in container
  * Single Responsibility: Scale calculation only
@@ -643,20 +626,23 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
 }) => {
     const [frames, setFrames] = useState<Frame[]>([]);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-    const [duration, setDuration] = useState(0);
+    const [currentTime, setCurrentTime] = useState(0); // Timeline time (includes intro)
+    const [duration, setDuration] = useState(0); // Total video duration (from meta or audio)
     const [scale, setScale] = useState(1);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [timelineMeta, setTimelineMeta] = useState<TimelineMeta>({
+        audio_start_at: 0,
+        total_duration: 0,
+    });
 
     const audioRef = useRef<HTMLAudioElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
+    const audioStartedRef = useRef<boolean>(false); // Track if audio has started after intro
 
-    // Initialize frame manager and scale calculator
-    const frameManager = useMemo(() => new FrameManager(frames), [frames]);
+    // Initialize scale calculator
     const scaleCalculator = useMemo(() => new ScaleCalculator(width, height), [width, height]);
 
     // Load timeline data
@@ -680,25 +666,57 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                     );
                 }
 
-                const data: Frame[] = await response.json();
-                console.log('🎬 AIVideoPlayer: Timeline data loaded:', {
-                    frameCount: data.length,
-                    firstFrame: data[0]
-                        ? {
-                              id: data[0].id,
-                              inTime: data[0].inTime,
-                              exitTime: data[0].exitTime,
-                              hasHtml: !!data[0].html,
-                          }
-                        : null,
-                    sampleHtml: data[0]?.html?.substring(0, 100) || 'No HTML',
-                });
+                const rawData = await response.json();
 
-                if (!Array.isArray(data) || data.length === 0) {
-                    throw new Error('Timeline data is empty or invalid format');
+                // Parse new structure vs old array format
+                let entries: Frame[];
+                let meta: TimelineMeta;
+
+                if (Array.isArray(rawData)) {
+                    // Old format: array of frames
+                    entries = rawData;
+                    meta = { audio_start_at: 0, total_duration: 0 };
+                    console.log('🎬 AIVideoPlayer: Using old timeline format (array)');
+                } else if (rawData.entries && Array.isArray(rawData.entries)) {
+                    // New format: { meta, entries }
+                    entries = rawData.entries;
+                    meta = rawData.meta || { audio_start_at: 0, total_duration: 0 };
+                    console.log('🎬 AIVideoPlayer: Using new timeline format with meta:', meta);
+                } else {
+                    throw new Error('Timeline data is in an unrecognized format');
                 }
 
-                setFrames(data);
+                console.log('🎬 AIVideoPlayer: Timeline data loaded:', {
+                    frameCount: entries.length,
+                    meta: meta,
+                    firstFrame: entries[0]
+                        ? {
+                              id: entries[0].id,
+                              inTime: entries[0].inTime,
+                              exitTime: entries[0].exitTime,
+                              z: entries[0].z,
+                              hasHtml: !!entries[0].html,
+                          }
+                        : null,
+                    sampleHtml: entries[0]?.html?.substring(0, 100) || 'No HTML',
+                });
+
+                if (entries.length === 0) {
+                    throw new Error('Timeline data is empty');
+                }
+
+                // Set timeline meta (for audio sync and duration)
+                setTimelineMeta(meta);
+
+                // Set duration from meta if available
+                if (meta.total_duration && meta.total_duration > 0) {
+                    setDuration(meta.total_duration);
+                }
+
+                // Reset audio started state
+                audioStartedRef.current = false;
+
+                setFrames(entries);
             } catch (err) {
                 console.error('❌ AIVideoPlayer: Error loading timeline:', err);
                 console.error('❌ AIVideoPlayer: Timeline URL was:', timelineUrl);
@@ -716,30 +734,6 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
             setIsLoading(false);
         }
     }, [timelineUrl]);
-
-    // Sync current frame based on time
-    useEffect(() => {
-        if (frames.length === 0) return;
-
-        const index = frameManager.findCurrentFrameIndex(currentTime);
-        if (index !== currentFrameIndex) {
-            console.log(
-                `🎬 AIVideoPlayer: Frame changed from ${currentFrameIndex} to ${index} at time ${currentTime.toFixed(2)}s`
-            );
-            setCurrentFrameIndex(index);
-        }
-    }, [currentTime, frames, currentFrameIndex, frameManager]);
-
-    // Initialize to first frame when frames are loaded
-    useEffect(() => {
-        if (frames.length > 0 && currentFrameIndex === 0 && currentTime === 0) {
-            console.log('🎬 AIVideoPlayer: Initializing to first frame');
-            const firstFrame = frames[0];
-            if (firstFrame) {
-                setCurrentFrameIndex(0);
-            }
-        }
-    }, [frames, currentFrameIndex, currentTime]);
 
     // Calculate scale to fit video into container
     useEffect(() => {
@@ -774,35 +768,112 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
         };
     }, [scaleCalculator, frames.length, isFullscreen]);
 
-    // Audio event handlers
+    // Audio event handlers with intro silence support
     const handleTimeUpdate = () => {
-        if (audioRef.current) {
-            setCurrentTime(audioRef.current.currentTime);
+        if (audioRef.current && audioStartedRef.current) {
+            // Timeline time = audio time + audio_start_at offset
+            const timelineTime = audioRef.current.currentTime + timelineMeta.audio_start_at;
+            setCurrentTime(timelineTime);
         }
     };
 
     const handleLoadedMetadata = () => {
         if (audioRef.current) {
-            setDuration(audioRef.current.duration);
+            // Only set duration from audio if meta.total_duration is not set
+            if (!timelineMeta.total_duration || timelineMeta.total_duration === 0) {
+                // For old format, use audio duration
+                setDuration(audioRef.current.duration);
+            }
         }
     };
+
+    // Timeline animation for intro period (before audio starts)
+    const animationFrameRef = useRef<number | null>(null);
+    const playStartTimeRef = useRef<number>(0);
+    const introStartTimeRef = useRef<number>(0);
+
+    const animateIntro = useCallback(() => {
+        if (!isPlaying) return;
+
+        const elapsed = (performance.now() - playStartTimeRef.current) / 1000;
+        const newTimelineTime = introStartTimeRef.current + elapsed;
+
+        // Check if we've reached the point where audio should start
+        if (newTimelineTime >= timelineMeta.audio_start_at && !audioStartedRef.current) {
+            // Start audio from beginning
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play().catch((err) => {
+                    console.error('❌ AIVideoPlayer: Error starting audio:', err);
+                });
+                audioStartedRef.current = true;
+            }
+            setCurrentTime(newTimelineTime);
+        } else if (!audioStartedRef.current) {
+            // Still in intro, continue animation
+            setCurrentTime(newTimelineTime);
+            animationFrameRef.current = requestAnimationFrame(animateIntro);
+        }
+    }, [isPlaying, timelineMeta.audio_start_at]);
 
     const handlePlayPause = () => {
-        if (audioRef.current) {
-            if (isPlaying) {
+        if (isPlaying) {
+            // Pause
+            if (audioStartedRef.current && audioRef.current) {
                 audioRef.current.pause();
-            } else {
-                audioRef.current.play();
             }
-            setIsPlaying(!isPlaying);
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = null;
+            }
+            setIsPlaying(false);
+        } else {
+            // Play
+            setIsPlaying(true);
+
+            if (currentTime >= timelineMeta.audio_start_at) {
+                // Already past intro, start/resume audio
+                if (audioRef.current) {
+                    // Calculate audio time from timeline time
+                    const audioTime = currentTime - timelineMeta.audio_start_at;
+                    audioRef.current.currentTime = Math.max(0, audioTime);
+                    audioRef.current.play().catch((err) => {
+                        console.error('❌ AIVideoPlayer: Error playing audio:', err);
+                    });
+                    audioStartedRef.current = true;
+                }
+            } else {
+                // In intro period, start animation
+                audioStartedRef.current = false;
+                playStartTimeRef.current = performance.now();
+                introStartTimeRef.current = currentTime;
+                animationFrameRef.current = requestAnimationFrame(animateIntro);
+            }
         }
     };
 
+    // Cleanup animation frame on unmount
+    useEffect(() => {
+        return () => {
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+        };
+    }, []);
+
     const handleReset = () => {
+        // Reset to beginning of timeline (including intro)
         if (audioRef.current) {
             audioRef.current.currentTime = 0;
-            setCurrentTime(0);
+            audioRef.current.pause();
         }
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
+        audioStartedRef.current = false;
+        setCurrentTime(0);
+        setIsPlaying(false);
     };
 
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -811,11 +882,48 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
         const rect = e.currentTarget.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const progressWidth = rect.width;
-        const newTime = (x / progressWidth) * duration;
+        const newTimelineTime = (x / progressWidth) * duration;
 
-        if (audioRef.current) {
-            audioRef.current.currentTime = newTime;
-            setCurrentTime(newTime);
+        // Update timeline time
+        setCurrentTime(newTimelineTime);
+
+        // Determine audio state based on where user clicked
+        if (newTimelineTime >= timelineMeta.audio_start_at) {
+            // User clicked past intro - sync audio
+            const audioTime = newTimelineTime - timelineMeta.audio_start_at;
+            if (audioRef.current) {
+                audioRef.current.currentTime = audioTime;
+                audioStartedRef.current = true;
+
+                // If currently playing, ensure audio is playing too
+                if (isPlaying) {
+                    audioRef.current.play().catch((err) => {
+                        console.error('❌ AIVideoPlayer: Error resuming audio:', err);
+                    });
+                }
+            }
+            // Stop intro animation if running
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = null;
+            }
+        } else {
+            // User clicked in intro region
+            audioStartedRef.current = false;
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+
+            // If playing, start intro animation from new position
+            if (isPlaying) {
+                playStartTimeRef.current = performance.now();
+                introStartTimeRef.current = newTimelineTime;
+                if (animationFrameRef.current) {
+                    cancelAnimationFrame(animationFrameRef.current);
+                }
+                animationFrameRef.current = requestAnimationFrame(animateIntro);
+            }
         }
     };
 
@@ -858,45 +966,34 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
         };
     }, []);
 
-    // Get current HTML to render
-    const currentHtml = useMemo(() => {
+    // Get ALL active frames at current time, sorted by z-index (lowest first for stacking)
+    const activeFrames = useMemo(() => {
         if (frames.length === 0) {
             console.log('⚠️ AIVideoPlayer: No frames available for rendering');
-            return '';
+            return [];
         }
 
-        const validIndex = Math.max(0, Math.min(currentFrameIndex, frames.length - 1));
-        const frame = frames[validIndex];
+        // Find all frames that are active at the current time
+        const active = frames.filter(
+            (frame) => currentTime >= frame.inTime && currentTime < frame.exitTime
+        );
 
-        if (!frame) {
-            console.log(
-                `⚠️ AIVideoPlayer: Frame at index ${validIndex} not found, using first frame`
-            );
-            const firstFrame = frames[0];
-            if (firstFrame && firstFrame.html) {
-                const html = HtmlContentProcessor.fixHtmlContent(firstFrame.html);
-                console.log(`🎬 AIVideoPlayer: Using first frame, HTML length: ${html.length}`);
-                return html;
-            }
-            return '';
-        }
+        // Sort by z-index (lowest first, so highest z renders on top when stacked)
+        active.sort((a, b) => (a.z || 0) - (b.z || 0));
 
-        if (!frame.html) {
-            console.warn(`⚠️ AIVideoPlayer: Frame ${validIndex} has no HTML content`);
-            return '';
-        }
+        // Process HTML for each active frame
+        const processedFrames = active.map((frame) => ({
+            ...frame,
+            processedHtml: frame.html ? HtmlContentProcessor.fixHtmlContent(frame.html) : '',
+        }));
 
-        const html = HtmlContentProcessor.fixHtmlContent(frame.html);
-        console.log(`🎬 AIVideoPlayer: Rendering frame ${validIndex + 1}/${frames.length}`, {
-            id: frame.id,
-            inTime: frame.inTime,
-            exitTime: frame.exitTime,
-            htmlLength: html.length,
-            hasHtml: !!frame.html,
+        console.log(`🎬 AIVideoPlayer: Active frames at ${currentTime.toFixed(2)}s:`, {
+            count: processedFrames.length,
+            frameIds: processedFrames.map((f) => ({ id: f.id, z: f.z })),
         });
 
-        return html;
-    }, [frames, currentFrameIndex]);
+        return processedFrames;
+    }, [frames, currentTime]);
 
     // Loading state - matching YouTube player pattern
     if (isLoading) {
@@ -1002,7 +1099,7 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                         overflow: 'hidden',
                     }}
                 >
-                    {currentHtml ? (
+                    {activeFrames.length > 0 ? (
                         <div
                             style={{
                                 width: `${width}px`,
@@ -1017,28 +1114,40 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                             }}
                             className="frame-wrapper"
                         >
-                            <iframe
-                                key={`frame-${currentFrameIndex}-${currentHtml.length}`}
-                                srcDoc={currentHtml}
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    border: 'none',
-                                    background: '#ffffff',
-                                }}
-                                title="AI Video Preview"
-                                sandbox="allow-scripts allow-same-origin"
-                                onLoad={() => {
-                                    console.log('🎬 AIVideoPlayer: iframe loaded successfully', {
-                                        frameIndex: currentFrameIndex,
-                                        htmlLength: currentHtml.length,
-                                        frameId: frames[currentFrameIndex]?.id,
-                                    });
-                                }}
-                                onError={(e) => {
-                                    console.error('❌ AIVideoPlayer: iframe error:', e);
-                                }}
-                            />
+                            {/* Render all active frames with proper z-index layering */}
+                            {activeFrames.map((frame, index) => (
+                                <iframe
+                                    key={`frame-${frame.id}-${index}`}
+                                    srcDoc={frame.processedHtml}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        border: 'none',
+                                        background: index === 0 ? '#ffffff' : 'transparent',
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        zIndex: frame.z || 0,
+                                        pointerEvents: frame.id?.startsWith('branding-watermark')
+                                            ? 'none'
+                                            : 'auto',
+                                    }}
+                                    title={`AI Video Layer ${frame.id}`}
+                                    sandbox="allow-scripts allow-same-origin"
+                                    onLoad={() => {
+                                        console.log(
+                                            '🎬 AIVideoPlayer: iframe loaded successfully',
+                                            {
+                                                frameId: frame.id,
+                                                zIndex: frame.z,
+                                            }
+                                        );
+                                    }}
+                                    onError={(e) => {
+                                        console.error('❌ AIVideoPlayer: iframe error:', e);
+                                    }}
+                                />
+                            ))}
                         </div>
                     ) : (
                         <div
@@ -1218,7 +1327,7 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                                 borderRadius: '4px',
                             }}
                         >
-                            Frame {currentFrameIndex + 1} / {frames.length}
+                            {activeFrames.length} layer{activeFrames.length !== 1 ? 's' : ''} active
                         </span>
                         <button
                             onClick={handleFullscreenToggle}
@@ -1250,7 +1359,35 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                 src={audioUrl}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
-                onEnded={() => setIsPlaying(false)}
+                onEnded={() => {
+                    // Audio ended - check if we need to continue for outro
+                    if (timelineMeta.total_duration && currentTime < timelineMeta.total_duration) {
+                        // Continue timeline for outro
+                        console.log('🎬 AIVideoPlayer: Audio ended, continuing for outro');
+                        audioStartedRef.current = false;
+                        playStartTimeRef.current = performance.now();
+                        introStartTimeRef.current = currentTime;
+
+                        // Animate through outro until total_duration
+                        const animateOutro = () => {
+                            if (!isPlaying) return;
+
+                            const elapsed = (performance.now() - playStartTimeRef.current) / 1000;
+                            const newTime = introStartTimeRef.current + elapsed;
+
+                            if (newTime >= timelineMeta.total_duration) {
+                                setCurrentTime(timelineMeta.total_duration);
+                                setIsPlaying(false);
+                            } else {
+                                setCurrentTime(newTime);
+                                requestAnimationFrame(animateOutro);
+                            }
+                        };
+                        requestAnimationFrame(animateOutro);
+                    } else {
+                        setIsPlaying(false);
+                    }
+                }}
                 crossOrigin="anonymous"
             />
         </div>
