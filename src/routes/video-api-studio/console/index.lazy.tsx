@@ -11,11 +11,10 @@ import {
     HistoryItem,
     VideoStage,
     SSEEvent,
+    ContentType,
     generateVideo,
-    getVideoUrls,
     getHistory,
     saveToHistory,
-    DEFAULT_OPTIONS,
 } from '../-services/video-generation';
 import { HistorySidebar } from '../-components/HistorySidebar';
 import { PromptInput } from '../-components/PromptInput';
@@ -26,17 +25,17 @@ export const Route = createLazyFileRoute('/video-api-studio/console/')({
     component: VideoConsole,
 });
 
-type ConsoleState = 'idle' | 'generating' | 'preview' | 'complete';
+type ConsoleState = 'idle' | 'generating' | 'complete';
 
 interface CurrentGeneration {
     videoId: string;
     prompt: string;
+    contentType: ContentType;
     stage: VideoStage;
     percentage: number;
     message: string;
     htmlUrl?: string;
     audioUrl?: string;
-    videoUrl?: string;
     options: Omit<GenerateVideoRequest, 'prompt'>;
 }
 
@@ -52,7 +51,6 @@ function VideoConsole() {
     const [currentGeneration, setCurrentGeneration] = useState<CurrentGeneration | null>(null);
 
     const abortRef = useRef<(() => void) | null>(null);
-    const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Load API keys
     useEffect(() => {
@@ -82,55 +80,11 @@ function VideoConsole() {
             if (abortRef.current) {
                 abortRef.current();
             }
-            if (pollIntervalRef.current) {
-                clearInterval(pollIntervalRef.current);
-            }
         };
     }, []);
 
     // Get the full API key from localStorage (stored when key was generated)
     const activeApiKey = getFirstAvailableFullKey(apiKeys);
-
-    const pollForVideoUrl = useCallback(
-        async (videoId: string) => {
-            if (!activeApiKey) return;
-
-            try {
-                const urls = await getVideoUrls(videoId, activeApiKey);
-                if (urls.current_stage === 'RENDER') {
-                    setCurrentGeneration((prev) =>
-                        prev
-                            ? {
-                                  ...prev,
-                                  videoUrl: urls.audio_url?.replace('narration.mp3', 'output.mp4'),
-                              }
-                            : null
-                    );
-                    setConsoleState('complete');
-
-                    // Update history
-                    const historyItem = history.find((h) => h.video_id === videoId);
-                    if (historyItem) {
-                        saveToHistory({
-                            ...historyItem,
-                            status: 'completed',
-                            stage: 'RENDER',
-                            video_url: urls.audio_url?.replace('narration.mp3', 'output.mp4'),
-                        });
-                        setHistory(getHistory());
-                    }
-
-                    if (pollIntervalRef.current) {
-                        clearInterval(pollIntervalRef.current);
-                        pollIntervalRef.current = null;
-                    }
-                }
-            } catch (error) {
-                console.error('Error polling for video URL:', error);
-            }
-        },
-        [activeApiKey, history]
-    );
 
     const handleGenerate = useCallback(
         async (request: GenerateVideoRequest) => {
@@ -142,6 +96,8 @@ function VideoConsole() {
             // Reset state
             setConsoleState('generating');
             setSelectedHistoryId(null);
+
+            const contentType = request.content_type || 'VIDEO';
 
             const { abort, videoId } = generateVideo(
                 request,
@@ -155,13 +111,14 @@ function VideoConsole() {
                         setCurrentGeneration((prev) => ({
                             videoId,
                             prompt: request.prompt,
+                            contentType,
                             stage: event.stage,
                             percentage: event.percentage,
                             message: event.message,
                             htmlUrl: timelineUrl || prev?.htmlUrl,
                             audioUrl: audioUrl || prev?.audioUrl,
-                            videoUrl: prev?.videoUrl,
                             options: {
+                                content_type: contentType,
                                 language: request.language,
                                 voice_gender: request.voice_gender,
                                 tts_provider: request.tts_provider,
@@ -178,12 +135,14 @@ function VideoConsole() {
                             id: videoId,
                             video_id: videoId,
                             prompt: request.prompt,
+                            content_type: contentType,
                             status: 'generating',
                             stage: event.stage,
                             created_at: new Date().toISOString(),
                             html_url: timelineUrl,
                             audio_url: audioUrl,
                             options: {
+                                content_type: contentType,
                                 language: request.language,
                                 voice_gender: request.voice_gender,
                                 tts_provider: request.tts_provider,
@@ -196,7 +155,7 @@ function VideoConsole() {
                         });
                         setHistory(getHistory());
 
-                        // When HTML stage is reached, show the player if we have both URLs
+                        // When HTML stage is reached, show the player - content is ready
                         // Audio URL comes from TTS stage, timeline from HTML stage
                         setCurrentGeneration((prev) => {
                             if (
@@ -204,7 +163,9 @@ function VideoConsole() {
                                 (timelineUrl || prev?.htmlUrl) &&
                                 prev?.audioUrl
                             ) {
-                                setConsoleState('preview');
+                                // HTML stage complete = content ready, show result
+                                setConsoleState('complete');
+                                toast.success('Content generated successfully!');
                             }
                             return prev
                                 ? {
@@ -215,15 +176,16 @@ function VideoConsole() {
                                 : null;
                         });
                     } else if (event.type === 'completed') {
+                        // Content is complete
                         setConsoleState('complete');
-                        toast.success('Video generated successfully!');
+                        toast.success('Content generated successfully!');
 
                         // Update history as completed
                         setCurrentGeneration((prev) =>
                             prev
                                 ? {
                                       ...prev,
-                                      stage: 'RENDER',
+                                      stage: 'HTML',
                                       percentage: 100,
                                   }
                                 : null
@@ -233,10 +195,12 @@ function VideoConsole() {
                             id: videoId,
                             video_id: videoId,
                             prompt: request.prompt,
+                            content_type: contentType,
                             status: 'completed',
-                            stage: 'RENDER',
+                            stage: 'HTML',
                             created_at: new Date().toISOString(),
                             options: {
+                                content_type: contentType,
                                 language: request.language,
                                 captions_enabled: request.captions_enabled,
                                 html_quality: request.html_quality,
@@ -249,20 +213,20 @@ function VideoConsole() {
                         });
                         setHistory(getHistory());
                     } else if (event.type === 'error') {
-                        // Check if error happened after HTML stage - MP4 conversion failed
-                        const errorStage = (event as any).stage as VideoStage | undefined;
-                        const isRenderError = errorStage === 'HTML' || errorStage === 'RENDER';
+                        // Check if error happened after HTML stage
+                        const errorStage = event.stage;
+                        const hasContent = errorStage === 'HTML';
 
                         setCurrentGeneration((prev) => {
                             // If we have HTML URLs, keep showing the player
-                            if (prev?.htmlUrl && prev?.audioUrl && isRenderError) {
+                            if (prev?.htmlUrl && prev?.audioUrl && hasContent) {
                                 toast.error(
-                                    'MP4 conversion failed. You can still preview the video.'
+                                    'Generation encountered an issue. Content is still available.'
                                 );
-                                setConsoleState('preview');
+                                setConsoleState('complete');
                                 return {
                                     ...prev,
-                                    message: 'MP4 conversion failed',
+                                    message: 'Generation completed with issues',
                                 };
                             } else {
                                 toast.error(event.message || 'Generation failed');
@@ -276,10 +240,12 @@ function VideoConsole() {
                             id: videoId,
                             video_id: videoId,
                             prompt: request.prompt,
-                            status: isRenderError ? 'completed' : 'failed',
+                            content_type: contentType,
+                            status: hasContent ? 'completed' : 'failed',
                             stage: errorStage || 'PENDING',
                             created_at: new Date().toISOString(),
                             options: {
+                                content_type: contentType,
                                 language: request.language,
                                 captions_enabled: request.captions_enabled,
                                 html_quality: request.html_quality,
@@ -305,10 +271,12 @@ function VideoConsole() {
             setCurrentGeneration({
                 videoId,
                 prompt: request.prompt,
+                contentType,
                 stage: 'PENDING',
                 percentage: 0,
                 message: 'Starting generation...',
                 options: {
+                    content_type: contentType,
                     language: request.language,
                     captions_enabled: request.captions_enabled,
                     html_quality: request.html_quality,
@@ -325,10 +293,12 @@ function VideoConsole() {
                 id: videoId,
                 video_id: videoId,
                 prompt: request.prompt,
+                content_type: contentType,
                 status: 'pending',
                 stage: 'PENDING',
                 created_at: new Date().toISOString(),
                 options: {
+                    content_type: contentType,
                     language: request.language,
                     captions_enabled: request.captions_enabled,
                     html_quality: request.html_quality,
@@ -344,49 +314,40 @@ function VideoConsole() {
         [activeApiKey]
     );
 
-    const handleSelectHistory = useCallback(
-        (item: HistoryItem) => {
-            setSelectedHistoryId(item.video_id);
+    const handleSelectHistory = useCallback((item: HistoryItem) => {
+        setSelectedHistoryId(item.video_id);
 
-            if (item.status === 'completed' && item.html_url && item.audio_url) {
-                setCurrentGeneration({
-                    videoId: item.video_id,
-                    prompt: item.prompt,
-                    stage: item.stage,
-                    percentage: 100,
-                    message: '',
-                    htmlUrl: item.html_url,
-                    audioUrl: item.audio_url,
-                    videoUrl: item.video_url,
-                    options: item.options,
-                });
-                setConsoleState('complete');
-            } else if (item.html_url && item.audio_url) {
-                setCurrentGeneration({
-                    videoId: item.video_id,
-                    prompt: item.prompt,
-                    stage: item.stage,
-                    percentage: 80,
-                    message: '',
-                    htmlUrl: item.html_url,
-                    audioUrl: item.audio_url,
-                    options: item.options,
-                });
-                setConsoleState('preview');
-
-                // Start polling for video URL if not complete
-                if (!item.video_url && activeApiKey) {
-                    pollIntervalRef.current = setInterval(() => {
-                        pollForVideoUrl(item.video_id);
-                    }, 5000);
-                }
-            } else {
-                setConsoleState('idle');
-                setCurrentGeneration(null);
-            }
-        },
-        [activeApiKey, pollForVideoUrl]
-    );
+        if (item.status === 'completed' && item.html_url && item.audio_url) {
+            setCurrentGeneration({
+                videoId: item.video_id,
+                prompt: item.prompt,
+                contentType: item.content_type || 'VIDEO',
+                stage: item.stage,
+                percentage: 100,
+                message: '',
+                htmlUrl: item.html_url,
+                audioUrl: item.audio_url,
+                options: item.options,
+            });
+            setConsoleState('complete');
+        } else if (item.html_url && item.audio_url) {
+            setCurrentGeneration({
+                videoId: item.video_id,
+                prompt: item.prompt,
+                contentType: item.content_type || 'VIDEO',
+                stage: item.stage,
+                percentage: 80,
+                message: '',
+                htmlUrl: item.html_url,
+                audioUrl: item.audio_url,
+                options: item.options,
+            });
+            setConsoleState('complete');
+        } else {
+            setConsoleState('idle');
+            setCurrentGeneration(null);
+        }
+    }, []);
 
     const handleDeleteHistory = useCallback(
         (videoId: string) => {
@@ -404,10 +365,6 @@ function VideoConsole() {
         if (abortRef.current) {
             abortRef.current();
             abortRef.current = null;
-        }
-        if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
         }
         setSelectedHistoryId(null);
         setCurrentGeneration(null);
@@ -502,8 +459,6 @@ function VideoConsole() {
                                 Describe what you want to explain, and our AI will generate a
                                 complete educational video with narration, visuals, and subtitles.
                             </p>
-
-                          
                         </div>
                     )}
 
@@ -513,20 +468,19 @@ function VideoConsole() {
                                 currentStage={currentGeneration.stage}
                                 percentage={currentGeneration.percentage}
                                 message={currentGeneration.message}
+                                contentType={currentGeneration.contentType}
                             />
                         </div>
                     )}
 
-                    {(consoleState === 'preview' || consoleState === 'complete') &&
+                    {consoleState === 'complete' &&
                         currentGeneration?.htmlUrl &&
                         currentGeneration?.audioUrl && (
                             <VideoResult
+                                videoId={currentGeneration.videoId}
                                 htmlUrl={currentGeneration.htmlUrl}
                                 audioUrl={currentGeneration.audioUrl}
-                                videoUrl={currentGeneration.videoUrl}
-                                isRenderComplete={
-                                    consoleState === 'complete' && !!currentGeneration.videoUrl
-                                }
+                                contentType={currentGeneration.contentType}
                                 prompt={currentGeneration.prompt}
                             />
                         )}

@@ -1,21 +1,13 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { VideoStage } from '../-services/video-generation';
-import {
-    FileText,
-    Mic,
-    Type,
-    Code,
-    Film,
-    CheckCircle2,
-    Loader2,
-    Circle,
-} from 'lucide-react';
+import { VideoStage, ContentType, getContentTypeLabel } from '../-services/video-generation';
+import { FileText, Mic, Type, Code, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface GenerationProgressProps {
     currentStage: VideoStage;
     percentage: number;
     message?: string;
+    contentType?: ContentType;
 }
 
 const STAGES: { id: VideoStage; label: string; icon: React.ReactNode }[] = [
@@ -23,7 +15,6 @@ const STAGES: { id: VideoStage; label: string; icon: React.ReactNode }[] = [
     { id: 'TTS', label: 'Audio', icon: <Mic className="h-4 w-4" /> },
     { id: 'WORDS', label: 'Words', icon: <Type className="h-4 w-4" /> },
     { id: 'HTML', label: 'Visuals', icon: <Code className="h-4 w-4" /> },
-    { id: 'RENDER', label: 'Render', icon: <Film className="h-4 w-4" /> },
 ];
 
 function getStageIndex(stage: VideoStage): number {
@@ -31,17 +22,25 @@ function getStageIndex(stage: VideoStage): number {
     return index === -1 ? -1 : index;
 }
 
-export function GenerationProgress({ currentStage, percentage, message }: GenerationProgressProps) {
+export function GenerationProgress({
+    currentStage,
+    percentage,
+    message,
+    contentType = 'VIDEO',
+}: GenerationProgressProps) {
     const currentIndex = getStageIndex(currentStage);
+    const contentLabel = getContentTypeLabel(contentType);
 
     return (
-        <Card className="w-full max-w-2xl mx-auto">
+        <Card className="mx-auto w-full max-w-2xl">
             <CardContent className="p-6">
                 <div className="space-y-6">
                     {/* Progress Bar */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium">Generating your video...</span>
+                            <span className="font-medium">
+                                Generating {contentLabel.replace(/^[^\s]+\s/, '')}...
+                            </span>
                             <span className="text-muted-foreground">{percentage}%</span>
                         </div>
                         <Progress value={percentage} className="h-2" />
@@ -58,7 +57,7 @@ export function GenerationProgress({ currentStage, percentage, message }: Genera
                                 <div key={stage.id} className="flex flex-col items-center gap-2">
                                     <div
                                         className={`
-                                            flex items-center justify-center w-10 h-10 rounded-full transition-colors
+                                            flex h-10 w-10 items-center justify-center rounded-full transition-colors
                                             ${isCompleted ? 'bg-green-100 text-green-600' : ''}
                                             ${isCurrent ? 'bg-blue-100 text-blue-600' : ''}
                                             ${isPending ? 'bg-muted text-muted-foreground' : ''}
@@ -90,7 +89,7 @@ export function GenerationProgress({ currentStage, percentage, message }: Genera
 
                     {/* Current Message */}
                     {message && (
-                        <div className="text-center text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+                        <div className="rounded-lg bg-muted/50 p-3 text-center text-sm text-muted-foreground">
                             {message}
                         </div>
                     )}
