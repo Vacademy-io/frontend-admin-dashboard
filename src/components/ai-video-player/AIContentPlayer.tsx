@@ -20,6 +20,7 @@ import {
     ChevronRight,
     Printer,
     Volume2,
+    Subtitles,
 } from 'lucide-react';
 import {
     Entry,
@@ -31,6 +32,8 @@ import {
 } from './types';
 import { processHtmlContent } from './html-processor';
 import { initializeLibraries } from './library-loader';
+import { useCaptions } from './hooks/useCaptions';
+import { CaptionDisplay, CaptionSettingsPopover } from './components';
 import '@/components/ai-course-builder/components/styles/AIVideoComponents.css';
 
 /**
@@ -71,6 +74,7 @@ const formatTime = (seconds: number): string => {
 export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
     timelineUrl,
     audioUrl,
+    wordsUrl,
     className = '',
     width = 1920,
     height = 1080,
@@ -101,12 +105,27 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
     const animationFrameRef = useRef<number | null>(null);
     const playStartTimeRef = useRef(0);
     const introStartTimeRef = useRef(0);
+    const isPlayingRef = useRef(false); // Ref to avoid stale closure issues
 
     const scaleCalculator = useMemo(() => new ScaleCalculator(width, height), [width, height]);
 
     // Computed values
     const contentType = meta.content_type;
     const navigationMode = meta.navigation;
+
+    // Captions hook (only for time-driven content with audio)
+    const {
+        currentWords,
+        currentPhrase,
+        currentWordIndex,
+        settings: captionSettings,
+        updateSettings: updateCaptionSettings,
+        toggleCaptions,
+    } = useCaptions({
+        wordsUrl: navigationMode === 'time_driven' ? wordsUrl : undefined,
+        currentTime,
+        audioStartAt: meta.audio_start_at,
+    });
 
     // Load timeline data
     useEffect(() => {
@@ -207,8 +226,14 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
     // TIME-DRIVEN NAVIGATION (VIDEO)
     // =====================================================
 
+    // Keep ref in sync with state
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
+
     const animateIntro = useCallback(() => {
-        if (!isPlaying) return;
+        // Use ref instead of state to avoid stale closure issues
+        if (!isPlayingRef.current) return;
 
         const elapsed = (performance.now() - playStartTimeRef.current) / 1000;
         const newTime = introStartTimeRef.current + elapsed;
@@ -224,10 +249,11 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             setCurrentTime(newTime);
             animationFrameRef.current = requestAnimationFrame(animateIntro);
         }
-    }, [isPlaying, meta.audio_start_at]);
+    }, [meta.audio_start_at]);
 
     const handleTimeDrivenPlayPause = useCallback(() => {
         if (isPlaying) {
+            isPlayingRef.current = false; // Update ref immediately
             if (audioStartedRef.current && audioRef.current) {
                 audioRef.current.pause();
             }
@@ -237,6 +263,7 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             }
             setIsPlaying(false);
         } else {
+            isPlayingRef.current = true; // Update ref immediately before scheduling animation
             setIsPlaying(true);
             if (currentTime >= meta.audio_start_at) {
                 if (audioRef.current) {
@@ -274,13 +301,14 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             introStartTimeRef.current = currentTime;
 
             const animateOutro = () => {
-                if (!isPlaying) return;
+                if (!isPlayingRef.current) return;
 
                 const elapsed = (performance.now() - playStartTimeRef.current) / 1000;
                 const newTime = introStartTimeRef.current + elapsed;
 
                 if (newTime >= meta.total_duration!) {
                     setCurrentTime(meta.total_duration!);
+                    isPlayingRef.current = false;
                     setIsPlaying(false);
                     onComplete?.();
                 } else {
@@ -290,10 +318,11 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             };
             requestAnimationFrame(animateOutro);
         } else {
+            isPlayingRef.current = false;
             setIsPlaying(false);
             onComplete?.();
         }
-    }, [meta.total_duration, currentTime, isPlaying, onComplete]);
+    }, [meta.total_duration, currentTime, onComplete]);
 
     const handleProgressClick = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
@@ -362,6 +391,7 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
 
     const handleReset = useCallback(() => {
         if (navigationMode === 'time_driven') {
+            isPlayingRef.current = false;
             if (audioRef.current) {
                 audioRef.current.currentTime = 0;
                 audioRef.current.pause();
@@ -441,10 +471,14 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
 
             active.sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
 
-            return active.map((entry) => ({
+            const processed = active.map((entry, index) => ({
                 ...entry,
-                processedHtml: processHtmlContent(entry.html, contentType),
+                // First entry (index 0) is the main content with white background
+                // Subsequent entries are overlays with transparent background
+                processedHtml: processHtmlContent(entry.html, contentType, index > 0),
             }));
+
+            return processed;
         } else if (navigationMode === 'user_driven') {
             // For QUIZ, STORYBOOK, etc.: show current entry
             const entry = entries[currentIndex];
@@ -469,6 +503,42 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             ];
         }
     }, [entries, currentTime, currentIndex, navigationMode, contentType]);
+
+    // =====================================================
+    // MESSAGE HANDLING (Inter-iframe communication)
+    // =====================================================
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            // Validate origin if needed, or check event.data structure
+            if (!event.data || typeof event.data !== 'object') return;
+
+            const { type, payload } = event.data;
+
+            switch (type) {
+                case 'QUIZ_ANSWER_SELECTED':
+                    console.log('Quiz answer selected:', payload);
+                    // Handle score tracking here if needed
+                    break;
+                case 'QUIZ_COMPLETED':
+                    console.log('Quiz completed:', payload);
+                    // Maybe auto-advance or show summary
+                    break;
+                case 'NAVIGATE_NEXT':
+                    handleNext();
+                    break;
+                case 'NAVIGATE_PREV':
+                    handlePrev();
+                    break;
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => {
+            window.removeEventListener('message', handleMessage);
+        };
+    }, [handleNext, handlePrev]);
+
+    // =====================================================
 
     // =====================================================
     // RENDER
@@ -572,6 +642,8 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                     style={{
                         width: '100%',
                         height: '100%',
+                        minHeight: '300px',
+                        aspectRatio: '16/9',
                         background: '#ffffff',
                         position: 'relative',
                         overflow: 'hidden',
@@ -657,6 +729,18 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                     >
                         <Play className="size-10 text-white" style={{ marginLeft: '4px' }} />
                     </div>
+                )}
+
+                {/* Captions / Subtitles Display */}
+                {navigationMode === 'time_driven' && wordsUrl && (
+                    <CaptionDisplay
+                        words={currentWords}
+                        currentTime={currentTime}
+                        audioStartAt={meta.audio_start_at}
+                        settings={captionSettings}
+                        currentPhrase={currentPhrase}
+                        currentWordIndex={currentWordIndex}
+                    />
                 )}
 
                 {/* Controls Overlay */}
@@ -810,6 +894,39 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                             >
                                 <Volume2 className="size-5 text-white" />
                             </button>
+                        )}
+
+                        {/* Captions toggle (CC button) - only for time-driven with words */}
+                        {navigationMode === 'time_driven' && wordsUrl && (
+                            <>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleCaptions();
+                                    }}
+                                    style={{
+                                        ...btnStyle,
+                                        opacity: captionSettings.enabled ? 1 : 0.6,
+                                        background: captionSettings.enabled
+                                            ? 'rgba(255, 255, 255, 0.2)'
+                                            : 'transparent',
+                                        borderRadius: '4px',
+                                    }}
+                                    title={
+                                        captionSettings.enabled
+                                            ? 'Turn off captions'
+                                            : 'Turn on captions'
+                                    }
+                                >
+                                    <Subtitles className="size-5 text-white" />
+                                </button>
+                                {captionSettings.enabled && (
+                                    <CaptionSettingsPopover
+                                        settings={captionSettings}
+                                        onUpdate={updateCaptionSettings}
+                                    />
+                                )}
+                            </>
                         )}
 
                         {/* Fullscreen button */}

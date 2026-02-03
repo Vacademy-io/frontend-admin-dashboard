@@ -10,9 +10,13 @@ import { ContentType } from './types';
  */
 const LIBRARY_CONFIG: Record<ContentType, string[]> = {
     VIDEO: [
-        'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js',
         'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js',
-        'https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js',
+        'https://unpkg.com/rough-notation/lib/rough-notation.iife.js',
+        'https://cdn.jsdelivr.net/npm/vivus@0.4.6/dist/vivus.min.js',
+        'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js',
+        'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js',
         'https://cdn.jsdelivr.net/npm/prismjs@1.29/prism.min.js',
     ],
     QUIZ: [
@@ -69,7 +73,7 @@ const loadedLibraries = new Set<string>();
  * Load a single script
  */
 function loadScript(src: string): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         // Skip if already loaded
         if (loadedLibraries.has(src)) {
             resolve();

@@ -104,6 +104,7 @@ export interface TimelineData {
 export interface AIContentPlayerProps {
     timelineUrl: string;
     audioUrl?: string; // Optional - not needed for user_driven/self_contained
+    wordsUrl?: string; // Optional - for captions/subtitles
     className?: string;
     width?: number;
     height?: number;
@@ -193,3 +194,66 @@ export function getDefaultMeta(contentType: ContentType = 'VIDEO'): TimelineMeta
         total_duration: null,
     };
 }
+
+// =====================================================
+// CAPTION / SUBTITLE TYPES
+// =====================================================
+
+/**
+ * Word timestamp from narration.words.json
+ */
+export interface WordTimestamp {
+    word: string;
+    start: number;
+    end: number;
+}
+
+/**
+ * Caption position options
+ */
+export type CaptionPosition = 'bottom' | 'top';
+
+/**
+ * Caption font size options
+ */
+export type CaptionFontSize = 'small' | 'medium' | 'large';
+
+/**
+ * Caption display style
+ */
+export type CaptionStyle = 'phrase' | 'karaoke';
+
+/**
+ * User-customizable caption settings
+ */
+export interface CaptionSettings {
+    enabled: boolean;
+    position: CaptionPosition;
+    fontSize: CaptionFontSize;
+    style: CaptionStyle;
+    backgroundOpacity: number; // 0 to 1
+    textColor: string;
+    highlightColor: string; // For karaoke style
+}
+
+/**
+ * Default caption settings
+ */
+export const DEFAULT_CAPTION_SETTINGS: CaptionSettings = {
+    enabled: false,
+    position: 'bottom',
+    fontSize: 'medium',
+    style: 'phrase',
+    backgroundOpacity: 0.75,
+    textColor: '#ffffff',
+    highlightColor: '#fbbf24', // Amber/yellow for current word
+};
+
+/**
+ * Font size mapping in pixels
+ */
+export const CAPTION_FONT_SIZES: Record<CaptionFontSize, number> = {
+    small: 16,
+    medium: 20,
+    large: 28,
+};

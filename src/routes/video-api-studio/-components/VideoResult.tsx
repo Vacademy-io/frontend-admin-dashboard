@@ -12,6 +12,7 @@ interface VideoResultProps {
     videoId: string;
     htmlUrl: string;
     audioUrl?: string;
+    wordsUrl?: string;
     contentType?: ContentType;
     prompt: string;
 }
@@ -20,6 +21,7 @@ export function VideoResult({
     videoId,
     htmlUrl,
     audioUrl,
+    wordsUrl,
     contentType = 'VIDEO',
     prompt,
 }: VideoResultProps) {
@@ -28,14 +30,14 @@ export function VideoResult({
 
     // Build the shareable URL
     const baseUrl = window.location.origin;
-    const shareableUrl = `${baseUrl}/content/${videoId}?timeline=${encodeURIComponent(htmlUrl)}${audioUrl ? `&audio=${encodeURIComponent(audioUrl)}` : ''}`;
+    const shareableUrl = `${baseUrl}/content/${videoId}?timeline=${encodeURIComponent(htmlUrl)}${audioUrl ? `&audio=${encodeURIComponent(audioUrl)}` : ''}${wordsUrl ? `&words=${encodeURIComponent(wordsUrl)}` : ''}`;
 
     // Build the embed code
-    const embedCode = `<iframe 
-  src="${shareableUrl}" 
-  width="100%" 
-  height="600" 
-  frameborder="0" 
+    const embedCode = `<iframe
+  src="${shareableUrl}"
+  width="100%"
+  height="600"
+  frameborder="0"
   allowfullscreen
   allow="autoplay; fullscreen"
   style="border-radius: 12px; overflow: hidden;"
@@ -85,6 +87,7 @@ export function VideoResult({
                 <AIContentPlayer
                     timelineUrl={htmlUrl}
                     audioUrl={audioUrl}
+                    wordsUrl={wordsUrl}
                     width={1920}
                     height={1080}
                 />
