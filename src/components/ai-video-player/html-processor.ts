@@ -1669,8 +1669,8 @@ export function generateFlashcardHtml(entry: Entry, index: number, entries: Entr
                 );
 
                 // Auto-unwrap if there is a single container div (common in some editors)
-                if (blocks.length === 1 && blocks[0].children.length > 0) {
-                    blocks = Array.from(blocks[0].children).filter(
+                if (blocks.length === 1 && blocks[0]!.children.length > 0) {
+                    blocks = Array.from(blocks[0]!.children).filter(
                         (el) =>
                             el.tagName !== 'SCRIPT' &&
                             el.tagName !== 'STYLE' &&
@@ -1679,7 +1679,7 @@ export function generateFlashcardHtml(entry: Entry, index: number, entries: Entr
                 }
 
                 if (blocks.length >= 2) {
-                    if (!title) title = blocks[0].textContent?.trim();
+                    if (!title) title = blocks[0]!.textContent?.trim();
                     if (!description)
                         description = blocks
                             .slice(1)
@@ -1687,7 +1687,7 @@ export function generateFlashcardHtml(entry: Entry, index: number, entries: Entr
                             .join('');
                 } else if (blocks.length === 1) {
                     // Only one block found. Is it split by a newline or question mark?
-                    const text = blocks[0].textContent?.trim() || '';
+                    const text = blocks[0]!.textContent?.trim() || '';
                     if (!title) {
                         // Heuristic: If it contains a '?' and looks like a question, treat the rest as answer?
                         // Or just treat it as title.
