@@ -791,9 +791,16 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
     const animationFrameRef = useRef<number | null>(null);
     const playStartTimeRef = useRef<number>(0);
     const introStartTimeRef = useRef<number>(0);
+    const isPlayingRef = useRef<boolean>(false); // Ref to avoid stale closure issues
+
+    // Keep ref in sync with state
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
 
     const animateIntro = useCallback(() => {
-        if (!isPlaying) return;
+        // Use ref instead of state to avoid stale closure issues
+        if (!isPlayingRef.current) return;
 
         const elapsed = (performance.now() - playStartTimeRef.current) / 1000;
         const newTimelineTime = introStartTimeRef.current + elapsed;
@@ -814,11 +821,12 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
             setCurrentTime(newTimelineTime);
             animationFrameRef.current = requestAnimationFrame(animateIntro);
         }
-    }, [isPlaying, timelineMeta.audio_start_at]);
+    }, [timelineMeta.audio_start_at]);
 
     const handlePlayPause = () => {
         if (isPlaying) {
             // Pause
+            isPlayingRef.current = false; // Update ref immediately
             if (audioStartedRef.current && audioRef.current) {
                 audioRef.current.pause();
             }
@@ -829,6 +837,7 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
             setIsPlaying(false);
         } else {
             // Play
+            isPlayingRef.current = true; // Update ref immediately before scheduling animation
             setIsPlaying(true);
 
             if (currentTime >= timelineMeta.audio_start_at) {
@@ -847,6 +856,7 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                 audioStartedRef.current = false;
                 playStartTimeRef.current = performance.now();
                 introStartTimeRef.current = currentTime;
+                // Schedule the animation loop
                 animationFrameRef.current = requestAnimationFrame(animateIntro);
             }
         }
@@ -863,6 +873,7 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
 
     const handleReset = () => {
         // Reset to beginning of timeline (including intro)
+        isPlayingRef.current = false;
         if (audioRef.current) {
             audioRef.current.currentTime = 0;
             audioRef.current.pause();
@@ -1370,13 +1381,14 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
 
                         // Animate through outro until total_duration
                         const animateOutro = () => {
-                            if (!isPlaying) return;
+                            if (!isPlayingRef.current) return;
 
                             const elapsed = (performance.now() - playStartTimeRef.current) / 1000;
                             const newTime = introStartTimeRef.current + elapsed;
 
                             if (newTime >= timelineMeta.total_duration) {
                                 setCurrentTime(timelineMeta.total_duration);
+                                isPlayingRef.current = false;
                                 setIsPlaying(false);
                             } else {
                                 setCurrentTime(newTime);
