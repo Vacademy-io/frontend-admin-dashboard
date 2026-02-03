@@ -41,6 +41,11 @@ export interface Entry {
     htmlEndX?: number;
     htmlEndY?: number;
     audio_url?: string; // Optional per-entry audio (for user_driven)
+    entry_meta?: {
+        text?: string;
+        audio_text?: string;
+        [key: string]: any;
+    };
 }
 
 /**

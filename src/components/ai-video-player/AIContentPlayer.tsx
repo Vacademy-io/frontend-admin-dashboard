@@ -30,7 +30,14 @@ import {
     formatEntryLabel,
     getDefaultMeta,
 } from './types';
-import { processHtmlContent } from './html-processor';
+import {
+    processHtmlContent,
+    generateTimelineHtml,
+    generateFlashcardHtml,
+    generateStorybookHtml,
+    generateQuizHtml,
+    generateConversationHtml,
+} from './html-processor';
 import { initializeLibraries } from './library-loader';
 import { useCaptions } from './hooks/useCaptions';
 import { CaptionDisplay, CaptionSettingsPopover } from './components';
@@ -115,6 +122,7 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
 
     // Captions hook (only for time-driven content with audio)
     const {
+        words: allWords, // Get all words for range calculation
         currentWords,
         currentPhrase,
         currentWordIndex,
@@ -122,10 +130,105 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
         updateSettings: updateCaptionSettings,
         toggleCaptions,
     } = useCaptions({
-        wordsUrl: navigationMode === 'time_driven' ? wordsUrl : undefined,
+        // Fetch words for time-driven VIDEO or user-driven STORYBOOK
+        wordsUrl:
+            navigationMode === 'time_driven' ||
+            contentType === 'STORYBOOK' ||
+            contentType === 'FLASHCARDS'
+                ? wordsUrl
+                : undefined,
         currentTime,
         audioStartAt: meta.audio_start_at,
     });
+
+    // Map page index to audio time range {start, end}
+    const pageAudioRanges = useMemo(() => {
+        if (!allWords || allWords.length === 0 || entries.length === 0) return new Map();
+
+        const ranges = new Map<number, { start: number; end: number }>();
+        let currentWordIndex = 0;
+
+        entries.forEach((entry, index) => {
+            const text =
+                entry.entry_meta?.audio_text ||
+                entry.entry_meta?.text ||
+                entry.entry_meta?.description ||
+                '';
+            // Simple tokenization: remove punctuation, lowercase
+            const tokens = text
+                .toLowerCase()
+                .replace(/[^\w\s]/g, '')
+                .split(/\s+/)
+                .filter((t: string) => t.length > 0);
+
+            if (tokens.length === 0) return;
+
+            let startIndex = -1;
+            let endIndex = -1;
+
+            // Greedy sequential matching
+            // We assume words in words.json appear in the same order as pages
+            for (let i = 0; i < tokens.length; i++) {
+                const token = tokens[i];
+                // Look ahead up to 20 words to find a match
+                for (
+                    let j = currentWordIndex;
+                    j < Math.min(currentWordIndex + 20, allWords.length);
+                    j++
+                ) {
+                    const word = allWords[j];
+                    if (!word) continue;
+
+                    const wToken = word.word.toLowerCase().replace(/[^\w\s]/g, '');
+
+                    if (wToken === token) {
+                        if (startIndex === -1) startIndex = j;
+                        endIndex = j;
+                        currentWordIndex = j + 1; // Advance main pointer
+                        break;
+                    }
+                }
+            }
+
+            const startWord = startIndex !== -1 ? allWords[startIndex] : undefined;
+            const endWord = endIndex !== -1 ? allWords[endIndex] : undefined;
+
+            if (startWord && endWord) {
+                ranges.set(index, {
+                    start: startWord.start,
+                    end: endWord.end,
+                });
+            }
+        });
+
+        return ranges;
+    }, [allWords, entries]);
+
+    // Handle "Read Page" for Storybook
+    const handleReadPage = useCallback(() => {
+        const range = pageAudioRanges.get(currentIndex);
+        if (range && audioRef.current) {
+            // Stop any ongoing playback or animation
+            if (isPlaying) {
+                // If already playing, just pause
+                setIsPlaying(false);
+                audioRef.current.pause();
+                return;
+            }
+
+            // Seek and play
+            // Add slight padding to start to ensure we don't clip the first syllable
+            const seekTime = Math.max(0, range.start);
+            audioRef.current.currentTime = seekTime;
+
+            // NOTE: We need to handle stopping at range.end manually in onTimeUpdate
+
+            audioRef.current.play().catch(console.error);
+            setIsPlaying(true);
+            // We use the audioStartedRef to indicate we are in a valid playback state
+            audioStartedRef.current = true;
+        }
+    }, [currentIndex, pageAudioRanges, isPlaying]);
 
     // Load timeline data
     useEffect(() => {
@@ -284,9 +387,30 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
     const handleTimeUpdate = useCallback(() => {
         if (audioRef.current && audioStartedRef.current) {
             const time = audioRef.current.currentTime + meta.audio_start_at;
+
+            // For Storybook/Flashcards: Check if we reached the end of the current page's audio
+            if (
+                navigationMode === 'user_driven' &&
+                (contentType === 'STORYBOOK' || contentType === 'FLASHCARDS') &&
+                isPlaying
+            ) {
+                const range = pageAudioRanges.get(currentIndex);
+                if (range && audioRef.current.currentTime >= range.end) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                }
+            }
+
             setCurrentTime(time);
         }
-    }, [meta.audio_start_at]);
+    }, [
+        meta.audio_start_at,
+        navigationMode,
+        contentType,
+        isPlaying,
+        currentIndex,
+        pageAudioRanges,
+    ]);
 
     const handleLoadedMetadata = useCallback(() => {
         if (audioRef.current && (!meta.total_duration || meta.total_duration === 0)) {
@@ -368,6 +492,12 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
     // =====================================================
 
     const handleNext = useCallback(() => {
+        // Stop audio if playing
+        if (isPlaying) {
+            setIsPlaying(false);
+            if (audioRef.current) audioRef.current.pause();
+        }
+
         if (currentIndex < entries.length - 1) {
             const newIndex = currentIndex + 1;
             setCurrentIndex(newIndex);
@@ -375,15 +505,20 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
         } else {
             onComplete?.();
         }
-    }, [currentIndex, entries, onEntryChange, onComplete]);
+    }, [currentIndex, entries, onEntryChange, onComplete, isPlaying]);
 
     const handlePrev = useCallback(() => {
         if (currentIndex > 0) {
+            // Stop audio if playing
+            if (isPlaying) {
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.pause();
+            }
             const newIndex = currentIndex - 1;
             setCurrentIndex(newIndex);
             onEntryChange?.(newIndex, entries[newIndex]!);
         }
-    }, [currentIndex, entries, onEntryChange]);
+    }, [currentIndex, entries, onEntryChange, isPlaying]);
 
     // =====================================================
     // COMMON HANDLERS
@@ -484,10 +619,37 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             const entry = entries[currentIndex];
             if (!entry) return [];
 
+            // Check if we need to generate HTML for TIMELINE
+            let htmlContent = entry.html;
+            if (contentType === 'TIMELINE' && entry.entry_meta) {
+                // If html is basic placeholder or empty, generate from meta
+                if (!htmlContent || htmlContent.includes('<div>Event') || htmlContent.length < 50) {
+                    htmlContent = generateTimelineHtml(entry, currentIndex, entries);
+                }
+            } else if (contentType === 'FLASHCARDS') {
+                // Always generate premium flashcard HTML from metadata to ensure consistent UI
+                // unless it's already using our specific class structure
+                if (!htmlContent || !htmlContent.includes('flashcard-stage')) {
+                    htmlContent = generateFlashcardHtml(entry, currentIndex, entries);
+                }
+            } else if (contentType === 'STORYBOOK') {
+                if (!htmlContent || !htmlContent.includes('storybook-page')) {
+                    htmlContent = generateStorybookHtml(entry, currentIndex, entries);
+                }
+            } else if (contentType === 'QUIZ') {
+                if (!htmlContent || !htmlContent.includes('quiz-container')) {
+                    htmlContent = generateQuizHtml(entry, currentIndex, entries);
+                }
+            } else if (contentType === 'CONVERSATION') {
+                if (!htmlContent || !htmlContent.includes('conversation-container')) {
+                    htmlContent = generateConversationHtml(entry, currentIndex, entries);
+                }
+            }
+
             return [
                 {
                     ...entry,
-                    processedHtml: processHtmlContent(entry.html, contentType),
+                    processedHtml: processHtmlContent(htmlContent, contentType),
                 },
             ];
         } else {
@@ -849,6 +1011,43 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                                         entries.length
                                     )}
                                 </span>
+
+                                {/* STORYBOOK: Read Page Button */}
+                                {contentType === 'STORYBOOK' &&
+                                    pageAudioRanges.has(currentIndex) && (
+                                        <button
+                                            onClick={handleReadPage}
+                                            style={{
+                                                ...btnStyle,
+                                                background: isPlaying
+                                                    ? 'rgba(255, 255, 255, 0.2)'
+                                                    : 'transparent',
+                                                borderRadius: '4px',
+                                                border: '1px solid rgba(255, 255, 255, 0.4)',
+                                                padding: '4px 12px',
+                                                margin: '0 8px',
+                                                display: 'flex',
+                                                gap: '6px',
+                                            }}
+                                            title={isPlaying ? 'Pause Narration' : 'Read Page'}
+                                        >
+                                            {isPlaying ? (
+                                                <Pause className="size-4 text-white" />
+                                            ) : (
+                                                <Volume2 className="size-4 text-white" />
+                                            )}
+                                            <span
+                                                style={{
+                                                    fontSize: '12px',
+                                                    fontWeight: 600,
+                                                    color: 'white',
+                                                }}
+                                            >
+                                                {isPlaying ? 'PAUSE' : 'READ ME'}
+                                            </span>
+                                        </button>
+                                    )}
+
                                 <button
                                     onClick={handleNext}
                                     disabled={currentIndex === entries.length - 1}
@@ -946,7 +1145,8 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             </div>
 
             {/* Audio Element (only for time_driven) */}
-            {navigationMode === 'time_driven' && audioUrl && (
+            {/* Audio Element (for time_driven AND storybook) */}
+            {audioUrl && (
                 <audio
                     ref={audioRef}
                     src={audioUrl}
