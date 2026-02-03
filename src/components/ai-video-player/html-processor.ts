@@ -3,7 +3,7 @@
  * Responsible for processing and fixing HTML content for different content types
  */
 
-import { ContentType } from './types';
+import { ContentType, Entry } from './types';
 
 /**
  * Get the common libraries and styles for iframe content
@@ -248,57 +248,281 @@ function getConversationStyles(): string {
 function getTimelineStyles(): string {
     return `
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Merriweather:wght@300;400;700&display=swap');
+
+            body {
+                background-color: #f8fafc;
+                background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+
             .timeline-container {
+                width: 100%;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                padding: 40px 40px 140px 40px; /* Added bottom padding for nav */
                 position: relative;
-                padding: 20px 0;
+                overflow: hidden;
             }
 
-            .timeline-line {
-                position: absolute;
-                left: 50%;
-                top: 0;
+            /* ... (existing styles) ... */
+
+            /* Timeline Navigation Footer */
+            .timeline-nav-container {
+                position: fixed;
                 bottom: 0;
-                width: 4px;
-                background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
-                transform: translateX(-50%);
-            }
-
-            .timeline-event {
+                left: 0;
+                width: 100%;
+                height: 100px;
+                background: white;
+                border-top: 1px solid #e2e8f0;
                 display: flex;
                 align-items: center;
-                margin: 40px 0;
+                justify-content: center;
+                padding: 0 40px;
+                z-index: 20;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+            }
+
+            .timeline-track {
+                position: absolute;
+                top: 50%;
+                left: 40px;
+                right: 40px;
+                height: 2px;
+                background: #e2e8f0;
+                transform: translateY(-50%);
+                z-index: 1;
+            }
+
+            .timeline-nav-items {
+                width: 100%;
+                max-width: 1000px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative;
+                z-index: 2;
+            }
+
+            .nav-item {
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: white;
+                padding: 8px 16px;
+                border-radius: 50px;
+                border: 1px solid #e2e8f0;
+                min-width: 180px;
+            }
+
+            .nav-item:hover {
+                border-color: #3b82f6;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+            }
+
+            .nav-item.prev {
+                align-items: flex-start;
+                padding-left: 20px;
+            }
+
+            .nav-item.next {
+                align-items: flex-end;
+                text-align: right;
+                padding-right: 20px;
+            }
+
+            .nav-item.disabled {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .nav-label {
+                font-size: 10px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #94a3b8;
+                font-weight: 700;
+                margin-bottom: 2px;
+            }
+
+            .nav-content {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .nav-title {
+                font-family: 'Playfair Display', serif;
+                font-size: 14px;
+                font-weight: 700;
+                color: #334155;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 140px;
+            }
+
+            .nav-year {
+                font-family: 'Fira Code', monospace;
+                font-size: 11px;
+                color: #64748b;
+                background: #f1f5f9;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
+
+            /* Current Indicator in Nav */
+            .nav-current-indicator {
+                width: 12px;
+                height: 12px;
+                background: #3b82f6;
+                border: 3px solid white;
+                box-shadow: 0 0 0 2px #3b82f6;
+                border-radius: 50%;
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 3;
+            }
+
+            .timeline-card-wrapper {
+                position: relative;
+                width: 100%;
+                max-width: 1000px;
+                display: flex;
+                flex-direction: column; /* Mobile first */
+                background: white;
+                border-radius: 24px;
+                box-shadow:
+                    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+                    0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+                animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            @media (min-width: 768px) {
+                .timeline-card-wrapper.has-image {
+                    flex-direction: row;
+                    height: 500px;
+                }
+            }
+
+            /* Image Section */
+            .timeline-image-section {
+                flex: 1;
+                position: relative;
+                overflow: hidden;
+                min-height: 200px;
+            }
+
+            .timeline-image {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.7s ease;
+            }
+
+            .timeline-card-wrapper:hover .timeline-image {
+                transform: scale(1.03);
+            }
+
+            /* Content Section */
+            .timeline-content-section {
+                flex: 1;
+                padding: 40px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
                 position: relative;
             }
 
-            .timeline-event.left {
-                flex-direction: row-reverse;
-                text-align: right;
-            }
-
-            .timeline-dot {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background: #3b82f6;
-                border: 4px solid white;
-                box-shadow: 0 0 0 4px #3b82f6;
-                position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
-            }
-
-            .timeline-content {
-                width: 45%;
-                padding: 20px;
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            }
-
-            .timeline-date {
-                color: #64748b;
-                font-size: 14px;
+            .timeline-date-badge {
+                display: inline-block;
+                background: #0f172a;
+                color: #fff;
+                padding: 6px 16px;
+                border-radius: 50px;
+                font-family: 'Fira Code', monospace;
                 font-weight: 600;
+                font-size: 14px;
+                margin-bottom: 24px;
+                align-self: flex-start;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+
+            .timeline-title {
+                font-family: 'Playfair Display', serif;
+                font-size: 36px;
+                line-height: 1.2;
+                color: #1e293b;
+                margin-bottom: 16px;
+                font-weight: 700;
+            }
+
+            .timeline-description {
+                font-family: 'Merriweather', serif;
+                font-size: 16px;
+                line-height: 1.8;
+                color: #475569;
+                margin-bottom: 24px;
+            }
+
+            /* Fun Fact Box */
+            .timeline-fact {
+                background: #eff6ff;
+                border-radius: 12px;
+                padding: 16px;
+                border-left: 4px solid #3b82f6;
+                margin-top: auto;
+            }
+
+            .timeline-fact strong {
+                display: block;
+                color: #1d4ed8;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 4px;
+                font-family: 'Inter', sans-serif;
+            }
+
+            .timeline-fact p {
+                color: #334155;
+                font-size: 14px;
+                margin: 0;
+                line-height: 1.5;
+                font-style: italic;
+            }
+
+            /* Decorative Elements */
+            .timeline-source {
+                position: absolute;
+                bottom: 12px;
+                right: 40px;
+                font-size: 10px;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            /* Animations */
+            @keyframes slideUpFade {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
         </style>
     `;
@@ -718,74 +942,394 @@ function getQuizStyles(): string {
 function getFlashcardStyles(): string {
     return `
         <style>
-            .flashcard-container {
+            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Space+Grotesk:wght@300;400;600&family=Caveat:wght@700&display=swap');
+
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #0f172a;
+                font-family: 'Outfit', sans-serif;
+                overflow: hidden;
+            }
+
+            .flashcard-stage {
                 width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                perspective: 1000px;
-            }
-
-            .flashcard {
-                width: 600px;
-                height: 400px;
-                position: relative;
-                transform-style: preserve-3d;
-                transition: transform 0.6s;
-                cursor: pointer;
-            }
-
-            .flashcard.flipped {
-                transform: rotateY(180deg);
-            }
-
-            .flashcard-face {
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                backface-visibility: hidden;
+                height: 100vh;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                padding: 40px;
-                border-radius: 24px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+                background: radial-gradient(circle at 50% 10%, #1e293b 0%, #020617 100%);
+                perspective: 2500px;
+                position: relative;
+                overflow: hidden;
             }
 
-            .flashcard-front {
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                color: white;
+            /* Ambient Background Elements */
+            .ambient-glow {
+                position: absolute;
+                border-radius: 50%;
+                filter: blur(100px);
+                opacity: 0.15;
+                z-index: 0;
+                animation: pulseGlow 10s ease-in-out infinite alternate;
+            }
+            .glow-1 { top: -20%; left: -10%; width: 800px; height: 800px; background: #8b5cf6; }
+            .glow-2 { bottom: -20%; right: -10%; width: 900px; height: 900px; background: #3b82f6; animation-delay: -5s; }
+
+            @keyframes pulseGlow {
+                0% { transform: scale(1); opacity: 0.15; }
+                100% { transform: scale(1.1); opacity: 0.25; }
             }
 
-            .flashcard-back {
-                background: white;
-                color: #1e293b;
+            /* Card Container */
+            .flashcard-container {
+                position: relative;
+                width: 800px;
+                height: 520px;
+                max-width: 90vw;
+                max-height: 70vh;
+                z-index: 10;
+                transform-style: preserve-3d;
+                transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+                cursor: pointer;
+            }
+
+            .flashcard-container:hover {
+                transform: translateY(-10px) rotateX(2deg);
+            }
+
+            .flashcard-container.flipped {
                 transform: rotateY(180deg);
-                border: 3px solid #e2e8f0;
             }
 
-            .flashcard-label {
+            .flashcard-container.flipped:hover {
+                transform: rotateY(180deg) translateY(-10px) rotateX(2deg);
+            }
+
+            /* Glassmorphism Card Faces */
+            .card-face {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+                border-radius: 32px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 60px;
+                box-sizing: border-box;
+                text-align: center;
+                box-shadow:
+                    0 25px 50px -12px rgba(0, 0, 0, 0.6),
+                    0 0 0 1px rgba(255, 255, 255, 0.1);
+            }
+
+            /* Front Face */
+            .card-front {
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            /* Back Face */
+            .card-back {
+                background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+                transform: rotateY(180deg);
+                border: 1px solid white;
+                color: #1e293b;
+            }
+
+            /* Decorative Lines */
+            .deco-line {
+                width: 60px;
+                height: 6px;
+                background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+                border-radius: 3px;
+                margin-bottom: 30px;
+            }
+
+            /* Typography */
+            .label-badge {
+                font-family: 'Space Grotesk', sans-serif;
                 font-size: 14px;
                 text-transform: uppercase;
-                letter-spacing: 0.1em;
-                opacity: 0.8;
-                margin-bottom: 16px;
-            }
-
-            .flashcard-content {
-                font-size: 32px;
+                letter-spacing: 0.2em;
                 font-weight: 600;
-                text-align: center;
-                line-height: 1.4;
+                margin-bottom: 24px;
+                padding: 8px 16px;
+                border-radius: 100px;
             }
 
-            .flashcard-hint {
+            .card-front .label-badge {
+                background: rgba(255, 255, 255, 0.1);
+                color: #e2e8f0;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .card-back .label-badge {
+                background: #e2e8f0;
+                color: #64748b;
+            }
+
+            .card-content {
+                font-family: 'Outfit', sans-serif;
+                font-weight: 700;
+                line-height: 1.25;
+                margin: 0;
+            }
+
+            .card-front .card-content {
+                font-size: 48px;
+                color: white;
+                text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            }
+
+            .card-back .card-content {
+                font-size: 36px;
+                color: #1e293b;
+                font-weight: 500;
+                line-height: 1.6;
+            }
+
+            /* Hint/Instruction */
+            .tap-instruction {
+                position: absolute;
+                bottom: 36px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 14px;
+                font-weight: 500;
+                opacity: 0.6;
+                transition: opacity 0.3s;
+            }
+
+            .card-container:hover .tap-instruction { opacity: 1; }
+
+            .card-front .tap-instruction { color: #cbd5e1; }
+            .card-back .tap-instruction { color: #94a3b8; }
+
+            .instruction-key {
+                border: 1px solid currentColor;
+                border-radius: 6px;
+                padding: 2px 8px;
+                font-size: 11px;
+                font-weight: 700;
+            }
+
+            /* Progress Bar */
+            .progress-container {
+                position: absolute;
+                top: 40px;
+                right: 40px;
+                z-index: 20;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+            }
+
+            .progress-text {
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 16px;
+                font-weight: 700;
+                color: rgba(255, 255, 255, 0.8);
+                margin-bottom: 8px;
+            }
+
+            .progress-bar {
+                width: 150px;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 3px;
+                overflow: hidden;
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+                border-radius: 3px;
+                transition: width 0.5s ease;
+            }
+
+            /* Responsive */
+            @media (max-width: 900px) {
+                .flashcard-container { width: 90%; height: 60vh; }
+                .card-front .card-content { font-size: 32px; }
+                .card-back .card-content { font-size: 24px; }
+            }
+        </style>
+    `;
+}
+
+/**
+ * Get storybook specific styles for visual storytelling
+ */
+function getStorybookStyles(): string {
+    return `
+        <style>
+            /* Reset & Base for Storybook */
+            body {
+                background-color: #fdfaf5; /* Warm paper color */
+                color: #2c1810;
+                display: flex;
+                flex-direction: column;
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                overflow: hidden;
+                font-family: 'Georgia', 'Times New Roman', serif;
+            }
+
+            /* Main Page Container */
+            .storybook-page {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                width: 100%;
+                padding: 40px;
+                box-sizing: border-box;
+                position: relative;
+                /* Subtle paper texture effect */
+                background-image:
+                    linear-gradient(to right, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0) 5%, rgba(0,0,0,0) 95%, rgba(0,0,0,0.02) 100%);
+            }
+
+            /* Cover Page Special Styling */
+            .storybook-page.cover-page {
+                justify-content: center;
+                align-items: center;
+                background: radial-gradient(circle at center, #fff 0%, #fdfaf5 100%);
+                text-align: center;
+            }
+
+            .storybook-page.cover-page .illustration-container {
+                max-height: 50vh;
+                margin-bottom: 40px;
+            }
+
+            .storybook-page.cover-page .text-container {
+                margin-top: 0;
+                border: 4px double #8b4513;
+                padding: 2rem 4rem;
+                background: white;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                max-width: 80%;
+            }
+
+            .storybook-page.cover-page .story-text {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 3.5rem;
+                font-weight: 800;
+                color: #8b4513;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                text-shadow: 2px 2px 0px rgba(139, 69, 19, 0.1);
+                margin: 0;
+            }
+
+            /* Illustration Layout */
+            .illustration-container {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 2rem;
+                overflow: hidden;
+                position: relative;
+                min-height: 0; /* Important for flex child overflow */
+                width: 100%;
+            }
+
+            /* Frame effect for images */
+            .page-illustration {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                transition: transform 0.3s ease;
+                border: 8px solid white;
+            }
+
+            .page-illustration:hover {
+                transform: scale(1.01);
+            }
+
+            /* Text Layout */
+            .text-container {
+                background: rgba(255, 255, 255, 0.9);
+                padding: 1.5rem 2.5rem;
+                border-radius: 16px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                margin: 0 auto;
+                width: 100%;
+                max-width: 900px;
+                backdrop-filter: blur(5px);
+                border: 1px solid rgba(139, 69, 19, 0.1);
+                transition: transform 0.3s ease;
+            }
+
+            .text-bottom {
+                margin-top: auto;
+            }
+
+            .text-center {
+                text-align: center;
+            }
+
+            .text-top {
+                margin-bottom: auto;
+            }
+
+            .story-text {
+                font-family: 'Georgia', 'Crimson Text', serif;
+                font-size: 1.75rem;
+                line-height: 1.6;
+                color: #4a3b32;
+                margin: 0;
+            }
+
+            /* Page Number */
+            .page-number {
                 position: absolute;
                 bottom: 20px;
-                font-size: 14px;
-                opacity: 0.7;
+                right: 30px;
+                font-family: 'Courier New', monospace;
+                font-size: 1.2rem;
+                color: #8b4513;
+                font-weight: bold;
+                opacity: 0.6;
+            }
+
+            /* Responsive adjustments */
+            @media (max-width: 768px) {
+                .storybook-page { padding: 20px; }
+                .story-text { font-size: 1.25rem; }
+                .storybook-page.cover-page .story-text { font-size: 2rem; padding: 1rem; }
+            }
+
+            /* Animations */
+            .storybook-page > * {
+                animation: fadeIn 0.8s ease-out forwards;
+            }
+
+            .illustration-container {
+                animation-delay: 0.1s;
+                opacity: 0;
+            }
+
+            .text-container {
+                animation-delay: 0.4s;
+                opacity: 0;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
             }
         </style>
     `;
@@ -798,6 +1342,7 @@ function getHelperScripts(): string {
     return `
         <script>
             // Re-render Math using KaTeX
+
             window.renderMath = function(selector) {
                 if (window.renderMathInElement && window.katex) {
                     const el = selector ? (typeof selector === 'string' ? document.querySelector(selector) : selector) : document.body;
@@ -874,6 +1419,576 @@ function getHelperScripts(): string {
 }
 
 /**
+ * Get quiz specific interaction scripts
+ */
+function getQuizScripts(): string {
+    return `
+        <script>
+            // Global handler for quiz options
+            window.handleOptionClick = function(element, answer, isCorrect, explanation) {
+                // 1. Prevent multiple clicks if already answered
+                const container = element.closest('.quiz-container');
+                if (container.classList.contains('answered')) return;
+
+                // 2. Mark container as answered to lock interaction
+                container.classList.add('answered');
+
+                // 3. Visual Feedback
+                // Remove selected from siblings
+                const options = container.querySelectorAll('.quiz-option');
+                options.forEach(opt => opt.classList.remove('selected'));
+
+                // Add selected/correct/incorrect to clicked element
+                element.classList.add('selected');
+
+                if (isCorrect) {
+                  element.classList.add('correct');
+                  // Trigger confetti if available
+                  if (window.confetti) {
+                      window.confetti({
+                          particleCount: 100,
+                          spread: 70,
+                          origin: { y: 0.6 }
+                      });
+                  }
+                } else {
+                  element.classList.add('incorrect');
+
+                  // Highlight the correct answer if it exists
+                  const correctOption = container.querySelector('.quiz-option[data-correct="true"]');
+                  if (correctOption) {
+                      correctOption.classList.add('correct');
+                  }
+                }
+
+                // 4. Show Feedback if available
+                const feedback = container.querySelector('.quiz-feedback');
+                if (feedback) {
+                    feedback.classList.add('show');
+                    feedback.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+                    // You can populate text dynamicallly here if needed
+                }
+
+                // 5. Notify Parent Player
+                window.parent.postMessage({
+                  type: 'QUIZ_ANSWER_SELECTED',
+                  payload: {
+                      answer: answer,
+                      isCorrect: isCorrect
+                  }
+                }, '*');
+
+                // 6. Navigation (Optional Auto-advance on correct)
+                // Only if interactive script hasn't defined its own logic
+                if (isCorrect) {
+                  setTimeout(() => {
+                    window.parent.postMessage({ type: 'NAVIGATE_NEXT' }, '*');
+                  }, 2000);
+                }
+            };
+        </script>
+    `;
+}
+
+/**
+ * Generate rich HTML for a timeline event based on metadata
+ */
+export function generateTimelineHtml(entry: Entry, index: number, entries: Entry[] = []): string {
+    const meta = entry.entry_meta || {};
+    const hasImage = !!meta.image_url;
+
+    // Get context for navigation
+    const prevEntry = index > 0 ? entries[index - 1] : null;
+    const nextEntry = index < entries.length - 1 ? entries[index + 1] : null;
+
+    return `
+        <div class="timeline-container">
+            <div class="timeline-card-wrapper ${hasImage ? 'has-image' : ''}">
+                ${
+                    hasImage
+                        ? `
+                    <div class="timeline-image-section">
+                        <img src="${meta.image_url}" alt="${meta.title}" class="timeline-image">
+                    </div>
+                `
+                        : ''
+                }
+
+                <div class="timeline-content-section">
+                    <div class="timeline-date-badge">
+                        ${meta.date || meta.date_display || `Event ${index + 1}`}
+                    </div>
+
+                    <h1 class="timeline-title">${meta.title}</h1>
+
+                    ${
+                        meta.description
+                            ? `
+                        <div class="timeline-description">
+                            ${meta.description}
+                        </div>
+                    `
+                            : ''
+                    }
+
+                    ${
+                        meta.fun_fact
+                            ? `
+                        <div class="timeline-fact">
+                            <strong>Did You Know?</strong>
+                            <p>${meta.fun_fact}</p>
+                        </div>
+                    `
+                            : ''
+                    }
+
+                    ${
+                        meta.source
+                            ? `
+                        <div class="timeline-source">
+                            Source: ${meta.source}
+                        </div>
+                    `
+                            : ''
+                    }
+                </div>
+            </div>
+
+            <!-- Timeline Navigation Footer -->
+            <div class="timeline-nav-container">
+                <div class="timeline-track"></div>
+                <div class="timeline-nav-items">
+                    <!-- Prev Item -->
+                    <div class="nav-item prev ${!prevEntry ? 'disabled' : ''}"
+                         onclick="${prevEntry ? "window.parent.postMessage({ type: 'NAVIGATE_PREV' }, '*')" : ''}">
+                         ${
+                             prevEntry
+                                 ? `
+                            <div class="nav-label">Previous</div>
+                            <div class="nav-content">
+                                <div class="nav-date-box">
+                                    <div class="nav-title">${prevEntry.entry_meta?.title || `Event ${index}`}</div>
+                                    <div class="nav-year">${prevEntry.entry_meta?.date || prevEntry.entry_meta?.date_display || '...'}</div>
+                                </div>
+                            </div>
+                         `
+                                 : ''
+                         }
+                    </div>
+
+                    <!-- Current Indicator -->
+                    <div class="nav-current-indicator"></div>
+
+                    <!-- Next Item -->
+                    <div class="nav-item next ${!nextEntry ? 'disabled' : ''}"
+                         onclick="${nextEntry ? "window.parent.postMessage({ type: 'NAVIGATE_NEXT' }, '*')" : ''}">
+                         ${
+                             nextEntry
+                                 ? `
+                            <div class="nav-label">Next</div>
+                            <div class="nav-content">
+                                <div class="nav-date-box" style="align-items: flex-end; display: flex; flex-direction: column;">
+                                    <div class="nav-title">${nextEntry.entry_meta?.title || `Event ${index + 2}`}</div>
+                                    <div class="nav-year">${nextEntry.entry_meta?.date || nextEntry.entry_meta?.date_display || '...'}</div>
+                                </div>
+                            </div>
+                         `
+                                 : ''
+                         }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Context -->
+            <div style="position: absolute; bottom: 120px; font-family: 'Fira Code', monospace; color: #94a3b8; font-size: 12px; width: 100%; text-align: center;">
+                 Event ${index + 1} of ${entries.length || '--'}
+            </div>
+        </div>
+
+        <script>
+            // Set scale animation for entry
+            setTimeout(() => {
+                const card = document.querySelector('.timeline-card-wrapper');
+                if(card) {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }
+            }, 100);
+        </script>
+    `;
+}
+
+/**
+ * Generate rich HTML for a Flashcard based on metadata
+ */
+export function generateFlashcardHtml(entry: Entry, index: number, entries: Entry[] = []): string {
+    const rawEntry = entry as any;
+    const meta = entry.entry_meta || {};
+
+    let title =
+        meta.title ||
+        meta.question ||
+        meta.front ||
+        rawEntry.title ||
+        rawEntry.question ||
+        rawEntry.front;
+    let description =
+        meta.description ||
+        meta.text ||
+        meta.answer ||
+        meta.back ||
+        rawEntry.description ||
+        rawEntry.text ||
+        rawEntry.answer ||
+        rawEntry.back ||
+        rawEntry.content;
+    const imageUrl = meta.image_url || rawEntry.image_url;
+
+    // Advanced Fallback: Parse entry.html if explicit data is missing
+    if ((!title || !description) && entry.html && !entry.html.includes('flashcard-stage')) {
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(entry.html, 'text/html');
+
+            // Try to find common structural patterns
+            // 1. Look for explicit .front/.back or .question/.answer classes
+            const frontEl = doc.querySelector('.front, .question, .term');
+            const backEl = doc.querySelector('.back, .answer, .definition');
+
+            if (frontEl) title = frontEl.textContent?.trim();
+            if (backEl) description = backEl.innerHTML; // Keep HTML formatting for answer
+
+            // 2. If no explicit classes, assume first meaningful block is question, rest is answer
+            if (!title || !description) {
+                let blocks = Array.from(doc.body.children).filter(
+                    (el) =>
+                        el.tagName !== 'SCRIPT' &&
+                        el.tagName !== 'STYLE' &&
+                        el.textContent?.trim().length! > 0
+                );
+
+                // Auto-unwrap if there is a single container div (common in some editors)
+                if (blocks.length === 1 && blocks[0].children.length > 0) {
+                    blocks = Array.from(blocks[0].children).filter(
+                        (el) =>
+                            el.tagName !== 'SCRIPT' &&
+                            el.tagName !== 'STYLE' &&
+                            el.textContent?.trim().length! > 0
+                    );
+                }
+
+                if (blocks.length >= 2) {
+                    if (!title) title = blocks[0].textContent?.trim();
+                    if (!description)
+                        description = blocks
+                            .slice(1)
+                            .map((el) => el.outerHTML)
+                            .join('');
+                } else if (blocks.length === 1) {
+                    // Only one block found. Is it split by a newline or question mark?
+                    const text = blocks[0].textContent?.trim() || '';
+                    if (!title) {
+                        // Heuristic: If it contains a '?' and looks like a question, treat the rest as answer?
+                        // Or just treat it as title.
+                        if (text.includes('?') && text.length > 10) {
+                            const parts = text.split('?');
+                            title = parts[0] + '?';
+                            if (parts[1] && parts[1].trim().length > 0) {
+                                description = parts.slice(1).join('?').trim();
+                            }
+                        } else {
+                            title = text;
+                        }
+                    }
+                } else {
+                    // Just raw text?
+                    const text = doc.body.textContent?.trim();
+                    if (text && !title) title = text;
+                }
+            }
+        } catch (e) {
+            console.warn('Error parsing flashcard HTML', e);
+        }
+    }
+
+    // Filter out generic labels if they were accidentally captured
+    if (title && (title.toLowerCase() === 'question' || title.toLowerCase() === 'term')) {
+        title = '';
+    }
+
+    // Final Defaults
+    if (!title) title = `Question ${index + 1}`;
+    if (!description || description === 'Answer key not found.') {
+        // Last ditch effort prevent error message if we have a title but no description
+        // We might be showing a "Term" card where the definition will appear on click?
+        // No, the UI flips to back for definition.
+        if (title && title.length > 0 && (!description || description.trim() === '')) {
+            description = 'No definition available.';
+        } else if (!description) {
+            description = 'Answer key not found.';
+        }
+    }
+
+    const progress = Math.round(((index + 1) / entries.length) * 100);
+
+    return `
+        <div class="flashcard-stage">
+            <div class="ambient-glow glow-1"></div>
+            <div class="ambient-glow glow-2"></div>
+
+            <div class="progress-container">
+                <div class="progress-text">${index + 1} / ${entries.length}</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+            </div>
+
+            <div class="flashcard-container" onclick="this.classList.toggle('flipped')">
+                <!-- Front (Question/Term) -->
+                <div class="card-face card-front">
+                    <div class="label-badge">Question</div>
+                    <div class="deco-line"></div>
+                    <h2 class="card-content">
+                        ${title}
+                    </h2>
+
+                    <div class="tap-instruction">
+                        <span class="instruction-key">SPACE</span>
+                        <span>to flip</span>
+                    </div>
+                </div>
+
+                <!-- Back (Answer/Definition) -->
+                <div class="card-face card-back">
+                    <div class="label-badge">Answer</div>
+                    <div class="card-content">
+                        ${description}
+                    </div>
+                     ${
+                         imageUrl
+                             ? `
+                        <div style="margin-top: 30px; max-height: 200px; overflow: hidden; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    `
+                             : ''
+                     }
+
+                    <div class="tap-instruction">
+                        <span class="instruction-key">SPACE</span>
+                        <span>to flip back</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Ensure card is visible immediately
+            const stage = document.querySelector('.flashcard-container');
+            if(stage) {
+                stage.style.opacity = '1';
+
+                // Animation
+                if(window.gsap) {
+                   gsap.from('.flashcard-container', {
+                        y: 50,
+                        opacity: 0,
+                        duration: 1,
+                        ease: 'power3.out',
+                        clearProps: 'opacity'
+                    });
+                }
+            }
+        </script>
+
+            // Add keyboard support (Space to flip)
+            document.addEventListener('keydown', (e) => {
+                if(e.code === 'Space') {
+                    const card = document.querySelector('.flashcard-container');
+                    if(card) card.classList.toggle('flipped');
+                }
+            });
+        </script>
+    `;
+}
+
+/**
+ * Generate rich HTML for a Storybook page based on metadata
+ */
+export function generateStorybookHtml(entry: Entry, index: number, entries: Entry[] = []): string {
+    const meta = entry.entry_meta || {};
+    const entryAny = entry as any;
+
+    // Data extraction with fallbacks
+    const title = meta.title || entryAny.title || `Page ${index}`;
+    const text =
+        meta.text || meta.description || meta.content || meta.story_text || entryAny.text || `...`;
+    const imageUrl = meta.image_url || entryAny.image_url;
+    const pageNumber = index + 1;
+    const isCover = index === 0;
+
+    // Layout variation
+    const layoutClass = meta.layout || (isCover ? 'cover-page' : 'standard-page');
+
+    // Ensure image is wrapped properly
+    const imageHtml = imageUrl
+        ? `<div class="illustration-container">
+             <img src="${imageUrl}" class="page-illustration" alt="${title}" loading="lazy" />
+           </div>`
+        : '';
+
+    if (isCover) {
+        return `
+            <div class="storybook-page cover-page">
+                ${imageHtml}
+                <div class="text-container">
+                    <h1 class="story-text">${title}</h1>
+                    ${meta.author ? `<p style="margin-top:20px; font-style:italic; color:#666;">By ${meta.author}</p>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="storybook-page ${layoutClass}">
+            ${imageHtml}
+            <div class="text-container text-bottom">
+                <p class="story-text">${text}</p>
+            </div>
+            <div class="page-number">${pageNumber}</div>
+        </div>
+    `;
+}
+
+/**
+ * Generate rich HTML for a Quiz based on metadata
+ */
+export function generateQuizHtml(entry: Entry, index: number, entries: Entry[] = []): string {
+    const meta = entry.entry_meta || {};
+    const entryAny = entry as any;
+
+    const question = meta.question || meta.title || entryAny.question || `Question ${index + 1}`;
+    // Options can be an array of strings or objects { text, isCorrect, explanation }
+    const rawOptions = meta.options || entryAny.options || [];
+    const correctAnswer = meta.correct_answer || entryAny.correct_answer; // Index or text
+    const explanation = meta.explanation || entryAny.explanation || '';
+
+    // Normalize options
+    const options = rawOptions.map((opt: any, i: number) => {
+        const text = typeof opt === 'string' ? opt : opt.text || opt.label;
+        const isCorrect =
+            typeof opt === 'object' && opt.isCorrect !== undefined
+                ? opt.isCorrect
+                : text === correctAnswer || i === correctAnswer;
+        const optExplanation =
+            typeof opt === 'object' ? opt.explanation || explanation : explanation;
+
+        return { text, isCorrect, explanation: optExplanation };
+    });
+
+    // If no options found, try to parse from HTML? (Advanced fallback logic omitted for brevity)
+    if (options.length === 0) {
+        return `<div class="quiz-container"><div class="quiz-question-text">Error: No options data found.</div></div>`;
+    }
+
+    const optionsHtml = options
+        .map(
+            (opt: any, i: number) => `
+        <div class="quiz-option" onclick="window.handleOptionClick(this, '${opt.text.replace(/'/g, "\\'")}', ${opt.isCorrect}, '${opt.explanation.replace(/'/g, "\\'")}')" data-correct="${opt.isCorrect}">
+            <div class="option-marker">${String.fromCharCode(65 + i)}</div>
+            <div class="option-text">${opt.text}</div>
+            <div class="feedback-icon correct">✓</div>
+            <div class="feedback-icon incorrect">✕</div>
+        </div>
+    `
+        )
+        .join('');
+
+    return `
+        <div class="quiz-container">
+            <div class="quiz-question-wrapper">
+                <div class="quiz-question-number">Question ${index + 1}</div>
+                <h2 class="quiz-question-text">${question}</h2>
+            </div>
+
+            <div class="quiz-options ${options.length > 2 ? '' : 'single-column'}">
+                ${optionsHtml}
+            </div>
+
+            <div class="quiz-feedback">
+                <div class="feedback-title"></div>
+                <div class="feedback-text">${explanation}</div>
+                <button class="next-btn" onclick="window.parent.postMessage({ type: 'NAVIGATE_NEXT' }, '*')">Continue</button>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Generate rich HTML for a Conversation frame
+ */
+export function generateConversationHtml(
+    entry: Entry,
+    index: number,
+    entries: Entry[] = []
+): string {
+    const meta = entry.entry_meta || {};
+    const entryAny = entry as any;
+
+    // Supports one or multiple messages in a single frame
+    const messages = meta.messages || entryAny.messages || [];
+
+    // If simple single message structure
+    if (messages.length === 0 && (meta.text || entryAny.text)) {
+        messages.push({
+            role: meta.role || entryAny.role || 'system',
+            text: meta.text || entryAny.text,
+            translation: meta.translation || entryAny.translation,
+        });
+    }
+
+    const bubblesHtml = messages
+        .map((msg: any) => {
+            const isLeft =
+                msg.role === 'user' ||
+                msg.position === 'left' ||
+                msg.role === 'student' ||
+                msg.role === 'learner';
+            // Auto-assign side based on role if not specified
+            const sideClass = isLeft ? 'left' : 'right';
+            const label = msg.label || msg.role || 'Speaker';
+
+            return `
+            <div class="message-bubble ${sideClass}">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                    <span style="font-weight:600; font-size:12px; opacity:0.8; text-transform:uppercase;">${label}</span>
+                    <button class="audio-btn" onclick="window.parent.postMessage({type:'SPEAK', text:'${msg.text.replace(/'/g, "\\'")}'}, '*')">🔊</button>
+                </div>
+                <div class="message-text">${msg.text}</div>
+                ${
+                    msg.translation
+                        ? `
+                    <div class="translation-toggle" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                        See Translation
+                    </div>
+                    <div class="translation-text" style="display:none;">${msg.translation}</div>
+                `
+                        : ''
+                }
+            </div>
+        `;
+        })
+        .join('');
+
+    return `
+        <div class="conversation-container">
+            ${bubblesHtml}
+        </div>
+    `;
+}
+
+/**
  * Process HTML content based on content type
  */
 export function processHtmlContent(
@@ -898,9 +2013,9 @@ export function processHtmlContent(
     const bodyBackground = isOverlay ? 'transparent' : 'var(--background-color)';
     baseStyles = baseStyles.replace('BODY_BACKGROUND_PLACEHOLDER', bodyBackground);
 
-    const helperScripts = getHelperScripts();
+    let helperScripts = getHelperScripts();
 
-    // Add content-type specific styles
+    // Add content-type specific styles and scripts
     let contentStyles = '';
     switch (contentType) {
         case 'WORKSHEET':
@@ -917,9 +2032,14 @@ export function processHtmlContent(
             break;
         case 'QUIZ':
             contentStyles = getQuizStyles();
+            // Inject quiz logic scripts
+            helperScripts += getQuizScripts();
             break;
         case 'FLASHCARDS':
             contentStyles = getFlashcardStyles();
+            break;
+        case 'STORYBOOK':
+            contentStyles = getStorybookStyles();
             break;
     }
 
