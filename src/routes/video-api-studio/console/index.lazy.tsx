@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { createLazyFileRoute, useNavigate } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Video, Sparkles } from 'lucide-react';
+import { ArrowLeft, Video, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getInstituteId } from '@/constants/helper';
 import { listApiKeys, ApiKey, getFirstAvailableFullKey } from '../-services/api-keys';
@@ -15,6 +15,7 @@ import {
     generateVideo,
     getHistory,
     saveToHistory,
+    getVideoUrls,
 } from '../-services/video-generation';
 import { HistorySidebar } from '../-components/HistorySidebar';
 import { PromptInput } from '../-components/PromptInput';
@@ -36,6 +37,7 @@ interface CurrentGeneration {
     message: string;
     htmlUrl?: string;
     audioUrl?: string;
+    wordsUrl?: string;
     options: Omit<GenerateVideoRequest, 'prompt'>;
 }
 
@@ -49,6 +51,7 @@ function VideoConsole() {
     const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
     const [consoleState, setConsoleState] = useState<ConsoleState>('idle');
     const [currentGeneration, setCurrentGeneration] = useState<CurrentGeneration | null>(null);
+    const [isLoadingVideoUrls, setIsLoadingVideoUrls] = useState(false);
 
     const abortRef = useRef<(() => void) | null>(null);
 
@@ -107,6 +110,7 @@ function VideoConsole() {
                         // Extract URLs from files if available
                         const audioUrl = event.files?.audio?.s3_url;
                         const timelineUrl = event.files?.timeline?.s3_url;
+                        const wordsUrl = event.files?.words?.s3_url;
 
                         setCurrentGeneration((prev) => ({
                             videoId,
@@ -117,6 +121,7 @@ function VideoConsole() {
                             message: event.message,
                             htmlUrl: timelineUrl || prev?.htmlUrl,
                             audioUrl: audioUrl || prev?.audioUrl,
+                            wordsUrl: wordsUrl || prev?.wordsUrl,
                             options: {
                                 content_type: contentType,
                                 language: request.language,
@@ -141,6 +146,7 @@ function VideoConsole() {
                             created_at: new Date().toISOString(),
                             html_url: timelineUrl,
                             audio_url: audioUrl,
+                            words_url: wordsUrl,
                             options: {
                                 content_type: contentType,
                                 language: request.language,
@@ -172,6 +178,7 @@ function VideoConsole() {
                                       ...prev,
                                       htmlUrl: timelineUrl || prev.htmlUrl,
                                       audioUrl: audioUrl || prev.audioUrl,
+                                      wordsUrl: wordsUrl || prev.wordsUrl,
                                   }
                                 : null;
                         });
@@ -314,40 +321,84 @@ function VideoConsole() {
         [activeApiKey]
     );
 
-    const handleSelectHistory = useCallback((item: HistoryItem) => {
-        setSelectedHistoryId(item.video_id);
+    const handleSelectHistory = useCallback(
+        async (item: HistoryItem) => {
+            setSelectedHistoryId(item.video_id);
 
-        if (item.status === 'completed' && item.html_url && item.audio_url) {
-            setCurrentGeneration({
-                videoId: item.video_id,
-                prompt: item.prompt,
-                contentType: item.content_type || 'VIDEO',
-                stage: item.stage,
-                percentage: 100,
-                message: '',
-                htmlUrl: item.html_url,
-                audioUrl: item.audio_url,
-                options: item.options,
-            });
-            setConsoleState('complete');
-        } else if (item.html_url && item.audio_url) {
-            setCurrentGeneration({
-                videoId: item.video_id,
-                prompt: item.prompt,
-                contentType: item.content_type || 'VIDEO',
-                stage: item.stage,
-                percentage: 80,
-                message: '',
-                htmlUrl: item.html_url,
-                audioUrl: item.audio_url,
-                options: item.options,
-            });
-            setConsoleState('complete');
-        } else {
+            // If we have URLs locally, use them directly
+            if (item.html_url && item.audio_url) {
+                setCurrentGeneration({
+                    videoId: item.video_id,
+                    prompt: item.prompt,
+                    contentType: item.content_type || 'VIDEO',
+                    stage: item.stage,
+                    percentage: 100,
+                    message: '',
+                    htmlUrl: item.html_url,
+                    audioUrl: item.audio_url,
+                    wordsUrl: item.words_url,
+                    options: item.options,
+                });
+                setConsoleState('complete');
+                return;
+            }
+
+            // If completed but no URLs locally, try to fetch from API
+            if (
+                (item.status === 'completed' || item.stage === 'HTML' || item.stage === 'RENDER') &&
+                activeApiKey
+            ) {
+                setIsLoadingVideoUrls(true);
+                setConsoleState('idle');
+                setCurrentGeneration(null);
+
+                try {
+                    const urls = await getVideoUrls(item.video_id, activeApiKey);
+
+                    // Update history with fetched URLs
+                    const updatedItem: HistoryItem = {
+                        ...item,
+                        html_url: urls.html_url,
+                        audio_url: urls.audio_url,
+                        words_url: urls.words_url,
+                        status: 'completed',
+                    };
+                    saveToHistory(updatedItem);
+                    setHistory(getHistory());
+
+                    setCurrentGeneration({
+                        videoId: item.video_id,
+                        prompt: item.prompt,
+                        contentType: item.content_type || 'VIDEO',
+                        stage: urls.current_stage || item.stage,
+                        percentage: 100,
+                        message: '',
+                        htmlUrl: urls.html_url,
+                        audioUrl: urls.audio_url,
+                        wordsUrl: urls.words_url,
+                        options: item.options,
+                    });
+                    setConsoleState('complete');
+                    toast.success('Video loaded successfully');
+                } catch (error) {
+                    console.error('Failed to fetch video URLs:', error);
+                    toast.error(
+                        'Failed to load video details. The video may no longer be available.'
+                    );
+                    setConsoleState('idle');
+                    setCurrentGeneration(null);
+                } finally {
+                    setIsLoadingVideoUrls(false);
+                }
+                return;
+            }
+
+            // For pending/generating/failed items without URLs
             setConsoleState('idle');
             setCurrentGeneration(null);
-        }
-    }, []);
+        },
+        [activeApiKey]
+    );
 
     const handleDeleteHistory = useCallback(
         (videoId: string) => {
@@ -437,7 +488,7 @@ function VideoConsole() {
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-4 sm:p-6">
-                    {consoleState === 'idle' && !currentGeneration && (
+                    {consoleState === 'idle' && !currentGeneration && !isLoadingVideoUrls && (
                         <div className="flex h-full flex-col items-center justify-center p-4 text-center duration-500 animate-in fade-in zoom-in">
                             <div className="group relative mb-6">
                                 <div className="absolute inset-0 rounded-full bg-violet-500/20 blur-2xl transition-all duration-500 group-hover:bg-violet-500/30" />
@@ -462,6 +513,25 @@ function VideoConsole() {
                         </div>
                     )}
 
+                    {isLoadingVideoUrls && (
+                        <div className="flex h-full flex-col items-center justify-center gap-4 p-4 text-center duration-300 animate-in fade-in">
+                            <div className="relative">
+                                <div className="absolute inset-0 rounded-full bg-violet-500/20 blur-2xl" />
+                                <div className="relative rounded-2xl border border-violet-100/50 bg-gradient-to-br from-violet-100 to-indigo-50 p-6 shadow-sm">
+                                    <Loader2 className="size-12 animate-spin text-violet-600" />
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <h2 className="text-lg font-semibold text-foreground">
+                                    Loading Video
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    Fetching video details from server...
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {consoleState === 'generating' && currentGeneration && (
                         <div className="mx-auto flex size-full max-w-2xl items-center justify-center">
                             <GenerationProgress
@@ -480,6 +550,7 @@ function VideoConsole() {
                                 videoId={currentGeneration.videoId}
                                 htmlUrl={currentGeneration.htmlUrl}
                                 audioUrl={currentGeneration.audioUrl}
+                                wordsUrl={currentGeneration.wordsUrl}
                                 contentType={currentGeneration.contentType}
                                 prompt={currentGeneration.prompt}
                             />

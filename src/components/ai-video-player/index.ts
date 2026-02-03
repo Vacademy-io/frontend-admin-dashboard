@@ -14,6 +14,12 @@ export type {
     TimelineMeta,
     TimelineData,
     BrandingConfig,
+    // Caption types
+    WordTimestamp,
+    CaptionSettings,
+    CaptionPosition,
+    CaptionFontSize,
+    CaptionStyle,
 } from './types';
 
 export {
@@ -22,6 +28,9 @@ export {
     CONTENT_TYPE_ENTRY_LABELS,
     formatEntryLabel,
     getDefaultMeta,
+    // Caption defaults
+    DEFAULT_CAPTION_SETTINGS,
+    CAPTION_FONT_SIZES,
 } from './types';
 
 // Utility exports
@@ -30,3 +39,6 @@ export { initializeLibraries, loadLibraries } from './library-loader';
 
 // Hook exports
 export * from './hooks';
+
+// Component exports
+export { CaptionDisplay, CaptionSettingsPopover } from './components';

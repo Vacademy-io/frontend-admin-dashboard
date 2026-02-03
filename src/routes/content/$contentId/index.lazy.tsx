@@ -6,6 +6,7 @@
  * Query params:
  *   - timeline: URL to the timeline JSON
  *   - audio: URL to the audio file (optional for non-video content)
+ *   - words: URL to the words JSON for captions (optional)
  */
 
 import { createLazyFileRoute, useSearch } from '@tanstack/react-router';
@@ -18,13 +19,14 @@ export const Route = createLazyFileRoute('/content/$contentId/')({
 interface ContentSearchParams {
     timeline?: string;
     audio?: string;
+    words?: string;
 }
 
 function ContentEmbedPage() {
-    const { contentId } = Route.useParams();
+    // contentId is in the URL for routing but not needed in this component
     const searchParams = useSearch({ from: '/content/$contentId/' }) as ContentSearchParams;
 
-    const { timeline, audio } = searchParams;
+    const { timeline, audio, words } = searchParams;
 
     if (!timeline) {
         return (
@@ -44,9 +46,10 @@ function ContentEmbedPage() {
             <AIContentPlayer
                 timelineUrl={timeline}
                 audioUrl={audio}
+                wordsUrl={words}
                 width={1920}
                 height={1080}
-                className="h-full w-full"
+                className="size-full"
             />
         </div>
     );

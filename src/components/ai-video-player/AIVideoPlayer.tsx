@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Play, Pause, RotateCcw, Maximize2, Minimize2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Maximize2, Minimize2, Subtitles } from 'lucide-react';
 import '@/components/ai-course-builder/components/styles/AIVideoComponents.css';
+import { useCaptions } from './hooks/useCaptions';
+import { CaptionDisplay, CaptionSettingsPopover } from './components';
 
 /**
  * Frame interface matching the time_based_frame.json structure
@@ -43,6 +45,7 @@ export interface TimelineData {
 export interface AIVideoPlayerProps {
     timelineUrl: string;
     audioUrl: string;
+    wordsUrl?: string; // Optional - for captions/subtitles
     className?: string;
     width?: number;
     height?: number;
@@ -620,6 +623,7 @@ const formatTime = (seconds: number): string => {
 export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
     timelineUrl,
     audioUrl,
+    wordsUrl,
     className = '',
     width = 1920,
     height = 1080,
@@ -644,6 +648,20 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
 
     // Initialize scale calculator
     const scaleCalculator = useMemo(() => new ScaleCalculator(width, height), [width, height]);
+
+    // Captions hook
+    const {
+        currentWords,
+        currentPhrase,
+        currentWordIndex,
+        settings: captionSettings,
+        updateSettings: updateCaptionSettings,
+        toggleCaptions,
+    } = useCaptions({
+        wordsUrl,
+        currentTime,
+        audioStartAt: timelineMeta.audio_start_at,
+    });
 
     // Load timeline data
     useEffect(() => {
@@ -1001,6 +1019,14 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
         console.log(`🎬 AIVideoPlayer: Active frames at ${currentTime.toFixed(2)}s:`, {
             count: processedFrames.length,
             frameIds: processedFrames.map((f) => ({ id: f.id, z: f.z })),
+            scale,
+            containerDimensions: containerRef.current
+                ? {
+                      width: containerRef.current.clientWidth,
+                      height: containerRef.current.clientHeight,
+                  }
+                : null,
+            sampleHtml: processedFrames[0]?.processedHtml?.substring(0, 200),
         });
 
         return processedFrames;
@@ -1212,6 +1238,18 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                     </div>
                 )}
 
+                {/* Captions / Subtitles Display */}
+                {wordsUrl && (
+                    <CaptionDisplay
+                        words={currentWords}
+                        currentTime={currentTime}
+                        audioStartAt={timelineMeta.audio_start_at}
+                        settings={captionSettings}
+                        currentPhrase={currentPhrase}
+                        currentWordIndex={currentWordIndex}
+                    />
+                )}
+
                 {/* Video Controls Overlay - Top in normal mode, bottom in fullscreen */}
                 <div
                     className="video-controls-overlay"
@@ -1340,6 +1378,46 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                         >
                             {activeFrames.length} layer{activeFrames.length !== 1 ? 's' : ''} active
                         </span>
+
+                        {/* Captions toggle (CC button) - only when words are available */}
+                        {wordsUrl && (
+                            <>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleCaptions();
+                                    }}
+                                    style={{
+                                        background: captionSettings.enabled
+                                            ? 'rgba(255, 255, 255, 0.2)'
+                                            : 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        padding: '4px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginLeft: '8px',
+                                        borderRadius: '4px',
+                                        opacity: captionSettings.enabled ? 1 : 0.6,
+                                    }}
+                                    title={
+                                        captionSettings.enabled
+                                            ? 'Turn off captions'
+                                            : 'Turn on captions'
+                                    }
+                                >
+                                    <Subtitles className="size-5 text-white" />
+                                </button>
+                                {captionSettings.enabled && (
+                                    <CaptionSettingsPopover
+                                        settings={captionSettings}
+                                        onUpdate={updateCaptionSettings}
+                                    />
+                                )}
+                            </>
+                        )}
+
                         <button
                             onClick={handleFullscreenToggle}
                             style={{
