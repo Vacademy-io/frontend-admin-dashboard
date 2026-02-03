@@ -15,6 +15,7 @@ import { StudentPortalAccess } from './student-portal-access/student-portal-acce
 import { StudentSubOrg } from './student-sub-org/student-sub-org';
 import { StudentReports } from './student-reports/student-reports';
 import { StudentEnrollDeroll } from './student-enroll-deroll/student-enroll-deroll';
+import { StudentPaymentHistory } from './student-payment-history/student-payment-history';
 import { getPublicUrl } from '@/services/upload_file';
 import { ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
@@ -93,6 +94,8 @@ export const StudentSidebar = ({
                     setCategory('notifications');
                 } else if (settings.membershipTab) {
                     setCategory('membership');
+                } else if (settings.paymentHistoryTab) {
+                    setCategory('paymentHistory');
                 } else if (settings.userTaggingTab) {
                     setCategory('userTagging');
                 } else if (settings.fileTab) {
@@ -300,6 +303,25 @@ export const StudentSidebar = ({
                                         </button>
                                     )}
 
+                                    {tabSettings.paymentHistoryTab && (
+                                        <button
+                                            ref={category === 'paymentHistory' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'paymentHistory'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
+                                            onClick={() => setCategory('paymentHistory')}
+                                        >
+                                            <span className="relative">
+                                                Payment History
+                                                {category === 'paymentHistory' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
                                     {tabSettings.userTaggingTab && (
                                         <button
                                             ref={category === 'userTagging' ? activeTabRef : null}
@@ -501,6 +523,9 @@ export const StudentSidebar = ({
                             !isEnrollRequestStudentList && (
                                 <StudentMembership isSubmissionTab={isSubmissionTab} />
                             )}
+                        {category === 'paymentHistory' &&
+                            tabSettings?.paymentHistoryTab &&
+                            !isEnrollRequestStudentList && <StudentPaymentHistory />}
                         {category === 'userTagging' &&
                             tabSettings?.userTaggingTab &&
                             !isEnrollRequestStudentList && (

@@ -33,6 +33,7 @@ const STUDENT_SIDE_VIEW_DEFAULTS: StudentSideViewSettings = {
     progressTab: true,
     notificationTab: false,
     membershipTab: false,
+    paymentHistoryTab: true,
     userTaggingTab: false,
     fileTab: false,
     portalAccessTab: false,
@@ -65,6 +66,11 @@ const STUDENT_SIDE_VIEW_OPTIONS: Array<{
             key: 'membershipTab',
             label: 'Membership Tab',
             defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.membershipTab,
+        },
+        {
+            key: 'paymentHistoryTab',
+            label: 'Payment History Tab',
+            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.paymentHistoryTab,
         },
         {
             key: 'userTaggingTab',

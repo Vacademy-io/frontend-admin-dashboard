@@ -145,6 +145,7 @@ export interface PaymentLogsResponse {
 
 export interface PaymentLogsRequest {
     institute_id: string;
+    user_id?: string;
     start_date_in_utc?: string;
     end_date_in_utc?: string;
     payment_statuses?: string[];

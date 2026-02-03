@@ -111,6 +111,7 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
         progressTab: true,
         notificationTab: false,
         membershipTab: false,
+        paymentHistoryTab: true,
         userTaggingTab: false,
         fileTab: false,
         portalAccessTab: false,
