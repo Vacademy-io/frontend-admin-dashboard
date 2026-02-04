@@ -70,6 +70,13 @@ export const GetFilterData = (instituteDetails: InstituteDetailsType, _currentSe
                 { id: 'INVITED', label: 'Invited' },
             ],
         },
+        {
+            id: 'learner_type',
+            title: 'Cart Status',
+            filterList: [
+                { id: 'ABANDONED_CART', label: 'Abandoned Cart' },
+            ],
+        },
     ];
 
     // Add role filter if org-associated batches exist
