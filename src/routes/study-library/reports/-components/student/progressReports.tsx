@@ -54,7 +54,7 @@ export default function ProgressReports() {
         getLevelsFromPackage2,
         getPackageSessionId,
     } = useInstituteDetailsStore();
-    const { setPacageSessionId, setCourse, setSession, setLevel } = usePacageDetails();
+    const { setPacageSessionId, setCourse, setSession, setLevel, pacageSessionId } = usePacageDetails();
 
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
@@ -132,14 +132,17 @@ export default function ProgressReports() {
     const { isPending, error } = SubjectWiseMutation;
 
     const onSubmit = (data: FormValues) => {
+        const calculatedPackageSessionId = getPackageSessionId({
+            courseId: data.course || '',
+            sessionId: data.session || '',
+            levelId: data.level || '',
+        }) || '';
+        
+        setPacageSessionId(calculatedPackageSessionId);
+        
         SubjectWiseMutation.mutate(
             {
-                packageSessionId:
-                    getPackageSessionId({
-                        courseId: data.course || '',
-                        sessionId: data.session || '',
-                        levelId: data.level || '',
-                    }) || '',
+                packageSessionId: calculatedPackageSessionId,
                 userId: data.student || '',
             },
             {
@@ -154,13 +157,6 @@ export default function ProgressReports() {
         setCourse(courseList.find((course) => (course.id = data.course))?.name || '');
         setSession(sessionList.find((course) => (course.id = data.session))?.name || '');
         setLevel(levelList.find((course) => (course.id = data.level))?.level_name || '');
-        setPacageSessionId(
-            getPackageSessionId({
-                courseId: data.course || '',
-                sessionId: data.session || '',
-                levelId: data.level || '',
-            }) || ''
-        );
     };
 
     const getBatchReportDataPDF = useMutation({
@@ -168,12 +164,7 @@ export default function ProgressReports() {
             exportLearnersSubjectReport({
                 startDate: '',
                 endDate: '',
-                packageSessionId:
-                    getPackageSessionId({
-                        courseId: selectedCourse || '',
-                        sessionId: selectedSession || '',
-                        levelId: selectedLevel || '',
-                    }) || '',
+                packageSessionId: pacageSessionId || '',
                 userId: selectedStudent || '',
             }),
         onSuccess: async (response) => {
@@ -394,8 +385,16 @@ export default function ProgressReports() {
                                         handleExportPDF();
                                     }}
                                     className="w-full sm:w-auto"
+                                    disabled={isExporting}
                                 >
-                                    {isExporting ? <DashboardLoader /> : 'Export'}
+                                    {isExporting ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-primary-500"></div>
+                                            <span>Exporting...</span>
+                                        </div>
+                                    ) : (
+                                        'Export'
+                                    )}
                                 </MyButton>
                             </div>
                         </div>

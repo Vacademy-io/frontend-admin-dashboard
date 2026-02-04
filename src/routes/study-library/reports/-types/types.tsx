@@ -249,6 +249,9 @@ export interface Slide {
     slide_source_type: string;
     avg_time_spent: number;
     avg_concentration_score: number;
+    avg_time_spent_by_batch?: string;
+    avg_concentration_score_by_batch?: string;
+    last_active_date?: string;
 }
 
 export interface Chapter {
@@ -287,6 +290,7 @@ export const CHAPTER_OVERVIEW_WIDTH: Record<keyof ChapterOverviewColumnType, str
 
 export interface ChapterOverviewStudentColumnType {
     study_slide: string;
+    slide_type: string;
     batch_concentration_score: string;
     concentration_score: string;
     average_time_spent: string;
@@ -297,6 +301,10 @@ export const ChapterOverviewStudentColumns: ColumnDef<ChapterOverviewStudentColu
     {
         accessorKey: 'study_slide',
         header: 'Study Slide',
+    },
+    {
+        accessorKey: 'slide_type',
+        header: 'Type',
     },
     {
         accessorKey: 'concentration_score',
@@ -320,6 +328,7 @@ export const CHAPTER_OVERVIEW_STUDENT_WIDTH: Record<
     string
 > = {
     study_slide: 'w-[300px]',
+    slide_type: 'w-[100px]',
     batch_concentration_score: 'w-[300px]',
     concentration_score: 'w-[300px]',
     average_time_spent: 'w-[300px]',

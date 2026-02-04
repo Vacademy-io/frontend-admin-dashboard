@@ -469,7 +469,16 @@ export default function TimelineReports() {
                             <div className="text-h3 text-primary-500">
                                 {courseList.find((c) => c.id === selectedCourse)?.name}
                             </div>
-                            <div>{`Date ${startDate} - ${endDate}`}</div>
+                            <div className="flex items-center gap-2 text-sm text-neutral-600">
+                                <span className="font-medium">Date:</span>
+                                <span className="rounded-md bg-primary-50 px-2 py-1 font-semibold text-primary-600">
+                                    {dayjs(startDate).format('DD MMM YYYY')}
+                                </span>
+                                <span className="text-neutral-400">to</span>
+                                <span className="rounded-md bg-primary-50 px-2 py-1 font-semibold text-primary-600">
+                                    {dayjs(endDate).format('DD MMM YYYY')}
+                                </span>
+                            </div>
                         </div>
                         <MyButton
                             buttonType="secondary"
@@ -477,8 +486,16 @@ export default function TimelineReports() {
                                 handleExportPDF();
                             }}
                             className="w-full sm:w-auto"
+                            disabled={isExporting}
                         >
-                            {isExporting ? <DashboardLoader /> : 'Export'}
+                            {isExporting ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-primary-500"></div>
+                                    <span>Exporting...</span>
+                                </div>
+                            ) : (
+                                'Export'
+                            )}
                         </MyButton>
                     </div>
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

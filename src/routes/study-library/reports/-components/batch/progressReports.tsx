@@ -12,7 +12,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { MyButton } from '@/components/design-system/button';
-import { fetchSubjectWiseProgress } from '../../-services/utils';
+import { fetchSubjectWiseProgress, exportLearnersSubjectReport } from '../../-services/utils';
 import {
     SubjectProgressResponse,
     SubjectOverviewBatchColumns,
@@ -27,6 +27,7 @@ import { formatToTwoDecimalPlaces } from '../../-services/helper';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { convertCapitalToTitleCase } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
     course: z.string().min(1, 'Course is required'),
@@ -87,6 +88,40 @@ export default function ProgressReports() {
         mutationFn: fetchSubjectWiseProgress,
     });
     const { isPending, error } = SubjectWiseMutation;
+
+    const getBatchProgressReportPDF = useMutation({
+        mutationFn: () =>
+            exportLearnersSubjectReport({
+                startDate: '',
+                endDate: '',
+                packageSessionId:
+                    getPackageSessionId({
+                        courseId: selectedCourse || '',
+                        sessionId: selectedSession || '',
+                        levelId: selectedLevel || '',
+                    }) || '',
+            }),
+        onSuccess: async (response) => {
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `batch_progress_report.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success('Batch Progress Report PDF exported successfully');
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getBatchProgressReportPDF.mutate();
+    };
+
+    const isExporting = getBatchProgressReportPDF.isPending;
 
     useEffect(() => {
         if (selectedCourse) {
@@ -251,8 +286,22 @@ export default function ProgressReports() {
                                     ''}
                             </div>
                         </div>
-                        <MyButton buttonType="secondary" className="w-full sm:w-auto">
-                            Export
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => {
+                                handleExportPDF();
+                            }}
+                            className="w-full sm:w-auto"
+                            disabled={isExporting}
+                        >
+                            {isExporting ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-primary-500"></div>
+                                    <span>Exporting...</span>
+                                </div>
+                            ) : (
+                                'Export'
+                            )}
                         </MyButton>
                     </div>
                     <div className="flex flex-col justify-between gap-6">

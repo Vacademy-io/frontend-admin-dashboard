@@ -84,6 +84,7 @@ export const fetchChapterWiseProgress = async (data: {
     }
 };
 export const fetchLearnersChapterWiseProgress = async (data: {
+    packageSessionId: string;
     userId: string;
     moduleId: string;
 }) => {
@@ -296,17 +297,23 @@ export const exportLearnersSubjectReport = async (params: {
     startDate: string;
     endDate: string;
     packageSessionId: string;
-    userId: string;
+    userId?: string;
 }) => {
     try {
+        const requestBody: any = {
+            start_date: params.startDate,
+            end_date: params.endDate,
+            package_session_id: params.packageSessionId,
+        };
+
+        // Only include user_id if provided (for individual learner reports)
+        if (params.userId) {
+            requestBody.user_id = params.userId;
+        }
+
         const response = await authenticatedAxiosInstance.post(
             EXPORT_LEARNERS_SUBJECT_REPORT,
-            {
-                start_date: params.startDate,
-                end_date: params.endDate,
-                package_session_id: params.packageSessionId,
-                user_id: params.userId,
-            },
+            requestBody,
             {
                 responseType: 'blob',
                 headers: {
