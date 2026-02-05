@@ -14,7 +14,7 @@ import { MyTable } from '@/components/design-system/table';
 import {
     fetchChapterWiseProgress,
     fetchLearnersChapterWiseProgress,
-    exportLearnerModuleProgressReport,
+    exportChapterWiseLearnersReport,
 } from '../../-services/utils';
 import { usePacageDetails } from '../../-store/usePacageDetails';
 import dayjs from 'dayjs';
@@ -76,21 +76,23 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
 
     const getLearnersReportDataPDF = useMutation({
         mutationFn: () =>
-            exportLearnerModuleProgressReport({
+            exportChapterWiseLearnersReport({
+                startDate: '',
+                endDate: '',
                 packageSessionId: pacageSessionId,
-                userId: row.getValue('user_id'),
                 moduleId: row.getValue('module_id'),
+                userId: row.getValue('user_id'),
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `learners_report.pdf`);
+            link.setAttribute('download', `student_chapter_wise_progress_report.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success('Learners Report PDF exported successfully');
+            toast.success('Student Chapter-wise Progress Report PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;

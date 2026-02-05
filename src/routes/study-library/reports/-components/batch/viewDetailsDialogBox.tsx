@@ -11,7 +11,7 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyTable } from '@/components/design-system/table';
-import { fetchChapterWiseProgress, fetchLearnersChapterWiseProgress, exportLearnersSubjectReport } from '../../-services/utils';
+import { fetchChapterWiseProgress, fetchLearnersChapterWiseProgress, exportChapterWiseBatchReport } from '../../-services/utils';
 import { usePacageDetails } from '../../-store/usePacageDetails';
 import dayjs from 'dayjs';
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from '../../-services/helper';
@@ -31,12 +31,13 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
     });
 
     const exportModuleReportMutation = useMutation({
-        mutationFn: (params: { packageSessionId: string }) => {
+        mutationFn: (params: { packageSessionId: string; moduleId: string }) => {
             console.log('Export mutation called with params:', params); // Debug log
-            return exportLearnersSubjectReport({
+            return exportChapterWiseBatchReport({
                 startDate: '',
                 endDate: '',
                 packageSessionId: params.packageSessionId,
+                moduleId: params.moduleId,
             });
         },
         onSuccess: async (response) => {
@@ -44,12 +45,12 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
             const url = window.URL.createObjectURL(new Blob([response]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `module_progress_report.pdf`);
+            link.setAttribute('download', `chapter_wise_progress_report.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success('Module Progress Report PDF exported successfully');
+            toast.success('Chapter-wise Progress Report PDF exported successfully');
         },
         onError: (error: unknown) => {
             console.error('Export error:', error);
@@ -63,10 +64,11 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
     const handleExportPDF = () => {
         console.log('Export button clicked'); // Debug log
         
-        console.log('Export data:', { pacageSessionId }); // Debug log
+        const moduleId = row.getValue('module_id') as string;
+        console.log('Export data:', { pacageSessionId, moduleId }); // Debug log
         
-        if (!pacageSessionId) {
-            console.log('Missing packageSessionId for export'); // Debug log
+        if (!pacageSessionId || !moduleId) {
+            console.log('Missing required data for export'); // Debug log
             toast.error('Missing required data for export');
             return;
         }
@@ -74,6 +76,7 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
         console.log('Starting export mutation'); // Debug log
         exportModuleReportMutation.mutate({
             packageSessionId: pacageSessionId,
+            moduleId: moduleId,
         });
     };
 
@@ -134,8 +137,12 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                     <div className="flex flex-row items-center justify-between">
                         <div>Date: {currDate}</div>
                         <MyButton
+                            type="button"
                             buttonType="secondary"
-                            onClick={handleExportPDF}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleExportPDF();
+                            }}
                             disabled={isExporting}
                         >
                             {isExporting ? (

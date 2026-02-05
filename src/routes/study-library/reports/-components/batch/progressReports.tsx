@@ -12,7 +12,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { MyButton } from '@/components/design-system/button';
-import { fetchSubjectWiseProgress, exportLearnersSubjectReport } from '../../-services/utils';
+import { fetchSubjectWiseProgress, exportBatchSubjectWiseReport } from '../../-services/utils';
 import {
     SubjectProgressResponse,
     SubjectOverviewBatchColumns,
@@ -44,7 +44,7 @@ export default function ProgressReports() {
         getLevelsFromPackage2,
         getPackageSessionId,
     } = useInstituteDetailsStore();
-    const { setPacageSessionId, setCourse, setSession, setLevel } = usePacageDetails();
+    const { setPacageSessionId, setCourse, setSession, setLevel, pacageSessionId } = usePacageDetails();
     const courseList = getCourseFromPackage();
     const [sessionList, setSessionList] = useState<{ id: string; name: string }[]>([]);
     const [levelList, setLevelList] = useState<LevelType[]>([]);
@@ -66,7 +66,7 @@ export default function ProgressReports() {
     ): SubjectOverviewBatchColumnType[] => {
         return data.flatMap((subject) => {
             return subject.modules.map((module, index) => ({
-                subject: index === 0 ? subject.subject_name : '', // Only first row gets the subject name
+                subject: subject.subject_name, // Show subject name in every row
                 module: module.module_name,
                 module_id: module.module_id,
                 module_completed_by_batch: `${formatToTwoDecimalPlaces(module.module_completion_percentage)}%`,
@@ -91,26 +91,21 @@ export default function ProgressReports() {
 
     const getBatchProgressReportPDF = useMutation({
         mutationFn: () =>
-            exportLearnersSubjectReport({
+            exportBatchSubjectWiseReport({
                 startDate: '',
                 endDate: '',
-                packageSessionId:
-                    getPackageSessionId({
-                        courseId: selectedCourse || '',
-                        sessionId: selectedSession || '',
-                        levelId: selectedLevel || '',
-                    }) || '',
+                packageSessionId: pacageSessionId || '',
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `batch_progress_report.pdf`);
+            link.setAttribute('download', `subject-wise-batch-progress-report.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success('Batch Progress Report PDF exported successfully');
+            toast.success('Subject-wise Batch Progress Report PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -176,148 +171,169 @@ export default function ProgressReports() {
     };
 
     return (
-        <div className="mt-10 flex flex-col gap-10">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                    <div className="w-full sm:w-auto">
-                        <div>{getTerminology(ContentTerms.Course, SystemTerms.Course)}</div>
-                        <Select
-                            onValueChange={(value) => {
-                                setValue('course', value);
-                            }}
-                            {...register('course')}
-                            defaultValue=""
-                        >
-                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
-                                <SelectValue
-                                    placeholder={`Select a ${getTerminology(
-                                        ContentTerms.Course,
-                                        SystemTerms.Course
-                                    )}`}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {courseList.map((course) => (
-                                    <SelectItem key={course.id} value={course.id}>
-                                        {convertCapitalToTitleCase(course.name)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+        <div className="space-y-6">
+            {/* Modern Filter Card */}
+            <div className="bg-white rounded-lg border border-neutral-200 p-4 shadow-sm">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    {/* Course, Session, Level Row */}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <div>
+                            <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                {getTerminology(ContentTerms.Course, SystemTerms.Course)}
+                                <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <Select
+                                onValueChange={(value) => setValue('course', value)}
+                                {...register('course')}
+                                defaultValue=""
+                            >
+                                <SelectTrigger className="h-9 text-sm">
+                                    <SelectValue
+                                        placeholder={`Select a ${getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        )}`}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courseList.map((course) => (
+                                        <SelectItem key={course.id} value={course.id}>
+                                            {convertCapitalToTitleCase(course.name)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                {getTerminology(ContentTerms.Session, SystemTerms.Session)}
+                                <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <Select
+                                onValueChange={(value) => setValue('session', value)}
+                                {...register('session')}
+                                defaultValue=""
+                                value={selectedSession}
+                                disabled={!sessionList.length}
+                            >
+                                <SelectTrigger className="h-9 text-sm">
+                                    <SelectValue
+                                        placeholder={`Select a ${getTerminology(
+                                            ContentTerms.Session,
+                                            SystemTerms.Session
+                                        )}`}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sessionList.map((session) => (
+                                        <SelectItem key={session.id} value={session.id}>
+                                            {convertCapitalToTitleCase(session.name)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                {getTerminology(ContentTerms.Level, SystemTerms.Level)}
+                                <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <Select
+                                onValueChange={(value) => {
+                                    setValue('level', value);
+                                    trigger('level');
+                                }}
+                                defaultValue=""
+                                value={selectedLevel}
+                                disabled={!levelList.length}
+                                {...register('level')}
+                            >
+                                <SelectTrigger className="h-9 text-sm">
+                                    <SelectValue
+                                        placeholder={`Select a ${getTerminology(
+                                            ContentTerms.Level,
+                                            SystemTerms.Level
+                                        )}`}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {levelList.map((level) => (
+                                        <SelectItem key={level.id} value={level.id}>
+                                            {convertCapitalToTitleCase(level.level_name)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
-                    <div className="w-full sm:w-auto">
-                        <div>{getTerminology(ContentTerms.Session, SystemTerms.Session)}</div>
-                        <Select
-                            onValueChange={(value) => {
-                                setValue('session', value);
-                            }}
-                            {...register('session')}
-                            defaultValue=""
-                            value={selectedSession}
-                            disabled={!sessionList.length}
+                    {/* Generate Button Row */}
+                    <div className="flex justify-start">
+                        <MyButton 
+                            type="submit" 
+                            buttonType="primary" 
+                            className="h-9 px-4 text-sm font-medium focus:!bg-primary-600 focus:!border-primary-600 focus:!text-white active:!bg-primary-600 active:!border-primary-600 active:!text-white focus:!outline-none focus:!ring-0"
                         >
-                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
-                                <SelectValue
-                                    placeholder={`Select a ${getTerminology(
-                                        ContentTerms.Session,
-                                        SystemTerms.Session
-                                    )}`}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {sessionList.map((session) => (
-                                    <SelectItem key={session.id} value={session.id}>
-                                        {convertCapitalToTitleCase(session.name)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="w-full sm:w-auto">
-                        <div>{getTerminology(ContentTerms.Level, SystemTerms.Level)}</div>
-                        <Select
-                            onValueChange={(value) => {
-                                setValue('level', value);
-                                trigger('level');
-                            }}
-                            defaultValue=""
-                            value={selectedLevel}
-                            disabled={!levelList.length}
-                            {...register('level')}
-                        >
-                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
-                                <SelectValue
-                                    placeholder={`Select a ${getTerminology(
-                                        ContentTerms.Level,
-                                        SystemTerms.Level
-                                    )}`}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {levelList.map((level) => (
-                                    <SelectItem key={level.id} value={level.id}>
-                                        {convertCapitalToTitleCase(level.level_name)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-                    <div className="w-full sm:w-auto">
-                        <MyButton buttonType="secondary" className="w-full sm:w-auto">
                             Generate Report
                         </MyButton>
                     </div>
-                </div>
-                {/* <FormMessage/> */}
-            </form>
+                </form>
+            </div>
+            
             {isPending && <DashboardLoader />}
-            {subjectReportData && !isPending && <div className="border"></div>}
+            
             {subjectReportData && (
-                <div className="flex flex-col gap-10">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:gap-10">
-                        <div className="flex flex-col gap-2 sm:gap-6">
-                            <div className="text-h3 text-primary-500">
-                                {courseList.find((course) => course.id === selectedCourse)?.name ||
-                                    ''}
+                <div className="space-y-6">
+                    {/* Report Header */}
+                    <div className="bg-white rounded-lg border border-neutral-200 p-4 shadow-sm">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="space-y-2">
+                                <h3 className="text-lg font-semibold text-primary-600">
+                                    {courseList.find((course) => course.id === selectedCourse)?.name || ''}
+                                </h3>
+                            </div>
+                            <MyButton
+                                buttonType="secondary"
+                                onClick={handleExportPDF}
+                                className="h-9 px-4 text-sm"
+                                disabled={isExporting}
+                            >
+                                {isExporting ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-3 w-3 animate-spin rounded-full border border-neutral-300 border-t-primary-500"></div>
+                                        <span>Exporting...</span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        Export PDF
+                                    </>
+                                )}
+                            </MyButton>
+                        </div>
+                    </div>
+                    
+                    {/* Report Content */}
+                    <div className="bg-white rounded-lg border border-neutral-200 p-4 shadow-sm">
+                        <div className="space-y-4">
+                            <h4 className="text-base font-semibold text-primary-600">
+                                {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}-wise Overview
+                            </h4>
+                            <div className="!min-w-full overflow-x-auto [&_table]:!w-full [&_table]:!min-w-full [&_td]:!whitespace-nowrap [&_th]:!whitespace-nowrap">
+                                <MyTable
+                                    data={subjectWiseData}
+                                    columns={SubjectOverviewBatchColumns}
+                                    isLoading={isPending}
+                                    error={error}
+                                    currentPage={0}
+                                    tableState={tableState}
+                                />
                             </div>
                         </div>
-                        <MyButton
-                            buttonType="secondary"
-                            onClick={() => {
-                                handleExportPDF();
-                            }}
-                            className="w-full sm:w-auto"
-                            disabled={isExporting}
-                        >
-                            {isExporting ? (
-                                <div className="flex items-center gap-2">
-                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-primary-500"></div>
-                                    <span>Exporting...</span>
-                                </div>
-                            ) : (
-                                'Export'
-                            )}
-                        </MyButton>
-                    </div>
-                    <div className="flex flex-col justify-between gap-6">
-                        <div className="text-h3 text-primary-500">
-                            {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}-wise
-                            Overview
-                        </div>
-                        <MyTable
-                            data={subjectWiseData}
-                            columns={SubjectOverviewBatchColumns}
-                            isLoading={isPending}
-                            error={error}
-                            columnWidths={SUBJECT_OVERVIEW_BATCH_WIDTH}
-                            currentPage={0}
-                            tableState={tableState}
-                        ></MyTable>
                     </div>
                 </div>
             )}

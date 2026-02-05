@@ -94,8 +94,8 @@ export const leaderBoardColumns: ColumnDef<LeaderBoardColumnType>[] = [
 ];
 
 export const CONCENTRATION_SCORE: ColumnWidthConfig = {
-    date: 'w-[60px]',
-    timeSpent: 'w-[50px]',
+    date: 'w-[120px]',
+    timeSpent: 'w-[140px]',
 };
 export const LEARNERS_REPORTS_COLUMNS: ColumnWidthConfig = {
     date: 'w-[70px]',
@@ -104,11 +104,11 @@ export const LEARNERS_REPORTS_COLUMNS: ColumnWidthConfig = {
 };
 
 export const LEADERBOARD_WIDTH: Record<keyof LeaderBoardColumnType, string> = {
-    rank: 'w-[60px]',
-    name: 'w-[150px]',
-    score: 'w-[100px]', // Concentration Score column width
-    average: 'w-[120px]',
-    totalTime: 'w-[100px]',
+    rank: 'w-[70px]',
+    name: 'w-[180px]',
+    score: 'w-[140px]', // Concentration Score column width
+    average: 'w-[160px]',
+    totalTime: 'w-[120px]',
 };
 
 interface Module {

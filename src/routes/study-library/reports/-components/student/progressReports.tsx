@@ -221,214 +221,213 @@ export default function ProgressReports() {
     };
     const isExporting = getBatchReportDataPDF.isPending;
     return (
-        <div className="mt-10 flex flex-col gap-10">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                    <div className="w-full sm:w-auto">
-                        <div>{getTerminology(ContentTerms.Course, SystemTerms.Course)}</div>
+        <div className="space-y-6">
+            {/* Modern Filter Card */}
+            <div className="bg-white rounded-lg border border-neutral-200 p-4 shadow-sm">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    {/* First Row - Course, Session, Level */}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <div>
+                            <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                {getTerminology(ContentTerms.Course, SystemTerms.Course)}
+                                <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <Select
+                                onValueChange={(value) => setValue('course', value)}
+                                {...register('course')}
+                                defaultValue={search.studentReport ? search.studentReport.courseId : ''}
+                            >
+                                <SelectTrigger className="h-9 text-sm">
+                                    <SelectValue placeholder="Select a Course" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courseList.map((course) => (
+                                        <SelectItem key={course.id} value={course.id}>
+                                            {course.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                {getTerminology(ContentTerms.Session, SystemTerms.Session)}
+                                <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <Select
+                                onValueChange={(value) => setValue('session', value)}
+                                defaultValue={search.studentReport ? search.studentReport.sessionId : ''}
+                                value={selectedSession}
+                                disabled={!sessionList.length}
+                            >
+                                <SelectTrigger className="h-9 text-sm">
+                                    <SelectValue
+                                        placeholder={`Select a ${getTerminology(ContentTerms.Session, SystemTerms.Session)}`}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sessionList.map((session) => (
+                                        <SelectItem key={session.id} value={session.id}>
+                                            {session.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                {getTerminology(ContentTerms.Level, SystemTerms.Level)}
+                                <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <Select
+                                onValueChange={(value) => setValue('level', value)}
+                                defaultValue={search.studentReport ? search.studentReport.levelId : ''}
+                                value={selectedLevel}
+                                disabled={!levelList.length}
+                                {...register('level')}
+                            >
+                                <SelectTrigger className="h-9 text-sm">
+                                    <SelectValue
+                                        placeholder={`Select a ${getTerminology(ContentTerms.Level, SystemTerms.Level)}`}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {levelList.map((level) => (
+                                        <SelectItem key={level.id} value={level.id}>
+                                            {level.level_name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    {/* Student Selection Row */}
+                    <div>
+                        <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                            Name <span className="text-red-500 ml-1">*</span>
+                        </label>
                         <Select
-                            onValueChange={(value) => {
-                                setValue('course', value);
-                            }}
-                            {...register('course')}
-                            defaultValue={search.studentReport ? search.studentReport.courseId : ''}
+                            onValueChange={(value) => setValue('student', value)}
+                            {...register('student')}
+                            defaultValue=""
+                            disabled={!studentList.length}
                         >
-                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
-                                <SelectValue placeholder="Select a Course" />
+                            <SelectTrigger className="h-9 text-sm">
+                                <SelectValue placeholder="Select Student" />
                             </SelectTrigger>
                             <SelectContent>
-                                {courseList.map((course) => (
-                                    <SelectItem key={course.id} value={course.id}>
-                                        {course.name}
-                                    </SelectItem>
-                                ))}
+                                <Command>
+                                    <CommandInput
+                                        placeholder="Search Student..."
+                                        value={searchTerm}
+                                        onValueChange={setSearchTerm}
+                                    />
+                                    <CommandList>
+                                        {filteredStudents.length > 0 ? (
+                                            filteredStudents.map((student, index) => (
+                                                <SelectItem
+                                                    key={index}
+                                                    value={student.user_id}
+                                                    onSelect={() =>
+                                                        setValue('student', student.user_id)
+                                                    }
+                                                >
+                                                    {student.full_name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <div className="p-2 text-gray-500">No students found</div>
+                                        )}
+                                    </CommandList>
+                                </Command>
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="w-full sm:w-auto">
-                        <div>{getTerminology(ContentTerms.Session, SystemTerms.Session)}</div>
-                        <Select
-                            onValueChange={(value) => {
-                                setValue('session', value);
-                            }}
-                            defaultValue={
-                                search.studentReport ? search.studentReport.sessionId : ''
-                            }
-                            value={selectedSession}
-                            disabled={!sessionList.length}
+                    {/* Generate Button Row */}
+                    <div className="flex justify-start">
+                        <MyButton 
+                            type="submit" 
+                            buttonType="primary" 
+                            className="h-9 px-4 text-sm font-medium focus:!bg-primary-600 focus:!border-primary-600 focus:!text-white active:!bg-primary-600 active:!border-primary-600 active:!text-white focus:!outline-none focus:!ring-0"
                         >
-                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
-                                <SelectValue
-                                    placeholder={`Select a ${getTerminology(ContentTerms.Session, SystemTerms.Session)}`}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {sessionList.map((session) => (
-                                    <SelectItem key={session.id} value={session.id}>
-                                        {session.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="w-full sm:w-auto">
-                        <div>{getTerminology(ContentTerms.Level, SystemTerms.Level)}</div>
-                        <Select
-                            onValueChange={(value) => {
-                                setValue('level', value);
-                            }}
-                            defaultValue={search.studentReport ? search.studentReport.levelId : ''}
-                            value={selectedLevel}
-                            disabled={!levelList.length}
-                            {...register('level')}
-                        >
-                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
-                                <SelectValue
-                                    placeholder={`Select a ${getTerminology(ContentTerms.Level, SystemTerms.Level)}`}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {levelList.map((level) => (
-                                    <SelectItem key={level.id} value={level.id}>
-                                        {level.level_name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                <div className="w-full sm:w-auto">
-                    <div>Name</div>
-                    <Select
-                        onValueChange={(value) => {
-                            setValue('student', value);
-                        }}
-                        {...register('student')}
-                        defaultValue=""
-                        disabled={!studentList.length}
-                    >
-                        <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
-                            <SelectValue placeholder="Select Student" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <Command>
-                                {/* Search Input */}
-                                <CommandInput
-                                    placeholder="Search Student..."
-                                    value={searchTerm}
-                                    onValueChange={setSearchTerm}
-                                />
-                                <CommandList>
-                                    {filteredStudents.length > 0 ? (
-                                        filteredStudents.map((student, index) => (
-                                            <SelectItem
-                                                key={index}
-                                                value={student.user_id}
-                                                onSelect={() =>
-                                                    setValue('student', student.user_id)
-                                                }
-                                            >
-                                                {student.full_name}
-                                            </SelectItem>
-                                        ))
-                                    ) : (
-                                        <div className="p-2 text-gray-500">No students found</div>
-                                    )}
-                                </CommandList>
-                            </Command>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-                    <div className="w-full sm:w-auto">
-                        <MyButton buttonType="secondary" className="w-full sm:w-auto">
                             Generate Report
                         </MyButton>
                     </div>
-                </div>
 
-                {/* Error Message at One Place */}
-                {Object.keys(errors).length > 0 && (
-                    <div className="mt-4 text-red-500">
-                        <h4 className="font-semibold">Please fix the following errors:</h4>
-                        <ul className="ml-4 list-disc">
-                            {Object.entries(errors).map(([key, error]) => (
-                                <li key={key}>{error.message}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </form>
-            {isPending && <DashboardLoader />}
-            {subjectReportData && <div className="border"></div>}
-            {subjectReportData && !isPending && (
-                <div className="flex flex-col gap-10">
-                    <div className="flex flex-col gap-4">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:gap-10">
-                            <div className="flex flex-col gap-2 sm:gap-6">
-                                <div className="text-h3 text-primary-500">
-                                    {
-                                        studentList.find((s) => s.user_id === selectedStudent)
-                                            ?.full_name
-                                    }
-                                </div>
+                    {/* Error Messages */}
+                    {Object.keys(errors).length > 0 && (
+                        <div className="rounded-md bg-red-50 border border-red-200 p-3">
+                            <div className="text-sm text-red-800">
+                                <p className="font-medium mb-1">Please fix the following errors:</p>
+                                <ul className="space-y-1">
+                                    {Object.entries(errors)?.map(([key, error]) => (
+                                        <li key={key} className="text-xs">• {error.message}</li>
+                                    ))}
+                                </ul>
                             </div>
-                            <div className="flex flex-col gap-4 sm:flex-row sm:gap-10">
+                        </div>
+                    )}
+                </form>
+            </div>
+            
+            {isPending && <DashboardLoader />}
+            
+            {subjectReportData && (
+                <div className="space-y-6">
+                    {/* Report Header */}
+                    <div className="bg-white rounded-lg border border-neutral-200 p-4 shadow-sm">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="space-y-2">
+                                <h3 className="text-lg font-semibold text-primary-600">
+                                    {studentList.find((s) => s.user_id === selectedStudent)?.full_name}
+                                </h3>
+                            </div>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                                 <ReportRecipientsDialogBox userId={selectedStudent || ''} />
                                 <MyButton
                                     buttonType="secondary"
-                                    onClick={() => {
-                                        handleExportPDF();
-                                    }}
-                                    className="w-full sm:w-auto"
+                                    onClick={handleExportPDF}
+                                    className="h-9 px-4 text-sm"
                                     disabled={isExporting}
                                 >
                                     {isExporting ? (
                                         <div className="flex items-center gap-2">
-                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-primary-500"></div>
+                                            <div className="h-3 w-3 animate-spin rounded-full border border-neutral-300 border-t-primary-500"></div>
                                             <span>Exporting...</span>
                                         </div>
                                     ) : (
-                                        'Export'
+                                        <>
+                                            <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            Export PDF
+                                        </>
                                     )}
                                 </MyButton>
                             </div>
                         </div>
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                {getTerminology(ContentTerms.Course, SystemTerms.Course)}:{' '}
-                                {courseList.find((course) => course.id === selectedCourse)?.name}
+                    </div>
+                    
+                    {/* Report Content */}
+                    <div className="bg-white rounded-lg border border-neutral-200 p-4 shadow-sm">
+                        <div className="space-y-4">
+                            <h4 className="text-base font-semibold text-primary-600">
+                                Subject-wise Progress Report
+                            </h4>
+                            <div className="!min-w-full overflow-x-auto [&_table]:!w-full [&_table]:!min-w-full [&_td]:!whitespace-nowrap [&_th]:!whitespace-nowrap">
+                                <MyTable
+                                    data={subjectWiseData}
+                                    columns={SubjectOverviewColumns}
+                                    isLoading={isPending}
+                                    error={error}
+                                    currentPage={0}
+                                    tableState={tableState}
+                                />
                             </div>
-                            <div>
-                                {getTerminology(ContentTerms.Session, SystemTerms.Session)}:{' '}
-                                {
-                                    sessionList.find((session) => session.id === selectedSession)
-                                        ?.name
-                                }
-                            </div>
-                            <div>
-                                {getTerminology(ContentTerms.Level, SystemTerms.Level)}:{' '}
-                                {levelList.find((level) => level.id === selectedLevel)?.level_name}
-                            </div>
-                        </div>
-                        <div className="flex flex-col justify-between gap-6">
-                            <div className="text-h3 text-primary-500">
-                                {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}-wise
-                                Overview
-                            </div>
-                            <MyTable
-                                data={subjectWiseData}
-                                columns={SubjectOverviewColumns}
-                                isLoading={isPending}
-                                error={error}
-                                columnWidths={SUBJECT_OVERVIEW_WIDTH}
-                                currentPage={0}
-                                tableState={tableState}
-                            ></MyTable>
                         </div>
                     </div>
                 </div>

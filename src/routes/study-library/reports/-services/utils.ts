@@ -15,6 +15,8 @@ import {
     EXPORT_LEARNERS_REPORT,
     EXPORT_LEARNERS_SUBJECT_REPORT,
     EXPORT_LEARNERS_MODULE_REPORT,
+    EXPORT_CHAPTER_WISE_BATCH_REPORT,
+    EXPORT_CHAPTER_WISE_LEARNERS_REPORT,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { InstituteSettingResponse } from '../-types/types';
@@ -356,6 +358,99 @@ export const exportLearnerModuleProgressReport = async (params: {
         return response.data;
     } catch (error) {
         console.error('Error exporting learner module progress report:', error);
+        throw error;
+    }
+};
+
+export const exportBatchSubjectWiseReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_LEARNERS_SUBJECT_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+            },
+            {
+                responseType: 'blob',
+                headers: {
+                    Accept: '*/*',
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error('Error exporting batch subject-wise report:', error);
+        throw error;
+    }
+};
+
+export const exportChapterWiseBatchReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+    moduleId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_CHAPTER_WISE_BATCH_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+                module_id: params.moduleId,
+            },
+            {
+                responseType: 'blob',
+                headers: {
+                    Accept: '*/*',
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error('Error exporting chapter-wise batch report:', error);
+        throw error;
+    }
+};
+
+export const exportChapterWiseLearnersReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+    moduleId: string;
+    userId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_CHAPTER_WISE_LEARNERS_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+                module_id: params.moduleId,
+                user_id: params.userId,
+            },
+            {
+                responseType: 'blob',
+                headers: {
+                    Accept: '*/*',
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error('Error exporting chapter-wise learners report:', error);
         throw error;
     }
 };
