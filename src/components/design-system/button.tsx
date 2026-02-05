@@ -9,7 +9,7 @@ const myButtonVariants = {
     base: 'font-normal shadow-none disabled:cursor-not-allowed transition-colors text-subtitle font-semibold',
     types: {
         primary:
-            'bg-primary-500 !text-neutral-50 font-semibold hover:bg-primary-600 active:bg-primary-700 disabled:bg-primary-300 ',
+            'bg-primary-500 !text-neutral-50 font-semibold hover:bg-primary-400 active:bg-primary-400 disabled:bg-primary-300 ',
         secondary:
             'bg-none font-regular border-neutral-300 border !text-neutral-600 hover:border-primary-500 hover:bg-primary-50/30 active:border-primary-500 active:bg-primary-50/80 disabled:text-[#7f7f7f] disabled:bg-white disabled:border-neutral-200',
         text: 'shadow-none bg-transparent text-primary-500 disabled:text-neutral-300 disabled:bg-transparent',
