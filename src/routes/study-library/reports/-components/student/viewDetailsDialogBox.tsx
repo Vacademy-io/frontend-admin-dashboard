@@ -14,7 +14,7 @@ import { MyTable } from '@/components/design-system/table';
 import {
     fetchChapterWiseProgress,
     fetchLearnersChapterWiseProgress,
-    exportLearnerModuleProgressReport,
+    exportChapterWiseLearnersReport,
 } from '../../-services/utils';
 import { usePacageDetails } from '../../-store/usePacageDetails';
 import dayjs from 'dayjs';
@@ -42,6 +42,7 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
             if (row.getValue('user_id')) {
                 LearnersChapterWiseMutation.mutate(
                     {
+                        packageSessionId: pacageSessionId,
                         userId: row.getValue('user_id'),
                         moduleId: row.getValue('module_id'),
                     },
@@ -75,21 +76,23 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
 
     const getLearnersReportDataPDF = useMutation({
         mutationFn: () =>
-            exportLearnerModuleProgressReport({
+            exportChapterWiseLearnersReport({
+                startDate: '',
+                endDate: '',
                 packageSessionId: pacageSessionId,
-                userId: row.getValue('user_id'),
                 moduleId: row.getValue('module_id'),
+                userId: row.getValue('user_id'),
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `learners_report.pdf`);
+            link.setAttribute('download', `student_chapter_wise_progress_report.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success('Learners Report PDF exported successfully');
+            toast.success('Student Chapter-wise Progress Report PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -125,8 +128,16 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                                 e.stopPropagation();
                                 handleExportPDF();
                             }}
+                            disabled={isExporting}
                         >
-                            {isExporting ? <DashboardLoader /> : 'Export'}
+                            {isExporting ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-primary-500"></div>
+                                    <span>Exporting...</span>
+                                </div>
+                            ) : (
+                                'Export'
+                            )}
                         </MyButton>
                     </div>
                     <div className="grid grid-cols-3 items-center justify-between gap-4">
@@ -169,6 +180,7 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                                         content:
                                             chapter.slides?.map((slide) => ({
                                                 study_slide: slide.slide_title,
+                                                slide_type: slide.slide_source_type,
                                                 concentration_score: `${formatToTwoDecimalPlaces(
                                                     slide.avg_concentration_score
                                                 )} %`,
@@ -178,7 +190,7 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                                                 average_time_spent: `${convertMinutesToTimeFormat(
                                                     slide.avg_time_spent
                                                 )}`,
-                                                last_active: ``,
+                                                last_active: slide.last_active_date || 'N/A',
                                             })) || [],
                                         total_pages: 0,
                                         page_no: 0,

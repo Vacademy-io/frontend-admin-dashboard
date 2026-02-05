@@ -272,6 +272,8 @@ export const EXPORT_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-manag
 export const EXPORT_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-report`;
 export const EXPORT_LEARNERS_SUBJECT_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-subject-wise-report`;
 export const EXPORT_LEARNERS_MODULE_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-module-progress-report`;
+export const EXPORT_CHAPTER_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/chapter-wise-batch-report`;
+export const EXPORT_CHAPTER_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/chapter-wise-learners-report`;
 
 export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-credentials`;
 export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;

@@ -319,235 +319,327 @@ export default function TimelineReports() {
     const isExporting = getBatchReportDataPDF.isPending;
 
     return (
-        <div className="mt-10 flex flex-col gap-10">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                    <div className="w-full sm:w-auto">
+        <div className="space-y-6">
+            {/* Modern Filter Card */}
+            <div className="bg-white rounded-lg border border-neutral-200 p-4 shadow-sm">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    {/* First Row - Course, Session, Level */}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div>
-                            {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
-                            <span className="text-red-600">*</span>
-                        </div>
-                        <Select
-                            onValueChange={(value) => {
-                                setValue('course', value);
-                            }}
-                            {...register('course')}
-                            defaultValue=""
-                        >
-                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
-                                <SelectValue
-                                    placeholder={`Select a ${getTerminology(
-                                        ContentTerms.Course,
-                                        SystemTerms.Course
-                                    )}`}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {courseList.map((course) => (
-                                    <SelectItem key={course.id} value={course.id}>
-                                        {convertCapitalToTitleCase(course.name)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {!defaultSessionLevels && (
-                        <div className="w-full sm:w-auto">
-                            <div>
-                                {getTerminology(ContentTerms.Session, SystemTerms.Session)}{' '}
-                                <span className="text-red-600">*</span>
-                            </div>
+                            <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                {getTerminology(ContentTerms.Course, SystemTerms.Course)}
+                                <span className="text-red-500 ml-1">*</span>
+                            </label>
                             <Select
-                                // value={watch("session") === "" ? null : watch("session")}
-                                onValueChange={(value) => {
-                                    setValue('session', value);
-                                }}
+                                onValueChange={(value) => setValue('course', value)}
+                                {...register('course')}
                                 defaultValue=""
-                                value={selectedSession}
-                                disabled={!sessionList.length}
                             >
-                                <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
+                                <SelectTrigger className="h-9 text-sm">
                                     <SelectValue
                                         placeholder={`Select a ${getTerminology(
-                                            ContentTerms.Session,
-                                            SystemTerms.Session
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
                                         )}`}
                                     />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {sessionList.map((session) => (
-                                        <SelectItem key={session.id} value={session.id}>
-                                            {convertCapitalToTitleCase(session.name)}
+                                    {courseList.map((course) => (
+                                        <SelectItem key={course.id} value={course.id}>
+                                            {convertCapitalToTitleCase(course.name)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-                    )}
 
-                    {!defaultSessionLevels && (
-                        <div className="w-full sm:w-auto">
+                        {!defaultSessionLevels && (
                             <div>
-                                {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
-                                <span className="text-red-600">*</span>
+                                <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                    {getTerminology(ContentTerms.Session, SystemTerms.Session)}
+                                    <span className="text-red-500 ml-1">*</span>
+                                </label>
+                                <Select
+                                    onValueChange={(value) => setValue('session', value)}
+                                    defaultValue=""
+                                    value={selectedSession}
+                                    disabled={!sessionList.length}
+                                >
+                                    <SelectTrigger className="h-9 text-sm">
+                                        <SelectValue
+                                            placeholder={`Select a ${getTerminology(
+                                                ContentTerms.Session,
+                                                SystemTerms.Session
+                                            )}`}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {sessionList.map((session) => (
+                                            <SelectItem key={session.id} value={session.id}>
+                                                {convertCapitalToTitleCase(session.name)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                            <Select
-                                onValueChange={(value) => {
-                                    setValue('level', value);
-                                }}
-                                defaultValue=""
-                                value={selectedLevel}
-                                disabled={!levelList.length}
+                        )}
+
+                        {!defaultSessionLevels && (
+                            <div>
+                                <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                    {getTerminology(ContentTerms.Level, SystemTerms.Level)}
+                                    <span className="text-red-500 ml-1">*</span>
+                                </label>
+                                <Select
+                                    onValueChange={(value) => setValue('level', value)}
+                                    defaultValue=""
+                                    value={selectedLevel}
+                                    disabled={!levelList.length}
+                                >
+                                    <SelectTrigger className="h-9 text-sm">
+                                        <SelectValue
+                                            placeholder={`Select a ${getTerminology(
+                                                ContentTerms.Level,
+                                                SystemTerms.Level
+                                            )}`}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {levelList.map((level) => (
+                                            <SelectItem key={level.id} value={level.id}>
+                                                {convertCapitalToTitleCase(level.level_name)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Second Row - Dates and Generate Button */}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                        <div className="flex-1">
+                            <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                Start Date <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <input
+                                className="h-9 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                type="date"
+                                {...register('startDate')}
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="text-xs font-medium text-neutral-700 mb-1 block">
+                                End Date <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <input
+                                className="h-9 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                type="date"
+                                {...register('endDate')}
+                            />
+                        </div>
+                        <div className="sm:ml-3">
+                            <MyButton 
+                                type="submit" 
+                                buttonType="primary" 
+                                className="h-9 px-4 text-sm font-medium focus:!bg-primary-600 focus:!border-primary-600 focus:!text-white active:!bg-primary-600 active:!border-primary-600 active:!text-white focus:!outline-none focus:!ring-0"
                             >
-                                <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
-                                    <SelectValue
-                                        placeholder={`Select a ${getTerminology(
-                                            ContentTerms.Level,
-                                            SystemTerms.Level
-                                        )}`}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {levelList.map((level) => (
-                                        <SelectItem key={level.id} value={level.id}>
-                                            {convertCapitalToTitleCase(level.level_name)}
-                                        </SelectItem>
+                                Generate Report
+                            </MyButton>
+                        </div>
+                    </div>
+
+                    {/* Error Messages */}
+                    {Object.keys(errors).length > 0 && (
+                        <div className="rounded-md bg-red-50 border border-red-200 p-3">
+                            <div className="text-sm text-red-800">
+                                <p className="font-medium mb-1">Please fix the following errors:</p>
+                                <ul className="space-y-1">
+                                    {Object.entries(errors).map(([key, error]) => (
+                                        <li key={key} className="text-xs">• {error.message}</li>
                                     ))}
-                                </SelectContent>
-                            </Select>
+                                </ul>
+                            </div>
                         </div>
                     )}
-                </div>
-
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-                    <div className="w-full sm:w-auto">
-                        <div>
-                            Start Date <span className="text-red-600">*</span>
-                        </div>
-                        <input
-                            className="h-[40px] w-full rounded-md border px-3 py-[10px] sm:w-[320px]"
-                            type="date"
-                            {...register('startDate')}
-                        />
-                    </div>
-                    <div className="w-full sm:w-auto">
-                        <div>
-                            End Date <span className="text-red-600">*</span>
-                        </div>
-                        <input
-                            className="h-[40px] w-full rounded-md border px-3 py-[10px] sm:w-[320px]"
-                            type="date"
-                            {...register('endDate')}
-                        />
-                    </div>
-                    <div className="w-full sm:w-auto">
-                        <MyButton buttonType="secondary" className="w-full sm:w-auto">
-                            Generate Report
-                        </MyButton>
-                    </div>
-                </div>
-
-                {/* Error Message at One Place */}
-                {Object.keys(errors).length > 0 && (
-                    <div className="mt-4 text-red-500">
-                        <h4 className="font-semibold">Please fix the following errors:</h4>
-                        <ul className="ml-4 list-disc">
-                            {Object.entries(errors).map(([key, error]) => (
-                                <li key={key}>{error.message}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </form>
+                </form>
+            </div>
+            
             {loading && <DashboardLoader />}
-            {reportData && !loading && <div className="border"></div>}
+            
             {reportData && !loading && (
-                <div className="flex flex-col gap-10">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:gap-10">
-                        <div className="flex flex-col gap-2 sm:gap-6">
-                            <div className="text-h3 text-primary-500">
-                                {courseList.find((c) => c.id === selectedCourse)?.name}
+                <div className="space-y-6">
+                    {/* Report Header */}
+                    <div className="bg-white rounded-lg border border-neutral-200 p-4 shadow-sm">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="space-y-2">
+                                <h3 className="text-lg font-semibold text-primary-600">
+                                    {courseList.find((c) => c.id === selectedCourse)?.name}
+                                </h3>
+                                <div className="flex items-center gap-2 text-sm">
+                                    <span className="text-neutral-600">Duration:</span>
+                                    <span className="rounded-md bg-primary-50 px-2 py-1 text-xs font-medium text-black">
+                                        {dayjs(startDate).format('DD MMM YYYY')}
+                                    </span>
+                                    <span className="text-neutral-400">—</span>
+                                    <span className="rounded-md bg-primary-50 px-2 py-1 text-xs font-medium text-black">
+                                        {dayjs(endDate).format('DD MMM YYYY')}
+                                    </span>
+                                </div>
                             </div>
-                            <div>{`Date ${startDate} - ${endDate}`}</div>
-                        </div>
-                        <MyButton
-                            buttonType="secondary"
-                            onClick={() => {
-                                handleExportPDF();
-                            }}
-                            className="w-full sm:w-auto"
-                        >
-                            {isExporting ? <DashboardLoader /> : 'Export'}
-                        </MyButton>
-                    </div>
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        <div className="flex flex-col items-center justify-center text-center">
-                            <div className="text-h3 font-[600]">
-                                {getTerminology(ContentTerms.Course, SystemTerms.Course)} Completed
-                                by batch
-                            </div>
-                            <div>{`${formatToTwoDecimalPlaces(
-                                reportData?.percentage_course_completed
-                            )} %`}</div>
-                        </div>
-                        <div className="flex flex-col items-center justify-center text-center">
-                            <div className="text-h3 font-[600]">
-                                Daily Time spent by batch (Avg)
-                            </div>
-                            <div>
-                                {convertMinutesToTimeFormat(reportData?.avg_time_spent_in_minutes)}
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center justify-center text-center sm:col-span-2 lg:col-span-1">
-                            <div className="text-h3 font-[600]">
-                                Concentration score of batch (Avg)
-                            </div>
-                            <div>{`${formatToTwoDecimalPlaces(
-                                reportData?.percentage_concentration_score || 0
-                            )} %`}</div>
+                            <MyButton
+                                buttonType="secondary"
+                                onClick={handleExportPDF}
+                                className="h-9 px-4 text-sm"
+                                disabled={isExporting}
+                            >
+                                {isExporting ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-3 w-3 animate-spin rounded-full border border-neutral-300 border-t-primary-500"></div>
+                                        <span>Exporting...</span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        Export PDF
+                                    </>
+                                )}
+                            </MyButton>
                         </div>
                     </div>
-                    <div className="flex flex-col gap-6">
-                        <div className="text-h3 font-[600] text-primary-500">
-                            Daily Learning Performance
-                        </div>
-                        <div className="flex w-full flex-col gap-6 lg:h-[570px] lg:flex-row">
-                            <div className="h-[400px] w-full lg:h-full lg:flex-1">
-                                <LineChartComponent
-                                    chartData={convertChartData(reportData.daily_time_spent)}
-                                />
+                    
+                    {/* Stats Cards - Improved Design */}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="bg-white rounded-lg border border-neutral-200 p-6 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-neutral-600">
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)} Completed by batch
+                                    </h4>
+                                    <p className="text-2xl font-bold text-primary-600">
+                                        {`${formatToTwoDecimalPlaces(
+                                            reportData?.percentage_course_completed
+                                        )}%`}
+                                    </p>
+                                </div>
+                                <div className="rounded-full bg-primary-100 p-3">
+                                    <svg className="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
                             </div>
-                            <div className="h-[400px] w-full lg:h-full lg:w-[30%]">
+                        </div>
+                        
+                        <div className="bg-white rounded-lg border border-neutral-200 p-6 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-neutral-600">
+                                        Daily Time Spent (Avg)
+                                    </h4>
+                                    <p className="text-2xl font-bold text-primary-600">
+                                        {convertMinutesToTimeFormat(reportData?.avg_time_spent_in_minutes)}
+                                    </p>
+                                </div>
+                                <div className="rounded-full bg-blue-100 p-3">
+                                    <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-lg border border-neutral-200 p-6 shadow-sm sm:col-span-2 lg:col-span-1">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-neutral-600">
+                                        Concentration Score (Avg)
+                                    </h4>
+                                    <p className="text-2xl font-bold text-primary-600">
+                                        {`${formatToTwoDecimalPlaces(
+                                            reportData?.percentage_concentration_score || 0
+                                        )}%`}
+                                    </p>
+                                </div>
+                                <div className="rounded-full bg-green-100 p-3">
+                                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Daily Learning Performance - Improved Responsive Layout */}
+                    <div className="bg-white rounded-lg border border-neutral-200 shadow-sm">
+                        <div className="border-b border-neutral-200 p-6">
+                            <h3 className="text-lg font-semibold text-primary-600">Daily Learning Performance</h3>
+                            <p className="text-sm text-neutral-600 mt-1">Track daily progress and activity patterns</p>
+                        </div>
+                        
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                                {/* Chart Section - Takes 2/3 on large screens */}
+                                <div className="lg:col-span-2">
+                                    <div className="min-h-[500px] h-auto w-full overflow-visible rounded-lg border border-neutral-200 bg-white">
+                                        <div className="w-full p-6">
+                                            <LineChartComponent
+                                                chartData={convertChartData(reportData.daily_time_spent)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Table Section - Takes 1/3 on large screens, full width on mobile */}
+                                <div className="lg:col-span-1">
+                                    <div className="bg-neutral-50 rounded-lg p-4 min-h-[500px]">
+                                        <h4 className="text-sm font-medium text-neutral-700 mb-4">Activity Summary</h4>
+                                        <div className="h-[450px] overflow-auto">
+                                            <div className="!min-w-full [&_table]:!w-full [&_table]:!min-w-full [&_td]:!whitespace-nowrap [&_th]:!whitespace-nowrap">
+                                                <MyTable
+                                                    data={tableData}
+                                                    columns={activityLogColumns}
+                                                    isLoading={isPending}
+                                                    error={error}
+                                                    currentPage={0}
+                                                    scrollable={true}
+                                                    className="!h-full"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Leaderboard - Improved Layout */}
+                    <div className="bg-white rounded-lg border border-neutral-200 shadow-sm">
+                        <div className="border-b border-neutral-200 p-6">
+                            <h3 className="text-lg font-semibold text-primary-600">Leaderboard</h3>
+                            <p className="text-sm text-neutral-600 mt-1">Top performing students in the batch</p>
+                        </div>
+                        
+                        <div className="p-6">
+                            <div className="w-full overflow-hidden">
                                 <MyTable
-                                    data={tableData}
-                                    columns={activityLogColumns}
+                                    data={leaderBoardData}
+                                    columns={leaderBoardColumns}
                                     isLoading={isPending}
                                     error={error}
-                                    columnWidths={CONCENTRATION_SCORE}
                                     currentPage={0}
-                                    scrollable={true}
-                                    className="!h-full"
-                                ></MyTable>
+                                    className="w-full !min-w-full [&_table]:!w-full [&_table]:!min-w-full [&_thead]:!w-full [&_tbody]:!w-full [&_tr]:!w-full [&_th]:!px-4 [&_td]:!px-4"
+                                />
+                            </div>
+                            <div className="mt-6 flex justify-center">
+                                <MyPagination
+                                    currentPage={currPage}
+                                    totalPages={totalPage}
+                                    onPageChange={setCurrPage}
+                                />
                             </div>
                         </div>
-                    </div>
-                    <div className="flex flex-col gap-6">
-                        <div className="text-h3 font-[600] text-primary-500">Leaderboard</div>
-                        <MyTable
-                            data={leaderBoardData}
-                            columns={leaderBoardColumns}
-                            isLoading={isPending}
-                            error={error}
-                            columnWidths={LEADERBOARD_WIDTH}
-                            currentPage={0}
-                        // className="!h-full"
-                        ></MyTable>
-                        <MyPagination
-                            currentPage={currPage}
-                            totalPages={totalPage}
-                            onPageChange={setCurrPage}
-                        ></MyPagination>
                     </div>
                 </div>
             )}
