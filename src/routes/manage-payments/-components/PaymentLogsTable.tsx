@@ -14,7 +14,9 @@ interface PaymentLogsTableProps {
     currentPage: number;
     onPageChange: (page: number) => void;
     packageSessions?: Record<string, string>;
-    hasOrgAssociatedBatches: boolean; // New prop
+    hasOrgAssociatedBatches: boolean;
+    /** When true, hides the User column (e.g. when showing logs for a single student) */
+    hideUserColumn?: boolean;
 }
 
 const getStatusBadgeVariant = (
@@ -68,7 +70,8 @@ export function PaymentLogsTable({
     error,
     currentPage,
     onPageChange,
-    hasOrgAssociatedBatches, // New prop
+    hasOrgAssociatedBatches,
+    hideUserColumn = false,
 }: PaymentLogsTableProps) {
     // Transform API response to TableData format
     const tableData: TableData<PaymentLogEntry> | undefined = useMemo(() => {
@@ -99,23 +102,30 @@ export function PaymentLogsTable({
                     );
                 },
                 size: 180,
-            },            {
-                id: 'user_info',
-                header: 'User',
-                accessorFn: (row) => row?.user?.full_name || row?.user?.email || '',
-                cell: ({ row }) => {
-                    const user = row.original?.user;
-                    return (
-                        <div className="space-y-1">
-                            <div className="font-medium text-gray-900">
-                                {user?.full_name || '-'}
-                            </div>
-                            <div className="text-xs text-gray-500">{user?.email || '-'}</div>
-                        </div>
-                    );
-                },
-                size: 200,
-            },            // Conditionally add Organization Name column if institute has org-associated batches
+            },
+            ...(!hideUserColumn
+                ? [
+                      {
+                          id: 'user_info',
+                          header: 'User',
+                          accessorFn: (row: PaymentLogEntry) =>
+                              row?.user?.full_name || row?.user?.email || '',
+                          cell: ({ row }: { row: { original: PaymentLogEntry } }) => {
+                              const user = row.original?.user;
+                              return (
+                                  <div className="space-y-1">
+                                      <div className="font-medium text-gray-900">
+                                          {user?.full_name || '-'}
+                                      </div>
+                                      <div className="text-xs text-gray-500">{user?.email || '-'}</div>
+                                  </div>
+                              );
+                          },
+                          size: 200,
+                      } as ColumnDef<PaymentLogEntry>,
+                  ]
+                : []),
+            // Conditionally add Organization Name column if institute has org-associated batches
             ...(hasOrgAssociatedBatches
                 ? [
                       {
@@ -261,7 +271,7 @@ export function PaymentLogsTable({
                 },                size: 180,
             },
         ],
-        [hasOrgAssociatedBatches] // Add dependency
+        [hasOrgAssociatedBatches, hideUserColumn]
     );
 
     if (isLoading) {
@@ -313,23 +323,22 @@ export function PaymentLogsTable({
                 />
             </div>
 
-            {tableData.total_pages > 1 && (
-                <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3">
-                    <div className="text-sm text-gray-600">
-                        Showing {tableData.page_no * tableData.page_size + 1} -{' '}
-                        {Math.min(
-                            (tableData.page_no + 1) * tableData.page_size,
-                            tableData.total_elements
-                        )}{' '}
-                        of {tableData.total_elements} payments
-                    </div>
-                    <MyPagination
-                        currentPage={currentPage}
-                        totalPages={tableData.total_pages}
-                        onPageChange={onPageChange}
-                    />
+            {/* Pagination: always show when there is data so next/prev and page info are ready */}
+            <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3">
+                <div className="text-sm text-gray-600">
+                    Showing {tableData.page_no * tableData.page_size + 1} -{' '}
+                    {Math.min(
+                        (tableData.page_no + 1) * tableData.page_size,
+                        tableData.total_elements
+                    )}{' '}
+                    of {tableData.total_elements} payments
                 </div>
-            )}
+                <MyPagination
+                    currentPage={currentPage}
+                    totalPages={tableData.total_pages}
+                    onPageChange={onPageChange}
+                />
+            </div>
         </div>
     );
 }

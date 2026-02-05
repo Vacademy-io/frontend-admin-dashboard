@@ -355,6 +355,7 @@ function mergeDisplayWithDefaults(
         progressTab: true,
         notificationTab: false,
         membershipTab: false,
+        paymentHistoryTab: true,
         userTaggingTab: false,
         fileTab: false,
         portalAccessTab: false,
@@ -368,6 +369,8 @@ function mergeDisplayWithDefaults(
         notificationTab:
             incoming?.studentSideView?.notificationTab ?? defStudentSideView.notificationTab,
         membershipTab: incoming?.studentSideView?.membershipTab ?? defStudentSideView.membershipTab,
+        paymentHistoryTab:
+            incoming?.studentSideView?.paymentHistoryTab ?? defStudentSideView.paymentHistoryTab,
         userTaggingTab:
             incoming?.studentSideView?.userTaggingTab ?? defStudentSideView.userTaggingTab,
         fileTab: incoming?.studentSideView?.fileTab ?? defStudentSideView.fileTab,
