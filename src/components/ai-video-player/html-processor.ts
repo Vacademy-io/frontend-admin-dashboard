@@ -2243,12 +2243,12 @@ export function processHtmlContent(
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             ${libs}
             ${baseStyles}
+            ${helperScripts}
             ${contentStyles}
             ${kenBurnsStyles}
         </head>
         <body>
             ${processedHtml}
-            ${helperScripts}
         </body>
         </html>
     `;
