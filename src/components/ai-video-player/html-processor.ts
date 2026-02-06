@@ -1563,6 +1563,36 @@ function getHelperScripts(): string {
                 } catch (e) { console.warn('slideUp error', e); }
             };
 
+            // Rough Notation helper
+            window.annotate = function(selector, type, color, padding) {
+                if (window.RoughNotation) {
+                    try {
+                        const elements = document.querySelectorAll(selector);
+                        elements.forEach(el => {
+                            const annotation = RoughNotation.annotate(el, {
+                                type: type || 'underline',
+                                color: color || 'red',
+                                padding: padding || 5
+                            });
+                            annotation.show();
+                        });
+                    } catch (e) { console.warn('annotate error', e); }
+                }
+            };
+
+            // Vivus SVG animation helper
+            window.animateSVG = function(elementId, type, duration) {
+                if (window.Vivus) {
+                    try {
+                        new Vivus(elementId, {
+                            duration: duration || 200,
+                            type: type || 'oneByOne',
+                            start: 'autostart'
+                        });
+                    } catch (e) { console.warn('animateSVG error', e); }
+                }
+            };
+
             // Initialize on load
             window.addEventListener('load', () => {
                 if(window.gsap && window.MotionPathPlugin) gsap.registerPlugin(MotionPathPlugin);
