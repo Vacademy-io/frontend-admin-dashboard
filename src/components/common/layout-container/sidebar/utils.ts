@@ -253,7 +253,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemId: 'ai-copilot-sub',
             },
             {
-                subItem: 'Video API Studio',
+                subItem: 'Content Studio & API Access',
                 subItemLink: '/video-api-studio',
                 subItemId: 'video-api-studio',
             },
