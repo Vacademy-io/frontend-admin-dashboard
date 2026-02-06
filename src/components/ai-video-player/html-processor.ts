@@ -1581,14 +1581,25 @@ function getHelperScripts(): string {
             };
 
             // Vivus SVG animation helper
-            window.animateSVG = function(elementId, type, duration) {
+            // Vivus SVG animation helper
+            window.animateSVG = function(elementId, typeOrDuration, duration) {
                 if (window.Vivus) {
                     try {
-                        new Vivus(elementId, {
-                            duration: duration || 200,
-                            type: type || 'oneByOne',
-                            start: 'autostart'
-                        });
+                        let options = {
+                            start: 'autostart',
+                            type: 'oneByOne',
+                            duration: 200
+                        };
+
+                        // Handle overloaded arguments: (id, duration) vs (id, type, duration)
+                        if (typeof typeOrDuration === 'number') {
+                            options.duration = typeOrDuration;
+                        } else if (typeof typeOrDuration === 'string') {
+                            options.type = typeOrDuration;
+                            if (duration) options.duration = duration;
+                        }
+
+                        new Vivus(elementId, options);
                     } catch (e) { console.warn('animateSVG error', e); }
                 }
             };
