@@ -15,7 +15,7 @@ import { SlideGeneration, SessionProgress } from '../../../shared/types';
 import { fetchInstituteDetails } from '@/services/student-list-section/getInstituteDetails';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
+import { TokenKey, type IAccessToken } from '@/constants/auth/tokens';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { markdownToHtml } from '../../../shared/utils/markdownToHtml';
 
@@ -126,6 +126,36 @@ export async function createCourseWithContent(
             ? courseMetadata.courseBanner
             : '';
 
+    // Build add_faculty_to_course in same shape as study-library add-course (convertToApiCourseFormat)
+    // so instructor names show correctly. Use current logged-in user from token.
+    const currentUserId = tokenData?.user || '';
+    const token = tokenData as IAccessToken | undefined;
+    const addFacultyToCourse =
+        currentUserId && token?.email != null
+            ? [
+                  {
+                      user: {
+                          id: currentUserId,
+                          username: token?.username ?? '',
+                          email: token?.email ?? '',
+                          full_name: token?.fullname ?? token?.username ?? '',
+                          address_line: '',
+                          city: '',
+                          region: '',
+                          pin_code: '',
+                          mobile_number: '',
+                          date_of_birth: '',
+                          gender: '',
+                          password: '',
+                          profile_pic_file_id: '',
+                          roles: [],
+                          root_user: true,
+                      },
+                      new_user: false,
+                  },
+              ]
+            : [];
+
     const coursePayload = {
         id: '',
         new_course: true, // Required by backend - indicates this is a new course
@@ -147,7 +177,7 @@ export async function createCourseWithContent(
         course_depth: courseMetadata?.levelStructure || 2,
         // Required fields for course creation
         status: params.status || (isAdmin ? 'ACTIVE' : 'DRAFT'),
-        created_by_user_id: tokenData?.user || '',
+        created_by_user_id: currentUserId,
         original_course_id: null,
         version_number: 1,
         is_course_published_to_catalaouge: true,
@@ -166,7 +196,7 @@ export async function createCourseWithContent(
                         duration_in_days: 0,
                         thumbnail_file_id: '',
                         package_id: '',
-                        add_faculty_to_course: [],
+                        add_faculty_to_course: addFacultyToCourse,
                         group: {
                             id: 'DEFAULT',
                             group_name: 'DEFAULT',
