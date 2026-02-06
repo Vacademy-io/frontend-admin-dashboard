@@ -233,7 +233,7 @@ export const ContentEditorPanel: React.FC<ContentEditorPanelProps> = ({
                                 />
                             </div>
                         ) : (
-                            <div 
+                            <div
                                 className="p-6 prose prose-sm max-w-none"
                                 dangerouslySetInnerHTML={{ __html: documentContent || '<p>No content available</p>' }}
                             />
@@ -254,7 +254,7 @@ export const ContentEditorPanel: React.FC<ContentEditorPanelProps> = ({
                         ) : slide.aiVideoData?.timelineUrl ? (
                             <div className="text-center text-white">
                                 <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                <p className="text-sm">AI Video Generated</p>
+                                <p className="text-sm">AI Content Generated</p>
                                 <p className="text-xs text-neutral-400 mt-2">Video ID: {slide.aiVideoData.videoId}</p>
                             </div>
                         ) : (
@@ -369,7 +369,7 @@ export const ContentEditorPanel: React.FC<ContentEditorPanelProps> = ({
                         <div className="max-w-2xl mx-auto">
                             <div className="bg-neutral-50 rounded-lg p-6">
                                 <h4 className="text-lg font-medium text-neutral-900 mb-4">Assignment</h4>
-                                <div 
+                                <div
                                     className="prose prose-sm max-w-none"
                                     dangerouslySetInnerHTML={{ __html: slide.content || '<p>No assignment content</p>' }}
                                 />

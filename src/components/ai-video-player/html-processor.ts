@@ -91,6 +91,172 @@ function getBaseStyles(): string {
 }
 
 /**
+ * Get Ken Burns Effect Styles for Cinematic Video Generation
+ */
+function getKenBurnsStyles(): string {
+    return `
+        <style>
+            /* ===== KEN BURNS CINEMATIC ENGINE ===== */
+
+            /* IMAGE_HERO: Full-screen image background with text overlay */
+            .image-hero {
+              position: relative;
+              width: 100%;
+              height: 100%;
+              overflow: hidden;
+            }
+
+            .image-hero > img {
+              position: absolute;
+              inset: 0;
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              transform-origin: center;
+              will-change: transform;
+              animation-duration: var(--kb-duration, 12s);
+              animation-timing-function: linear;
+              animation-fill-mode: both;
+            }
+
+            /* Text overlay container — sits on top of image */
+            .image-text-overlay {
+              position: absolute;
+              inset: 0;
+              display: flex;
+              flex-direction: column;
+              justify-content: flex-end;
+              padding: 80px 100px;
+              z-index: 2;
+            }
+            .image-text-overlay > * { position: relative; z-index: 1; }
+
+            /* Gradient scrim for text legibility */
+            .image-text-overlay.gradient-bottom::before,
+            .image-text-overlay:not([class*="gradient-"])::before {
+              content: "";
+              position: absolute;
+              inset: 0;
+              background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 40%, transparent 70%);
+              pointer-events: none;
+              z-index: 0;
+            }
+            .image-text-overlay.gradient-full::before {
+              content: "";
+              position: absolute; inset: 0;
+              background: rgba(0,0,0,0.45);
+              pointer-events: none; z-index: 0;
+            }
+            .image-text-overlay.gradient-center {
+              justify-content: center;
+              align-items: center;
+              text-align: center;
+            }
+            .image-text-overlay.gradient-center::before {
+              content: "";
+              position: absolute; inset: 0;
+              background: radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 70%);
+              pointer-events: none; z-index: 0;
+            }
+
+            /* Hero text typography */
+            .image-text-overlay h1, .image-text-overlay .hero-title {
+              font-family: 'Montserrat', sans-serif;
+              font-size: 64px; font-weight: 800;
+              color: #fff; line-height: 1.1;
+              margin: 0 0 16px 0;
+              text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+            }
+            .image-text-overlay p, .image-text-overlay .hero-subtitle {
+              font-family: 'Inter', sans-serif;
+              font-size: 28px; color: rgba(255,255,255,0.9);
+              line-height: 1.4; margin: 0; max-width: 800px;
+            }
+
+            /* IMAGE_SPLIT: Image one side, text the other */
+            .image-split-layout {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              width: 100%; height: 100%;
+              overflow: hidden;
+            }
+            .image-split-layout .split-image {
+              position: relative; overflow: hidden;
+            }
+            .image-split-layout .split-image img {
+              width: 100%; height: 100%;
+              object-fit: cover;
+              will-change: transform;
+              animation-duration: var(--kb-duration, 12s);
+              animation-timing-function: linear;
+              animation-fill-mode: both;
+            }
+            .image-split-layout .split-text {
+              display: flex; flex-direction: column;
+              justify-content: center; padding: 60px 80px;
+            }
+
+            /* LOWER_THIRD: Key term banner */
+            .lower-third {
+              position: absolute;
+              bottom: 120px; left: 100px;
+              display: flex; align-items: stretch;
+              animation: ltSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              z-index: 20;
+            }
+            .lower-third .lt-accent-bar {
+              width: 6px;
+              background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+              border-radius: 3px 0 0 3px;
+            }
+            .lower-third .lt-content {
+              background: rgba(0,0,0,0.85);
+              padding: 16px 32px;
+              border-radius: 0 8px 8px 0;
+              display: flex; flex-direction: column; gap: 4px;
+            }
+            .lower-third .lt-label {
+              font-family: 'Fira Code', monospace;
+              font-size: 12px; text-transform: uppercase;
+              letter-spacing: 0.15em; color: #3b82f6; font-weight: 600;
+            }
+            .lower-third .lt-text {
+              font-family: 'Inter', sans-serif;
+              font-size: 24px; color: #fff; font-weight: 600;
+            }
+            @keyframes ltSlideIn {
+              from { transform: translateX(-40px); opacity: 0; }
+              to   { transform: translateX(0); opacity: 1; }
+            }
+
+            /* Ken Burns motion keyframes */
+            .kb-zoom-in     { animation-name: kbZoomIn; }
+            .kb-zoom-out    { animation-name: kbZoomOut; }
+            .kb-pan-left    { animation-name: kbPanLeft; }
+            .kb-pan-right   { animation-name: kbPanRight; }
+            .kb-pan-up      { animation-name: kbPanUp; }
+            .kb-zoom-pan-tl { animation-name: kbZoomPanTL; }
+
+            @keyframes kbZoomIn    { from { transform: scale(1.0); }  to { transform: scale(1.15); } }
+            @keyframes kbZoomOut   { from { transform: scale(1.20); } to { transform: scale(1.05); } }
+            @keyframes kbPanLeft   { from { transform: scale(1.15) translateX(3%); }  to { transform: scale(1.15) translateX(-3%); } }
+            @keyframes kbPanRight  { from { transform: scale(1.15) translateX(-3%); } to { transform: scale(1.15) translateX(3%); } }
+            @keyframes kbPanUp     { from { transform: scale(1.15) translateY(3%); }  to { transform: scale(1.15) translateY(-3%); } }
+            @keyframes kbZoomPanTL { from { transform: scale(1.0) translate(2%, 2%); } to { transform: scale(1.15) translate(-2%, -2%); } }
+
+            /* Shot-level crossfade entrance */
+            .shot-enter {
+              animation: shotFadeIn 0.6s ease-out forwards;
+            }
+            @keyframes shotFadeIn {
+              from { opacity: 0; }
+              to   { opacity: 1; }
+            }
+        </style>
+    `;
+}
+
+/**
  * Get print-specific styles for WORKSHEET content
  */
 function getWorksheetStyles(): string {
@@ -1669,8 +1835,9 @@ export function generateFlashcardHtml(entry: Entry, index: number, entries: Entr
                 );
 
                 // Auto-unwrap if there is a single container div (common in some editors)
-                if (blocks.length === 1 && blocks[0]!.children.length > 0) {
-                    blocks = Array.from(blocks[0]!.children).filter(
+                const firstBlock = blocks[0];
+                if (blocks.length === 1 && firstBlock && firstBlock.children.length > 0) {
+                    blocks = Array.from(firstBlock.children).filter(
                         (el) =>
                             el.tagName !== 'SCRIPT' &&
                             el.tagName !== 'STYLE' &&
@@ -1679,15 +1846,15 @@ export function generateFlashcardHtml(entry: Entry, index: number, entries: Entr
                 }
 
                 if (blocks.length >= 2) {
-                    if (!title) title = blocks[0]!.textContent?.trim();
+                    if (!title) title = blocks[0]?.textContent?.trim();
                     if (!description)
                         description = blocks
                             .slice(1)
                             .map((el) => el.outerHTML)
                             .join('');
-                } else if (blocks.length === 1) {
+                } else if (blocks.length === 1 && blocks[0]) {
                     // Only one block found. Is it split by a newline or question mark?
-                    const text = blocks[0]!.textContent?.trim() || '';
+                    const text = blocks[0].textContent?.trim() || '';
                     if (!title) {
                         // Heuristic: If it contains a '?' and looks like a question, treat the rest as answer?
                         // Or just treat it as title.
@@ -2001,9 +2168,11 @@ export function processHtmlContent(
     // Fix any absolute file paths
     processedHtml = processedHtml.replace(/file:\/\/\/.*\/generated_images\//g, '');
 
-    // Remove opacity:0 from inline styles (backend sets these for animations, but they fail if GSAP doesn't load)
-    // Match patterns like: style="opacity:0;" or style="opacity: 0; other-styles"
-    processedHtml = processedHtml.replace(/opacity\s*:\s*0\s*;?/gi, '');
+    // Only strip opacity:0 if there's no <script> tag to animate it back
+    const hasScript = /<script[\s>]/i.test(processedHtml);
+    if (!hasScript) {
+        processedHtml = processedHtml.replace(/opacity\s*:\s*0\s*;?/gi, '');
+    }
 
     // Build the complete HTML with appropriate libraries and styles
     const libs = getCommonLibraries();
@@ -2017,6 +2186,10 @@ export function processHtmlContent(
 
     // Add content-type specific styles and scripts
     let contentStyles = '';
+    let kenBurnsStyles = '';
+    if (contentType === 'VIDEO') {
+        kenBurnsStyles = getKenBurnsStyles();
+    }
     switch (contentType) {
         case 'WORKSHEET':
             contentStyles = getWorksheetStyles();
@@ -2043,6 +2216,25 @@ export function processHtmlContent(
             break;
     }
 
+    if (contentType === 'VIDEO') {
+        // Find img tags with data-ken-burns attribute and add the CSS class
+        processedHtml = processedHtml.replace(
+            /(<img[^>]*)\bdata-ken-burns="([\w-]+)"([^>]*>)/gi,
+            (match, before, motion, after) => {
+                const className = `kb-${motion}`;
+                // If tag already has class attr, append; otherwise add
+                if (/class="/.test(before)) {
+                    return (
+                        before.replace(/class="([^"]*)"/, `class="$1 ${className}"`) +
+                        `data-ken-burns="${motion}"` +
+                        after
+                    );
+                }
+                return `${before} class="${className}" data-ken-burns="${motion}"${after}`;
+            }
+        );
+    }
+
     return `
         <!DOCTYPE html>
         <html>
@@ -2052,6 +2244,7 @@ export function processHtmlContent(
             ${libs}
             ${baseStyles}
             ${contentStyles}
+            ${kenBurnsStyles}
         </head>
         <body>
             ${processedHtml}

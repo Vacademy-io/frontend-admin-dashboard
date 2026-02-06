@@ -105,7 +105,7 @@ function VideoApiStudio() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-                            AI Video API Studio
+                            AI Content API Studio
                         </h1>
                         <p className="text-muted-foreground mt-1">
                             Manage your API keys and access video generation APIs
@@ -208,7 +208,7 @@ function VideoApiStudio() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <BookOpen className="h-5 w-5" />
-                                    Vacademy AI Video Generation API
+                                    Vacademy AI Content Generation API
                                 </CardTitle>
                                 <CardDescription>
                                     Generate high-quality AI videos from text prompts
