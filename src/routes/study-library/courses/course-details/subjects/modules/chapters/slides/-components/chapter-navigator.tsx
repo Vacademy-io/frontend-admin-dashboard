@@ -61,7 +61,7 @@ export const ChapterNavigator = ({
     const filteredChapters = useMemo(() => {
         if (!searchQuery.trim()) return chapters;
         const query = searchQuery.toLowerCase();
-        return chapters.filter((ch) => ch.chapter.chapter_name.toLowerCase().includes(query));
+        return chapters.filter((ch) => (ch.chapter?.chapter_name ?? '').toLowerCase().includes(query));
     }, [chapters, searchQuery]);
 
     // Navigation handlers

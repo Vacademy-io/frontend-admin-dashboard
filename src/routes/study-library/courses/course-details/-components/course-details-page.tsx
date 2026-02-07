@@ -1339,10 +1339,11 @@ export const CourseDetailsPage = () => {
                                             </div>
                                         ) : null}
                                         {coursePage?.viewCourseOverviewItem !== false &&
-                                            slideCountQuery.data?.map((count: SlideCountType) => {
+                                            slideCountQuery.data?.map((count: SlideCountType, countIndex: number) => {
                                                 // Helper function to get slide type display name and icon
-                                                const getSlideTypeInfo = (sourceType: string) => {
-                                                    switch (sourceType) {
+                                                const getSlideTypeInfo = (sourceType: string | null | undefined) => {
+                                                    const safeType = sourceType && typeof sourceType === 'string' ? sourceType : '';
+                                                    switch (safeType) {
                                                         case 'VIDEO':
                                                             return {
                                                                 icon: (
@@ -1461,13 +1462,9 @@ export const CourseDetailsPage = () => {
                                                                         className="shrink-0 text-gray-600"
                                                                     />
                                                                 ),
-                                                                name:
-                                                                    sourceType
-                                                                        .charAt(0)
-                                                                        .toUpperCase() +
-                                                                    sourceType
-                                                                        .slice(1)
-                                                                        .toLowerCase(),
+                                                                name: safeType
+                                                                    ? safeType.charAt(0).toUpperCase() + safeType.slice(1).toLowerCase()
+                                                                    : 'Slide',
                                                                 color: 'text-gray-500',
                                                             };
                                                     }
@@ -1479,7 +1476,7 @@ export const CourseDetailsPage = () => {
 
                                                 return (
                                                     <div
-                                                        key={count.source_type}
+                                                        key={count.source_type ?? `slide-type-${countIndex}`}
                                                         className="flex items-center gap-2"
                                                     >
                                                         {slideTypeInfo.icon}

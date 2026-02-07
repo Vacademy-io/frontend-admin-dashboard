@@ -36,27 +36,29 @@ interface FormValues {
 
 // Function to get the display text for slide type
 const getSlideTypeDisplay = (slide: Slide): string => {
+    const sourceType = slide.source_type ?? '';
     // For HTML_VIDEO slides, show "HTML Video"
-    if (slide.source_type === 'HTML_VIDEO') {
+    if (sourceType === 'HTML_VIDEO') {
         return 'HTML Video';
     }
 
     // For DOCUMENT slides with specific sub-types (not DOC), show just the sub-type
     if (
-        slide.source_type === 'DOCUMENT' &&
+        sourceType === 'DOCUMENT' &&
         slide.document_slide?.type &&
         slide.document_slide.type !== 'DOC'
     ) {
-        return slide.document_slide.type.toLowerCase().replace('_', ' ');
+        return (slide.document_slide.type ?? '').toLowerCase().replace('_', ' ');
     }
 
     // For VIDEO slides with embedded_type, show the embedded_type
-    if (slide.source_type === 'VIDEO' && slide.video_slide?.embedded_type) {
-        return `${slide.source_type.toLowerCase().replace('_', ' ')} - ${slide.video_slide.embedded_type.toLowerCase().replace('_', ' ')}`;
+    if (sourceType === 'VIDEO' && slide.video_slide?.embedded_type) {
+        const embedded = slide.video_slide.embedded_type ?? '';
+        return `${sourceType.toLowerCase().replace('_', ' ')} - ${embedded.toLowerCase().replace('_', ' ')}`;
     }
 
     // For all other cases, show the main source_type
-    return slide.source_type.toLowerCase().replace('_', ' ');
+    return sourceType ? sourceType.toLowerCase().replace('_', ' ') : 'Slide';
 };
 
 export const getIcon = (
@@ -258,8 +260,8 @@ const SlideItem = ({
                                 <div className="space-y-1">
                                     <p className="font-medium">{getSlideTitle()}</p>
                                     <p className="text-xs capitalize text-neutral-500">
-                                        {slide.source_type.toLowerCase().replace('_', ' ')} •{' '}
-                                        {slide.status.toLowerCase()}
+                                        {(slide.source_type ?? '').toLowerCase().replace('_', ' ')} •{' '}
+                                        {(slide.status ?? '').toLowerCase()}
                                     </p>
                                 </div>
                             </TooltipContent>

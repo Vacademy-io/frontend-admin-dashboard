@@ -541,24 +541,24 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                             {/* Submit for Review */}
                                             <MyButton
                                                 onClick={() => handleSubmitForReview(course.courseId)}
-                                                className="flex size-9 items-center justify-center rounded-md border border-green-200 bg-green-50 text-green-600 transition-colors hover:border-green-300 hover:bg-green-100 active:scale-95"
+                                                className="flex size-9 items-center justify-center rounded-md border-2 border-green-500 bg-green-600 text-white transition-colors hover:border-green-600 hover:bg-green-700 active:scale-95 [&_svg]:text-white"
                                                 disabled={submitReviewMutation.isPending}
                                                 title="Submit for Review"
                                             >
                                                 {submitReviewMutation.isPending ? (
                                                     <CircleNotch size={18} className="animate-spin" />
                                                 ) : (
-                                                    <PaperPlaneTilt size={18} />
+                                                    <PaperPlaneTilt size={18} weight="fill" />
                                                 )}
                                             </MyButton>
 
                                             {/* History */}
                                             <MyButton
                                                 onClick={() => setHistoryDialogCourseId(course.courseId)}
-                                                className="flex size-9 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-blue-600 transition-colors hover:border-blue-300 hover:bg-blue-100 active:scale-95"
+                                                className="flex size-9 items-center justify-center rounded-md border-2 border-blue-500 bg-blue-600 text-white transition-colors hover:border-blue-600 hover:bg-blue-700 active:scale-95 [&_svg]:text-white"
                                                 title="View History"
                                             >
-                                                <ClockCounterClockwise size={18} />
+                                                <ClockCounterClockwise size={18} weight="fill" />
                                             </MyButton>
                                         </>
                                     )}
