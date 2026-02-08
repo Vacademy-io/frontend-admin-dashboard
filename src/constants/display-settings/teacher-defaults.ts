@@ -92,6 +92,7 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
     ui: {
         showSupportButton: true,
         showSidebar: true,
+        showAiCredits: false,
     },
     contentTypes: {
         pdf: true,

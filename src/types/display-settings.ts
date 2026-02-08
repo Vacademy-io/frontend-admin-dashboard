@@ -156,6 +156,7 @@ export interface DisplaySettingsData {
         showSupportButton: boolean;
         // Controls whether the left sidebar is shown for this role
         showSidebar?: boolean;
+        showAiCredits?: boolean;
     };
 
     // 7) Course content types (slides) visibility
