@@ -59,6 +59,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { scrapeUrlContent } from '@/services/aiCourseApi';
 import { Loader2 } from 'lucide-react';
+import { useAIModelsList } from '@/hooks/useAiModels';
 
 export const Route = createLazyFileRoute('/study-library/ai-copilot/')({
     component: RouteComponent,
@@ -169,6 +170,9 @@ function RouteComponent() {
     const [geminiKey, setGeminiKey] = useState('');
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [usageData, setUsageData] = useState<any>(null);
+
+    // ... (previous code)
+
     const [userKeysStatus, setUserKeysStatus] = useState<{
         hasKeys: boolean;
         hasOpenAI: boolean;
@@ -178,8 +182,8 @@ function RouteComponent() {
         hasOpenAI: false,
         hasGemini: false,
     });
-    const [models, setModels] = useState<Array<{ id: string; name: string; provider: string }>>([]);
-    const [isLoadingModels, setIsLoadingModels] = useState(false);
+
+    const { data: modelsList, isLoading: isLoadingModels } = useAIModelsList();
     const [isScraping, setIsScraping] = useState(false);
 
     // Dialog states for bubbles
@@ -246,25 +250,6 @@ function RouteComponent() {
     useEffect(() => {
         fetchUsage();
     }, [fetchUsage]);
-
-    // Fetch models list
-    const fetchModels = useCallback(async () => {
-        setIsLoadingModels(true);
-        try {
-            const response = await authenticatedAxiosInstance.get<{
-                models: Array<{ id: string; name: string; provider: string }>;
-            }>(`${AI_SERVICE_BASE_URL}/models/v1/list`);
-            setModels(response.data.models || []);
-        } catch (error) {
-            console.error('Error fetching models:', error);
-        } finally {
-            setIsLoadingModels(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchModels();
-    }, [fetchModels]);
 
     const handleSaveUserKey = async (type: 'openai' | 'gemini') => {
         if (!userId) return;
@@ -751,9 +736,9 @@ function RouteComponent() {
                                         <div className="px-2 py-1.5 text-xs text-gray-500">
                                             Loading...
                                         </div>
-                                    ) : models.length > 0 ? (
-                                        models.map((model) => (
-                                            <SelectItem key={model.id} value={model.id}>
+                                    ) : modelsList && modelsList.models.length > 0 ? (
+                                        modelsList.models.map((model) => (
+                                            <SelectItem key={model.model_id} value={model.model_id}>
                                                 {model.name}
                                             </SelectItem>
                                         ))

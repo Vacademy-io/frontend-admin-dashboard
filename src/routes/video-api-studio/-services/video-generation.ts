@@ -207,34 +207,6 @@ export interface HistoryItem {
 
 const HISTORY_STORAGE_KEY = 'vacademy_video_generation_history';
 
-export const AVAILABLE_MODELS = [
-    // Free Models
-    { id: 'xiaomi/mimo-v2-flash:free', name: 'MIMO v2 Flash (Free)', tier: 'free' },
-    { id: 'mistralai/devstral-2512:free', name: 'Devstral 2512 (Free)', tier: 'free' },
-    { id: 'nvidia/nemotron-3-nano-30b-a3b:free', name: 'Nemotron 3 Nano (Free)', tier: 'free' },
-    { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash Exp (Free)', tier: 'free' },
-    // OpenAI Models
-    { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', tier: 'openai' },
-    { id: 'openai/gpt-4o', name: 'GPT-4o', tier: 'openai' },
-    { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', tier: 'openai' },
-    { id: 'openai/gpt-3.5-turbo', name: 'GPT-3.5 Turbo', tier: 'openai' },
-    // Gemini Models
-    { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', tier: 'gemini' },
-    { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', tier: 'gemini' },
-    { id: 'google/gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image', tier: 'gemini' },
-    { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', tier: 'gemini' },
-    { id: 'google/gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', tier: 'gemini' },
-    { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro Preview', tier: 'gemini' },
-    // OpenRouter / Other Paid Models
-    { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', tier: 'paid' },
-    { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', tier: 'paid' },
-    { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5', tier: 'paid' },
-    { id: 'x-ai/grok-code-fast-1', name: 'Grok Code Fast 1', tier: 'paid' },
-    { id: 'deepseek/deepseek-v3.2', name: 'DeepSeek V3.2', tier: 'paid' },
-    { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', tier: 'paid' },
-    { id: 'x-ai/grok-4.1-fast', name: 'Grok 4.1 Fast', tier: 'paid' },
-] as const;
-
 export const LANGUAGES = [
     // Global
     { value: 'English (US)', label: 'English (US)', group: 'Global' },

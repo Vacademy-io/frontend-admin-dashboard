@@ -6,12 +6,11 @@ import { Sparkles } from 'lucide-react';
 // import useIntroJsTour from '@/hooks/use-intro';
 // import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 // import { studyLibrarySteps } from '@/constants/intro/steps';
-import { CourseCatalog } from '@/svgs';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import type { LevelType } from '@/schemas/student/student-list/institute-schema';
 // import { handleGetInstituteUsersForAccessControl } from '@/routes/dashboard/-services/dashboard-services';
-import { useSuspenseQuery, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useFacultyCreatorsList } from '@/routes/dashboard/-hooks/useTeacherList';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
@@ -105,9 +104,29 @@ export interface AllCoursesApiResponse {
 
 interface CourseMaterialProps {
     initialSelectedTab?: 'AuthoredCourses' | 'AllCourses' | 'CourseInReview' | 'CourseApproval';
+    initialAction?: string;
 }
 
-export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {}) => {
+export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMaterialProps = {}) => {
+    const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+
+    // Sync initialAction with dialog state
+    useEffect(() => {
+        if (initialAction === 'create') {
+            setIsAddCourseOpen(true);
+        }
+    }, [initialAction]);
+
+    const handleAddCourseOpenChange = (open: boolean) => {
+        setIsAddCourseOpen(open);
+        if (!open && initialAction === 'create') {
+            navigate({
+                to: '/study-library/courses',
+                search: (prev: any) => ({ ...prev, action: undefined }),
+                replace: true,
+            });
+        }
+    };
     const deleteCourseMutation = useDeleteCourse();
     const { instituteDetails } = useInstituteDetailsStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -141,7 +160,8 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
     } = useFacultyCreatorsList(instituteDetails?.id || '', Boolean(instituteDetails?.id));
 
     // Determine if we should use fallback API
-    const shouldUseFallback = facultyCreators && Array.isArray(facultyCreators) && facultyCreators.length === 0;
+    const shouldUseFallback =
+        facultyCreators && Array.isArray(facultyCreators) && facultyCreators.length === 0;
 
     // Fallback to old API only when faculty creators is empty
     // const { data: fallbackUsers } = useQuery({
@@ -606,7 +626,7 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
             {/* Header section - responsive layout */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-col gap-1">
-                    <div className="text-lg font-semibold sm:text-h5">
+                    <div className="sm:text-h5 text-lg font-semibold">
                         Explore {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
                     </div>
                     <div className="text-xs text-neutral-500 sm:text-sm">
@@ -636,10 +656,10 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
                 onValueChange={(value) =>
                     handleTabChange(
                         value as
-                        | 'AuthoredCourses'
-                        | 'AllCourses'
-                        | 'CourseInReview'
-                        | 'CourseApproval'
+                            | 'AuthoredCourses'
+                            | 'AllCourses'
+                            | 'CourseInReview'
+                            | 'CourseApproval'
                     )
                 }
             >
@@ -649,7 +669,7 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
                         <TabsTrigger
                             key={tab.key}
                             value={tab.key}
-                            className={`-mb-px flex-shrink-0 whitespace-nowrap rounded-none border-b-2 px-2 py-2 text-xs font-semibold !shadow-none sm:px-0 sm:text-sm
+                            className={`-mb-px shrink-0 whitespace-nowrap rounded-none border-b-2 p-2 text-xs font-semibold !shadow-none sm:px-0 sm:text-sm
                                 ${selectedTab === tab.key ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
                         >
                             <span className={selectedTab === tab.key ? 'text-primary-500' : ''}>

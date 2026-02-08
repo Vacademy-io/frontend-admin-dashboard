@@ -1,10 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SidebarItemsData } from '@/components/common/layout-container/sidebar/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { MyButton } from '@/components/design-system/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import type { DisplaySettingsData } from '@/types/display-settings';
 import { TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
 import { getDisplaySettingsWithFallback, saveDisplaySettings } from '@/services/display-settings';
@@ -45,54 +54,54 @@ const STUDENT_SIDE_VIEW_OPTIONS: Array<{
     label: string;
     defaultValue: boolean;
 }> = [
-        {
-            key: 'overviewTab',
-            label: 'Overview Tab',
-            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.overviewTab,
-        },
-        { key: 'testTab', label: 'Test Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.testTab },
-        {
-            key: 'progressTab',
-            label: 'Progress Tab',
-            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.progressTab,
-        },
-        {
-            key: 'notificationTab',
-            label: 'Notification Tab',
-            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.notificationTab,
-        },
-        {
-            key: 'membershipTab',
-            label: 'Membership Tab',
-            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.membershipTab,
-        },
-        {
-            key: 'paymentHistoryTab',
-            label: 'Payment History Tab',
-            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.paymentHistoryTab,
-        },
-        {
-            key: 'userTaggingTab',
-            label: 'User Tagging Tab',
-            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.userTaggingTab,
-        },
-        { key: 'fileTab', label: 'File Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.fileTab },
-        {
-            key: 'portalAccessTab',
-            label: 'Portal Access Tab',
-            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.portalAccessTab,
-        },
-        {
-            key: 'reportsTab',
-            label: 'Reports Tab',
-            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.reportsTab,
-        },
-        {
-            key: 'enrollDerollTab',
-            label: 'Enroll/Deroll Tab',
-            defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.enrollDerollTab,
-        },
-    ];
+    {
+        key: 'overviewTab',
+        label: 'Overview Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.overviewTab,
+    },
+    { key: 'testTab', label: 'Test Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.testTab },
+    {
+        key: 'progressTab',
+        label: 'Progress Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.progressTab,
+    },
+    {
+        key: 'notificationTab',
+        label: 'Notification Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.notificationTab,
+    },
+    {
+        key: 'membershipTab',
+        label: 'Membership Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.membershipTab,
+    },
+    {
+        key: 'paymentHistoryTab',
+        label: 'Payment History Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.paymentHistoryTab,
+    },
+    {
+        key: 'userTaggingTab',
+        label: 'User Tagging Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.userTaggingTab,
+    },
+    { key: 'fileTab', label: 'File Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.fileTab },
+    {
+        key: 'portalAccessTab',
+        label: 'Portal Access Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.portalAccessTab,
+    },
+    {
+        key: 'reportsTab',
+        label: 'Reports Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.reportsTab,
+    },
+    {
+        key: 'enrollDerollTab',
+        label: 'Enroll/Deroll Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.enrollDerollTab,
+    },
+];
 
 const LEARNER_MANAGEMENT_DEFAULTS: LearnerManagementSettings = {
     allowPortalAccess: true,
@@ -105,27 +114,28 @@ const LEARNER_MANAGEMENT_OPTIONS: Array<{
     label: string;
     defaultValue: boolean;
 }> = [
-        {
-            key: 'allowPortalAccess',
-            label: 'Allow Learner Portal Access',
-            defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowPortalAccess,
-        },
-        {
-            key: 'allowViewPassword',
-            label: 'Allow Viewing Learner Password',
-            defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowViewPassword,
-        },
-        {
-            key: 'allowSendResetPasswordMail',
-            label: 'Allow Sending Reset Password Mail',
-            defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowSendResetPasswordMail,
-        },
-    ];
+    {
+        key: 'allowPortalAccess',
+        label: 'Allow Learner Portal Access',
+        defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowPortalAccess,
+    },
+    {
+        key: 'allowViewPassword',
+        label: 'Allow Viewing Learner Password',
+        defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowViewPassword,
+    },
+    {
+        key: 'allowSendResetPasswordMail',
+        label: 'Allow Sending Reset Password Mail',
+        defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowSendResetPasswordMail,
+    },
+];
 
 export default function TeacherDisplaySettings() {
     const [settings, setSettings] = useState<DisplaySettingsData | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
+    const [activeCategory, setActiveCategory] = useState<'CRM' | 'LMS' | 'AI'>('CRM');
 
     useEffect(() => {
         const run = async () => {
@@ -485,8 +495,8 @@ export default function TeacherDisplaySettings() {
                         const enforcedVisible = isForcedVisible
                             ? true
                             : isForcedHidden
-                                ? false
-                                : cfg.visible;
+                              ? false
+                              : cfg.visible;
                         return (
                             <div
                                 key={id}
@@ -505,9 +515,9 @@ export default function TeacherDisplaySettings() {
                                                     tabs: (prev.courseList?.tabs || []).map((t) =>
                                                         t.id === id
                                                             ? {
-                                                                ...t,
-                                                                order: Number(e.target.value),
-                                                            }
+                                                                  ...t,
+                                                                  order: Number(e.target.value),
+                                                              }
                                                             : t
                                                     ),
                                                     defaultTab:
@@ -609,9 +619,9 @@ export default function TeacherDisplaySettings() {
                                                         (t) =>
                                                             t.id === id
                                                                 ? {
-                                                                    ...t,
-                                                                    order: Number(e.target.value),
-                                                                }
+                                                                      ...t,
+                                                                      order: Number(e.target.value),
+                                                                  }
                                                                 : t
                                                     ),
                                                     defaultTab:
@@ -708,253 +718,583 @@ export default function TeacherDisplaySettings() {
             </Card>
             <Card>
                 <CardHeader>
+                    <CardTitle>Sidebar Categories</CardTitle>
+                    <CardDescription>
+                        Configure visibility, order, and default category for the sidebar.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {(['CRM', 'LMS', 'AI'] as const).map((id) => {
+                        const categories = settings.sidebarCategories || [
+                            { id: 'CRM', visible: true, default: true, order: 0 },
+                            { id: 'LMS', visible: true, default: false, order: 1 },
+                            { id: 'AI', visible: true, default: false, order: 2 },
+                        ];
+                        const cfg = categories.find((c) => c.id === id) || {
+                            id,
+                            visible: true,
+                            default: id === 'CRM',
+                            order: 0,
+                        };
+
+                        return (
+                            <div
+                                key={id}
+                                className="grid grid-cols-1 items-center gap-3 rounded border p-3 md:grid-cols-5"
+                            >
+                                <div className="col-span-2 text-sm font-medium">
+                                    {id === 'AI' ? 'AI Tools' : id}
+                                </div>
+                                <div>
+                                    <Label>Order</Label>
+                                    <Input
+                                        type="number"
+                                        value={cfg.order ?? 0}
+                                        onChange={(e) => {
+                                            const newOrder = Number(e.target.value);
+                                            updateSettings((prev) => {
+                                                const currentCats = prev.sidebarCategories || [
+                                                    {
+                                                        id: 'CRM',
+                                                        visible: true,
+                                                        default: true,
+                                                        order: 0,
+                                                    },
+                                                    {
+                                                        id: 'LMS',
+                                                        visible: true,
+                                                        default: false,
+                                                        order: 1,
+                                                    },
+                                                    {
+                                                        id: 'AI',
+                                                        visible: true,
+                                                        default: false,
+                                                        order: 2,
+                                                    },
+                                                ];
+                                                // Ensure all likely categories exist in array if not present
+                                                const baseIds = ['CRM', 'LMS', 'AI'] as const;
+                                                let newCats = [...currentCats];
+
+                                                // If currentCats is missing some IDs, add them
+                                                baseIds.forEach((bid) => {
+                                                    if (!newCats.find((c) => c.id === bid)) {
+                                                        newCats.push({
+                                                            id: bid,
+                                                            visible: true,
+                                                            default: bid === 'CRM',
+                                                            order: 0,
+                                                        });
+                                                    }
+                                                });
+
+                                                newCats = newCats.map((c) =>
+                                                    c.id === id ? { ...c, order: newOrder } : c
+                                                );
+
+                                                return { ...prev, sidebarCategories: newCats };
+                                            });
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2 pt-6">
+                                    <Select
+                                        value={
+                                            cfg.visible === false
+                                                ? 'hidden'
+                                                : cfg.locked
+                                                  ? 'locked'
+                                                  : 'visible'
+                                        }
+                                        onValueChange={(value) => {
+                                            updateSettings((prev) => {
+                                                const currentCats = prev.sidebarCategories || [
+                                                    {
+                                                        id: 'CRM',
+                                                        visible: true,
+                                                        default: true,
+                                                        order: 0,
+                                                    },
+                                                    {
+                                                        id: 'LMS',
+                                                        visible: true,
+                                                        default: false,
+                                                        order: 1,
+                                                    },
+                                                    {
+                                                        id: 'AI',
+                                                        visible: true,
+                                                        default: false,
+                                                        order: 2,
+                                                    },
+                                                ];
+                                                const baseIds = ['CRM', 'LMS', 'AI'] as const;
+                                                let newCats = [...currentCats];
+                                                baseIds.forEach((bid) => {
+                                                    if (!newCats.find((c) => c.id === bid)) {
+                                                        newCats.push({
+                                                            id: bid,
+                                                            visible: true,
+                                                            default: bid === 'CRM',
+                                                            order: 0,
+                                                        });
+                                                    }
+                                                });
+
+                                                newCats = newCats.map((c) => {
+                                                    if (c.id !== id) return c;
+                                                    if (value === 'hidden') {
+                                                        return {
+                                                            ...c,
+                                                            visible: false,
+                                                            locked: false,
+                                                        };
+                                                    }
+                                                    if (value === 'locked') {
+                                                        return {
+                                                            ...c,
+                                                            visible: true,
+                                                            locked: true,
+                                                        };
+                                                    }
+                                                    return { ...c, visible: true, locked: false };
+                                                });
+                                                return { ...prev, sidebarCategories: newCats };
+                                            });
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-[100px]">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="visible">Visible</SelectItem>
+                                            <SelectItem value="hidden">Hidden</SelectItem>
+                                            <SelectItem value="locked">Locked</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="pt-6">
+                                    <label className="flex items-center gap-2 text-sm">
+                                        <input
+                                            type="radio"
+                                            name="sidebar-category-default"
+                                            checked={cfg.default}
+                                            onChange={() => {
+                                                updateSettings((prev) => {
+                                                    const currentCats = prev.sidebarCategories || [
+                                                        {
+                                                            id: 'CRM',
+                                                            visible: true,
+                                                            default: true,
+                                                            order: 0,
+                                                        },
+                                                        {
+                                                            id: 'LMS',
+                                                            visible: true,
+                                                            default: false,
+                                                            order: 1,
+                                                        },
+                                                        {
+                                                            id: 'AI',
+                                                            visible: true,
+                                                            default: false,
+                                                            order: 2,
+                                                        },
+                                                    ];
+                                                    const baseIds = ['CRM', 'LMS', 'AI'] as const;
+                                                    let newCats = [...currentCats];
+                                                    baseIds.forEach((bid) => {
+                                                        if (!newCats.find((c) => c.id === bid)) {
+                                                            newCats.push({
+                                                                id: bid,
+                                                                visible: true,
+                                                                default: bid === 'CRM',
+                                                                order: 0,
+                                                            });
+                                                        }
+                                                    });
+
+                                                    // Set only one default
+                                                    newCats = newCats.map((c) => ({
+                                                        ...c,
+                                                        default: c.id === id,
+                                                    }));
+                                                    return { ...prev, sidebarCategories: newCats };
+                                                });
+                                            }}
+                                        />
+                                        Default
+                                    </label>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
                     <CardTitle>Sidebar Tabs</CardTitle>
                     <CardDescription>
                         Order and toggle visibility. Settings tab is always hidden for Teachers.
                     </CardDescription>
                 </CardHeader>
+                {/* Assuming activeCategory state is declared here or in the parent component */}
+                {/* For example: const [activeCategory, setActiveCategory] = useState<'LMS' | 'CRM' | 'AI'>('CRM'); */}
                 <CardContent className="space-y-3">
-                    {settings.sidebar
-                        .slice()
-                        .sort((a, b) => a.order - b.order)
-                        .map((tab) => (
-                            <div key={tab.id} className="rounded border p-3">
-                                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:items-center">
-                                    <div className="col-span-2">
-                                        <Label>Tab Name</Label>
-                                        <Input
-                                            value={tab.label || ''}
-                                            onChange={(e) =>
-                                                updateSettings((prev) => ({
-                                                    ...prev,
-                                                    sidebar: prev.sidebar.map((t) =>
-                                                        t.id === tab.id
-                                                            ? { ...t, label: e.target.value }
-                                                            : t
-                                                    ),
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label>Order</Label>
-                                        <Input
-                                            type="number"
-                                            value={tab.order}
-                                            onChange={(e) =>
-                                                updateSettings((prev) => ({
-                                                    ...prev,
-                                                    sidebar: prev.sidebar.map((t) =>
-                                                        t.id === tab.id
-                                                            ? {
-                                                                ...t,
-                                                                order: Number(e.target.value),
+                    <Tabs
+                        value={activeCategory}
+                        onValueChange={(v) => setActiveCategory(v as 'CRM' | 'LMS' | 'AI')}
+                        className="w-full"
+                    >
+                        <TabsList className="mb-4 grid w-full grid-cols-3">
+                            <TabsTrigger value="LMS">LMS</TabsTrigger>
+                            <TabsTrigger value="CRM">CRM</TabsTrigger>
+                            <TabsTrigger value="AI">AI Tools</TabsTrigger>
+                        </TabsList>
+
+                        {settings.sidebar
+                            .filter((tab) => {
+                                const baseItem = SidebarItemsData.find((i) => i.id === tab.id);
+                                const cat = baseItem?.category || 'CRM';
+                                return cat === activeCategory;
+                            })
+                            .sort((a, b) => a.order - b.order)
+                            .map((tab) => (
+                                <div key={tab.id} className="rounded border p-3">
+                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:items-center">
+                                        <div className="col-span-2">
+                                            <Label>Tab Name</Label>
+                                            <Input
+                                                value={tab.label || ''}
+                                                onChange={(e) =>
+                                                    updateSettings((prev) => ({
+                                                        ...prev,
+                                                        sidebar: prev.sidebar.map((t) =>
+                                                            t.id === tab.id
+                                                                ? { ...t, label: e.target.value }
+                                                                : t
+                                                        ),
+                                                    }))
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label>Order</Label>
+                                            <Input
+                                                type="number"
+                                                value={tab.order}
+                                                onChange={(e) =>
+                                                    updateSettings((prev) => ({
+                                                        ...prev,
+                                                        sidebar: prev.sidebar.map((t) =>
+                                                            t.id === tab.id
+                                                                ? {
+                                                                      ...t,
+                                                                      order: Number(e.target.value),
+                                                                  }
+                                                                : t
+                                                        ),
+                                                    }))
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label>Route</Label>
+                                            <Input
+                                                value={tab.route || ''}
+                                                onChange={(e) =>
+                                                    updateSettings((prev) => ({
+                                                        ...prev,
+                                                        sidebar: prev.sidebar.map((t) =>
+                                                            t.id === tab.id
+                                                                ? { ...t, route: e.target.value }
+                                                                : t
+                                                        ),
+                                                    }))
+                                                }
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2 pt-6">
+                                            <Select
+                                                value={
+                                                    tab.visible === false
+                                                        ? 'hidden'
+                                                        : tab.locked
+                                                          ? 'locked'
+                                                          : 'visible'
+                                                }
+                                                onValueChange={(value) =>
+                                                    updateSettings((prev) => ({
+                                                        ...prev,
+                                                        sidebar: prev.sidebar.map((t) => {
+                                                            if (t.id !== tab.id) return t;
+                                                            if (value === 'hidden') {
+                                                                return {
+                                                                    ...t,
+                                                                    visible: false,
+                                                                    locked: false,
+                                                                };
                                                             }
-                                                            : t
-                                                    ),
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label>Route</Label>
-                                        <Input
-                                            value={tab.route || ''}
-                                            onChange={(e) =>
-                                                updateSettings((prev) => ({
-                                                    ...prev,
-                                                    sidebar: prev.sidebar.map((t) =>
-                                                        t.id === tab.id
-                                                            ? { ...t, route: e.target.value }
-                                                            : t
-                                                    ),
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-2 pt-6">
-                                        <Switch
-                                            checked={tab.visible}
-                                            onCheckedChange={(checked) =>
-                                                updateSettings((prev) => ({
-                                                    ...prev,
-                                                    sidebar: prev.sidebar.map((t) =>
-                                                        t.id === tab.id
-                                                            ? { ...t, visible: checked }
-                                                            : t
-                                                    ),
-                                                }))
-                                            }
-                                        />
-                                        <span className="text-sm">Visible</span>
-                                    </div>
-                                    {tab.isCustom && (
-                                        <div className="pt-6">
-                                            <Button
-                                                variant="destructive"
-                                                onClick={() => removeCustomTab(tab.id)}
+                                                            if (value === 'locked') {
+                                                                return {
+                                                                    ...t,
+                                                                    visible: true,
+                                                                    locked: true,
+                                                                };
+                                                            }
+                                                            return {
+                                                                ...t,
+                                                                visible: true,
+                                                                locked: false,
+                                                            };
+                                                        }),
+                                                    }))
+                                                }
                                             >
-                                                Remove Tab
+                                                <SelectTrigger className="w-[100px]">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="visible">Visible</SelectItem>
+                                                    <SelectItem value="hidden">Hidden</SelectItem>
+                                                    <SelectItem value="locked">Locked</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        {tab.isCustom && (
+                                            <div className="pt-6">
+                                                <Button
+                                                    variant="destructive"
+                                                    onClick={() => removeCustomTab(tab.id)}
+                                                >
+                                                    Remove Tab
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="mt-3 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label>Sub Tabs</Label>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => addSubTab(tab.id)}
+                                            >
+                                                Add Sub Tab
                                             </Button>
                                         </div>
-                                    )}
-                                </div>
-                                <div className="mt-3 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <Label>Sub Tabs</Label>
-                                        <Button variant="outline" onClick={() => addSubTab(tab.id)}>
-                                            Add Sub Tab
-                                        </Button>
-                                    </div>
-                                    {(tab.subTabs || [])
-                                        .slice()
-                                        .sort((a, b) => a.order - b.order)
-                                        .map((sub) => (
-                                            <div
-                                                key={sub.id}
-                                                className="grid grid-cols-1 gap-3 rounded border p-3 md:grid-cols-5 md:items-center"
-                                            >
-                                                <div className="col-span-2">
-                                                    <Input
-                                                        value={sub.label || ''}
-                                                        onChange={(e) =>
-                                                            updateSettings((prev) => ({
-                                                                ...prev,
-                                                                sidebar: prev.sidebar.map((t) =>
-                                                                    t.id === tab.id
-                                                                        ? {
-                                                                            ...t,
-                                                                            subTabs: (
-                                                                                t.subTabs || []
-                                                                            ).map((s) =>
-                                                                                s.id === sub.id
-                                                                                    ? {
-                                                                                        ...s,
-                                                                                        label: e
-                                                                                            .target
-                                                                                            .value,
-                                                                                    }
-                                                                                    : s
-                                                                            ),
-                                                                        }
-                                                                        : t
-                                                                ),
-                                                            }))
-                                                        }
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Input
-                                                        type="number"
-                                                        value={sub.order}
-                                                        onChange={(e) =>
-                                                            updateSettings((prev) => ({
-                                                                ...prev,
-                                                                sidebar: prev.sidebar.map((t) =>
-                                                                    t.id === tab.id
-                                                                        ? {
-                                                                            ...t,
-                                                                            subTabs: (
-                                                                                t.subTabs || []
-                                                                            ).map((s) =>
-                                                                                s.id === sub.id
-                                                                                    ? {
-                                                                                        ...s,
-                                                                                        order: Number(
-                                                                                            e
-                                                                                                .target
-                                                                                                .value
-                                                                                        ),
-                                                                                    }
-                                                                                    : s
-                                                                            ),
-                                                                        }
-                                                                        : t
-                                                                ),
-                                                            }))
-                                                        }
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Input
-                                                        value={sub.route}
-                                                        onChange={(e) =>
-                                                            updateSettings((prev) => ({
-                                                                ...prev,
-                                                                sidebar: prev.sidebar.map((t) =>
-                                                                    t.id === tab.id
-                                                                        ? {
-                                                                            ...t,
-                                                                            subTabs: (
-                                                                                t.subTabs || []
-                                                                            ).map((s) =>
-                                                                                s.id === sub.id
-                                                                                    ? {
-                                                                                        ...s,
-                                                                                        route: e
-                                                                                            .target
-                                                                                            .value,
-                                                                                    }
-                                                                                    : s
-                                                                            ),
-                                                                        }
-                                                                        : t
-                                                                ),
-                                                            }))
-                                                        }
-                                                    />
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Switch
-                                                        checked={sub.visible}
-                                                        onCheckedChange={(checked) =>
-                                                            updateSettings((prev) => ({
-                                                                ...prev,
-                                                                sidebar: prev.sidebar.map((t) =>
-                                                                    t.id === tab.id
-                                                                        ? {
-                                                                            ...t,
-                                                                            subTabs: (
-                                                                                t.subTabs || []
-                                                                            ).map((s) =>
-                                                                                s.id === sub.id
-                                                                                    ? {
-                                                                                        ...s,
-                                                                                        visible:
-                                                                                            checked,
-                                                                                    }
-                                                                                    : s
-                                                                            ),
-                                                                        }
-                                                                        : t
-                                                                ),
-                                                            }))
-                                                        }
-                                                    />
-                                                    <span className="text-sm">Visible</span>
-                                                </div>
-                                                {sub.id.startsWith('custom-sub-') && (
-                                                    <div className="pt-2">
-                                                        <Button
-                                                            variant="destructive"
-                                                            onClick={() =>
-                                                                removeCustomSubTab(tab.id, sub.id)
+                                        {(tab.subTabs || [])
+                                            .slice()
+                                            .sort((a, b) => a.order - b.order)
+                                            .map((sub) => (
+                                                <div
+                                                    key={sub.id}
+                                                    className="grid grid-cols-1 gap-3 rounded border p-3 md:grid-cols-5 md:items-center"
+                                                >
+                                                    <div className="col-span-2">
+                                                        <Input
+                                                            value={sub.label || ''}
+                                                            onChange={(e) =>
+                                                                updateSettings((prev) => ({
+                                                                    ...prev,
+                                                                    sidebar: prev.sidebar.map(
+                                                                        (t) =>
+                                                                            t.id === tab.id
+                                                                                ? {
+                                                                                      ...t,
+                                                                                      subTabs: (
+                                                                                          t.subTabs ||
+                                                                                          []
+                                                                                      ).map((s) =>
+                                                                                          s.id ===
+                                                                                          sub.id
+                                                                                              ? {
+                                                                                                    ...s,
+                                                                                                    label: e
+                                                                                                        .target
+                                                                                                        .value,
+                                                                                                }
+                                                                                              : s
+                                                                                      ),
+                                                                                  }
+                                                                                : t
+                                                                    ),
+                                                                }))
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Input
+                                                            type="number"
+                                                            value={sub.order}
+                                                            onChange={(e) =>
+                                                                updateSettings((prev) => ({
+                                                                    ...prev,
+                                                                    sidebar: prev.sidebar.map(
+                                                                        (t) =>
+                                                                            t.id === tab.id
+                                                                                ? {
+                                                                                      ...t,
+                                                                                      subTabs: (
+                                                                                          t.subTabs ||
+                                                                                          []
+                                                                                      ).map((s) =>
+                                                                                          s.id ===
+                                                                                          sub.id
+                                                                                              ? {
+                                                                                                    ...s,
+                                                                                                    order: Number(
+                                                                                                        e
+                                                                                                            .target
+                                                                                                            .value
+                                                                                                    ),
+                                                                                                }
+                                                                                              : s
+                                                                                      ),
+                                                                                  }
+                                                                                : t
+                                                                    ),
+                                                                }))
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Input
+                                                            value={sub.route}
+                                                            onChange={(e) =>
+                                                                updateSettings((prev) => ({
+                                                                    ...prev,
+                                                                    sidebar: prev.sidebar.map(
+                                                                        (t) =>
+                                                                            t.id === tab.id
+                                                                                ? {
+                                                                                      ...t,
+                                                                                      subTabs: (
+                                                                                          t.subTabs ||
+                                                                                          []
+                                                                                      ).map((s) =>
+                                                                                          s.id ===
+                                                                                          sub.id
+                                                                                              ? {
+                                                                                                    ...s,
+                                                                                                    route: e
+                                                                                                        .target
+                                                                                                        .value,
+                                                                                                }
+                                                                                              : s
+                                                                                      ),
+                                                                                  }
+                                                                                : t
+                                                                    ),
+                                                                }))
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Select
+                                                            value={
+                                                                sub.visible === false
+                                                                    ? 'hidden'
+                                                                    : sub.locked
+                                                                      ? 'locked'
+                                                                      : 'visible'
+                                                            }
+                                                            onValueChange={(value) =>
+                                                                updateSettings((prev) => ({
+                                                                    ...prev,
+                                                                    sidebar: prev.sidebar.map(
+                                                                        (t) =>
+                                                                            t.id === tab.id
+                                                                                ? {
+                                                                                      ...t,
+                                                                                      subTabs: (
+                                                                                          t.subTabs ||
+                                                                                          []
+                                                                                      ).map((s) => {
+                                                                                          if (
+                                                                                              s.id !==
+                                                                                              sub.id
+                                                                                          )
+                                                                                              return s;
+                                                                                          if (
+                                                                                              value ===
+                                                                                              'hidden'
+                                                                                          ) {
+                                                                                              return {
+                                                                                                  ...s,
+                                                                                                  visible:
+                                                                                                      false,
+                                                                                                  locked: false,
+                                                                                              };
+                                                                                          }
+                                                                                          if (
+                                                                                              value ===
+                                                                                              'locked'
+                                                                                          ) {
+                                                                                              return {
+                                                                                                  ...s,
+                                                                                                  visible:
+                                                                                                      true,
+                                                                                                  locked: true,
+                                                                                              };
+                                                                                          }
+                                                                                          return {
+                                                                                              ...s,
+                                                                                              visible:
+                                                                                                  true,
+                                                                                              locked: false,
+                                                                                          };
+                                                                                      }),
+                                                                                  }
+                                                                                : t
+                                                                    ),
+                                                                }))
                                                             }
                                                         >
-                                                            Remove
-                                                        </Button>
+                                                            <SelectTrigger className="w-[100px]">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="visible">
+                                                                    Visible
+                                                                </SelectItem>
+                                                                <SelectItem value="hidden">
+                                                                    Hidden
+                                                                </SelectItem>
+                                                                <SelectItem value="locked">
+                                                                    Locked
+                                                                </SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                    {sub.id.startsWith('custom-sub-') && (
+                                                        <div className="pt-2">
+                                                            <Button
+                                                                variant="destructive"
+                                                                onClick={() =>
+                                                                    removeCustomSubTab(
+                                                                        tab.id,
+                                                                        sub.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                Remove
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    <div className="pt-2">
-                        <Button variant="outline" onClick={addCustomTab}>
-                            Add Custom Tab
-                        </Button>
-                    </div>
+                            ))}
+                    </Tabs>
+                    {activeCategory === 'CRM' && (
+                        <div className="pt-2">
+                            <Button variant="outline" onClick={addCustomTab}>
+                                Add Custom Tab
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -1237,9 +1577,9 @@ export default function TeacherDisplaySettings() {
                                                     widgets: prev.dashboard.widgets.map((x) =>
                                                         x.id === w.id
                                                             ? {
-                                                                ...x,
-                                                                order: Number(e.target.value),
-                                                            }
+                                                                  ...x,
+                                                                  order: Number(e.target.value),
+                                                              }
                                                             : x
                                                     ),
                                                 },
@@ -1294,7 +1634,7 @@ export default function TeacherDisplaySettings() {
                             <Switch
                                 checked={
                                     settings.permissions[
-                                    key as keyof DisplaySettingsData['permissions']
+                                        key as keyof DisplaySettingsData['permissions']
                                     ]
                                 }
                                 onCheckedChange={(checked) =>

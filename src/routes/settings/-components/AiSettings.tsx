@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { MyButton } from '@/components/design-system/button';
-import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+
 import { Sparkles, Save, ShieldCheck, Trash2, Plus, Info } from 'lucide-react';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import {
@@ -95,11 +95,7 @@ interface ActivityLogResponse {
     total_pages: number;
 }
 
-interface Model {
-    id: string;
-    name: string;
-    provider: string;
-}
+import { useAIModelsList } from '@/hooks/useAiModels';
 
 const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
     const [openaiKey, setOpenaiKey] = useState('');
@@ -114,7 +110,7 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
         hasGemini: false,
     });
     const [activityLogs, setActivityLogs] = useState<ActivityLogResponse | null>(null);
-    const [models, setModels] = useState<Model[]>([]);
+    const { data: modelsList } = useAIModelsList();
     const [isLoadingLogs, setIsLoadingLogs] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(20);
@@ -177,38 +173,29 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
     }, [instituteId]);
 
     // Fetch activity logs
-    const fetchActivityLogs = useCallback(async (page: number = 1) => {
-        if (!instituteId) return;
-        setIsLoadingLogs(true);
-        try {
-            const response = await authenticatedAxiosInstance.get<ActivityLogResponse>(
-                `${AI_SERVICE_BASE_URL}/token-usage/v1/institute/${instituteId}/activity-log`,
-                {
-                    params: {
-                        page: page,
-                        page_size: pageSize,
-                    },
-                }
-            );
-            setActivityLogs(response.data);
-        } catch (error) {
-            console.error('Error fetching activity logs:', error);
-        } finally {
-            setIsLoadingLogs(false);
-        }
-    }, [instituteId, pageSize]);
-
-    // Fetch models list
-    const fetchModels = useCallback(async () => {
-        try {
-            const response = await authenticatedAxiosInstance.get<{ models: Model[] }>(
-                `${AI_SERVICE_BASE_URL}/models/v1/list`
-            );
-            setModels(response.data.models || []);
-        } catch (error) {
-            console.error('Error fetching models:', error);
-        }
-    }, []);
+    const fetchActivityLogs = useCallback(
+        async (page: number = 1) => {
+            if (!instituteId) return;
+            setIsLoadingLogs(true);
+            try {
+                const response = await authenticatedAxiosInstance.get<ActivityLogResponse>(
+                    `${AI_SERVICE_BASE_URL}/token-usage/v1/institute/${instituteId}/activity-log`,
+                    {
+                        params: {
+                            page: page,
+                            page_size: pageSize,
+                        },
+                    }
+                );
+                setActivityLogs(response.data);
+            } catch (error) {
+                console.error('Error fetching activity logs:', error);
+            } finally {
+                setIsLoadingLogs(false);
+            }
+        },
+        [instituteId, pageSize]
+    );
 
     // Fetch tutor settings
     const fetchTutorSettings = useCallback(async () => {
@@ -288,17 +275,11 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
     useEffect(() => {
         const initialize = async () => {
             setIsLoading(true);
-            await Promise.all([
-                checkKeys(),
-                fetchActivityLogs(currentPage),
-                fetchModels(),
-                fetchTutorSettings(),
-                fetchInstituteAiSettings(),
-            ]);
+            await Promise.all([checkKeys(), fetchTutorSettings(), fetchInstituteAiSettings()]);
             setIsLoading(false);
         };
         initialize();
-    }, [checkKeys, fetchModels, fetchTutorSettings, fetchInstituteAiSettings]);
+    }, [checkKeys, fetchTutorSettings, fetchInstituteAiSettings]);
 
     // Fetch activity logs when page changes
     useEffect(() => {
@@ -644,9 +625,9 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                     <SelectValue placeholder="System Default" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {models.length > 0 ? (
-                                        models.map((model) => (
-                                            <SelectItem key={model.id} value={model.id}>
+                                    {modelsList && modelsList.models.length > 0 ? (
+                                        modelsList.models.map((model) => (
+                                            <SelectItem key={model.model_id} value={model.model_id}>
                                                 {model.name}
                                             </SelectItem>
                                         ))
@@ -717,7 +698,9 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                     </Label>
                                     <div className="flex flex-wrap gap-2">
                                         {uniqueModels.map((modelId) => {
-                                            const model = models.find((m) => m.id === modelId);
+                                            const model = modelsList?.models.find(
+                                                (m) => m.model_id === modelId
+                                            );
                                             return (
                                                 <span
                                                     key={modelId}
@@ -760,8 +743,8 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                         </TableHeader>
                                         <TableBody>
                                             {activityLogs.records.map((record) => {
-                                                const model = models.find(
-                                                    (m) => m.id === record.model
+                                                const model = modelsList?.models.find(
+                                                    (m) => m.model_id === record.model
                                                 );
                                                 return (
                                                     <TableRow key={record.id}>
@@ -798,8 +781,9 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                             {activityLogs && activityLogs.total_pages > 1 && (
                                 <div className="mt-6 flex items-center justify-between">
                                     <div className="text-sm text-gray-600">
-                                        Showing page {activityLogs.page} of {activityLogs.total_pages} (
-                                        {activityLogs.total_count} total records)
+                                        Showing page {activityLogs.page} of{' '}
+                                        {activityLogs.total_pages} ({activityLogs.total_count} total
+                                        records)
                                     </div>
                                     <Pagination>
                                         <PaginationContent>
@@ -826,18 +810,25 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                                 const totalPages = activityLogs.total_pages;
                                                 let lastPage = 0;
 
-                                                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                                                for (
+                                                    let pageNum = 1;
+                                                    pageNum <= totalPages;
+                                                    pageNum++
+                                                ) {
                                                     // Show first page, last page, current page, and pages around current
                                                     const showPage =
                                                         pageNum === 1 ||
                                                         pageNum === totalPages ||
-                                                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+                                                        (pageNum >= currentPage - 1 &&
+                                                            pageNum <= currentPage + 1);
 
                                                     if (showPage) {
                                                         // Add ellipsis if there's a gap
                                                         if (pageNum - lastPage > 1) {
                                                             pages.push(
-                                                                <PaginationItem key={`ellipsis-${lastPage + 1}`}>
+                                                                <PaginationItem
+                                                                    key={`ellipsis-${lastPage + 1}`}
+                                                                >
                                                                     <PaginationEllipsis />
                                                                 </PaginationItem>
                                                             );
@@ -851,7 +842,9 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                                                         e.preventDefault();
                                                                         setCurrentPage(pageNum);
                                                                     }}
-                                                                    isActive={currentPage === pageNum}
+                                                                    isActive={
+                                                                        currentPage === pageNum
+                                                                    }
                                                                     className="cursor-pointer"
                                                                 >
                                                                     {pageNum}
@@ -870,7 +863,9 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                                     href="#"
                                                     onClick={(e) => {
                                                         e.preventDefault();
-                                                        if (currentPage < activityLogs.total_pages) {
+                                                        if (
+                                                            currentPage < activityLogs.total_pages
+                                                        ) {
                                                             setCurrentPage(currentPage + 1);
                                                         }
                                                     }}
@@ -1234,9 +1229,9 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                     className="w-full rounded-md border border-indigo-100 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-100"
                                 />
                                 <p className="text-[10px] text-gray-500">
-                                    This prompt guides the AI when generating course outlines. Keep it
-                                    concise but descriptive (recommended: 50-200 words). Leave empty
-                                    to use default system prompt.
+                                    This prompt guides the AI when generating course outlines. Keep
+                                    it concise but descriptive (recommended: 50-200 words). Leave
+                                    empty to use default system prompt.
                                 </p>
                                 {hasCustomPrompt && (
                                     <div className="flex items-center gap-2 rounded-md bg-green-50 px-3 py-2">
@@ -1258,9 +1253,7 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                                             Best Practices
                                         </h4>
                                         <ul className="mt-1 list-inside list-disc space-y-1 text-xs text-blue-700">
-                                            <li>
-                                                Be specific about course structure preferences
-                                            </li>
+                                            <li>Be specific about course structure preferences</li>
                                             <li>Mention learning objectives and outcomes</li>
                                             <li>Include preferred teaching methodologies</li>
                                             <li>Specify any industry standards or frameworks</li>

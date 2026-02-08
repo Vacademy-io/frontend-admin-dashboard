@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAgent } from '@/hooks/useAgent';
-import { AVAILABLE_MODELS, AgentMessage, ConfirmationOption } from '@/types/agent';
+import { AgentMessage, ConfirmationOption } from '@/types/agent';
+import { useAIModelsList } from '@/hooks/useAiModels'; // Added import
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,14 +37,26 @@ export function AgentChat({ instituteId, authToken }: AgentChatProps) {
     const { sessionId, status, messages, error, sendMessage, respond, reset, setAuthToken } =
         useAgent(instituteId);
 
+    const { data: modelsList } = useAIModelsList();
     const [input, setInput] = useState('');
-    const [selectedModel, setSelectedModel] = useState<string>(AVAILABLE_MODELS[0].id);
+    const [selectedModel, setSelectedModel] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Set auth token on mount
     useEffect(() => {
         setAuthToken(authToken);
     }, [authToken, setAuthToken]);
+
+    // Set default model when list loads
+    useEffect(() => {
+        if (modelsList?.models && modelsList.models.length > 0 && !selectedModel) {
+            const defaultModel =
+                modelsList.models.find((m) => m.is_default) || modelsList.models[0];
+            if (defaultModel) {
+                setSelectedModel(defaultModel.model_id);
+            }
+        }
+    }, [modelsList, selectedModel]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -73,10 +86,10 @@ export function AgentChat({ instituteId, authToken }: AgentChatProps) {
     return (
         <Card className="flex h-[calc(100vh-180px)] min-h-[500px] flex-col overflow-hidden border-none shadow-lg">
             {/* Header */}
-            <CardHeader className="flex-shrink-0 border-b bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 text-white sm:px-6 sm:py-4">
+            <CardHeader className="shrink-0 border-b bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 text-white sm:px-6 sm:py-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
                             <Robot size={24} weight="duotone" />
                         </div>
                         <div>
@@ -103,12 +116,12 @@ export function AgentChat({ instituteId, authToken }: AgentChatProps) {
                                 <SelectValue placeholder="Select model" />
                             </SelectTrigger>
                             <SelectContent>
-                                {AVAILABLE_MODELS.map((model) => (
-                                    <SelectItem key={model.id} value={model.id}>
+                                {modelsList?.models.map((model) => (
+                                    <SelectItem key={model.model_id} value={model.model_id}>
                                         <div className="flex flex-col">
                                             <span className="font-medium">{model.name}</span>
                                             <span className="text-xs text-muted-foreground">
-                                                {model.description}
+                                                {model.description || model.provider}
                                             </span>
                                         </div>
                                     </SelectItem>
@@ -136,7 +149,7 @@ export function AgentChat({ instituteId, authToken }: AgentChatProps) {
                     <div className="flex flex-col gap-4">
                         {messages.length === 0 && (
                             <div className="flex flex-col items-center justify-center py-16 text-center">
-                                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-50">
+                                <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-primary-50">
                                     <ChatCircleDots
                                         size={32}
                                         weight="duotone"
@@ -144,7 +157,7 @@ export function AgentChat({ instituteId, authToken }: AgentChatProps) {
                                     />
                                 </div>
                                 <h3 className="mb-2 text-lg font-semibold text-neutral-700">
-                                    👋 Hi! I'm your AI assistant
+                                    👋 Hi! I&apos;m your AI assistant
                                 </h3>
                                 <p className="max-w-sm text-sm text-neutral-500">
                                     Ask me anything about your institute. I can help with learner
@@ -202,7 +215,7 @@ export function AgentChat({ instituteId, authToken }: AgentChatProps) {
             </CardContent>
 
             {/* Input Area */}
-            <div className="flex-shrink-0 border-t bg-white p-4">
+            <div className="shrink-0 border-t bg-white p-4">
                 <form
                     onSubmit={
                         status === 'awaiting_input'

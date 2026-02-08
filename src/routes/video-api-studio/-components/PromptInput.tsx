@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import {
     GenerateVideoRequest,
-    AVAILABLE_MODELS,
     LANGUAGES,
     VOICE_GENDERS,
     TTS_PROVIDERS,
@@ -38,6 +37,7 @@ import {
     TtsProvider,
     ContentType,
 } from '../-services/video-generation';
+import { useAIModelsList } from '@/hooks/useAiModels';
 
 interface PromptInputProps {
     onGenerate: (request: GenerateVideoRequest) => void;
@@ -80,6 +80,7 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
     const [prompt, setPrompt] = useState('');
     const [options, setOptions] = useState(DEFAULT_OPTIONS);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const { data: modelsList } = useAIModelsList();
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -87,6 +88,19 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
             textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
         }
     }, [prompt]);
+
+    useEffect(() => {
+        if (modelsList?.models && modelsList.models.length > 0) {
+            const modelExists = modelsList.models.some((m) => m.model_id === options.model);
+            if (!modelExists) {
+                const defaultModel =
+                    modelsList.models.find((m) => m.is_default) || modelsList.models[0];
+                if (defaultModel) {
+                    setOptions((prev) => ({ ...prev, model: defaultModel.model_id }));
+                }
+            }
+        }
+    }, [modelsList, options.model]);
 
     const handleSubmit = () => {
         if (!prompt.trim() || isGenerating || disabled) return;
@@ -104,8 +118,16 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
         setOptions((prev) => ({ ...prev, [key]: value }));
     };
 
-    const selectedModel = AVAILABLE_MODELS.find((m) => m.id === options.model);
+    const models = modelsList?.models || [];
+    const selectedModel = models.find((m) => m.model_id === options.model);
     const selectedContentType = CONTENT_TYPES.find((c) => c.value === options.content_type);
+
+    const freeModels = models.filter((m) => m.is_free);
+    const openaiModels = models.filter((m) => m.provider === 'OpenAI' && !m.is_free);
+    const geminiModels = models.filter((m) => m.provider === 'Google' && !m.is_free);
+    const otherModels = models.filter(
+        (m) => !m.is_free && m.provider !== 'OpenAI' && m.provider !== 'Google'
+    );
 
     return (
         <div className="border-t bg-background/95 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:p-3">
@@ -147,7 +169,7 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
                     <OptionBubble
                         icon={<Sparkles className="size-3" />}
                         label="Model"
-                        value={selectedModel?.name.split(' ')[0] || 'Select'}
+                        value={selectedModel?.name.split(' ')[0] || options.model || 'Select'}
                     >
                         <Select
                             value={options.model}
@@ -157,50 +179,70 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="max-h-80">
-                                <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
-                                    Free Models
-                                </div>
-                                {AVAILABLE_MODELS.filter((m) => m.tier === 'free').map((model) => (
-                                    <SelectItem key={model.id} value={model.id} className="text-xs">
-                                        {model.name}
-                                    </SelectItem>
-                                ))}
-                                <div className="mt-2 px-2 py-1 text-xs font-semibold text-muted-foreground">
-                                    OpenAI Models
-                                </div>
-                                {AVAILABLE_MODELS.filter((m) => m.tier === 'openai').map(
-                                    (model) => (
-                                        <SelectItem
-                                            key={model.id}
-                                            value={model.id}
-                                            className="text-xs"
-                                        >
-                                            {model.name}
-                                        </SelectItem>
-                                    )
+                                {freeModels.length > 0 && (
+                                    <>
+                                        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
+                                            Free Models
+                                        </div>
+                                        {freeModels.map((model) => (
+                                            <SelectItem
+                                                key={model.model_id}
+                                                value={model.model_id}
+                                                className="text-xs"
+                                            >
+                                                {model.name}
+                                            </SelectItem>
+                                        ))}
+                                    </>
                                 )}
-                                <div className="mt-2 px-2 py-1 text-xs font-semibold text-muted-foreground">
-                                    Gemini Models
-                                </div>
-                                {AVAILABLE_MODELS.filter((m) => m.tier === 'gemini').map(
-                                    (model) => (
-                                        <SelectItem
-                                            key={model.id}
-                                            value={model.id}
-                                            className="text-xs"
-                                        >
-                                            {model.name}
-                                        </SelectItem>
-                                    )
+                                {openaiModels.length > 0 && (
+                                    <>
+                                        <div className="mt-2 px-2 py-1 text-xs font-semibold text-muted-foreground">
+                                            OpenAI Models
+                                        </div>
+                                        {openaiModels.map((model) => (
+                                            <SelectItem
+                                                key={model.model_id}
+                                                value={model.model_id}
+                                                className="text-xs"
+                                            >
+                                                {model.name}
+                                            </SelectItem>
+                                        ))}
+                                    </>
                                 )}
-                                <div className="mt-2 px-2 py-1 text-xs font-semibold text-muted-foreground">
-                                    Other Paid Models
-                                </div>
-                                {AVAILABLE_MODELS.filter((m) => m.tier === 'paid').map((model) => (
-                                    <SelectItem key={model.id} value={model.id} className="text-xs">
-                                        {model.name}
-                                    </SelectItem>
-                                ))}
+                                {geminiModels.length > 0 && (
+                                    <>
+                                        <div className="mt-2 px-2 py-1 text-xs font-semibold text-muted-foreground">
+                                            Gemini Models
+                                        </div>
+                                        {geminiModels.map((model) => (
+                                            <SelectItem
+                                                key={model.model_id}
+                                                value={model.model_id}
+                                                className="text-xs"
+                                            >
+                                                {model.name}
+                                            </SelectItem>
+                                        ))}
+                                    </>
+                                )}
+                                {otherModels.length > 0 && (
+                                    <>
+                                        <div className="mt-2 px-2 py-1 text-xs font-semibold text-muted-foreground">
+                                            Other Paid Models
+                                        </div>
+                                        {otherModels.map((model) => (
+                                            <SelectItem
+                                                key={model.model_id}
+                                                value={model.model_id}
+                                                className="text-xs"
+                                            >
+                                                {model.name}
+                                            </SelectItem>
+                                        ))}
+                                    </>
+                                )}
                             </SelectContent>
                         </Select>
                     </OptionBubble>

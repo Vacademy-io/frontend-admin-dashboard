@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet';
 
 interface CourseSearchParams {
     selectedTab?: 'AuthoredCourses' | 'AllCourses' | 'CourseInReview' | 'CourseApproval';
+    action?: string;
 }
 
 export const Route = createLazyFileRoute('/study-library/courses/')({
@@ -23,8 +24,10 @@ function RouteComponent() {
                     content="This page shows the study library of the institute."
                 />
             </Helmet>
-            <CourseMaterial initialSelectedTab={searchParams.selectedTab} />
+            <CourseMaterial
+                initialSelectedTab={searchParams.selectedTab}
+                initialAction={searchParams.action}
+            />
         </LayoutContainer>
     );
 }
-
