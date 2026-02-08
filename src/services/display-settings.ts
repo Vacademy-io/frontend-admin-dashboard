@@ -97,12 +97,12 @@ function mergeDisplayWithDefaults(
             } as DisplaySettingsData['sidebar'][number]);
         const subTabsMerged = mergeArrayById(
             tab.subTabs as
-            | Array<
-                Partial<
-                    NonNullable<DisplaySettingsData['sidebar'][number]['subTabs']>[number]
-                >
-            >
-            | undefined,
+                | Array<
+                      Partial<
+                          NonNullable<DisplaySettingsData['sidebar'][number]['subTabs']>[number]
+                      >
+                  >
+                | undefined,
             defTab.subTabs || []
         );
         return {
@@ -132,8 +132,8 @@ function mergeDisplayWithDefaults(
     // Dashboard widgets merge
     const mergedWidgets = mergeArrayById(
         incoming?.dashboard?.widgets as
-        | Array<Partial<DisplaySettingsData['dashboard']['widgets'][number]>>
-        | undefined,
+            | Array<Partial<DisplaySettingsData['dashboard']['widgets'][number]>>
+            | undefined,
         defaults.dashboard.widgets
     );
     merged.dashboard.widgets = mergedWidgets.map((w) => {
@@ -180,13 +180,13 @@ function mergeDisplayWithDefaults(
         };
     const mergedCourseListTabs = mergeArrayById(
         incoming?.courseList?.tabs as
-        | Array<{
-            id: string;
-            label?: string;
-            order?: number;
-            visible?: boolean;
-        }>
-        | undefined,
+            | Array<{
+                  id: string;
+                  label?: string;
+                  order?: number;
+                  visible?: boolean;
+              }>
+            | undefined,
         defaultCourseList.tabs as Array<{
             id: string;
             label?: string;
@@ -198,10 +198,10 @@ function mergeDisplayWithDefaults(
         tabs: mergedCourseListTabs.map((t) => ({
             id: t.id as unknown as DisplaySettingsData['courseList'] extends infer C
                 ? C extends { tabs: Array<infer U> }
-                ? U extends { id: infer I }
-                ? I
-                : never
-                : never
+                    ? U extends { id: infer I }
+                        ? I
+                        : never
+                    : never
                 : never,
             label: t.label,
             order: t.order ?? 0,
@@ -209,8 +209,8 @@ function mergeDisplayWithDefaults(
         })) as NonNullable<DisplaySettingsData['courseList']>['tabs'],
         defaultTab: (incoming?.courseList?.defaultTab ||
             defaultCourseList.defaultTab) as NonNullable<
-                DisplaySettingsData['courseList']
-            >['defaultTab'],
+            DisplaySettingsData['courseList']
+        >['defaultTab'],
     };
 
     // Course Details merge with defaults
@@ -229,13 +229,13 @@ function mergeDisplayWithDefaults(
         };
     const mergedDetailsTabs = mergeArrayById(
         incoming?.courseDetails?.tabs as
-        | Array<{
-            id: string;
-            label?: string;
-            order?: number;
-            visible?: boolean;
-        }>
-        | undefined,
+            | Array<{
+                  id: string;
+                  label?: string;
+                  order?: number;
+                  visible?: boolean;
+              }>
+            | undefined,
         defaultDetails.tabs as Array<{
             id: string;
             label?: string;
@@ -247,10 +247,10 @@ function mergeDisplayWithDefaults(
         tabs: mergedDetailsTabs.map((t) => ({
             id: t.id as unknown as DisplaySettingsData['courseDetails'] extends infer C
                 ? C extends { tabs: Array<infer U> }
-                ? U extends { id: infer I }
-                ? I
-                : never
-                : never
+                    ? U extends { id: infer I }
+                        ? I
+                        : never
+                    : never
                 : never,
             label: t.label,
             order: t.order ?? 0,
@@ -258,8 +258,8 @@ function mergeDisplayWithDefaults(
         })) as NonNullable<DisplaySettingsData['courseDetails']>['tabs'],
         defaultTab: (incoming?.courseDetails?.defaultTab ||
             defaultDetails.defaultTab) as NonNullable<
-                DisplaySettingsData['courseDetails']
-            >['defaultTab'],
+            DisplaySettingsData['courseDetails']
+        >['defaultTab'],
     };
 
     // UI
@@ -386,6 +386,7 @@ function mergeDisplayWithDefaults(
         allowViewPassword: true,
         allowSendResetPasswordMail: true,
     };
+    // Learner Management ...
     merged.learnerManagement = {
         allowPortalAccess:
             incoming?.learnerManagement?.allowPortalAccess ??
@@ -398,10 +399,30 @@ function mergeDisplayWithDefaults(
             defLearnerManagement.allowSendResetPasswordMail,
     };
 
+    // Sidebar Categories
+    const defSidebarCategories: NonNullable<DisplaySettingsData['sidebarCategories']> = [
+        { id: 'CRM', visible: true, default: true, order: 0 },
+        { id: 'LMS', visible: true, default: false, order: 1 },
+        { id: 'AI', visible: true, default: false, order: 2 },
+    ];
+
+    const mergedSidebarCategories = mergeArrayById(
+        incoming?.sidebarCategories,
+        defSidebarCategories
+    );
+
+    merged.sidebarCategories = mergedSidebarCategories.map((c) => ({
+        id: c.id as 'CRM' | 'LMS' | 'AI',
+        visible: c.visible ?? true,
+        default: c.default ?? c.id === 'CRM',
+        order: c.order ?? 0,
+    }));
+
     // Final sort by order
     merged.sidebar.sort((a, b) => (a.order || 0) - (b.order || 0));
     merged.sidebar.forEach((t) => t.subTabs?.sort((a, b) => (a.order || 0) - (b.order || 0)));
     merged.dashboard.widgets.sort((a, b) => (a.order || 0) - (b.order || 0));
+    merged.sidebarCategories?.sort((a, b) => (a.order || 0) - (b.order || 0));
 
     return merged;
 }

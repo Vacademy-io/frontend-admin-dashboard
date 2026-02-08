@@ -2031,7 +2031,13 @@ export function generateStorybookHtml(entry: Entry, index: number, entries: Entr
     // Data extraction with fallbacks
     const title = meta.title || entryAny.title || `Page ${index}`;
     const text =
-        meta.text || meta.description || meta.content || meta.story_text || entryAny.text || `...`;
+        meta.text ||
+        meta.description ||
+        meta.content ||
+        meta.story_text ||
+        meta.audio_text ||
+        entryAny.text ||
+        `...`;
     const imageUrl = meta.image_url || entryAny.image_url;
     const pageNumber = index + 1;
     const isCover = index === 0;

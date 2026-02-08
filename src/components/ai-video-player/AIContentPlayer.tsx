@@ -1144,7 +1144,6 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                 </div>
             </div>
 
-            {/* Audio Element (only for time_driven) */}
             {/* Audio Element (for time_driven AND storybook) */}
             {audioUrl && (
                 <audio

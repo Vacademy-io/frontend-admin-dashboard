@@ -9,6 +9,7 @@ export interface SidebarTabConfig {
     route?: string; // route for non-collapsible tabs or custom tabs
     order: number; // ordering among tabs
     visible: boolean; // whether the tab is visible for the role
+    locked?: boolean; // whether the tab is locked for the role
     // List of sub-tabs (if any). For non-collapsible tabs this can be empty
     subTabs?: Array<{
         id: string; // e.g., 'batches', 'sessions'
@@ -16,6 +17,7 @@ export interface SidebarTabConfig {
         route: string; // route to navigate when selected
         order: number; // ordering among sub-tabs
         visible: boolean; // whether the sub-tab is visible for the role
+        locked?: boolean; // whether the sub-tab is locked for the role
     }>;
     // Whether this tab was added as a custom tab from settings
     isCustom?: boolean;
@@ -184,6 +186,15 @@ export interface DisplaySettingsData {
 
     // 13) Learner management permissions for admins/teachers
     learnerManagement?: LearnerManagementSettings;
+
+    // 14) Sidebar Category Configuration
+    sidebarCategories?: Array<{
+        id: 'CRM' | 'LMS' | 'AI';
+        visible: boolean;
+        locked?: boolean; // whether the category is locked
+        default: boolean; // Is this the default category on load?
+        order?: number; // Optional ordering
+    }>;
 }
 
 export const ADMIN_DISPLAY_SETTINGS_KEY = 'ADMIN_DISPLAY_SETTINGS' as const;

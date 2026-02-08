@@ -12,6 +12,7 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as SettingsRouteImport } from "./routes/settings"
+import { Route as LockedFeatureRouteImport } from "./routes/locked-feature"
 import { Route as AgentChatRouteImport } from "./routes/agent-chat"
 import { Route as VideoApiStudioIndexRouteImport } from "./routes/video-api-studio/index"
 import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/index"
@@ -155,6 +156,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: "/settings",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/settings.lazy").then((d) => d.Route))
+const LockedFeatureRoute = LockedFeatureRouteImport.update({
+  id: "/locked-feature",
+  path: "/locked-feature",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentChatRoute = AgentChatRouteImport.update({
   id: "/agent-chat",
   path: "/agent-chat",
@@ -1084,6 +1090,7 @@ const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTy
 
 export interface FileRoutesByFullPath {
   "/agent-chat": typeof AgentChatRoute
+  "/locked-feature": typeof LockedFeatureRoute
   "/settings": typeof SettingsRoute
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
@@ -1206,6 +1213,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   "/agent-chat": typeof AgentChatRoute
+  "/locked-feature": typeof LockedFeatureRoute
   "/settings": typeof SettingsRoute
   "/landing": typeof LandingLazyRoute
   "/pricing": typeof PricingLazyRoute
@@ -1328,6 +1336,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/agent-chat": typeof AgentChatRoute
+  "/locked-feature": typeof LockedFeatureRoute
   "/settings": typeof SettingsRoute
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
@@ -1452,6 +1461,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | "/agent-chat"
+    | "/locked-feature"
     | "/settings"
     | "/landing"
     | "/learner-insights"
@@ -1574,6 +1584,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/agent-chat"
+    | "/locked-feature"
     | "/settings"
     | "/landing"
     | "/pricing"
@@ -1695,6 +1706,7 @@ export interface FileRouteTypes {
   id:
     | "__root__"
     | "/agent-chat"
+    | "/locked-feature"
     | "/settings"
     | "/landing"
     | "/learner-insights"
@@ -1818,6 +1830,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AgentChatRoute: typeof AgentChatRoute
+  LockedFeatureRoute: typeof LockedFeatureRoute
   SettingsRoute: typeof SettingsRoute
   LandingLazyRoute: typeof LandingLazyRoute
   LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
@@ -1966,6 +1979,13 @@ declare module "@tanstack/react-router" {
       path: "/settings"
       fullPath: "/settings"
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/locked-feature": {
+      id: "/locked-feature"
+      path: "/locked-feature"
+      fullPath: "/locked-feature"
+      preLoaderRoute: typeof LockedFeatureRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/agent-chat": {
@@ -2796,6 +2816,7 @@ const LearnerInsightsLazyRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AgentChatRoute: AgentChatRoute,
+  LockedFeatureRoute: LockedFeatureRoute,
   SettingsRoute: SettingsRoute,
   LandingLazyRoute: LandingLazyRoute,
   LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,

@@ -5,6 +5,7 @@ export interface subItemsType {
     subItemLink: string | undefined;
     subItemId: string;
     adminOnly?: boolean;
+    locked?: boolean;
 }
 
 export interface SidebarItemsType {
@@ -13,7 +14,9 @@ export interface SidebarItemsType {
     to?: string;
     subItems?: subItemsType[];
     id: string;
+    locked?: boolean;
     showForInstitute?: string;
+    category?: 'LMS' | 'CRM' | 'AI';
 }
 export interface SidebarItemProps {
     icon?: React.FC<IconProps>;
@@ -21,6 +24,7 @@ export interface SidebarItemProps {
     to?: string;
     subItems?: subItemsType[];
     selectedItem?: string;
+    locked?: boolean;
 }
 
 export interface SidebarStateType {

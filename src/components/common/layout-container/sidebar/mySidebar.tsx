@@ -7,6 +7,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     SidebarStateType,
     SidebarItemsType,
@@ -18,7 +19,7 @@ import React, { useEffect, useState } from 'react';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { filterMenuItems, filterMenuListByModules } from './helper';
+import { filterMenuItems } from './helper';
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import {
@@ -32,7 +33,18 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
 import { Question } from '@phosphor-icons/react';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
-import { WhatsappLogo, EnvelopeSimple, Lightning, X } from '@phosphor-icons/react';
+import {
+    WhatsappLogo,
+    EnvelopeSimple,
+    Lightning,
+    Briefcase,
+    GraduationCap,
+    Sparkle,
+    LockKey,
+} from '@phosphor-icons/react';
+import { motion } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import useInstituteLogoStore from './institutelogo-global-zustand';
 import { useTabSettings } from '@/hooks/use-tab-settings';
@@ -65,6 +77,9 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const { isCompact } = useCompactMode();
 
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
+    const [activeCategory, setActiveCategory] = useState<'CRM' | 'LMS' | 'AI'>('CRM');
+
+    const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
 
     useEffect(() => {
         setIsVoltSubdomain(
@@ -72,7 +87,51 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
         );
     }, []);
 
-    const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
+    // Sync active category with current route
+    useEffect(() => {
+        const checkCategoryVisibility = (cat: 'CRM' | 'LMS' | 'AI') => {
+            if (!roleDisplay?.sidebarCategories) return true;
+            const cfg = roleDisplay.sidebarCategories.find((c) => c.id === cat);
+            return cfg ? cfg.visible !== false : true;
+        };
+
+        const findCategory = (): 'CRM' | 'LMS' | 'AI' | null => {
+            if (isVoltSubdomain) {
+                return 'LMS';
+            }
+
+            for (const item of SidebarItemsData) {
+                const isActive = item.to ? currentRoute.startsWith(item.to) : false;
+                if (isActive) {
+                    return item.category || 'CRM';
+                }
+                if (item.subItems) {
+                    for (const sub of item.subItems) {
+                        const link = sub.subItemLink || '';
+                        if (link && currentRoute.startsWith(link)) {
+                            return item.category || 'CRM';
+                        }
+                    }
+                }
+            }
+            return null;
+        };
+
+        const matched = findCategory();
+        let targetCategory = matched;
+
+        if (targetCategory && !checkCategoryVisibility(targetCategory)) {
+            targetCategory = null;
+        }
+
+        if (targetCategory) {
+            setActiveCategory(targetCategory);
+        } else if (roleDisplay?.sidebarCategories) {
+            const def = roleDisplay.sidebarCategories.find((c) => c.default);
+            if (def) setActiveCategory(def.id);
+        }
+    }, [currentRoute, isVoltSubdomain, roleDisplay]);
+
     useEffect(() => {
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         const roles = getUserRoles(accessToken);
@@ -91,7 +150,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const finalSidebarItems = (() => {
         const base = isVoltSubdomain
             ? voltSidebarData
-            : filterMenuItems(SidebarItemsData, data?.id, isTabVisible, isSubItemVisible);
+            : filterMenuItems(SidebarItemsData, data?.id || '', isTabVisible, isSubItemVisible);
         if (!roleDisplay) return base;
         // Apply role-based visibility and ordering
         const tabVis = new Map(roleDisplay.sidebar.map((t) => [t.id, t]));
@@ -121,6 +180,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                                 ...s,
                                 subItem: c?.label ?? s.subItem,
                                 subItemLink: c?.route ?? s.subItemLink,
+                                locked: c?.locked,
                             };
                         });
                     return {
@@ -128,9 +188,15 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                         title: cfg.label ?? item.title,
                         to: cfg.route ?? item.to,
                         subItems: filteredSubs,
+                        locked: cfg.locked,
                     };
                 }
-                return { ...item, title: cfg.label ?? item.title, to: cfg.route ?? item.to };
+                return {
+                    ...item,
+                    title: cfg.label ?? item.title,
+                    to: cfg.route ?? item.to,
+                    locked: cfg.locked,
+                };
             })
             .sort((a, b) => {
                 const ao = tabVis.get(a.id)?.order ?? 0;
@@ -148,6 +214,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 title: t.label || t.id,
                 to: t.route,
                 id: t.id,
+                locked: t.locked,
             }));
         return ([...mapped, ...customTabs] as SidebarItemsType[]).sort((a, b) => {
             const ao = tabVis.get(a.id)?.order ?? 0;
@@ -172,15 +239,17 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
         }, 300); // Adjust the debounce time as needed
 
         return () => clearTimeout(timer); // Cleanup the timeout on component unmount
-    }, [data?.institute_logo_file_id]);
+    }, [data?.institute_logo_file_id, getPublicUrl, setInstituteLogo]);
 
     if (isLoading) return <DashboardLoader />;
     if (roleDisplay?.ui?.showSidebar === false) return null;
 
     // Sidebar content - shared between mobile drawer and desktop sidebar
     const sidebarContent = (
-        <>
-            <SidebarHeader className={cn('py-1', state === 'collapsed' ? 'px-1' : 'px-3')}>
+        <TooltipProvider delayDuration={0}>
+            <SidebarHeader
+                className={cn('py-1', state === 'collapsed' && !isMobile ? 'px-1' : 'px-3')}
+            >
                 <div
                     className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors"
                     onClick={() => {
@@ -194,7 +263,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             alt="logo"
                             className={cn(
                                 'w-auto object-contain transition-all duration-200',
-                                state === 'expanded'
+                                state === 'expanded' || isMobile
                                     ? isCompact
                                         ? 'h-10 max-w-[80px]'
                                         : 'h-20 max-w-[180px]'
@@ -215,6 +284,143 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                     </SidebarGroup>
                 </div>
             </SidebarHeader>
+
+            <div className="p-2">
+                <Tabs
+                    value={activeCategory}
+                    onValueChange={(v) => setActiveCategory(v as 'CRM' | 'LMS' | 'AI')}
+                    className="w-full"
+                >
+                    <TabsList
+                        className={cn(
+                            'flex w-full items-center justify-between gap-1 rounded-lg border bg-muted/20 p-1',
+                            state === 'collapsed' &&
+                                !isMobile &&
+                                'h-auto flex-col items-center gap-2 border-none bg-transparent p-0'
+                        )}
+                    >
+                        {(() => {
+                            const categories = ['LMS', 'CRM', 'AI'] as const;
+                            const sorted = [...categories].sort((a, b) => {
+                                const cfgA = roleDisplay?.sidebarCategories?.find(
+                                    (c) => c.id === a
+                                );
+                                const cfgB = roleDisplay?.sidebarCategories?.find(
+                                    (c) => c.id === b
+                                );
+                                return (cfgA?.order ?? 0) - (cfgB?.order ?? 0);
+                            });
+
+                            return sorted.map((catId) => {
+                                const config = roleDisplay?.sidebarCategories?.find(
+                                    (c) => c.id === catId
+                                );
+                                if (config && !config.visible) return null;
+
+                                let Icon = Briefcase;
+                                if (catId === 'LMS') Icon = GraduationCap;
+                                if (catId === 'AI') Icon = Sparkle;
+
+                                const isLocked = config?.locked;
+                                const isActive = activeCategory === catId;
+                                const label = catId === 'AI' ? 'AI Tools' : catId;
+
+                                return (
+                                    <Tooltip key={catId} delayDuration={0}>
+                                        <TooltipTrigger asChild>
+                                            <TabsTrigger
+                                                value={catId}
+                                                onClick={(e) => {
+                                                    if (isLocked) {
+                                                        e.preventDefault();
+                                                        navigate({
+                                                            to: '/locked-feature',
+                                                            search: {
+                                                                feature: `${label} Category`,
+                                                            },
+                                                        });
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    'relative flex min-w-0 flex-1 items-center justify-center gap-1.5 px-1 py-1 transition-all data-[state=active]:bg-transparent data-[state=active]:shadow-none',
+                                                    state === 'collapsed' &&
+                                                        !isMobile &&
+                                                        'h-9 w-9 flex-none justify-center rounded-md p-0 ring-1 ring-border/50',
+                                                    isLocked && 'opacity-70'
+                                                )}
+                                            >
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="active-sidebar-tab"
+                                                        className={cn(
+                                                            'absolute inset-0 rounded-md bg-background shadow-sm',
+                                                            state === 'collapsed' &&
+                                                                !isMobile &&
+                                                                'bg-primary/10 ring-primary shadow-none ring-1'
+                                                        )}
+                                                        transition={{
+                                                            type: 'spring',
+                                                            bounce: 0.2,
+                                                            duration: 0.6,
+                                                        }}
+                                                    />
+                                                )}
+
+                                                <span className="relative z-10 flex items-center justify-center gap-1.5">
+                                                    {isLocked ? (
+                                                        <LockKey
+                                                            size={
+                                                                state === 'collapsed' && !isMobile
+                                                                    ? 16
+                                                                    : 14
+                                                            }
+                                                            weight="fill"
+                                                            className="text-muted-foreground"
+                                                        />
+                                                    ) : (
+                                                        <Icon
+                                                            size={
+                                                                state === 'collapsed' && !isMobile
+                                                                    ? 20
+                                                                    : 16
+                                                            }
+                                                            weight={isActive ? 'fill' : 'bold'}
+                                                            className={cn(
+                                                                'shrink-0 transition-colors',
+                                                                isActive
+                                                                    ? 'text-primary'
+                                                                    : 'text-muted-foreground'
+                                                            )}
+                                                        />
+                                                    )}
+                                                    {(state !== 'collapsed' || isMobile) && (
+                                                        <span
+                                                            className={cn(
+                                                                'truncate text-xs font-medium transition-colors',
+                                                                isActive
+                                                                    ? 'text-foreground'
+                                                                    : 'text-muted-foreground'
+                                                            )}
+                                                        >
+                                                            {label === 'AI Tools' ? 'AI' : label}
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </TabsTrigger>
+                                        </TooltipTrigger>
+                                        {state === 'collapsed' && !isMobile && (
+                                            <TooltipContent side="right" className="font-medium">
+                                                {label}
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
+                                );
+                            });
+                        })()}
+                    </TabsList>
+                </Tabs>
+            </div>
+
             <SidebarMenu
                 className={cn(
                     'flex shrink-0 flex-col px-1 py-4',
@@ -227,7 +433,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                     : finalSidebarItems
                           .filter((item) => {
                               const show = (item as SidebarItemsType).showForInstitute;
-                              return !show || show === data?.id;
+                              const category = item.category || 'CRM';
+                              return (!show || show === data?.id) && category === activeCategory;
                           })
                           .map((obj, key) => (
                               <SidebarMenuItem
@@ -254,7 +461,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                     {!currentRoute.includes('slides') && <SupportOptions />}
                 </div>
             )}
-        </>
+        </TooltipProvider>
     );
 
     // Mobile: Render as Sheet/Drawer
