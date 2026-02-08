@@ -1454,6 +1454,7 @@ export function RouteComponent() {
                     contentGenerationProgress={contentGenerationProgress}
                     isCreatingCourse={isCreatingCourse}
                     isTeacher={isTeacher}
+                    isAdmin={isAdmin}
                     onBack={handleBack}
                     onSlideContentChange={handleSlideContentEdit}
                     onSlideSave={(slideId) => {
@@ -1519,30 +1520,34 @@ export function RouteComponent() {
                                     </MyButton>
                                 ) : isContentGenerated ? (
                                     <>
-                                        <MyButton
-                                            buttonType="secondary"
-                                            onClick={() => handleCreateCourse('DRAFT')}
-                                            disabled={isCreatingCourse}
-                                            className="min-w-[130px] border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-                                        >
-                                            {isCreatingCourse ? (
-                                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                            ) : (
-                                                <FileText className="h-4 w-4 mr-1" />
-                                            )}
-                                            Save as Draft
-                                        </MyButton>
-                                        <MyButton
-                                            buttonType="primary"
-                                            onClick={() => {
-                                                setGenerateCourseAssetsDialogOpen(true);
-                                            }}
-                                            disabled={isCreatingCourse}
-                                            className="min-w-[150px]"
-                                        >
-                                            <CheckCircle className="h-4 w-4 mr-1" />
-                                            {isTeacher ? 'Submit for Approval' : 'Create Course'}
-                                        </MyButton>
+                                        {isAdmin && (
+                                            <MyButton
+                                                buttonType="primary"
+                                                onClick={() => {
+                                                    setGenerateCourseAssetsDialogOpen(true);
+                                                }}
+                                                disabled={isCreatingCourse}
+                                                className="min-w-[150px]"
+                                            >
+                                                <CheckCircle className="h-4 w-4 mr-1" />
+                                                Create Course
+                                            </MyButton>
+                                        )}
+                                        {isTeacher && (
+                                            <MyButton
+                                                buttonType="secondary"
+                                                onClick={() => handleCreateCourse('DRAFT')}
+                                                disabled={isCreatingCourse}
+                                                className="min-w-[130px] border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                                            >
+                                                {isCreatingCourse ? (
+                                                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                                ) : (
+                                                    <FileText className="h-4 w-4 mr-1" />
+                                                )}
+                                                Save as Draft
+                                            </MyButton>
+                                        )}
                                     </>
                                 ) : (
                                     <MyButton

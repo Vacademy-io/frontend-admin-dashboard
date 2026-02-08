@@ -159,8 +159,8 @@ export function transformApiDataToDummyStructure(data: ApiCourseData[]) {
 }
 
 function transformCustomFields(customFields: CustomField[], instituteId: string) {
-    const toSnakeCase = (str: string) =>
-        str
+    const toSnakeCase = (str: string | null | undefined) =>
+        (str ?? '')
             .trim()
             .replace(/\s+/g, '_') // Replace spaces with underscores
             .replace(/([a-z])([A-Z])/g, '$1_$2') // Add underscore between camelCase transitions
@@ -336,9 +336,11 @@ export function splitPlansByType(data: PaymentOption[]): {
     const paidPlans: PaidPlan[] = [];
 
     data.forEach((item) => {
-        if (item.type.toLowerCase() === 'free' || item.type.toLowerCase() === 'donation') {
+        const type = (item.type ?? '').toLowerCase();
+        if (!type) return;
+        if (type === 'free' || type === 'donation') {
             const parsedData = JSON.parse(item.payment_option_metadata_json);
-            if (item.type.toLowerCase() === 'donation') {
+            if (type === 'donation') {
                 freePlans.push({
                     id: item.id,
                     name: item.name,
@@ -362,7 +364,7 @@ export function splitPlansByType(data: PaymentOption[]): {
             }
         } else {
             const parsedData = JSON.parse(item.payment_option_metadata_json);
-            if (item.type.toLowerCase() === 'upfront' || item.type.toLowerCase() === 'one_time') {
+            if (type === 'upfront' || type === 'one_time') {
                 paidPlans.push({
                     id: item.id,
                     name: item.name,
@@ -414,7 +416,8 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
             type: '',
         };
     const parsedData = JSON.parse(item.payment_option_metadata_json);
-    if (item.type.toLowerCase() === 'donation') {
+    const type = (item.type ?? '').toLowerCase();
+    if (type === 'donation') {
         return {
             id: item.id,
             name: item.name,
@@ -427,7 +430,7 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
             currency: parsedData?.currency || '',
             type: item.type,
         };
-    } else if (item.type.toLowerCase() === 'free') {
+    } else if (type === 'free') {
         return {
             id: item.id,
             name: item.name,
@@ -435,7 +438,7 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
             days: parsedData?.freeData?.validityDays || 0,
             type: item.type,
         };
-    } else if (item.type.toLowerCase() === 'upfront' || item.type.toLowerCase() === 'one_time') {
+    } else if (type === 'upfront' || type === 'one_time') {
         return {
             id: item.id,
             name: item.name,
@@ -483,7 +486,8 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
             type: '',
         };
     const parsedData = JSON.parse(item.payment_option_metadata_json);
-    if (item.type.toLowerCase() === 'donation') {
+    const type = (item.type ?? '').toLowerCase();
+    if (type === 'donation') {
         return {
             id: item.id,
             name: item.name,
@@ -496,7 +500,7 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
             currency: parsedData?.currency || '',
             type: item.type,
         };
-    } else if (item.type.toLowerCase() === 'free') {
+    } else if (type === 'free') {
         return {
             id: item.id,
             name: item.name,
@@ -504,7 +508,7 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
             days: parsedData?.freeData?.validityDays || 0,
             type: item.type,
         };
-    } else if (item.type.toLowerCase() === 'upfront' || item.type.toLowerCase() === 'one_time') {
+    } else if (type === 'upfront' || type === 'one_time') {
         return {
             id: item.id,
             name: item.name,
@@ -873,7 +877,7 @@ export function convertRegistrationFormData(data: CustomFieldForConversion[]) {
                   ''
                 : '',
         created_at: now,
-        field_key: field.key || field.name.toLowerCase().replace(/\s+/g, '_'),
+        field_key: field.key || (field.name ?? '').toLowerCase().replace(/\s+/g, '_'),
         field_name: field.name,
         field_order: field.order ?? 0,
         field_type: field.type,

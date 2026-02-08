@@ -1,6 +1,8 @@
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect, useState, useMemo } from 'react';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
+import { MyButton } from '@/components/design-system/button';
+import { Sparkles } from 'lucide-react';
 // import useIntroJsTour from '@/hooks/use-intro';
 // import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 // import { studyLibrarySteps } from '@/constants/intro/steps';
@@ -600,7 +602,21 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
                 <div className="mb-4 text-gray-500">
                     Try adding a new {getTerminology(ContentTerms.Course, SystemTerms.Course)}.
                 </div>
-                <AddCourseButton open={isAddCourseOpen} onOpenChange={handleAddCourseOpenChange} />
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                    <AddCourseButton />
+                    {roleDisplay?.courseCreation?.showCreateCourseWithAI && (
+                        <MyButton
+                            type="button"
+                            scale="large"
+                            buttonType="secondary"
+                            className="font-medium"
+                            onClick={() => navigate({ to: '/study-library/ai-copilot' })}
+                        >
+                            <Sparkles className="h-4 w-4 mr-1" />
+                            Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} with AI
+                        </MyButton>
+                    )}
+                </div>
             </div>
         );
     }
@@ -617,11 +633,20 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
                         Effortlessly organize, upload, and track educational resources in one place.
                     </div>
                 </div>
-                <div className="shrink-0">
-                    <AddCourseButton
-                        open={isAddCourseOpen}
-                        onOpenChange={handleAddCourseOpenChange}
-                    />
+                <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+                    <AddCourseButton />
+                    {roleDisplay?.courseCreation?.showCreateCourseWithAI && (
+                        <MyButton
+                            type="button"
+                            scale="large"
+                            buttonType="secondary"
+                            className="font-medium"
+                            onClick={() => navigate({ to: '/study-library/ai-copilot' })}
+                        >
+                            <Sparkles className="h-4 w-4 mr-1" />
+                            Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} with AI
+                        </MyButton>
+                    )}
                 </div>
             </div>
 

@@ -24,6 +24,7 @@ interface SplitViewLayoutProps {
     contentGenerationProgress: string;
     isCreatingCourse: boolean;
     isTeacher: boolean;
+    isAdmin: boolean;
     onBack: () => void;
     onSlideContentChange: (slideId: string, content: string) => void;
     onSlideSave: (slideId: string) => void;
@@ -41,6 +42,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
     contentGenerationProgress,
     isCreatingCourse,
     isTeacher,
+    isAdmin,
     onBack,
     onSlideContentChange,
     onSlideSave,
@@ -151,26 +153,30 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
                                 </div>
                             ) : isContentGenerated ? (
                                 <>
-                                    <MyButton
-                                        buttonType="secondary"
-                                        onClick={() => onCreateCourse('DRAFT')}
-                                        disabled={isCreatingCourse}
-                                    >
-                                        {isCreatingCourse ? (
-                                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                        ) : (
-                                            <FileText className="h-4 w-4 mr-1" />
-                                        )}
-                                        Save as Draft
-                                    </MyButton>
-                                    <MyButton
-                                        buttonType="primary"
-                                        onClick={() => onCreateCourse('ACTIVE')}
-                                        disabled={isCreatingCourse}
-                                    >
-                                        <CheckCircle className="h-4 w-4 mr-1" />
-                                        {isTeacher ? 'Submit for Approval' : 'Create Course'}
-                                    </MyButton>
+                                    {isAdmin && (
+                                        <MyButton
+                                            buttonType="primary"
+                                            onClick={() => onCreateCourse('ACTIVE')}
+                                            disabled={isCreatingCourse}
+                                        >
+                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                            Create Course
+                                        </MyButton>
+                                    )}
+                                    {isTeacher && (
+                                        <MyButton
+                                            buttonType="secondary"
+                                            onClick={() => onCreateCourse('DRAFT')}
+                                            disabled={isCreatingCourse}
+                                        >
+                                            {isCreatingCourse ? (
+                                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                            ) : (
+                                                <FileText className="h-4 w-4 mr-1" />
+                                            )}
+                                            Save as Draft
+                                        </MyButton>
+                                    )}
                                 </>
                             ) : (
                                 <MyButton
