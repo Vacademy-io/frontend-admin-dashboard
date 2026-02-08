@@ -698,8 +698,25 @@ export default function AdminDisplaySettings() {
                                     updateSettings((prev) => ({
                                         ...prev,
                                         ui: {
-                                            showSupportButton: prev.ui?.showSupportButton ?? true,
+                                            showSupportButton: true,
+                                            ...prev.ui,
                                             showSidebar: checked,
+                                        },
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div className="flex items-center justify-between rounded border p-3">
+                            <div className="text-sm">Show AI Credits</div>
+                            <Switch
+                                checked={settings.ui?.showAiCredits !== false}
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => ({
+                                        ...prev,
+                                        ui: {
+                                            showSupportButton: true,
+                                            ...prev.ui,
+                                            showAiCredits: checked,
                                         },
                                     }))
                                 }

@@ -4,15 +4,21 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { CollapsibleItem } from './collapsible-item';
 import { NonCollapsibleItem } from './non-collapsible-item';
 
-export const SidebarItem = ({ icon, title, to, subItems }: SidebarItemProps) => {
+export const SidebarItem = ({ icon, title, to, subItems, locked }: SidebarItemProps) => {
     const { state } = useSidebar();
 
     return (
         <SidebarMenuItem className={`${state == 'expanded' ? 'w-full px-3' : 'w-fit'}`}>
             {subItems ? (
-                <CollapsibleItem icon={icon} title={title} to={to} subItems={subItems} />
+                <CollapsibleItem
+                    icon={icon}
+                    title={title}
+                    to={to}
+                    subItems={subItems}
+                    locked={locked}
+                />
             ) : (
-                <NonCollapsibleItem icon={icon} title={title} to={to} />
+                <NonCollapsibleItem icon={icon} title={title} to={to} locked={locked} />
             )}
         </SidebarMenuItem>
     );

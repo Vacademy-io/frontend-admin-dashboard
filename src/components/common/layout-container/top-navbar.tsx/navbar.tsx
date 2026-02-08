@@ -68,6 +68,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useCompactMode } from '@/hooks/use-compact-mode';
 import { CompactModeToggle } from '@/components/compact-mode/CompactModeToggle';
+import { useAiCreditsQuery } from '@/services/ai-credits/get-ai-credits';
 
 export function Navbar() {
     const roleColors: Record<string, string> = {
@@ -131,6 +132,9 @@ export function Navbar() {
         initialPageParam: 0,
         staleTime: 30_000,
     });
+
+    const showAiCredits = effectiveDS.ui?.showAiCredits !== false;
+    const { data: aiCredits, isError: isCreditsError } = useAiCreditsQuery(showAiCredits);
 
     const [showAllDialog, setShowAllDialog] = useState(false);
     const unreadCount = useMemo(() => {
@@ -261,6 +265,13 @@ export function Navbar() {
             </div>
 
             <div className="flex shrink-0 items-center gap-2 text-neutral-600 md:gap-6">
+                {/* AI Credits */}
+                {showAiCredits && aiCredits && !isCreditsError && (
+                    <div className="hidden items-center gap-1.5 rounded-full border border-purple-100 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 md:flex">
+                        <span>AI Credits:</span>
+                        <span>{parseFloat(aiCredits.current_balance || '0').toFixed(2)}</span>
+                    </div>
+                )}
                 {/* Apps Menu */}
                 {showAppsIcon && (
                     <DropdownMenu>

@@ -111,6 +111,7 @@ function mergeDisplayWithDefaults(
             route: tab.route ?? defTab.route,
             order: tab.order ?? defTab.order ?? 0,
             visible: tab.visible ?? defTab.visible ?? true,
+            locked: tab.locked ?? defTab.locked ?? false,
             isCustom: tab.isCustom ?? (defTab as Partial<typeof defTab>).isCustom ?? false,
             subTabs: subTabsMerged.map((s) => {
                 const defSub =
@@ -124,6 +125,7 @@ function mergeDisplayWithDefaults(
                     route: s.route ?? defSub.route ?? '#',
                     order: s.order ?? defSub.order ?? 0,
                     visible: s.visible ?? defSub.visible ?? true,
+                    locked: s.locked ?? defSub.locked ?? false,
                 };
             }),
         };
@@ -267,6 +269,7 @@ function mergeDisplayWithDefaults(
         showSupportButton:
             incoming?.ui?.showSupportButton ?? defaults.ui?.showSupportButton ?? true,
         showSidebar: incoming?.ui?.showSidebar ?? defaults.ui?.showSidebar ?? true,
+        showAiCredits: incoming?.ui?.showAiCredits ?? defaults.ui?.showAiCredits ?? true,
     };
 
     // Content Types
@@ -414,6 +417,7 @@ function mergeDisplayWithDefaults(
     merged.sidebarCategories = mergedSidebarCategories.map((c) => ({
         id: c.id as 'CRM' | 'LMS' | 'AI',
         visible: c.visible ?? true,
+        locked: c.locked ?? false,
         default: c.default ?? c.id === 'CRM',
         order: c.order ?? 0,
     }));
