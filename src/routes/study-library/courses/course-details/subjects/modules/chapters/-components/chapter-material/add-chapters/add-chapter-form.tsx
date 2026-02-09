@@ -181,7 +181,10 @@ export const AddChapterForm = ({
 
                               if (matchingBatch) {
                                   const courseId = matchingBatch.package_dto.id;
-                                  (visibilityMap[courseId] ??= []).push(psId);
+                                  // Only add if not already present to prevent duplicates
+                                  if (!visibilityMap[courseId]?.includes(psId)) {
+                                      (visibilityMap[courseId] ??= []).push(psId);
+                                  }
                               }
                           });
 
@@ -290,7 +293,10 @@ export const AddChapterForm = ({
 
                 if (matchingBatch) {
                     const courseId = matchingBatch.package_dto.id;
-                    (updatedVisibilityMap[courseId] ??= []).push(psId);
+                    // Only add if not already present to prevent duplicates
+                    if (!updatedVisibilityMap[courseId]?.includes(psId)) {
+                        (updatedVisibilityMap[courseId] ??= []).push(psId);
+                    }
                 }
             });
 
@@ -391,8 +397,9 @@ export const AddChapterForm = ({
         async (data: FormValues) => {
             try {
                 // Use current package session if selection is not required, otherwise use selected packages
+                // Deduplicate IDs using Set to prevent sending duplicate package session IDs
                 const selectedPackageSessionIds = requirePackageSelection
-                    ? Object.values(data.visibility).flat().join(',')
+                    ? [...new Set(Object.values(data.visibility).flat())].join(',')
                     : package_session_id;
 
                 if (!selectedPackageSessionIds) {
