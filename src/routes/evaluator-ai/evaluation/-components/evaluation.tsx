@@ -22,6 +22,7 @@ import axios from "axios";
 import { MyButton } from "@/components/design-system/button";
 import { FileMagnifyingGlass } from "@phosphor-icons/react";
 import { isNullOrEmptyOrUndefined } from "@/lib/utils";
+import { getInstituteId } from "@/constants/helper";
 
 interface OutputData {
     id: string;
@@ -142,6 +143,7 @@ export const EvaluatedStudents = () => {
                 data: data,
                 params: {
                     assessmentId: selectedAssessment,
+                    instituteId: getInstituteId(),
                 },
             });
 

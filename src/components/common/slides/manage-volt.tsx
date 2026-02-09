@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
 import { useGetPresntation } from './hooks/useGetPresntation';
+import { getInstituteId } from '@/constants/helper';
 import {
     Dialog,
     DialogContent,
@@ -223,6 +224,7 @@ export default function ManageVolt() {
                 {
                     language: aiLanguage,
                     text: aiTopic,
+                    institute_id: getInstituteId(),
                 },
                 { headers: { 'Content-Type': 'application/json' } }
             );
