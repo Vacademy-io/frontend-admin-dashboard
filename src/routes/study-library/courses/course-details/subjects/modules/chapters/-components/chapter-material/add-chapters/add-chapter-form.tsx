@@ -1,7 +1,7 @@
 import { ControllerRenderProps, useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useCallback, useState, useRef } from 'react';
+import { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
@@ -93,43 +93,60 @@ export const AddChapterForm = ({
     // State for display settings
     const [requirePackageSelection, setRequirePackageSelection] = useState(true);
 
-    // Get courses from current sessionId
-    const currentSessionCourses = getPackageWiseLevels({
-        sessionId: sessionId,
-    });
+    // Memoize the courses calculation to prevent re-renders
+    const coursesWithLevels = useMemo(() => {
+        // Get courses from current sessionId
+        const currentSessionCourses = getPackageWiseLevels({
+            sessionId: sessionId,
+        });
 
-    // Get courses from DEFAULT sessionId
-    const defaultSessionCourses =
-        sessionId !== 'DEFAULT'
-            ? getPackageWiseLevels({
-                  sessionId: 'DEFAULT',
-              })
-            : [];
+        // Get courses from DEFAULT sessionId
+        const defaultSessionCourses =
+            sessionId !== 'DEFAULT'
+                ? getPackageWiseLevels({
+                      sessionId: 'DEFAULT',
+                  })
+                : [];
 
-    // Combine both sets of courses while avoiding duplicates by package ID
-    const combinedCourses = [...currentSessionCourses];
+        // Combine both sets of courses while avoiding duplicates by package ID
+        const combinedCourses = [...currentSessionCourses];
 
-    // Add default courses only if they don't already exist in current session
-    defaultSessionCourses.forEach((defaultCourse) => {
-        if (
-            !combinedCourses.some(
-                (course) => course.package_dto.id === defaultCourse.package_dto.id
-            )
-        ) {
-            combinedCourses.push(defaultCourse);
-        }
-    });
+        // Add default courses only if they don't already exist in current session
+        defaultSessionCourses.forEach((defaultCourse) => {
+            if (
+                !combinedCourses.some(
+                    (course) => course.package_dto.id === defaultCourse.package_dto.id
+                )
+            ) {
+                combinedCourses.push(defaultCourse);
+            }
+        });
 
-    // Use the combined courses list for everything
-    const coursesWithLevels = combinedCourses;
+        return combinedCourses;
+    }, [sessionId, getPackageWiseLevels]);
 
-    // Create default visibility object
-    const defaultVisibility = coursesWithLevels.reduce(
-        (acc, course) => {
-            acc[course.package_dto.id] = [];
-            return acc;
-        },
-        {} as Record<string, string[]>
+    // Create default visibility object - memoized to prevent effect re-triggering
+    const defaultVisibility = useMemo(
+        () =>
+            coursesWithLevels.reduce(
+                (acc, course) => {
+                    acc[course.package_dto.id] = [];
+                    return acc;
+                },
+                {} as Record<string, string[]>
+            ),
+        [coursesWithLevels]
+    );
+
+    // Get default session courses for checking in the UI - memoized
+    const defaultSessionCoursesList = useMemo(
+        () =>
+            sessionId !== 'DEFAULT'
+                ? getPackageWiseLevels({
+                      sessionId: 'DEFAULT',
+                  })
+                : [],
+        [sessionId, getPackageWiseLevels]
     );
 
     const form = useForm<FormValues>({
@@ -140,159 +157,33 @@ export const AddChapterForm = ({
             visibility:
                 initialValues?.chapter_in_package_sessions && mode === 'edit'
                     ? (() => {
-                          // Create a fresh visibility object starting with defaults
                           const visibilityMap = { ...defaultVisibility };
-
-                          // Debug: Log the existing package session IDs
-                          console.log('=== CHAPTER EDIT DEBUG ===');
-                          console.log('Mode:', mode);
-                          console.log('initialValues:', initialValues);
-                          console.log(
-                              'Existing chapter_in_package_sessions:',
-                              initialValues.chapter_in_package_sessions
-                          );
-                          console.log('coursesWithLevels:', coursesWithLevels);
-                          console.log('defaultSessionCourses:', defaultSessionCourses);
-                          console.log('sessionId:', sessionId);
-                          console.log('defaultVisibility:', defaultVisibility);
-
-                          // Debug: Log all available batches_for_sessions to understand the data structure
-                          const { instituteDetails } = useInstituteDetailsStore.getState();
-                          console.log(
-                              'All batches_for_sessions:',
-                              instituteDetails?.batches_for_sessions
-                          );
-
-                          // Debug: Check which batch IDs match our target package session IDs
                           const targetPackageSessionIds = initialValues.chapter_in_package_sessions;
-                          const matchingBatches = instituteDetails?.batches_for_sessions.filter(
-                              (batch) => targetPackageSessionIds.includes(batch.id)
-                          );
-                          console.log(
-                              'Matching batches for target package session IDs:',
-                              matchingBatches
-                          );
+                          const { instituteDetails } = useInstituteDetailsStore.getState();
 
-                          // WORKAROUND: If chapter_in_package_sessions is empty but we're in edit mode,
-                          // try to fetch the complete chapter data from the API
-                          if (targetPackageSessionIds.length === 0) {
-                              console.log(
-                                  '⚠️ chapter_in_package_sessions is empty, attempting to fetch complete data'
+                          // Handle case where chapter_in_package_sessions is empty in edit mode (fallback)
+                          if (targetPackageSessionIds.length === 0 && package_session_id) {
+                              const currentBatch = instituteDetails?.batches_for_sessions.find(
+                                  (batch) => batch.id === package_session_id
                               );
 
-                              // For now, we'll use a fallback approach:
-                              // Since the API filtering is causing the issue, we'll populate the current
-                              // package session as selected so at least the current visibility is shown
-                              if (package_session_id) {
-                                  console.log(
-                                      'Using current package_session_id as fallback:',
-                                      package_session_id
-                                  );
-
-                                  // Find which course this package_session_id belongs to
-                                  const currentBatch = instituteDetails?.batches_for_sessions.find(
-                                      (batch) => batch.id === package_session_id
-                                  );
-
-                                  if (currentBatch) {
-                                      const courseId = currentBatch.package_dto.id;
-                                      console.log(
-                                          'Found current batch, adding to course:',
-                                          courseId
-                                      );
-
-                                      (visibilityMap[courseId] ??= []).push(package_session_id);
-                                  }
+                              if (currentBatch) {
+                                  const courseId = currentBatch.package_dto.id;
+                                  (visibilityMap[courseId] ??= []).push(package_session_id);
                               }
                           }
 
-                          // NEW APPROACH: Use the batch data directly instead of trying to reverse-engineer
-                          // For each existing package session ID, find it directly in batches_for_sessions
+                          // Populate visibility map from existing session IDs
                           initialValues.chapter_in_package_sessions.forEach((psId) => {
-                              console.log(`\n--- Processing psId: ${psId} ---`);
-
-                              // Find the batch that matches this package session ID
                               const matchingBatch = instituteDetails?.batches_for_sessions.find(
                                   (batch) => batch.id === psId
                               );
 
                               if (matchingBatch) {
-                                  console.log(`✅ Found matching batch:`, matchingBatch);
-
                                   const courseId = matchingBatch.package_dto.id;
-
-                                  // Add this package session ID to the correct course in visibility map
                                   (visibilityMap[courseId] ??= []).push(psId);
-
-                                  console.log(`Added psId ${psId} to course ${courseId}`);
-                              } else {
-                                  console.log(`❌ NO MATCHING BATCH FOUND for psId: ${psId}`);
                               }
                           });
-
-                          // OLD APPROACH (keeping for comparison):
-                          // For each existing package session ID, find which course it belongs to
-                          // initialValues.chapter_in_package_sessions.forEach((psId) => {
-                          //     console.log(`\n--- Processing psId: ${psId} ---`);
-                          //     let foundMatch = false;
-
-                          //     // Check all courses to find where this package session ID belongs
-                          //     for (const course of coursesWithLevels) {
-                          //         const isDefaultSessionCourse = defaultSessionCourses.some(
-                          //             (defaultCourse) =>
-                          //                 defaultCourse.package_dto.id === course.package_dto.id
-                          //         );
-                          //         const courseSessionId = isDefaultSessionCourse
-                          //             ? 'DEFAULT'
-                          //             : sessionId;
-
-                          //         console.log(
-                          //             `Checking course: ${course.package_dto.package_name} (${course.package_dto.id})`
-                          //         );
-                          //         console.log(
-                          //             `isDefaultSessionCourse: ${isDefaultSessionCourse}, courseSessionId: ${courseSessionId}`
-                          //         );
-
-                          //         // Check all levels in this course
-                          //         for (const level of course.level) {
-                          //             const coursePackageSessionId = getPackageSessionId({
-                          //                 courseId: course.package_dto.id,
-                          //                 sessionId: courseSessionId,
-                          //                 levelId: level.level_dto.id,
-                          //             });
-
-                          //             console.log(
-                          //                 `  Level: ${level.level_dto.level_name} (${level.level_dto.id})`
-                          //             );
-                          //             console.log(
-                          //                 `  Generated coursePackageSessionId: ${coursePackageSessionId}`
-                          //             );
-                          //             console.log(`  Comparing with psId: ${psId}`);
-                          //             console.log(`  Match: ${coursePackageSessionId === psId}`);
-
-                          //             // If this package session ID matches, add it to the course's visibility array
-                          //             if (coursePackageSessionId === psId) {
-                          //                 console.log(
-                          //                     `  ✅ MATCH FOUND! Adding to course ${course.package_dto.id}`
-                          //                 );
-                          //                 if (!visibilityMap[course.package_dto.id]) {
-                          //                     visibilityMap[course.package_dto.id] = [];
-                          //                 }
-                          //                 visibilityMap[course.package_dto.id]?.push(psId);
-                          //                 foundMatch = true;
-                          //                 return; // Found the match, move to next psId
-                          //             }
-                          //         }
-                          //     }
-
-                          //     if (!foundMatch) {
-                          //         console.log(`❌ NO MATCH FOUND for psId: ${psId}`);
-                          //     }
-                          // });
-
-                          // Debug: Log the final visibility map
-                          console.log('Final visibility map for edit mode:', visibilityMap);
-                          console.log('=== END CHAPTER EDIT DEBUG ===\n');
 
                           return visibilityMap;
                       })()
@@ -334,24 +225,17 @@ export const AddChapterForm = ({
                 !isLoadingCompleteData
             ) {
                 setIsLoadingCompleteData(true);
-                console.log('🔄 Fetching complete chapter data for edit mode...');
 
                 try {
                     // Get all available package sessions to search through
                     const { instituteDetails } = useInstituteDetailsStore.getState();
                     const allPackageSessions = instituteDetails?.batches_for_sessions || [];
 
-                    console.log('Available package sessions:', allPackageSessions.length);
-
                     // Try to find the chapter in different package sessions
                     let foundCompleteData: ChapterWithSlides | null = null;
 
                     for (const batch of allPackageSessions) {
                         try {
-                            console.log(
-                                `Checking package session: ${batch.id} for subject: ${subjectId}`
-                            );
-
                             const modulesData = await fetchModulesWithChapters(subjectId, batch.id);
 
                             // Look for our chapter in this data
@@ -365,10 +249,6 @@ export const AddChapterForm = ({
                                     foundChapter &&
                                     foundChapter.chapter_in_package_sessions.length > 0
                                 ) {
-                                    console.log(
-                                        '🎯 Found chapter with visibility data:',
-                                        foundChapter
-                                    );
                                     foundCompleteData = foundChapter;
                                     break;
                                 }
@@ -376,19 +256,12 @@ export const AddChapterForm = ({
 
                             if (foundCompleteData) break;
                         } catch (error) {
-                            console.warn(
-                                `Failed to fetch data for package session ${batch.id}:`,
-                                error
-                            );
                             // Continue with next package session
                         }
                     }
 
                     if (foundCompleteData) {
                         setCompleteChapterData(foundCompleteData);
-                        console.log('✅ Successfully loaded complete chapter data');
-                    } else {
-                        console.log('⚠️ Could not find complete chapter data, using fallback');
                     }
                 } catch (error) {
                     console.error('❌ Error fetching complete chapter data:', error);
@@ -401,22 +274,9 @@ export const AddChapterForm = ({
         fetchCompleteChapterData();
     }, [mode, initialValues, subjectId, completeChapterData, isLoadingCompleteData]);
 
-    // Debug: Watch form values changes
-    useEffect(() => {
-        if (mode === 'edit') {
-            const subscription = form.watch((value) => {
-                console.log('Form values changed:', value);
-            });
-            return () => subscription.unsubscribe();
-        }
-        return undefined;
-    }, [form, mode]);
-
     // Update form when complete chapter data is loaded
     useEffect(() => {
         if (completeChapterData && mode === 'edit') {
-            console.log('🔄 Updating form with complete chapter data:', completeChapterData);
-
             // Create visibility map using complete data
             const updatedVisibilityMap = { ...defaultVisibility };
 
@@ -431,13 +291,11 @@ export const AddChapterForm = ({
                 if (matchingBatch) {
                     const courseId = matchingBatch.package_dto.id;
                     (updatedVisibilityMap[courseId] ??= []).push(psId);
-                    console.log(`✅ Added psId ${psId} to course ${courseId}`);
                 }
             });
 
             // Update form with new visibility data
             form.setValue('visibility', updatedVisibilityMap);
-            console.log('📝 Form updated with complete visibility data:', updatedVisibilityMap);
         }
     }, [completeChapterData, mode, defaultVisibility, form]);
 
@@ -761,7 +619,7 @@ export const AddChapterForm = ({
                                 })
                                 .map((course) => {
                                     // Determine if this course is from DEFAULT session
-                                    const isDefaultSessionCourse = defaultSessionCourses.some(
+                                    const isDefaultSessionCourse = defaultSessionCoursesList.some(
                                         (defaultCourse) =>
                                             defaultCourse.package_dto.id === course.package_dto.id
                                     );
