@@ -162,34 +162,18 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
                                     </div>
                                 </div>
                             ) : isContentGenerated ? (
-                                <>
-                                    {isAdmin && (
-                                        <MyButton
-                                            buttonType="primary"
-                                            onClick={() => onCreateCourse('ACTIVE')}
-                                            disabled={isCreatingCourse}
-                                        >
-                                            <CheckCircle className="mr-1 size-4" />
-                                            <span className="hidden sm:inline">Create Course</span>
-                                            <span className="sm:hidden">Create</span>
-                                        </MyButton>
+                                <MyButton
+                                    buttonType="primary"
+                                    onClick={() => onCreateCourse(isAdmin ? 'ACTIVE' : 'DRAFT')}
+                                    disabled={isCreatingCourse}
+                                >
+                                    {isCreatingCourse ? (
+                                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                    ) : (
+                                        <CheckCircle className="h-4 w-4 mr-1" />
                                     )}
-                                    {isTeacher && (
-                                        <MyButton
-                                            buttonType="secondary"
-                                            onClick={() => onCreateCourse('DRAFT')}
-                                            disabled={isCreatingCourse}
-                                        >
-                                            {isCreatingCourse ? (
-                                                <Loader2 className="mr-1 size-4 animate-spin" />
-                                            ) : (
-                                                <FileText className="mr-1 size-4" />
-                                            )}
-                                            <span className="hidden sm:inline">Save as Draft</span>
-                                            <span className="sm:hidden">Draft</span>
-                                        </MyButton>
-                                    )}
-                                </>
+                                    {isAdmin ? 'Create Course' : 'Create Draft Course'}
+                                </MyButton>
                             ) : (
                                 <MyButton buttonType="primary" onClick={onGenerateContent}>
                                     <Sparkles className="mr-1 size-4" />
