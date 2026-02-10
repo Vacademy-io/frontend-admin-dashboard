@@ -244,7 +244,7 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             });
 
             // Prefer afterLoginRoute from domain resolve if available
-            const cached = getCachedInstituteBranding();
+            const cached = getCachedInstituteBranding(instituteResult.selectedInstitute.id);
             console.log('🔍 LOGIN DEBUG: Checking domain branding override:', {
                 domainBranding: cached,
                 afterLoginRoute: cached?.afterLoginRoute,
@@ -270,7 +270,7 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
 
         // Fallback - navigate to dashboard or afterLoginRoute
         console.log('🔍 LOGIN DEBUG: Using fallback redirect logic (no selected institute)');
-        const cached = getCachedInstituteBranding();
+        const cached = getCachedInstituteBranding(); // Fallback might not have an ID context readily available unless we guess
         const fallbackUrl = cached?.afterLoginRoute || '/dashboard';
         console.log('🔍 LOGIN DEBUG: Fallback redirect URL:', {
             domainAfterLoginRoute: cached?.afterLoginRoute,
@@ -317,7 +317,7 @@ export const handleInstituteSelection = async (instituteId: string): Promise<Log
         const userRoles = getUserRoles(getTokenFromCookie(TokenKey.accessToken));
 
         // Check domain-specific role restrictions
-        const cachedBranding = getCachedInstituteBranding();
+        const cachedBranding = getCachedInstituteBranding(instituteId);
         if (cachedBranding?.role === 'ADMIN') {
             // Domain requires ADMIN role - check if user has ADMIN role
             if (!hasAdminRole) {
@@ -404,7 +404,7 @@ export const handleInstituteSelection = async (instituteId: string): Promise<Log
         let redirectUrl = ds?.postLoginRedirectRoute || '/dashboard';
 
         // Prefer afterLoginRoute from domain resolve if available
-        const cached = getCachedInstituteBranding();
+        const cached = getCachedInstituteBranding(instituteId);
         if (cached?.afterLoginRoute) {
             redirectUrl = cached.afterLoginRoute;
         }
