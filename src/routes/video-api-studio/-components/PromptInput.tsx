@@ -23,7 +23,9 @@ import {
     Mic,
     Volume2,
     Layers,
+    ArrowRight,
 } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import {
     GenerateVideoRequest,
     LANGUAGES,
@@ -467,6 +469,17 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
                     >
                         <Send className="size-3.5" />
                     </Button>
+                </div>
+
+                <div className="flex w-full justify-end px-1 pb-1">
+                    <Link
+                        to="/study-library/ai-copilot"
+                        className="group flex items-center gap-1.5 text-[10px] text-muted-foreground transition-colors hover:text-violet-600"
+                    >
+                        <Sparkles className="size-3 transition-colors group-hover:text-violet-600" />
+                        <span>Want to create an entire course via AI?</span>
+                        <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+                    </Link>
                 </div>
             </div>
         </div>

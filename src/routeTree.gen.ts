@@ -132,6 +132,7 @@ import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeA
 const PricingLazyRouteImport = createFileRoute("/pricing")()
 const LearnerInsightsLazyRouteImport = createFileRoute("/learner-insights")()
 const LandingLazyRouteImport = createFileRoute("/landing")()
+const ExploreAiLazyRouteImport = createFileRoute("/explore-ai")()
 const AssessmentIndexLazyRouteImport = createFileRoute("/assessment/")()
 
 const PricingLazyRoute = PricingLazyRouteImport.update({
@@ -151,6 +152,11 @@ const LandingLazyRoute = LandingLazyRouteImport.update({
   path: "/landing",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/landing.lazy").then((d) => d.Route))
+const ExploreAiLazyRoute = ExploreAiLazyRouteImport.update({
+  id: "/explore-ai",
+  path: "/explore-ai",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import("./routes/explore-ai.lazy").then((d) => d.Route))
 const SettingsRoute = SettingsRouteImport.update({
   id: "/settings",
   path: "/settings",
@@ -1092,6 +1098,7 @@ export interface FileRoutesByFullPath {
   "/agent-chat": typeof AgentChatRoute
   "/locked-feature": typeof LockedFeatureRoute
   "/settings": typeof SettingsRoute
+  "/explore-ai": typeof ExploreAiLazyRoute
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
@@ -1215,6 +1222,7 @@ export interface FileRoutesByTo {
   "/agent-chat": typeof AgentChatRoute
   "/locked-feature": typeof LockedFeatureRoute
   "/settings": typeof SettingsRoute
+  "/explore-ai": typeof ExploreAiLazyRoute
   "/landing": typeof LandingLazyRoute
   "/pricing": typeof PricingLazyRoute
   "/admin-package-management": typeof AdminPackageManagementIndexRoute
@@ -1338,6 +1346,7 @@ export interface FileRoutesById {
   "/agent-chat": typeof AgentChatRoute
   "/locked-feature": typeof LockedFeatureRoute
   "/settings": typeof SettingsRoute
+  "/explore-ai": typeof ExploreAiLazyRoute
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
@@ -1463,6 +1472,7 @@ export interface FileRouteTypes {
     | "/agent-chat"
     | "/locked-feature"
     | "/settings"
+    | "/explore-ai"
     | "/landing"
     | "/learner-insights"
     | "/pricing"
@@ -1586,6 +1596,7 @@ export interface FileRouteTypes {
     | "/agent-chat"
     | "/locked-feature"
     | "/settings"
+    | "/explore-ai"
     | "/landing"
     | "/pricing"
     | "/admin-package-management"
@@ -1708,6 +1719,7 @@ export interface FileRouteTypes {
     | "/agent-chat"
     | "/locked-feature"
     | "/settings"
+    | "/explore-ai"
     | "/landing"
     | "/learner-insights"
     | "/pricing"
@@ -1832,6 +1844,7 @@ export interface RootRouteChildren {
   AgentChatRoute: typeof AgentChatRoute
   LockedFeatureRoute: typeof LockedFeatureRoute
   SettingsRoute: typeof SettingsRoute
+  ExploreAiLazyRoute: typeof ExploreAiLazyRoute
   LandingLazyRoute: typeof LandingLazyRoute
   LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
   PricingLazyRoute: typeof PricingLazyRoute
@@ -1972,6 +1985,13 @@ declare module "@tanstack/react-router" {
       path: "/landing"
       fullPath: "/landing"
       preLoaderRoute: typeof LandingLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/explore-ai": {
+      id: "/explore-ai"
+      path: "/explore-ai"
+      fullPath: "/explore-ai"
+      preLoaderRoute: typeof ExploreAiLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/settings": {
@@ -2818,6 +2838,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentChatRoute: AgentChatRoute,
   LockedFeatureRoute: LockedFeatureRoute,
   SettingsRoute: SettingsRoute,
+  ExploreAiLazyRoute: ExploreAiLazyRoute,
   LandingLazyRoute: LandingLazyRoute,
   LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,
   PricingLazyRoute: PricingLazyRoute,

@@ -804,8 +804,8 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                     style={{
                         width: '100%',
                         height: '100%',
-                        minHeight: '300px',
-                        aspectRatio: '16/9',
+                        minHeight: isFullscreen ? '0px' : '300px',
+                        aspectRatio: isFullscreen ? 'auto' : '16/9',
                         background: '#ffffff',
                         position: 'relative',
                         overflow: 'hidden',

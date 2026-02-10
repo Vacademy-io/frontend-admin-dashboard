@@ -108,7 +108,7 @@ export function Step3AddOrgDetails() {
                 console.error('Failed to decode signupData:', e);
             }
         }
-    }, []);
+    }, [form]);
 
     const { getValues } = form;
     const isValid =
@@ -194,15 +194,17 @@ export function Step3AddOrgDetails() {
     return (
         <FormProvider {...form}>
             <form>
-                <div className="my-6 flex flex-col items-center justify-center gap-8">
-                    <h1 className="text-[1.6rem]">Create your profile in the organization</h1>
+                <div className="my-6 flex flex-col items-center justify-center gap-4 lg:gap-8">
+                    <h1 className="text-xl lg:text-[1.6rem]">
+                        Create your profile in the organization
+                    </h1>
 
                     {/* Full Name */}
                     <FormField
                         control={form.control}
                         name="name"
                         render={({ field: { onChange, value, ...field } }) => (
-                            <FormItem>
+                            <FormItem className="w-full max-w-sm">
                                 <FormControl>
                                     <MyInput
                                         inputType="text"
@@ -214,7 +216,7 @@ export function Step3AddOrgDetails() {
                                         size="large"
                                         label="Full Name"
                                         {...field}
-                                        className="w-96"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
@@ -226,7 +228,7 @@ export function Step3AddOrgDetails() {
                         control={form.control}
                         name="username"
                         render={({ field: { onChange, value, ...field } }) => (
-                            <FormItem>
+                            <FormItem className="w-full max-w-sm">
                                 <FormControl>
                                     <MyInput
                                         inputType="text"
@@ -238,7 +240,7 @@ export function Step3AddOrgDetails() {
                                         size="large"
                                         label="Username"
                                         {...field}
-                                        className="w-96"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
@@ -250,7 +252,7 @@ export function Step3AddOrgDetails() {
                         control={form.control}
                         name="email"
                         render={({ field: { onChange, value, ...field } }) => (
-                            <FormItem>
+                            <FormItem className="w-full max-w-sm">
                                 <FormControl>
                                     <MyInput
                                         inputType="email"
@@ -262,7 +264,7 @@ export function Step3AddOrgDetails() {
                                         size="large"
                                         label="Email"
                                         {...field}
-                                        className="w-96"
+                                        className="w-full"
                                         disabled={!!signupData?.email}
                                     />
                                 </FormControl>
@@ -275,7 +277,7 @@ export function Step3AddOrgDetails() {
                         control={form.control}
                         name="password"
                         render={({ field: { onChange, value, ...field } }) => (
-                            <FormItem>
+                            <FormItem className="w-full max-w-sm">
                                 <FormControl>
                                     <MyInput
                                         inputType="password"
@@ -287,7 +289,7 @@ export function Step3AddOrgDetails() {
                                         size="large"
                                         label="Password"
                                         {...field}
-                                        className="w-96"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
@@ -299,7 +301,7 @@ export function Step3AddOrgDetails() {
                         control={form.control}
                         name="confirmPassword"
                         render={({ field: { onChange, value, ...field } }) => (
-                            <FormItem>
+                            <FormItem className="w-full max-w-sm">
                                 <FormControl>
                                     <MyInput
                                         inputType="password"
@@ -311,7 +313,7 @@ export function Step3AddOrgDetails() {
                                         size="large"
                                         label="Confirm Password"
                                         {...field}
-                                        className="w-96"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>

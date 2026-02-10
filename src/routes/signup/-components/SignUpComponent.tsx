@@ -62,11 +62,11 @@ export function SignUpComponent() {
 
     useEffect(() => {
         resetForm();
-    }, []);
+    }, [resetForm]);
 
     return (
-        <div className="flex h-screen w-full">
-            <div className="flex w-2/5 flex-col items-center justify-center bg-primary-50">
+        <div className="flex min-h-screen w-full flex-col lg:flex-row">
+            <div className="hidden w-2/5 flex-col items-center justify-center bg-primary-50 lg:flex">
                 {instituteLogo ? (
                     <img
                         src={instituteLogo}
@@ -76,15 +76,15 @@ export function SignUpComponent() {
                 ) : null}
                 <OnboardingSignup className="w-[500px]" />
             </div>
-            <div className="flex w-3/5 items-center justify-center">
+            <div className="flex w-full items-center justify-center py-10 lg:w-3/5 lg:py-0">
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="flex w-[550px] flex-col items-center justify-center space-y-8"
+                        className="flex w-full max-w-[550px] flex-col items-center justify-center space-y-8 px-6"
                     >
                         <div className="flex w-full flex-col items-center justify-center">
                             <div className="mb-10 flex flex-col items-center justify-center">
-                                <FormLabel className="text-[1.5rem]">
+                                <FormLabel className="text-center text-[1.5rem]">
                                     Evaluate smarter, learn better
                                 </FormLabel>
                                 <FormDescription className="text-center">
@@ -148,7 +148,7 @@ export function SignUpComponent() {
                                 </div>
                             </div>
 
-                            <div className="my-4 grid w-[110%] grid-cols-2 gap-4">
+                            <div className="my-4 grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
                                 {items.map((item) => (
                                     <FormField
                                         key={item.id}
@@ -159,10 +159,10 @@ export function SignUpComponent() {
                                                 <div className="flex items-start justify-between">
                                                     <FormLabel className="text-sm font-normal">
                                                         {item.label === 'Assess' && (
-                                                            <VacademyAssessLogo className="w-[200px]" />
+                                                            <VacademyAssessLogo className="w-[150px] sm:w-[200px]" />
                                                         )}
                                                         {item.label === 'LMS' && (
-                                                            <VacademyLMSLogo className="w-[200px]" />
+                                                            <VacademyLMSLogo className="w-[150px] sm:w-[200px]" />
                                                         )}
                                                         {item.label === 'Volt' && (
                                                             <VacademyVoltLogo />
@@ -175,10 +175,11 @@ export function SignUpComponent() {
                                                         <Checkbox
                                                             checked={field.value}
                                                             onCheckedChange={field.onChange}
-                                                            className={`size-5 border shadow-none ${field.value
-                                                                ? 'border-none bg-green-500 text-white'
-                                                                : 'bg-white'
-                                                                }`}
+                                                            className={`size-5 border shadow-none ${
+                                                                field.value
+                                                                    ? 'border-none bg-green-500 text-white'
+                                                                    : 'bg-white'
+                                                            }`}
                                                         />
                                                     </FormControl>
                                                 </div>

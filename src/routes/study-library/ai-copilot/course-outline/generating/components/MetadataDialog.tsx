@@ -74,7 +74,7 @@ export const MetadataDialog: React.FC<MetadataDialogProps> = ({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+            <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg max-h-[90vh] flex flex-col p-0 sm:p-6">
                 <DialogHeader>
                     <DialogTitle>Course Details</DialogTitle>
                     <DialogDescription>

@@ -76,14 +76,14 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
     return (
         <FormProvider {...form}>
             <form>
-                <div className="flex flex-col items-center justify-center gap-8">
-                    <h1 className="text-[1.6rem]">Share your organization details</h1>
+                <div className="flex flex-col items-center justify-center gap-4 lg:gap-8">
+                    <h1 className="text-xl lg:text-[1.6rem]">Share your organization details</h1>
                     <div className="relative">
                         {form.getValues('profilePictureUrl') ? (
                             <img
                                 src={form.getValues('profilePictureUrl')}
                                 alt="logo"
-                                className="size-52 rounded-full"
+                                className="size-32 rounded-full lg:size-52"
                             />
                         ) : (
                             <div className="rounded-full object-cover">
@@ -113,7 +113,7 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
                         control={form.control}
                         name="instituteName"
                         render={({ field: { onChange, value, ...field } }) => (
-                            <FormItem>
+                            <FormItem className="w-full max-w-sm">
                                 <FormControl>
                                     <MyInput
                                         inputType="text"
@@ -125,24 +125,26 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
                                         size="large"
                                         label="Institute Name"
                                         {...field}
-                                        className="w-96"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
                         )}
                     />
-                    <SelectField
-                        label="Institute Type"
-                        name="instituteType"
-                        options={InstituteType.map((option, index) => ({
-                            value: option,
-                            label: option,
-                            _id: index,
-                        }))}
-                        control={form.control}
-                        className="w-full"
-                        required
-                    />
+                    <div className="w-full max-w-sm">
+                        <SelectField
+                            label="Institute Type"
+                            name="instituteType"
+                            options={InstituteType.map((option, index) => ({
+                                value: option,
+                                label: option,
+                                _id: index,
+                            }))}
+                            control={form.control}
+                            className="w-full"
+                            required
+                        />
+                    </div>
                     <MyButton
                         type="button"
                         scale="large"

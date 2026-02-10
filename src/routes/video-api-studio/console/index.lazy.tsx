@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { createLazyFileRoute, useNavigate } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Video, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, Video, Sparkles, Loader2, Menu } from 'lucide-react';
 import { toast } from 'sonner';
 import { getInstituteId } from '@/constants/helper';
 import {
@@ -27,6 +27,8 @@ import { HistorySidebar } from '../-components/HistorySidebar';
 import { PromptInput } from '../-components/PromptInput';
 import { GenerationProgress } from '../-components/GenerationProgress';
 import { VideoResult } from '../-components/VideoResult';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { AiCreditsPanel } from '@/components/common/ai-credits/AiCreditsPanel';
 
 export const Route = createLazyFileRoute('/video-api-studio/console/')({
     component: VideoConsole,
@@ -59,6 +61,7 @@ function VideoConsole() {
     const [consoleState, setConsoleState] = useState<ConsoleState>('idle');
     const [currentGeneration, setCurrentGeneration] = useState<CurrentGeneration | null>(null);
     const [isLoadingVideoUrls, setIsLoadingVideoUrls] = useState(false);
+    const [isMobileHistoryOpen, setIsMobileHistoryOpen] = useState(false);
 
     const abortRef = useRef<(() => void) | null>(null);
 
@@ -357,6 +360,8 @@ function VideoConsole() {
     const handleSelectHistory = useCallback(
         async (item: HistoryItem) => {
             setSelectedHistoryId(item.video_id);
+            // Close mobile menu if open
+            setIsMobileHistoryOpen(false);
 
             // If we have URLs locally, use them directly
             if (item.html_url && item.audio_url) {
@@ -453,6 +458,7 @@ function VideoConsole() {
         setSelectedHistoryId(null);
         setCurrentGeneration(null);
         setConsoleState('idle');
+        setIsMobileHistoryOpen(false);
     }, []);
 
     // No API keys or no stored full key - redirect to main page
@@ -497,24 +503,44 @@ function VideoConsole() {
 
     return (
         <div className="relative flex h-screen w-full overflow-hidden bg-background">
-            {/* Sidebar */}
-            <HistorySidebar
-                history={history}
-                selectedId={selectedHistoryId}
-                onSelect={handleSelectHistory}
-                onDelete={handleDeleteHistory}
-                onNewVideo={handleNewVideo}
-            />
+            {/* Sidebar Desktop */}
+            <div className="hidden h-full md:block">
+                <HistorySidebar
+                    history={history}
+                    selectedId={selectedHistoryId}
+                    onSelect={handleSelectHistory}
+                    onDelete={handleDeleteHistory}
+                    onNewVideo={handleNewVideo}
+                />
+            </div>
 
             {/* Main Content */}
             <div className="flex min-w-0 flex-1 flex-col bg-secondary/10">
                 {/* Header */}
-                <div className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/50 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/50 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-6">
                     <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 md:hidden">
+                            <Sheet open={isMobileHistoryOpen} onOpenChange={setIsMobileHistoryOpen}>
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="-ml-2 size-8">
+                                        <Menu className="size-4" />
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="left" className="w-[300px] p-0">
+                                    <HistorySidebar
+                                        history={history}
+                                        selectedId={selectedHistoryId}
+                                        onSelect={handleSelectHistory}
+                                        onDelete={handleDeleteHistory}
+                                        onNewVideo={handleNewVideo}
+                                    />
+                                </SheetContent>
+                            </Sheet>
+                        </div>
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="hover:text-primary -ml-2 size-8 text-muted-foreground"
+                            className="-ml-2 hidden size-8 text-muted-foreground hover:text-foreground md:flex"
                             onClick={() => navigate({ to: '/video-api-studio' })}
                         >
                             <ArrowLeft className="size-4" />
@@ -528,6 +554,19 @@ function VideoConsole() {
                                 Video Console
                             </h1>
                         </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {/* AI Credits */}
+                        <AiCreditsPanel />
+                        {/* Mobile Back Button */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="flex size-8 text-muted-foreground md:hidden"
+                            onClick={() => navigate({ to: '/video-api-studio' })}
+                        >
+                            <ArrowLeft className="size-4" />
+                        </Button>
                     </div>
                 </div>
 

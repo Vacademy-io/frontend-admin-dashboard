@@ -2147,8 +2147,8 @@ export const SlideMaterial = ({
                 </div>
             )}
             {activeItem && (
-                <div className="sticky top-0 z-50 -m-8 flex items-center justify-between gap-4 border-b border-neutral-200 bg-white/80 px-6 py-3 shadow-sm backdrop-blur-sm">
-                    <div className="flex items-center gap-3">
+                <div className="sticky top-0 z-50 -mx-2 -mt-2 flex flex-wrap items-center justify-between gap-1 border-b border-neutral-200 bg-white/80 px-2 py-1 shadow-sm backdrop-blur-sm sm:-mx-3 sm:-mt-3 sm:px-3 sm:py-1.5 md:-mx-4 md:-mt-4 md:flex-nowrap md:gap-3 md:px-4 md:py-2.5 lg:-mx-7 lg:-mt-7 lg:gap-4 lg:px-7 lg:py-3">
+                    <div className="w-full min-w-0 md:w-auto md:flex-1">
                         {isEditing ? (
                             <div className="flex items-center justify-center gap-2 duration-200 animate-in fade-in">
                                 <input
@@ -2176,13 +2176,13 @@ export const SlideMaterial = ({
                                 />
                             </div>
                         ) : (
-                            <div className="flex items-center justify-center gap-2">
-                                <h3 className="text-h3 font-semibold text-neutral-600">
+                            <div className="flex min-w-0 items-center gap-1.5">
+                                <h3 className="truncate text-xs font-semibold text-neutral-600 sm:text-sm md:text-base lg:text-h3">
                                     {heading || 'No content selected'}
                                 </h3>
                                 {!isLearnerView && (
                                     <PencilSimpleLine
-                                        className="cursor-pointer hover:text-primary-500"
+                                        className="shrink-0 cursor-pointer hover:text-primary-500"
                                         onClick={() => setIsEditing(true)}
                                     />
                                 )}
@@ -2191,8 +2191,8 @@ export const SlideMaterial = ({
                     </div>
 
                     {!isLearnerView && (
-                        <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-6">
+                        <div className="flex shrink-0 items-center gap-1 sm:gap-2 md:gap-3">
+                            <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
                                 {activeItem.source_type === 'DOCUMENT' &&
                                     activeItem?.document_slide?.type === 'DOC' && (
                                         <MyButton
@@ -2250,7 +2250,10 @@ export const SlideMaterial = ({
                                             ) : hidePublishButtons ? (
                                                 <FloppyDisk size={18} />
                                             ) : (
-                                                'Save Draft'
+                                                <>
+                                                    <FloppyDisk size={18} className="md:hidden" />
+                                                    <span className="hidden md:inline">Save Draft</span>
+                                                </>
                                             )}
                                         </MyButton>
                                     )}
@@ -2264,7 +2267,8 @@ export const SlideMaterial = ({
                                             layoutVariant="default"
                                             onClick={() => setIsUnpublishDialogOpen(true)}
                                         >
-                                            Unpublish
+                                            <span className="hidden sm:inline">Unpublish</span>
+                                            <span className="sm:hidden text-xs">Unpub</span>
                                         </MyButton>
                                     ) : (
                                         <MyButton
@@ -2273,7 +2277,8 @@ export const SlideMaterial = ({
                                             layoutVariant="default"
                                             onClick={() => setIsPublishDialogOpen(true)}
                                         >
-                                            Publish
+                                            <span className="hidden sm:inline">Publish</span>
+                                            <span className="sm:hidden text-xs">Pub</span>
                                         </MyButton>
                                     ))}
 
