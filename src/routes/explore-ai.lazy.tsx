@@ -1,9 +1,16 @@
 import { createLazyFileRoute, useNavigate } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, StarFour } from '@phosphor-icons/react';
+import {
+    ArrowRight,
+    CalendarCheck,
+    GraduationCap,
+    MagicWand,
+    Robot,
+    SquaresFour,
+    StarFour,
+} from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
-import { GetImagesForAITools } from './ai-center/-helpers/GetImagesForAITools';
 
 export const Route = createLazyFileRoute('/explore-ai')({
     component: ExploreAIPage,
@@ -17,59 +24,59 @@ function ExploreAIPage() {
             title: 'Create Educational Content',
             description: 'Videos, Storybooks, Quizzes, Timeline',
             path: '/video-api-studio/console',
-            imageKey: 'text',
+            icon: MagicWand,
             gradient:
                 'from-blue-500/10 to-indigo-500/10 hover:from-blue-500/20 hover:to-indigo-500/20',
             border: 'hover:border-blue-500/50',
             textAccent: 'text-blue-600',
-            iconBg: 'bg-blue-500/10',
+            iconColor: 'text-blue-500',
             accentColor: 'bg-blue-500',
         },
         {
             title: 'Create End to End Course',
             description: 'PPT, Diagrams, Videos, Quizzes, Assignments',
             path: '/study-library/ai-copilot',
-            imageKey: 'sortTopicsPdf',
+            icon: GraduationCap,
             gradient:
                 'from-purple-500/10 to-violet-500/10 hover:from-purple-500/20 hover:to-violet-500/20',
             border: 'hover:border-purple-500/50',
             textAccent: 'text-purple-600',
-            iconBg: 'bg-purple-500/10',
+            iconColor: 'text-purple-500',
             accentColor: 'bg-purple-500',
         },
         {
             title: 'Lecture Assistant',
             description: 'Notes, Quizzes, Flashcards from Live Lecture',
             path: '/instructor-copilot',
-            imageKey: 'chat',
+            icon: Robot,
             gradient:
                 'from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20',
             border: 'hover:border-amber-500/50',
             textAccent: 'text-amber-600',
-            iconBg: 'bg-amber-500/10',
+            iconColor: 'text-amber-500',
             accentColor: 'bg-amber-500',
         },
         {
             title: 'Lecture Planner',
             description: 'Plan your lecture before you start class',
             path: '/ai-center/ai-tools/vsmart-lecture',
-            imageKey: 'planLecture',
+            icon: CalendarCheck,
             gradient:
                 'from-emerald-500/10 to-teal-500/10 hover:from-emerald-500/20 hover:to-teal-500/20',
             border: 'hover:border-emerald-500/50',
             textAccent: 'text-emerald-600',
-            iconBg: 'bg-emerald-500/10',
+            iconColor: 'text-emerald-500',
             accentColor: 'bg-emerald-500',
         },
         {
             title: 'Other AI Learning Tools',
             description: 'Explore all available AI tools',
             path: '/ai-center/ai-tools',
-            imageKey: 'assessment',
+            icon: SquaresFour,
             gradient: 'from-pink-500/10 to-rose-500/10 hover:from-pink-500/20 hover:to-rose-500/20',
             border: 'hover:border-pink-500/50',
             textAccent: 'text-pink-600',
-            iconBg: 'bg-pink-500/10',
+            iconColor: 'text-pink-500',
             accentColor: 'bg-pink-500',
         },
     ];
@@ -149,11 +156,14 @@ function ExploreAIPage() {
                                     </div>
                                 </div>
 
-                                {/* Image/Illustration - Smaller on mobile */}
+                                {/* Icon - Replaces ImageKey */}
                                 <div className="relative flex size-14 shrink-0 items-center justify-center sm:size-24">
                                     <div className="absolute inset-0 hidden scale-75 rounded-full bg-white/50 blur-xl transition-transform duration-500 group-hover:scale-100 sm:block" />
-                                    <div className="relative z-10 size-full drop-shadow-sm transition-transform duration-300 sm:group-hover:scale-110">
-                                        {GetImagesForAITools(feature.imageKey)}
+                                    <div className="relative z-10 flex size-full items-center justify-center drop-shadow-sm transition-transform duration-300 sm:group-hover:scale-110">
+                                        <feature.icon
+                                            weight="duotone"
+                                            className={cn('size-8 sm:size-12', feature.iconColor)}
+                                        />
                                     </div>
                                 </div>
                             </div>
