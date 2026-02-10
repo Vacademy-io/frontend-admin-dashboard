@@ -13,6 +13,7 @@ import { UploadFileInS3, getPublicUrl } from '@/services/upload_file';
 import * as pdfjs from 'pdfjs-dist';
 import { toast } from 'sonner';
 import { convertDocToHtml } from './-components/slides-sidebar/utils/doc-to-html';
+import { convertPptToPdf } from './-components/slides-sidebar/add-ppt-dialog';
 import { useReplaceBase64ImagesWithNetworkUrls } from '@/utils/helpers/study-library-helpers.ts/slides/replaceBase64ToNetworkUrl';
 import { convertHtmlToPdf } from './-helper/helper';
 import { formatHTMLString } from './-components/slide-operations/formatHtmlString';
@@ -47,6 +48,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 type StagedKind =
     | 'PDF'
     | 'DOC'
+    | 'PPT'
     | 'VIDEO_FILE'
     | 'YOUTUBE'
     | 'IMAGE'
@@ -155,6 +157,19 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                 next.push({
                     id: crypto.randomUUID(),
                     kind: 'PDF',
+                    title: file.name.replace(/\.[^/.]+$/, ''),
+                    file,
+                    mime,
+                });
+            } else if (
+                mime.includes('powerpoint') ||
+                mime.includes('presentationml') ||
+                ext === 'ppt' ||
+                ext === 'pptx'
+            ) {
+                next.push({
+                    id: crypto.randomUUID(),
+                    kind: 'PPT',
                     title: file.name.replace(/\.[^/.]+$/, ''),
                     file,
                     mime,
@@ -396,6 +411,12 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                 icon: <FileDoc className="size-4" />,
                 onClick: () => fileInputRef.current?.click(),
             },
+            allow('pdf') && {
+                key: 'ppt',
+                label: 'PPT',
+                icon: <PresentationChart className="size-4" />,
+                onClick: () => fileInputRef.current?.click(),
+            },
             allow('presentation') && {
                 key: 'presentation',
                 label: 'Presentation',
@@ -462,7 +483,46 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                 // All bulk-add slides are published
                 const status = 'PUBLISHED';
 
-                if (item.kind === 'PDF' && item.file) {
+                if (item.kind === 'PPT' && item.file) {
+                    // Convert PPT to PDF first, then process as PDF
+                    const pdfFile = await convertPptToPdf(item.file);
+                    const fileId = await UploadFileInS3(
+                        pdfFile,
+                        () => {},
+                        'bulk-user',
+                        INSTITUTE_ID,
+                        'PDF_DOCUMENTS',
+                        true
+                    );
+                    const ab = await pdfFile.arrayBuffer();
+                    const pdf = await pdfjs.getDocument({ data: ab }).promise;
+                    const totalPages = pdf.numPages;
+                    const id = crypto.randomUUID();
+                    const resp: string = await addUpdateDocumentSlide({
+                        id,
+                        title: item.title,
+                        image_file_id: '',
+                        description: null,
+                        slide_order: 0,
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: 'PDF',
+                            data: fileId || '',
+                            title: item.title,
+                            cover_file_id: '',
+                            total_pages: totalPages,
+                            published_data: fileId || '',
+                            published_document_total_pages: totalPages,
+                        },
+                        status,
+                        new_slide: true,
+                        notify: false,
+                    });
+                    createdIds.push(resp || id);
+                    setStaged((prev) =>
+                        prev.map((it) => (it.id === item.id ? { ...it, status: 'done' } : it))
+                    );
+                } else if (item.kind === 'PDF' && item.file) {
                     const fileId = await UploadFileInS3(
                         item.file,
                         () => {},
@@ -986,6 +1046,9 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                         'application/pdf',
                         'application/msword',
                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'application/vnd.ms-powerpoint',
+                        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                        '.ppt,.pptx',
                         'video/*',
                         'image/*',
                         'audio/*',
@@ -1152,6 +1215,8 @@ function renderKindIcon(kind: StagedKind) {
         case 'PRESENTATION':
             return <PresentationChart className={cls} />;
         case 'JUPYTER':
+            return <PresentationChart className={cls} />;
+        case 'PPT':
             return <PresentationChart className={cls} />;
         default:
             return null;

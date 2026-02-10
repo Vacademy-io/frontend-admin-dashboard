@@ -47,6 +47,7 @@ export const FORGOT_PASSWORD = `${BASE_URL}/auth-service/v1/send-password`;
 export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 
 export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/media-service/convert/doc-to-html`;
+export const CONVERT_PPT_TO_PDF_URL = `${BASE_URL}/media-service/convert/ppt-to-pdf`;
 export const SUBMIT_RATING_URL = `${BASE_URL}/admin-core-service/rating`;
 export const GET_ALL_USER_RATINGS = `${BASE_URL}/admin-core-service/rating/get-source-ratings-admin`;
 export const GET_ALL_RATING_SUMMARY = `${BASE_URL}/admin-core-service/rating/summary`;
@@ -69,7 +70,6 @@ export const GET_DASHBOARD_ASSESSMENT_COUNT_URL = `${BASE_URL}/assessment-servic
 export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details`;
 export const INIT_INSTITUTE_WITHOUT_BATCHES = `${BASE_URL}/admin-core-service/institute/v1/details-non-batches`;
 export const INIT_INSTITUTE_SETUP = `${BASE_URL}/admin-core-service/institute/v1/setup-without-batches`;
-
 
 // Package Management APIs
 export const PAGINATED_BATCHES = `${BASE_URL}/admin-core-service/institute/v1/paginated-batches`;

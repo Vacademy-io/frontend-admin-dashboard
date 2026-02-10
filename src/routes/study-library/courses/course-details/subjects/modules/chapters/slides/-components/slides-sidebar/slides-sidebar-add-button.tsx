@@ -20,6 +20,7 @@ import { AddVideoDialog } from './add-video-dialog';
 import { AddVideoFileDialog } from './add-video-file-dialog';
 import { AddDocDialog } from './add-doc-dialog';
 import { AddPdfDialog } from './add-pdf-dialog';
+import { AddPptDialog } from './add-ppt-dialog';
 import { AddAudioDialog } from './add-audio-dialog';
 import { useRouter } from '@tanstack/react-router';
 import {
@@ -106,6 +107,7 @@ export const ChapterSidebarAddButton = () => {
         isVideoFileDialogOpen,
         isQuestionDialogOpen,
         isAudioDialogOpen,
+        isPptDialogOpen,
 
         openPdfDialog,
         closePdfDialog,
@@ -119,6 +121,8 @@ export const ChapterSidebarAddButton = () => {
         closeQuestionDialog,
         openAudioDialog,
         closeAudioDialog,
+        openPptDialog,
+        closePptDialog,
     } = useDialogStore();
 
     // Function to reorder slides after adding a new one at the top
@@ -165,6 +169,12 @@ export const ChapterSidebarAddButton = () => {
                 value: 'pdf',
                 icon: <FilePdf className="size-4 text-red-500" />,
                 description: 'Upload PDF files',
+            },
+            {
+                label: 'PPT Presentation',
+                value: 'ppt',
+                icon: <PresentationChart className="size-4 text-orange-500" />,
+                description: 'Upload PPT/PPTX files (converted to PDF)',
             },
             {
                 label: 'Document',
@@ -331,6 +341,9 @@ export const ChapterSidebarAddButton = () => {
             }
             case 'pdf':
                 openPdfDialog();
+                break;
+            case 'ppt':
+                openPptDialog();
                 break;
             case 'upload-doc':
                 openDocUploadDialog();
@@ -780,6 +793,18 @@ export const ChapterSidebarAddButton = () => {
             >
                 <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddAudioDialog openState={(open) => !open && closeAudioDialog()} />
+                </div>
+            </MyDialog>
+
+            <MyDialog
+                trigger={<></>}
+                heading="Upload PPT Presentation"
+                dialogWidth="min-w-[400px] w-auto"
+                open={isPptDialogOpen}
+                onOpenChange={closePptDialog}
+            >
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
+                    <AddPptDialog openState={(open) => !open && closePptDialog()} />
                 </div>
             </MyDialog>
         </div>
