@@ -5,7 +5,13 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Video, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getInstituteId } from '@/constants/helper';
-import { listApiKeys, ApiKey, getFirstAvailableFullKey } from '../-services/api-keys';
+import {
+    listApiKeys,
+    ApiKey,
+    getFirstAvailableFullKey,
+    generateApiKey,
+    storeFullApiKey,
+} from '../-services/api-keys';
 import {
     GenerateVideoRequest,
     HistoryItem,
@@ -47,6 +53,7 @@ function VideoConsole() {
 
     const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
     const [isLoadingKeys, setIsLoadingKeys] = useState(true);
+    const [isAutoGenerating, setIsAutoGenerating] = useState(false);
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
     const [consoleState, setConsoleState] = useState<ConsoleState>('idle');
@@ -71,6 +78,32 @@ function VideoConsole() {
         };
         loadKeys();
     }, [instituteId]);
+
+    // Auto-generate API key if none available
+    useEffect(() => {
+        const activeKey = getFirstAvailableFullKey(apiKeys);
+        if (!isLoadingKeys && !activeKey && !isAutoGenerating && instituteId) {
+            const autoGenerate = async () => {
+                setIsAutoGenerating(true);
+                try {
+                    const newKeyName = `Console Key ${new Date().toLocaleDateString()}`;
+                    const result = await generateApiKey(instituteId, newKeyName);
+                    storeFullApiKey(result.id, result.key);
+
+                    // Refresh keys
+                    const keys = await listApiKeys(instituteId);
+                    setApiKeys(keys.filter((k) => k.status === 'active'));
+                    toast.success('Automatically generated API key for console');
+                } catch (error) {
+                    console.error('Error auto-generating key:', error);
+                    // Don't show toast here as the error screen will show up
+                } finally {
+                    setIsAutoGenerating(false);
+                }
+            };
+            autoGenerate();
+        }
+    }, [isLoadingKeys, apiKeys, instituteId, isAutoGenerating]);
 
     // Load history
     useEffect(() => {
@@ -424,6 +457,18 @@ function VideoConsole() {
 
     // No API keys or no stored full key - redirect to main page
     const hasActiveKeys = apiKeys.filter((k) => k.status === 'active').length > 0;
+
+    if (isAutoGenerating) {
+        return (
+            <LayoutContainer>
+                <div className="flex h-[calc(100vh-theme(spacing.20))] flex-col items-center justify-center gap-4">
+                    <Loader2 className="size-12 animate-spin text-violet-600" />
+                    <p className="text-muted-foreground">Setting up Video Console...</p>
+                </div>
+            </LayoutContainer>
+        );
+    }
+
     if (!isLoadingKeys && (!hasActiveKeys || !activeApiKey)) {
         return (
             <LayoutContainer>
