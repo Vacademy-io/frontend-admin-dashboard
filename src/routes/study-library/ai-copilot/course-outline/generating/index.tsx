@@ -1519,36 +1519,23 @@ export function RouteComponent() {
                                         Generating...
                                     </MyButton>
                                 ) : isContentGenerated ? (
-                                    <>
-                                        {isAdmin && (
-                                            <MyButton
-                                                buttonType="primary"
-                                                onClick={() => {
-                                                    setGenerateCourseAssetsDialogOpen(true);
-                                                }}
-                                                disabled={isCreatingCourse}
-                                                className="min-w-[150px]"
-                                            >
-                                                <CheckCircle className="h-4 w-4 mr-1" />
-                                                Create Course
-                                            </MyButton>
+                                    <MyButton
+                                        buttonType="primary"
+                                        onClick={() =>
+                                            isAdmin
+                                                ? setGenerateCourseAssetsDialogOpen(true)
+                                                : handleCreateCourse('DRAFT')
+                                        }
+                                        disabled={isCreatingCourse}
+                                        className="min-w-[180px]"
+                                    >
+                                        {isCreatingCourse ? (
+                                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                        ) : (
+                                            <CheckCircle className="h-4 w-4 mr-1" />
                                         )}
-                                        {isTeacher && (
-                                            <MyButton
-                                                buttonType="secondary"
-                                                onClick={() => handleCreateCourse('DRAFT')}
-                                                disabled={isCreatingCourse}
-                                                className="min-w-[130px] border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-                                            >
-                                                {isCreatingCourse ? (
-                                                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                                ) : (
-                                                    <FileText className="h-4 w-4 mr-1" />
-                                                )}
-                                                Save as Draft
-                                            </MyButton>
-                                        )}
-                                    </>
+                                        {isAdmin ? 'Create Course' : 'Create Draft Course'}
+                                    </MyButton>
                                 ) : (
                                     <MyButton
                                         buttonType="primary"

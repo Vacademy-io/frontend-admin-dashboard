@@ -152,32 +152,18 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
                                     </div>
                                 </div>
                             ) : isContentGenerated ? (
-                                <>
-                                    {isAdmin && (
-                                        <MyButton
-                                            buttonType="primary"
-                                            onClick={() => onCreateCourse('ACTIVE')}
-                                            disabled={isCreatingCourse}
-                                        >
-                                            <CheckCircle className="h-4 w-4 mr-1" />
-                                            Create Course
-                                        </MyButton>
+                                <MyButton
+                                    buttonType="primary"
+                                    onClick={() => onCreateCourse(isAdmin ? 'ACTIVE' : 'DRAFT')}
+                                    disabled={isCreatingCourse}
+                                >
+                                    {isCreatingCourse ? (
+                                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                    ) : (
+                                        <CheckCircle className="h-4 w-4 mr-1" />
                                     )}
-                                    {isTeacher && (
-                                        <MyButton
-                                            buttonType="secondary"
-                                            onClick={() => onCreateCourse('DRAFT')}
-                                            disabled={isCreatingCourse}
-                                        >
-                                            {isCreatingCourse ? (
-                                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                            ) : (
-                                                <FileText className="h-4 w-4 mr-1" />
-                                            )}
-                                            Save as Draft
-                                        </MyButton>
-                                    )}
-                                </>
+                                    {isAdmin ? 'Create Course' : 'Create Draft Course'}
+                                </MyButton>
                             ) : (
                                 <MyButton
                                     buttonType="primary"
