@@ -86,20 +86,35 @@ export function cacheInstituteBranding(
         // Store with key as institute id per requirement
         localStorage.setItem(instituteId, JSON.stringify(payload));
         localStorage.setItem('selectedInstituteId', instituteId);
+        // Also store as current domain branding for robust fallback
+        localStorage.setItem('current_domain_branding', JSON.stringify(payload));
     } catch (_err) {
         // ignore storage failures
     }
 }
 
-export function getCachedInstituteBranding():
-    | (DomainResolveResponse & { instituteLogoUrl?: string; tabIconUrl?: string })
-    | null {
+export function getCachedInstituteBranding(
+    id?: string
+): (DomainResolveResponse & { instituteLogoUrl?: string; tabIconUrl?: string }) | null {
     try {
-        const instituteId = localStorage.getItem('selectedInstituteId');
-        if (!instituteId) return null;
-        const raw = localStorage.getItem(instituteId);
-        if (!raw) return null;
-        return JSON.parse(raw);
+        // 1. Try the specifically requested ID
+        if (id) {
+            const specific = localStorage.getItem(id);
+            if (specific) return JSON.parse(specific);
+        }
+
+        // 2. Try the currently selected ID (handling empty string as valid key)
+        const selectedId = localStorage.getItem('selectedInstituteId');
+        if (selectedId !== null) {
+            const selected = localStorage.getItem(selectedId);
+            if (selected) return JSON.parse(selected);
+        }
+
+        // 3. Fallback to the dedicated current domain key
+        const currentDomain = localStorage.getItem('current_domain_branding');
+        if (currentDomain) return JSON.parse(currentDomain);
+
+        return null;
     } catch {
         return null;
     }
