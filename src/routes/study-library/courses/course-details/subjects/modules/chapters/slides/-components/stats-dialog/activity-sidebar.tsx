@@ -11,6 +11,7 @@ import { MyButton } from '@/components/design-system/button';
 import { StudentSearchBox } from '@/components/common/student-search-box';
 import { ActivityLogDialog } from '@/components/common/student-slide-tracking/activity-log-dialog';
 import { Dialog, DialogHeader, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { ChartBar } from '@phosphor-icons/react';
 import { useRouter } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { getSlideActivityStats } from '@/services/study-library/slide-operations/slide-activity-stats';
@@ -83,8 +84,9 @@ export const ActivityStatsSidebar = () => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
-                    Activity Stats
+                <MyButton buttonType="secondary" scale="medium" layoutVariant="default" title="Activity Stats">
+                    <ChartBar className="size-4 md:hidden" />
+                    <span className="hidden md:inline">Activity Stats</span>
                 </MyButton>
             </DialogTrigger>
             <DialogContent className="flex h-[600px] max-h-[90vh] w-[700px] max-w-[95vw] flex-col p-0 font-normal">

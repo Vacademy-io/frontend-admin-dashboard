@@ -24,6 +24,7 @@ export const LayoutContainer = ({
     internalSidebarComponent,
     hasInternalSidebarComponent = false,
     customSidebarControl = false,
+    showMobileBackButton = false,
 }: {
     children?: React.ReactNode;
     className?: string;
@@ -35,8 +36,9 @@ export const LayoutContainer = ({
     hasInternalSidebarComponent?: boolean;
     internalSidebarComponent?: React.ReactNode;
     customSidebarControl?: boolean;
+    showMobileBackButton?: boolean;
 }) => {
-    const { open, setOpen, isMobile: sidebarIsMobile } = useSidebar();
+    const { open, setOpen } = useSidebar();
     const isMobile = useIsMobile();
     const isTablet = useIsTablet();
     const { isCompact } = useCompactMode();
@@ -63,7 +65,14 @@ export const LayoutContainer = ({
         // On desktop, expand if no internal sidebar, collapse if there is
         const isCollapse = !(internalSideBar || hasInternalSidebarComponent);
         setOpen(isCollapse);
-    }, [internalSideBar, hasInternalSidebarComponent, customSidebarControl, isMobile, isTablet, setOpen]);
+    }, [
+        internalSideBar,
+        hasInternalSidebarComponent,
+        customSidebarControl,
+        isMobile,
+        isTablet,
+        setOpen,
+    ]);
 
     // Calculate content max-width based on screen size and sidebar states
     const getContentMaxWidth = () => {
@@ -72,12 +81,9 @@ export const LayoutContainer = ({
             return 'max-w-full';
         }
 
-        // Tablet: simplified layout
+        // Tablet: simplified layout - internal sidebar is w-0 (uses floating Sheet trigger)
         if (isTablet) {
-            if (internalSideBar || hasInternalSidebarComponent) {
-                return 'max-w-[calc(100vw-80px-240px)]'; // collapsed sidebar + internal sidebar
-            }
-            return 'max-w-[calc(100vw-80px)]'; // just collapsed sidebar
+            return 'max-w-[calc(100vw-80px)]'; // just collapsed sidebar, no internal sidebar space needed
         }
 
         // Desktop: full calculations
@@ -122,32 +128,42 @@ export const LayoutContainer = ({
     };
 
     return (
-        <div className="flex w-full min-h-screen">
+        <div className="flex min-h-screen w-full">
             {/* Main Sidebar - Hidden on mobile (handled by Sheet), shown on tablet/desktop */}
             {showMainSidebar && (
-                <div className={cn(
-                    'hidden md:block',
-                    open
-                        ? (isCompact ? 'md:w-[220px]' : 'md:w-[307px]')
-                        : (isCompact ? 'md:w-[56px]' : 'md:w-[112px]'),
-                    'flex-shrink-0 transition-all duration-200'
-                )}>
+                <div
+                    className={cn(
+                        'hidden md:block',
+                        open
+                            ? isCompact
+                                ? 'md:w-[220px]'
+                                : 'md:w-[307px]'
+                            : isCompact
+                              ? 'md:w-[56px]'
+                              : 'md:w-[112px]',
+                        'flex-shrink-0 transition-all duration-200'
+                    )}
+                >
                     <MySidebar sidebarComponent={sidebarComponent} />
                 </div>
             )}
 
             {/* Mobile Sidebar - Rendered as Sheet/Drawer via MySidebar component */}
-            {showMainSidebar && isMobile && (
-                <MySidebar sidebarComponent={sidebarComponent} />
-            )}
+            {showMainSidebar && isMobile && <MySidebar sidebarComponent={sidebarComponent} />}
 
-            {/* Internal Sidebar - Hidden on mobile, collapsible on tablet */}
+            {/* Internal Sidebar - Always rendered; component handles mobile/tablet (Sheet) vs desktop (sidebar) internally */}
             {(hasInternalSidebarComponent || internalSideBar) && (
-                <div className={cn(
-                    'sticky top-0 h-screen flex-shrink-0',
-                    'hidden lg:block', // Hide on mobile and tablet by default
-                    isTablet && 'lg:hidden xl:block' // Show on tablet only for xl+
-                )}>
+                <div
+                    className={cn(
+                        // On mobile/tablet: zero width so it doesn't push content, but overflow-visible for the fixed Sheet trigger
+                        // On desktop: render as a sticky sidebar
+                        isMobile || isTablet
+                            ? 'w-0 overflow-visible' // Zero width in flex layout, fixed trigger button still visible
+                            : 'sticky top-0 h-screen flex-shrink-0',
+                        // Hide desktop sidebar on tablet when below xl
+                        isTablet && 'lg:hidden xl:block'
+                    )}
+                >
                     {hasInternalSidebarComponent && internalSidebarComponent ? (
                         <InternalSidebarComponent sidebarComponent={internalSidebarComponent} />
                     ) : (
@@ -159,16 +175,16 @@ export const LayoutContainer = ({
             )}
 
             {/* Main Content Area */}
-            <div className="flex w-full flex-1 flex-col text-neutral-600 min-w-0">
-                <Navbar />
+            <div className="flex w-full min-w-0 flex-1 flex-col text-neutral-600">
+                <Navbar showMobileBackButton={showMobileBackButton} />
                 <StudentSidebarProvider>
                     <div
                         className={cn(
                             // Responsive padding - reduced in compact mode
                             intrnalMargin
-                                ? (isCompact
-                                    ? 'p-2 md:p-3 lg:m-4 flex flex-1 flex-col'
-                                    : 'p-4 md:p-6 lg:m-7 flex flex-1 flex-col')
+                                ? isCompact
+                                    ? 'flex flex-1 flex-col p-2 md:p-3 lg:m-4'
+                                    : 'flex flex-1 flex-col p-2 sm:p-3 md:p-4 lg:m-7'
                                 : 'm-0',
                             // Responsive max-width
                             isMobile ? 'max-w-full' : getContentMaxWidth(),

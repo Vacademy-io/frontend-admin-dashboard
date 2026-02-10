@@ -57,6 +57,7 @@ const publicRoutes = [
     '/evaluator-ai',
     '/landing',
     '/pricing',
+    '/content',
 ];
 
 // Helper functions to break down the complex beforeLoad logic

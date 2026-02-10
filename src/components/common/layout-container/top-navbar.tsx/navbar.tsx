@@ -12,6 +12,7 @@ import {
     Desktop,
     ChalkboardTeacher,
     Student,
+    ArrowLeft,
 } from '@phosphor-icons/react';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useSidebarStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states';
@@ -69,8 +70,9 @@ import { cn } from '@/lib/utils';
 import { useCompactMode } from '@/hooks/use-compact-mode';
 import { CompactModeToggle } from '@/components/compact-mode/CompactModeToggle';
 import { useAiCreditsQuery } from '@/services/ai-credits/get-ai-credits';
+import { AiCreditsPanel } from '@/components/common/ai-credits/AiCreditsPanel';
 
-export function Navbar() {
+export function Navbar({ showMobileBackButton }: { showMobileBackButton?: boolean }) {
     const roleColors: Record<string, string> = {
         ADMIN: '#F4F9FF',
         'COURSE CREATOR': '#F4FFF9',
@@ -222,6 +224,17 @@ export function Navbar() {
             )}
         >
             <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-4">
+                {/* Mobile back button */}
+                {isMobile && showMobileBackButton && (
+                    <button
+                        onClick={() => window.history.back()}
+                        className="flex items-center justify-center rounded-md p-2 transition-colors hover:bg-neutral-100"
+                        aria-label="Go back"
+                    >
+                        <ArrowLeft className="size-5 text-neutral-600" weight="bold" />
+                    </button>
+                )}
+
                 {/* Mobile hamburger menu */}
                 {isMobile && showSidebar && (
                     <button
@@ -266,12 +279,7 @@ export function Navbar() {
 
             <div className="flex shrink-0 items-center gap-2 text-neutral-600 md:gap-6">
                 {/* AI Credits */}
-                {showAiCredits && aiCredits && !isCreditsError && (
-                    <div className="hidden items-center gap-1.5 rounded-full border border-purple-100 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 md:flex">
-                        <span>AI Credits:</span>
-                        <span>{parseFloat(aiCredits.current_balance || '0').toFixed(2)}</span>
-                    </div>
-                )}
+                {showAiCredits && aiCredits && !isCreditsError && <AiCreditsPanel />}
                 {/* Apps Menu */}
                 {showAppsIcon && (
                     <DropdownMenu>
