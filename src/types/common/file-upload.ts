@@ -16,7 +16,9 @@ export type FileType =
     | 'application/pdf'
     | 'audio/*'
     | 'application/msword'
-    | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    | 'application/vnd.ms-powerpoint'
+    | 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
 
 export interface FileUploadComponentProps<T extends FieldValues> {
     fileInputRef: MutableRefObject<HTMLInputElement | null>;
