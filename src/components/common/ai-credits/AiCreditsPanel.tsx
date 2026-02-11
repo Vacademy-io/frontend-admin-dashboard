@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from '@tanstack/react-router';
 import {
     useAiCreditsQuery,
     useAiTransactionsQuery,
@@ -476,7 +477,10 @@ function AnalyticsTab() {
 
 // ─── Mini Bar Chart ────────────────────────────────
 function DailyUsageChart({ data }: { data: { date: string; total_credits: number }[] }) {
-    const maxCredits = useMemo(() => Math.max(...data.map((d) => Number(d.total_credits)), 0.1), [data]);
+    const maxCredits = useMemo(
+        () => Math.max(...data.map((d) => Number(d.total_credits)), 0.1),
+        [data]
+    );
     const last7 = data.slice(-7);
 
     return (
@@ -598,21 +602,30 @@ export function AiCreditsPanel({ className }: AiCreditsPanelProps) {
                 {/* Footer */}
                 <Separator />
                 <div className="flex items-center justify-between rounded-b-2xl bg-white px-4 py-2">
-                    <span className="text-[10px] text-neutral-400">
-                        Updated{' '}
-                        {credits.updated_at
-                            ? new Date(credits.updated_at).toLocaleString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                              })
-                            : 'recently'}
-                    </span>
-                    {credits.is_low_balance && (
+                    <Link
+                        to="/explore-ai"
+                        className="flex items-center gap-1.5 rounded-lg bg-purple-50 px-2.5 py-1.5 text-[11px] font-semibold text-purple-700 transition-colors hover:bg-purple-100"
+                    >
+                        <Sparkle className="size-3" weight="fill" />
+                        Explore AI Tools
+                    </Link>
+
+                    {credits.is_low_balance ? (
                         <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-600">
                             <Warning className="size-3" weight="fill" />
                             Low Balance
+                        </span>
+                    ) : (
+                        <span className="text-[10px] text-neutral-400">
+                            Updated{' '}
+                            {credits.updated_at
+                                ? new Date(credits.updated_at).toLocaleString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                  })
+                                : 'recently'}
                         </span>
                     )}
                 </div>
