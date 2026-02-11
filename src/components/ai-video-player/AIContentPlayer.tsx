@@ -367,6 +367,8 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
 
     // Autoplay effect for Storybook/Flashcards
     useEffect(() => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+
         if (
             isAutoplay &&
             (contentType === 'STORYBOOK' || contentType === 'FLASHCARDS') &&
@@ -377,7 +379,7 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                 const range = pageAudioRanges.get(currentIndex);
                 if (range && audioRef.current) {
                     // Small delay to ensure state settles
-                    const timer = setTimeout(() => {
+                    timer = setTimeout(() => {
                         // Double check we are still not playing
                         if (!isPlayingRef.current) {
                             const seekTime = Math.max(0, range.start);
@@ -387,10 +389,13 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                             audioStartedRef.current = true;
                         }
                     }, 50);
-                    return () => clearTimeout(timer);
                 }
             }
         }
+
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
     }, [currentIndex, isAutoplay, contentType, navigationMode, pageAudioRanges, isPlaying]);
 
     // =====================================================
