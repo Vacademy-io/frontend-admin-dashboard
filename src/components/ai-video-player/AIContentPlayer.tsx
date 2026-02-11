@@ -21,6 +21,7 @@ import {
     Printer,
     Volume2,
     Subtitles,
+    Repeat,
 } from 'lucide-react';
 import {
     Entry,
@@ -103,6 +104,7 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
 
     // User-driven state (for QUIZ, STORYBOOK, etc.)
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isAutoplay, setIsAutoplay] = useState(false);
 
     // Refs
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -230,6 +232,39 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
         }
     }, [currentIndex, pageAudioRanges, isPlaying]);
 
+    // =====================================================
+    // USER-DRIVEN NAVIGATION (QUIZ, STORYBOOK, etc.)
+    // =====================================================
+
+    const handleNext = useCallback(() => {
+        // Stop audio if playing
+        if (isPlaying) {
+            setIsPlaying(false);
+            if (audioRef.current) audioRef.current.pause();
+        }
+
+        if (currentIndex < entries.length - 1) {
+            const newIndex = currentIndex + 1;
+            setCurrentIndex(newIndex);
+            onEntryChange?.(newIndex, entries[newIndex]!);
+        } else {
+            onComplete?.();
+        }
+    }, [currentIndex, entries, onEntryChange, onComplete, isPlaying]);
+
+    const handlePrev = useCallback(() => {
+        if (currentIndex > 0) {
+            // Stop audio if playing
+            if (isPlaying) {
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.pause();
+            }
+            const newIndex = currentIndex - 1;
+            setCurrentIndex(newIndex);
+            onEntryChange?.(newIndex, entries[newIndex]!);
+        }
+    }, [currentIndex, entries, onEntryChange, isPlaying]);
+
     // Load timeline data
     useEffect(() => {
         const loadTimeline = async () => {
@@ -278,6 +313,11 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                     setDuration(loadedMeta.total_duration);
                 }
 
+                // Autoplay default for STORYBOOK
+                if (loadedMeta.content_type === 'STORYBOOK') {
+                    setIsAutoplay(true);
+                }
+
                 console.log(
                     `🎬 Loaded ${loadedMeta.content_type} with ${loadedEntries.length} entries`
                 );
@@ -324,6 +364,34 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             observer.disconnect();
         };
     }, [scaleCalculator, entries.length, isFullscreen]);
+
+    // Autoplay effect for Storybook/Flashcards
+    useEffect(() => {
+        if (
+            isAutoplay &&
+            (contentType === 'STORYBOOK' || contentType === 'FLASHCARDS') &&
+            navigationMode === 'user_driven'
+        ) {
+            // Only play if audio exists and we are NOT currently playing.
+            if (!isPlaying && pageAudioRanges.has(currentIndex)) {
+                const range = pageAudioRanges.get(currentIndex);
+                if (range && audioRef.current) {
+                    // Small delay to ensure state settles
+                    const timer = setTimeout(() => {
+                        // Double check we are still not playing
+                        if (!isPlayingRef.current) {
+                            const seekTime = Math.max(0, range.start);
+                            audioRef.current!.currentTime = seekTime;
+                            audioRef.current!.play().catch(console.error);
+                            setIsPlaying(true);
+                            audioStartedRef.current = true;
+                        }
+                    }, 50);
+                    return () => clearTimeout(timer);
+                }
+            }
+        }
+    }, [currentIndex, isAutoplay, contentType, navigationMode, pageAudioRanges, isPlaying]);
 
     // =====================================================
     // TIME-DRIVEN NAVIGATION (VIDEO)
@@ -396,8 +464,20 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             ) {
                 const range = pageAudioRanges.get(currentIndex);
                 if (range && audioRef.current.currentTime >= range.end) {
-                    audioRef.current.pause();
-                    setIsPlaying(false);
+                    if (isAutoplay) {
+                        // Auto-advance
+                        if (currentIndex < entries.length - 1) {
+                            handleNext();
+                        } else {
+                            // End of content
+                            audioRef.current.pause();
+                            setIsPlaying(false);
+                            onComplete?.();
+                        }
+                    } else {
+                        audioRef.current.pause();
+                        setIsPlaying(false);
+                    }
                 }
             }
 
@@ -410,6 +490,10 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
         isPlaying,
         currentIndex,
         pageAudioRanges,
+        isAutoplay,
+        entries.length,
+        handleNext,
+        onComplete,
     ]);
 
     const handleLoadedMetadata = useCallback(() => {
@@ -486,39 +570,6 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
         },
         [duration, meta.audio_start_at, isPlaying, animateIntro]
     );
-
-    // =====================================================
-    // USER-DRIVEN NAVIGATION (QUIZ, STORYBOOK, etc.)
-    // =====================================================
-
-    const handleNext = useCallback(() => {
-        // Stop audio if playing
-        if (isPlaying) {
-            setIsPlaying(false);
-            if (audioRef.current) audioRef.current.pause();
-        }
-
-        if (currentIndex < entries.length - 1) {
-            const newIndex = currentIndex + 1;
-            setCurrentIndex(newIndex);
-            onEntryChange?.(newIndex, entries[newIndex]!);
-        } else {
-            onComplete?.();
-        }
-    }, [currentIndex, entries, onEntryChange, onComplete, isPlaying]);
-
-    const handlePrev = useCallback(() => {
-        if (currentIndex > 0) {
-            // Stop audio if playing
-            if (isPlaying) {
-                setIsPlaying(false);
-                if (audioRef.current) audioRef.current.pause();
-            }
-            const newIndex = currentIndex - 1;
-            setCurrentIndex(newIndex);
-            onEntryChange?.(newIndex, entries[newIndex]!);
-        }
-    }, [currentIndex, entries, onEntryChange, isPlaying]);
 
     // =====================================================
     // COMMON HANDLERS
@@ -1067,6 +1118,31 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
 
                         {/* Spacer */}
                         <div style={{ flex: 1 }} />
+
+                        {/* Storybook: Autoplay Toggle (with Text) */}
+                        {contentType === 'STORYBOOK' && (
+                            <button
+                                onClick={() => setIsAutoplay(!isAutoplay)}
+                                style={{
+                                    ...btnStyle,
+                                    opacity: isAutoplay ? 1 : 0.8,
+                                    background: isAutoplay
+                                        ? 'rgba(74, 222, 128, 0.2)'
+                                        : 'transparent',
+                                    color: isAutoplay ? '#4ade80' : 'white',
+                                    padding: '4px 12px',
+                                    borderRadius: '4px',
+                                    gap: '6px',
+                                    border: isAutoplay
+                                        ? '1px solid rgba(74, 222, 128, 0.4)'
+                                        : '1px solid transparent',
+                                }}
+                                title={isAutoplay ? 'Disable Autoplay' : 'Enable Autoplay'}
+                            >
+                                <Repeat className="size-4" />
+                                <span style={{ fontSize: '12px', fontWeight: 600 }}>Autoplay</span>
+                            </button>
+                        )}
 
                         {/* WORKSHEET: Print button */}
                         {contentType === 'WORKSHEET' && (

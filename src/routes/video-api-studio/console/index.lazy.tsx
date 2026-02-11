@@ -417,11 +417,11 @@ function VideoConsole() {
                         options: item.options,
                     });
                     setConsoleState('complete');
-                    toast.success('Video loaded successfully');
+                    toast.success('Content loaded successfully');
                 } catch (error) {
-                    console.error('Failed to fetch video URLs:', error);
+                    console.error('Failed to fetch content URLs:', error);
                     toast.error(
-                        'Failed to load video details. The video may no longer be available.'
+                        'Failed to load content details. The content may no longer be available.'
                     );
                     setConsoleState('idle');
                     setCurrentGeneration(null);
