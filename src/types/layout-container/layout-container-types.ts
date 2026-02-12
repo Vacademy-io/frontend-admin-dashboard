@@ -25,6 +25,7 @@ export interface SidebarItemProps {
     subItems?: subItemsType[];
     selectedItem?: string;
     locked?: boolean;
+    category?: 'LMS' | 'CRM' | 'AI';
 }
 
 export interface SidebarStateType {

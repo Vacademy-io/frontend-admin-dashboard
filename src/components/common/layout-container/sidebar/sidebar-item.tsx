@@ -4,7 +4,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { CollapsibleItem } from './collapsible-item';
 import { NonCollapsibleItem } from './non-collapsible-item';
 
-export const SidebarItem = ({ icon, title, to, subItems, locked }: SidebarItemProps) => {
+export const SidebarItem = ({ icon, title, to, subItems, locked, category }: SidebarItemProps) => {
     const { state } = useSidebar();
 
     return (
@@ -16,9 +16,16 @@ export const SidebarItem = ({ icon, title, to, subItems, locked }: SidebarItemPr
                     to={to}
                     subItems={subItems}
                     locked={locked}
+                    category={category}
                 />
             ) : (
-                <NonCollapsibleItem icon={icon} title={title} to={to} locked={locked} />
+                <NonCollapsibleItem
+                    icon={icon}
+                    title={title}
+                    to={to}
+                    locked={locked}
+                    category={category}
+                />
             )}
         </SidebarMenuItem>
     );

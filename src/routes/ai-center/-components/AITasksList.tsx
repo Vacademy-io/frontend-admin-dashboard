@@ -113,7 +113,7 @@ const AITasksList = ({
 
     const handleCloseListDialog = () => {
         setIsAIQuestionDialog9(!isAIQuestionDialog9);
-        setEnableDialog!(false);
+        setEnableDialog?.(false);
     };
 
     return (
