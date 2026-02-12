@@ -3,7 +3,7 @@ import { DOMAIN_ROUTING_RESOLVE, GET_PUBLIC_URL_PUBLIC } from '@/constants/urls'
 import { getMainDomain, getSubdomain } from '@/utils/subdomain';
 
 export type DomainResolveResponse = {
-    instituteId: string;
+    instituteId: string | null;
     instituteName: string;
     instituteLogoFileId?: string;
     instituteThemeCode?: string;
@@ -21,6 +21,9 @@ export type DomainResolveResponse = {
     allowGithubAuth?: boolean;
     allowEmailOtpAuth?: boolean;
     allowUsernamePasswordAuth?: boolean;
+    learnerPortalUrl?: string | null;
+    instructorPortalUrl?: string | null;
+    convertUsernamePasswordToLowercase?: boolean;
 };
 
 export async function resolveInstituteForCurrentHost(): Promise<DomainResolveResponse | null> {
@@ -79,13 +82,15 @@ export async function getPublicUrl(fileId?: string | null): Promise<string | nul
 }
 
 export function cacheInstituteBranding(
-    instituteId: string,
+    instituteId: string | null | undefined,
     payload: DomainResolveResponse & { instituteLogoUrl?: string; tabIconUrl?: string }
 ): void {
     try {
         // Store with key as institute id per requirement
-        localStorage.setItem(instituteId, JSON.stringify(payload));
-        localStorage.setItem('selectedInstituteId', instituteId);
+        if (instituteId) {
+            localStorage.setItem(instituteId, JSON.stringify(payload));
+            localStorage.setItem('selectedInstituteId', instituteId);
+        }
         // Also store as current domain branding for robust fallback
         localStorage.setItem('current_domain_branding', JSON.stringify(payload));
     } catch (_err) {
