@@ -325,6 +325,25 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                                 const isActive = activeCategory === catId;
                                 const label = catId === 'AI' ? 'AI Tools' : catId;
 
+                                const colorMap = {
+                                    CRM: {
+                                        text: 'text-blue-600',
+                                        bg: 'bg-blue-50',
+                                        ring: 'ring-blue-200',
+                                    },
+                                    LMS: {
+                                        text: 'text-purple-600',
+                                        bg: 'bg-purple-50',
+                                        ring: 'ring-purple-200',
+                                    },
+                                    AI: {
+                                        text: 'text-rose-600',
+                                        bg: 'bg-rose-50',
+                                        ring: 'ring-rose-200',
+                                    },
+                                };
+                                const colors = colorMap[catId as keyof typeof colorMap];
+
                                 return (
                                     <Tooltip key={catId} delayDuration={0}>
                                         <TooltipTrigger asChild>
@@ -356,7 +375,11 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                                                             'absolute inset-0 rounded-md bg-background shadow-sm',
                                                             state === 'collapsed' &&
                                                                 !isMobile &&
-                                                                'bg-primary/10 ring-primary shadow-none ring-1'
+                                                                cn(
+                                                                    colors.bg,
+                                                                    colors.ring,
+                                                                    'shadow-none ring-1'
+                                                                )
                                                         )}
                                                         transition={{
                                                             type: 'spring',
@@ -384,11 +407,11 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                                                                     ? 20
                                                                     : 16
                                                             }
-                                                            weight={isActive ? 'fill' : 'bold'}
+                                                            weight="duotone"
                                                             className={cn(
                                                                 'shrink-0 transition-colors',
                                                                 isActive
-                                                                    ? 'text-primary'
+                                                                    ? colors.text
                                                                     : 'text-muted-foreground'
                                                             )}
                                                         />
@@ -398,7 +421,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                                                             className={cn(
                                                                 'truncate text-xs font-medium transition-colors',
                                                                 isActive
-                                                                    ? 'text-foreground'
+                                                                    ? colors.text
                                                                     : 'text-muted-foreground'
                                                             )}
                                                         >

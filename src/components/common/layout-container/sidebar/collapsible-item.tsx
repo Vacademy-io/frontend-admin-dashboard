@@ -24,7 +24,14 @@ import {
 import { LockKey } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 
-export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarItemProps) => {
+export const CollapsibleItem = ({
+    icon,
+    title,
+    to,
+    subItems,
+    locked,
+    category,
+}: SidebarItemProps) => {
     const [hover, setHover] = useState<boolean>(false);
     const { state } = useSidebar();
     const [isOpen, setIsOpen] = useState(false);
@@ -34,6 +41,25 @@ export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarIt
     const router = useRouter();
     const { isCompact } = useCompactMode();
     const isMobile = useIsMobile();
+
+    const colorMap = {
+        CRM: {
+            text: 'text-blue-600',
+            bg: 'bg-blue-50',
+            hoverText: 'hover:text-blue-600',
+        },
+        LMS: {
+            text: 'text-purple-600',
+            bg: 'bg-purple-50',
+            hoverText: 'hover:text-purple-600',
+        },
+        AI: {
+            text: 'text-rose-600',
+            bg: 'bg-rose-50',
+            hoverText: 'hover:text-rose-600',
+        },
+    };
+    const colors = colorMap[category as keyof typeof colorMap] || colorMap.CRM;
 
     const currentRoute = router.state.location.pathname;
     const routeMatches =
@@ -87,7 +113,7 @@ export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarIt
                                   : 'size-6',
                             'text-neutral-400'
                         )}
-                        weight="fill"
+                        weight="duotone"
                     />
                     {(state !== 'collapsed' || isMobile) && (
                         <span className={cn('text-neutral-400', isCompact ? 'text-xs' : 'text-sm')}>
@@ -108,7 +134,7 @@ export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarIt
                             <div
                                 className={cn(
                                     'flex w-full cursor-pointer items-center justify-center gap-1 rounded-lg px-2 py-2 outline-none transition-colors hover:bg-white focus:bg-white',
-                                    hover || routeMatches ? 'bg-white' : 'bg-none'
+                                    hover || routeMatches ? colors.bg : 'bg-none'
                                 )}
                                 onMouseEnter={toggleHover}
                                 onMouseLeave={toggleHover}
@@ -117,11 +143,9 @@ export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarIt
                                     React.createElement(icon, {
                                         className: cn(
                                             isCompact ? 'size-5' : 'size-6',
-                                            hover || routeMatches
-                                                ? 'text-primary-500'
-                                                : 'text-neutral-400'
+                                            hover || routeMatches ? colors.text : 'text-neutral-400'
                                         ),
-                                        weight: 'fill',
+                                        weight: 'duotone',
                                     })}
                             </div>
                         </DropdownMenuTrigger>
@@ -140,7 +164,7 @@ export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarIt
                                     'flex w-full cursor-pointer items-center',
                                     obj.subItemLink &&
                                         currentRoute.includes(obj.subItemLink) &&
-                                        'text-primary font-medium'
+                                        cn(colors.text, 'font-medium')
                                 )}
                                 onClick={(e) =>
                                     handleLockedSubItemClick(e, obj.subItem || '', obj.locked)
@@ -175,9 +199,10 @@ export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarIt
                     }}
                 >
                     <div
-                        className={`flex w-full cursor-pointer items-center gap-1 rounded-lg px-4 py-2 ${
-                            hover || routeMatches ? 'bg-white' : 'bg-none'
-                        }`}
+                        className={cn(
+                            'flex w-full cursor-pointer items-center gap-1 rounded-lg px-4 py-2 transition-colors',
+                            hover || routeMatches ? colors.bg : 'bg-none'
+                        )}
                     >
                         <div className="flex items-center">
                             {icon &&
@@ -190,15 +215,13 @@ export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarIt
                                             : isCompact
                                               ? 'size-5'
                                               : 'size-6',
-                                        hover || routeMatches
-                                            ? 'text-primary-500'
-                                            : 'text-neutral-400'
+                                        hover || routeMatches ? colors.text : 'text-neutral-400'
                                     ),
-                                    weight: 'fill',
+                                    weight: 'duotone',
                                 })}
                             <SidebarGroup
                                 className={cn(
-                                    hover || routeMatches ? 'text-primary-500' : 'text-neutral-600',
+                                    hover || routeMatches ? colors.text : 'text-neutral-600',
                                     'font-regular group-data-[collapsible=icon]:hidden',
                                     isCompact ? 'text-xs' : 'text-sm'
                                 )}
@@ -210,7 +233,7 @@ export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarIt
                             <ChevronDown
                                 className={cn(
                                     'ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180',
-                                    hover || routeMatches ? 'text-primary-500' : 'text-neutral-600',
+                                    hover || routeMatches ? colors.text : 'text-neutral-600',
                                     isCompact ? 'size-4' : 'size-6'
                                 )}
                             />
@@ -230,9 +253,10 @@ export const CollapsibleItem = ({ icon, title, to, subItems, locked }: SidebarIt
                         >
                             <div
                                 className={cn(
-                                    'cursor-pointer font-regular hover:text-primary-500',
+                                    'cursor-pointer font-regular transition-colors',
+                                    colors.hoverText,
                                     obj.subItemLink && currentRoute.includes(obj.subItemLink)
-                                        ? 'text-primary-500'
+                                        ? colors.text
                                         : 'text-neutral-600',
                                     isCompact ? 'text-xs' : 'text-sm'
                                 )}
