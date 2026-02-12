@@ -1,23 +1,68 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState, useMemo } from 'react';
+import { getPublicUrl } from '@/services/upload_file';
 import { getSessionBySessionId } from '../-services/utils';
 import type { SessionBySessionIdResponse } from '../-services/utils';
 import {
-    Loader2,
-    Calendar,
-    Clock,
-    Users,
-    Link as LinkIcon,
-    Video,
-    Globe,
+    CalendarRange,
+    Timer,
+    UsersRound,
+    Link2,
+    MonitorPlay,
+    MapPin,
     Edit,
     ArrowLeft,
+    CheckCircle2,
+    Copy,
+    Bell,
+    FileText,
+    Share2,
+    List,
+    Calendar as CalendarIcon,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { SessionCalendarView } from '../-components/session-calendar-view';
+import { format, addMinutes, isAfter, isBefore, parseISO } from 'date-fns';
 import { MyButton } from '@/components/design-system/button';
 import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 import { toast } from 'sonner';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 
 export const Route = createFileRoute('/study-library/live-session/view/$sessionId')({
     component: ViewLiveSession,
@@ -27,9 +72,11 @@ interface GroupedSchedule {
     date: string;
     sessions: Array<{
         time: string;
-        duration: string;
+        duration: string | number;
         link: string;
         id: string;
+        status?: 'live' | 'upcoming' | 'past';
+        startDate?: Date;
     }>;
 }
 
@@ -39,6 +86,12 @@ function ViewLiveSession() {
     const [sessionData, setSessionData] = useState<SessionBySessionIdResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+    const [coverUrl, setCoverUrl] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const { setSessionId, setIsEdit } = useLiveSessionStore();
     const { setSessionDetails } = useSessionDetailsStore();
@@ -60,6 +113,30 @@ function ViewLiveSession() {
         fetchSessionDetails();
     }, [sessionId]);
 
+    useEffect(() => {
+        const fetchMediaUrls = async () => {
+            if (sessionData?.schedule) {
+                if (sessionData.schedule.thumbnail_file_id) {
+                    try {
+                        const url = await getPublicUrl(sessionData.schedule.thumbnail_file_id);
+                        setThumbnailUrl(url);
+                    } catch (e) {
+                        console.error('Failed to load thumbnail url', e);
+                    }
+                }
+                if (sessionData.schedule.cover_file_id) {
+                    try {
+                        const url = await getPublicUrl(sessionData.schedule.cover_file_id);
+                        setCoverUrl(url);
+                    } catch (e) {
+                        console.error('Failed to load cover url', e);
+                    }
+                }
+            }
+        };
+        fetchMediaUrls();
+    }, [sessionData]);
+
     const handleEditSession = async () => {
         try {
             // If sessionData is already loaded, use it. Otherwise fetch it.
@@ -72,6 +149,11 @@ function ViewLiveSession() {
             console.error('Failed to load session for editing:', err);
             toast.error('Failed to load session for editing');
         }
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast.success('Copied to clipboard');
     };
 
     // Group schedules by date for calendar view
@@ -88,11 +170,26 @@ function ViewLiveSession() {
                 grouped.set(date, []);
             }
 
+            // Calculate status
+            const now = new Date();
+            // Assuming startTime is in HH:mm format and date is YYYY-MM-DD
+            const startDateTime = new Date(`${date}T${schedule.startTime}`);
+            const endDateTime = addMinutes(startDateTime, Number(schedule.duration));
+
+            let status: 'live' | 'upcoming' | 'past' = 'past';
+            if (isAfter(now, startDateTime) && isBefore(now, endDateTime)) {
+                status = 'live';
+            } else if (isBefore(now, startDateTime)) {
+                status = 'upcoming';
+            }
+
             grouped.get(date)!.push({
                 time: schedule.startTime,
                 duration: schedule.duration,
                 link: schedule.link,
                 id: schedule.id,
+                status,
+                startDate: startDateTime,
             });
         });
 
@@ -105,281 +202,639 @@ function ViewLiveSession() {
             .sort((a, b) => a.date.localeCompare(b.date));
     }, [sessionData]);
 
+    const uniqueNotifications = useMemo(() => {
+        if (!sessionData?.notifications?.addedNotificationActions) return [];
+        const seen = new Set();
+        return sessionData.notifications.addedNotificationActions.filter((notification) => {
+            if (!notification.notify) return false;
+
+            // Create a unique key based on type and time of day (HH:mm)
+            // We ignore the date/month/year to deduplicate recurring sessions at the same time
+            let timeKey = 'no-time';
+            if (notification.time) {
+                const date = new Date(notification.time);
+                timeKey = `${date.getHours()}:${date.getMinutes()}`;
+            }
+            const key = `${notification.type}-${timeKey}`;
+
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    }, [sessionData]);
+
     if (loading) {
         return (
-            <div className="flex h-96 items-center justify-center">
-                <Loader2 className="size-8 animate-spin text-primary-600" />
-            </div>
+            <LayoutContainer>
+                <div className="mx-auto max-w-5xl space-y-6 p-6">
+                    <div className="flex items-center justify-between">
+                        <Skeleton className="h-8 w-32" />
+                        <Skeleton className="h-10 w-32" />
+                    </div>
+                    <Skeleton className="h-12 w-1/2" />
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                        <div className="space-y-6 lg:col-span-2">
+                            <Skeleton className="h-64 w-full rounded-xl" />
+                            <Skeleton className="h-32 w-full rounded-xl" />
+                        </div>
+                        <div className="space-y-6">
+                            <Skeleton className="h-48 w-full rounded-xl" />
+                            <Skeleton className="h-32 w-full rounded-xl" />
+                        </div>
+                    </div>
+                </div>
+            </LayoutContainer>
         );
     }
 
     if (error || !sessionData) {
         return (
-            <div className="flex h-96 items-center justify-center">
-                <div className="text-center">
-                    <p className="text-lg font-medium text-red-600">
-                        {error || 'Session not found'}
-                    </p>
+            <LayoutContainer>
+                <div className="flex h-[calc(100vh-100px)] items-center justify-center">
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold text-destructive">Error</h2>
+                        <p className="mt-2 text-muted-foreground">
+                            {error || 'Session not found'}
+                        </p>
+                        <MyButton
+                            onClick={() => navigate({ to: '/study-library/live-session' })}
+                            className="mt-4"
+                            buttonType="secondary"
+                        >
+                            Go Back to Sessions
+                        </MyButton>
+                    </div>
                 </div>
-            </div>
+            </LayoutContainer>
         );
     }
 
-    const { schedule } = sessionData;
+    const { schedule, notifications } = sessionData;
     const isRecurring = schedule.recurrence_type === 'weekly';
 
     return (
-        <div className="mx-auto max-w-7xl p-6">
-            {/* Header */}
-            <div className="mb-8">
-                <div className="mb-4 flex items-center justify-between">
-                    <button
-                        onClick={() => navigate({ to: '/study-library/live-session' })}
-                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-                    >
-                        <ArrowLeft className="size-4" />
-                        Back to Sessions
-                    </button>
-                    <MyButton onClick={handleEditSession} className="flex items-center gap-2">
-                        <Edit className="size-4" />
+        <LayoutContainer>
+            <div className="flex w-full flex-col gap-6 p-4 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Header Section */}
+                <div className="flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1">
+                        <button
+                            onClick={() => navigate({ to: '/study-library/live-session' })}
+                            className="group flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                            <div className="flex size-6 items-center justify-center rounded-full bg-secondary text-secondary-foreground transition-transform group-hover:-translate-x-1">
+                                <ArrowLeft className="size-3" />
+                            </div>
+                            Back to Sessions
+                        </button>
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-3">
+                                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                                    {schedule.title}
+                                </h1>
+                            </div>
+                            {schedule.subject && schedule.subject !== 'none' && (
+                                <p className="text-base text-muted-foreground">
+                                    Subject: <span className="font-medium text-foreground">{schedule.subject}</span>
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <MyButton onClick={handleEditSession} className="shrink-0 shadow-sm" scale="medium">
+                        <Edit className="mr-2 size-4" />
                         Edit Session
                     </MyButton>
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900">{schedule.title}</h1>
-                {schedule.subject && schedule.subject !== 'none' && (
-                    <p className="mt-2 text-lg text-gray-600">Subject: {schedule.subject}</p>
-                )}
-            </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                {/* Main Content - Left Side */}
-                <div className="space-y-6 lg:col-span-2">
-                    {/* Basic Information Card */}
-                    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-4 text-xl font-semibold text-gray-900">
-                            Session Details
-                        </h2>
-                        <div className="space-y-4">
-                            <InfoRow
-                                icon={<Calendar className="size-5 text-gray-400" />}
-                                label="Session Type"
-                                value={isRecurring ? 'Weekly Recurring' : 'One-Time Session'}
-                            />
-                            <InfoRow
-                                icon={<Globe className="size-5 text-gray-400" />}
-                                label="Timezone"
-                                value={schedule.timezone || 'Not specified'}
-                            />
-                            <InfoRow
-                                icon={<Clock className="size-5 text-gray-400" />}
-                                label="Start Date & Time"
-                                value={format(new Date(schedule.start_time), 'PPpp')}
-                            />
-                            {isRecurring && schedule.session_end_date && (
-                                <InfoRow
-                                    icon={<Calendar className="size-5 text-gray-400" />}
-                                    label="End Date"
-                                    value={format(new Date(schedule.session_end_date), 'PP')}
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                    {/* Main Content Column */}
+                    <div className="space-y-6 lg:col-span-8 xl:col-span-9">
+                        {/* Session Details Card */}
+                        <Card className="overflow-hidden border-border/60 shadow-sm transition-all hover:border-border/80">
+                            <CardHeader className="bg-muted/40 px-6 py-4">
+                                <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
+                                        <MonitorPlay className="size-5" />
+                                    </div>
+                                    Session Details
+                                </CardTitle>
+                            </CardHeader>
+                            <Separator />
+                            <CardContent className="grid gap-x-8 gap-y-6 p-6 sm:grid-cols-2 xhl:grid-cols-3">
+                                <InfoItem
+                                    icon={<CalendarRange className="size-4 text-primary" />}
+                                    label="Session Type"
+                                    value={isRecurring ? 'Weekly Recurring' : 'One-Time Session'}
                                 />
-                            )}
-                            <InfoRow
-                                icon={<LinkIcon className="size-5 text-gray-400" />}
-                                label="Default Meeting Link"
-                                value={
-                                    <a
-                                        href={schedule.default_meet_link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-primary-600 hover:underline"
-                                    >
-                                        {schedule.default_meet_link}
-                                    </a>
-                                }
-                            />
-                            <InfoRow
-                                icon={<Video className="size-5 text-gray-400" />}
-                                label="Platform"
-                                value={schedule.link_type || 'Other'}
-                            />
-                            <InfoRow
-                                icon={<Users className="size-5 text-gray-400" />}
-                                label="Access Type"
-                                value={schedule.access_type === 'private' ? 'Private' : 'Public'}
-                            />
-                        </div>
-                    </div>
+                                <InfoItem
+                                    icon={<MapPin className="size-4 text-primary" />}
+                                    label="Timezone"
+                                    value={schedule.timezone || 'Not specified'}
+                                />
+                                <InfoItem
+                                    icon={<Timer className="size-4 text-primary" />}
+                                    label="Start Date & Time"
+                                    value={format(new Date(schedule.start_time), 'PPP p')}
+                                />
+                                {schedule.last_entry_time && (
+                                    <InfoItem
+                                        icon={<Timer className="size-4 text-primary" />}
+                                        label="Last Entry Time"
+                                        value={format(new Date(schedule.last_entry_time), 'PPP p')}
+                                    />
+                                )}
+                                {isRecurring && schedule.session_end_date && (
+                                    <InfoItem
+                                        icon={<CalendarRange className="size-4 text-primary" />}
+                                        label="End Date"
+                                        value={format(new Date(schedule.session_end_date), 'PPP')}
+                                    />
+                                )}
 
-                    {/* Description Card */}
-                    {schedule.description_html && (
-                        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                            <h2 className="mb-4 text-xl font-semibold text-gray-900">
-                                Description
-                            </h2>
-                            <div
-                                className="prose max-w-none"
-                                dangerouslySetInnerHTML={{ __html: schedule.description_html }}
-                            />
-                        </div>
-                    )}
+                                <div className="sm:col-span-2 space-y-4 pt-2">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <InfoItem
+                                            icon={<MonitorPlay className="size-4 text-primary" />}
+                                            label="Platform"
+                                            value={schedule.link_type || 'Other'}
+                                        />
+                                        <InfoItem
+                                            icon={<UsersRound className="size-4 text-primary" />}
+                                            label="Access Type"
+                                            value={
+                                                <span className="capitalize">{schedule.access_type}</span>
+                                            }
+                                        />
+                                    </div>
 
-                    {/* Calendar View for Recurring Sessions */}
-                    {isRecurring && groupedSchedules.length > 0 && (
-                        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                            <h2 className="mb-4 text-xl font-semibold text-gray-900">
-                                Scheduled Sessions ({groupedSchedules.length} days)
-                            </h2>
-                            <div className="space-y-4">
-                                {groupedSchedules.map((daySchedule) => (
-                                    <div
-                                        key={daySchedule.date}
-                                        className="rounded-md border border-gray-100 bg-gray-50 p-4"
-                                    >
-                                        <div className="mb-3 flex items-center justify-between">
-                                            <h3 className="text-lg font-medium text-gray-900">
-                                                {format(
-                                                    new Date(daySchedule.date),
-                                                    'EEEE, MMMM d, yyyy'
-                                                )}
-                                            </h3>
-                                            <span className="text-sm text-gray-500">
-                                                {daySchedule.sessions.length} session
-                                                {daySchedule.sessions.length !== 1 ? 's' : ''}
-                                            </span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {daySchedule.sessions.map((session) => (
-                                                <div
-                                                    key={session.id}
-                                                    className="flex items-center justify-between rounded border border-white bg-white p-3"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex items-center gap-2">
-                                                            <Clock className="size-4 text-primary-600" />
-                                                            <span className="font-medium text-gray-900">
-                                                                {session.time}
-                                                            </span>
-                                                        </div>
-                                                        <span className="text-sm text-gray-500">
-                                                            ({session.duration} minutes)
-                                                        </span>
-                                                    </div>
+                                    {/* Links Section */}
+                                    <div className="flex flex-col gap-4 pt-4 border-t mt-2">
+                                        {schedule.default_meet_link && (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                                    <Link2 className="size-3.5 text-primary" />
+                                                    Default Meeting Link
+                                                </div>
+                                                <div className="flex items-center gap-2 rounded-md border bg-muted/20 p-2 pr-2 transition-all hover:bg-muted/40 hover:border-border/80">
                                                     <a
-                                                        href={session.link}
+                                                        href={schedule.default_meet_link}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-sm text-primary-600 hover:underline"
+                                                        className="flex-1 truncate text-sm font-medium text-blue-600 hover:underline underline-offset-2"
+                                                        title={schedule.default_meet_link}
                                                     >
-                                                        Join Link →
+                                                        {schedule.default_meet_link}
                                                     </a>
+                                                    <MyButton
+                                                        onClick={() => copyToClipboard(schedule.default_meet_link)}
+                                                        buttonType="text"
+                                                        scale="small"
+                                                        className="h-6 w-6 p-0 hover:bg-background shadow-none shrink-0"
+                                                        type="button"
+                                                        title="Copy link"
+                                                    >
+                                                        <Copy className="size-3.5 text-muted-foreground" />
+                                                    </MyButton>
                                                 </div>
+                                            </div>
+                                        )}
+
+                                        {schedule.join_link && (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                                    <Share2 className="size-3.5 text-primary" />
+                                                    Join Link
+                                                </div>
+                                                <div className="flex items-center gap-2 rounded-md border bg-muted/20 p-2 pr-2 transition-all hover:bg-muted/40 hover:border-border/80">
+                                                    <a
+                                                        href={schedule.join_link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex-1 truncate text-sm font-medium text-blue-600 hover:underline underline-offset-2"
+                                                        title={schedule.join_link}
+                                                    >
+                                                        {schedule.join_link}
+                                                    </a>
+                                                    <MyButton
+                                                        onClick={() => copyToClipboard(schedule.join_link)}
+                                                        buttonType="text"
+                                                        scale="small"
+                                                        className="h-6 w-6 p-0 hover:bg-background shadow-none shrink-0"
+                                                        type="button"
+                                                        title="Copy link"
+                                                    >
+                                                        <Copy className="size-3.5 text-muted-foreground" />
+                                                    </MyButton>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Description Card */}
+                        {schedule.description_html &&
+                            schedule.description_html.replace(/<[^>]*>/g, '').trim().length > 0 && (
+                                <Card className="overflow-hidden border-border/60 shadow-sm">
+                                    <CardHeader className="bg-muted/40 px-6 py-4">
+                                        <CardTitle className="text-lg font-semibold">Description</CardTitle>
+                                    </CardHeader>
+                                    <Separator />
+                                    <CardContent className="p-6">
+                                        <div
+                                            className="prose prose-sm max-w-none text-muted-foreground prose-headings:font-semibold prose-headings:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+                                            dangerouslySetInnerHTML={{ __html: schedule.description_html }}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                        {/* Registration Fields */}
+                        {notifications?.addedFields && notifications.addedFields.length > 0 && (
+                            <Card className="overflow-hidden border-border/60 shadow-sm">
+                                <CardHeader className="bg-muted/40 px-6 py-4">
+                                    <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                                        <FileText className="size-5" />
+                                        Registration Form Details
+                                    </CardTitle>
+                                </CardHeader>
+                                <Separator />
+                                <CardContent className="p-0">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                                <TableHead className="pl-6 w-[50%]">Field Label</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead className="text-right pr-6">Required</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {notifications.addedFields.map((field) => (
+                                                <TableRow key={field.id} className="hover:bg-muted/5">
+                                                    <TableCell className="pl-6 font-medium text-foreground">
+                                                        {field.label}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="secondary" className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/80">
+                                                            {field.type}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right pr-6">
+                                                        {field.required ? (
+                                                            <Badge variant="destructive" className="h-5 px-1.5 text-[10px] font-medium uppercase tracking-wider">
+                                                                Required
+                                                            </Badge>
+                                                        ) : (
+                                                            <span className="text-xs text-muted-foreground">Optional</span>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
                                             ))}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Calendar View for Recurring Sessions */}
+                        {isRecurring && groupedSchedules.length > 0 && (
+                            <Card className="overflow-hidden border-border/60 shadow-sm">
+                                <CardHeader className="bg-muted/40 px-6 py-4">
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-lg font-semibold">Scheduled Sessions</CardTitle>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-1 rounded-lg border bg-background p-1">
+                                                <MyButton
+                                                    onClick={() => setViewMode('list')}
+                                                    buttonType="text"
+                                                    scale="small"
+                                                    className={cn(
+                                                        "h-7 w-7 p-0 transition-all",
+                                                        viewMode === 'list'
+                                                            ? "bg-muted text-foreground shadow-sm"
+                                                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                                    )}
+                                                    title="List View"
+                                                >
+                                                    <List className="size-4" />
+                                                </MyButton>
+                                                <MyButton
+                                                    onClick={() => setViewMode('calendar')}
+                                                    buttonType="text"
+                                                    scale="small"
+                                                    className={cn(
+                                                        "h-7 w-7 p-0 transition-all",
+                                                        viewMode === 'calendar'
+                                                            ? "bg-muted text-foreground shadow-sm"
+                                                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                                    )}
+                                                    title="Calendar View"
+                                                >
+                                                    <CalendarIcon className="size-4" />
+                                                </MyButton>
+                                            </div>
+                                            <Badge variant="secondary" className="px-3 py-1 text-xs font-medium">
+                                                {groupedSchedules.length} days
+                                            </Badge>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                                </CardHeader>
+                                <Separator />
+                                <CardContent className="space-y-4 p-6">
+                                    {viewMode === 'list' ? (
+                                        <>
+                                            <Accordion type="multiple" className="w-full">
+                                                {groupedSchedules
+                                                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                                    .map((daySchedule) => (
+                                                        <AccordionItem value={daySchedule.date} key={daySchedule.date} className="border-b last:border-0">
+                                                            <AccordionTrigger className="hover:no-underline py-3">
+                                                                <div className="flex flex-1 items-center justify-between mr-4">
+                                                                    <h3 className="font-semibold text-foreground">
+                                                                        {format(new Date(daySchedule.date), 'EEEE, MMMM d, yyyy')}
+                                                                    </h3>
+                                                                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                                                                        {daySchedule.sessions.length} session{daySchedule.sessions.length !== 1 ? 's' : ''}
+                                                                    </span>
+                                                                </div>
+                                                            </AccordionTrigger>
+                                                            <AccordionContent>
+                                                                <div className="space-y-2 pt-2">
+                                                                    {daySchedule.sessions.map((session) => (
+                                                                        <div
+                                                                            key={session.id}
+                                                                            className="flex items-center justify-between rounded-md bg-muted/50 p-3 hover:bg-muted"
+                                                                        >
+                                                                            <div className="flex items-center gap-4">
+                                                                                <div className="flex items-center gap-2 text-sm text-foreground">
+                                                                                    <Timer className="size-4 text-primary" />
+                                                                                    <span className="font-medium">{session.time}</span>
+                                                                                </div>
+                                                                                <span className="text-xs text-muted-foreground">
+                                                                                    {session.duration} mins
+                                                                                </span>
+                                                                            </div>
+                                                                            <a
+                                                                                href={session.link}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary/80 hover:underline"
+                                                                            >
+                                                                                Join <ArrowLeft className="ml-1 size-3 rotate-180" />
+                                                                            </a>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </AccordionContent>
+                                                        </AccordionItem>
+                                                    ))}
+                                            </Accordion>
 
-                {/* Sidebar - Right Side */}
-                <div className="space-y-6">
-                    {/* Settings Card */}
-                    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-4 text-xl font-semibold text-gray-900">Settings</h2>
-                        <div className="space-y-3">
-                            <SettingRow
-                                label="Waiting Room"
-                                value={
-                                    schedule.waiting_room_time &&
-                                    Number(schedule.waiting_room_time) > 0
-                                        ? `${schedule.waiting_room_time} minutes before`
-                                        : 'Disabled'
-                                }
-                            />
-                            <SettingRow
-                                label="Allow Rewind"
-                                value={schedule.allow_rewind ? 'Yes' : 'No'}
-                            />
-                            <SettingRow
-                                label="Allow Pause"
-                                value={schedule.allow_play_pause ? 'Yes' : 'No'}
-                            />
-                            <SettingRow
-                                label="Streaming Type"
-                                value={
-                                    schedule.session_streaming_service_type === 'embed'
-                                        ? 'Embed in App'
-                                        : 'Redirect to Platform'
-                                }
-                            />
-                        </div>
+                                            {groupedSchedules.length > itemsPerPage && (
+                                                <div className="mt-4 flex justify-center">
+                                                    <Pagination>
+                                                        <PaginationContent>
+                                                            <PaginationItem>
+                                                                <PaginationPrevious
+                                                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                                                />
+                                                            </PaginationItem>
+
+                                                            {Array.from({ length: Math.ceil(groupedSchedules.length / itemsPerPage) }).map((_, i) => (
+                                                                <PaginationItem key={i}>
+                                                                    <PaginationLink
+                                                                        isActive={currentPage === i + 1}
+                                                                        onClick={() => setCurrentPage(i + 1)}
+                                                                        className="cursor-pointer"
+                                                                    >
+                                                                        {i + 1}
+                                                                    </PaginationLink>
+                                                                </PaginationItem>
+                                                            ))}
+
+                                                            <PaginationItem>
+                                                                <PaginationNext
+                                                                    onClick={() =>
+                                                                        setCurrentPage((p) =>
+                                                                            Math.min(Math.ceil(groupedSchedules.length / itemsPerPage), p + 1)
+                                                                        )
+                                                                    }
+                                                                    className={
+                                                                        currentPage === Math.ceil(groupedSchedules.length / itemsPerPage)
+                                                                            ? 'pointer-events-none opacity-50'
+                                                                            : 'cursor-pointer'
+                                                                    }
+                                                                />
+                                                            </PaginationItem>
+                                                        </PaginationContent>
+                                                    </Pagination>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <SessionCalendarView schedules={groupedSchedules} />
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
 
-                    {/* Media Card */}
-                    {(schedule.thumbnail_file_id || schedule.background_score_file_id) && (
-                        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                            <h2 className="mb-4 text-xl font-semibold text-gray-900">
-                                Media Files
-                            </h2>
-                            <div className="space-y-2">
-                                {schedule.thumbnail_file_id && (
-                                    <div className="text-sm text-gray-600">
-                                        ✓ Thumbnail attached
-                                    </div>
-                                )}
-                                {schedule.background_score_file_id && (
-                                    <div className="text-sm text-gray-600">
-                                        ✓ Background music attached
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    {/* Sidebar Column */}
+                    <div className="space-y-6 lg:col-span-4 xl:col-span-3">
+                        {/* Settings Card */}
+                        <Card className="overflow-hidden border-border/60 shadow-sm">
+                            <CardHeader className="bg-muted/40 px-6 py-4">
+                                <CardTitle className="text-lg font-semibold">Settings</CardTitle>
+                            </CardHeader>
+                            <Separator />
+                            <CardContent className="grid gap-4 p-6">
+                                <SettingItem
+                                    label="Waiting Room"
+                                    value={
+                                        schedule.waiting_room_time && Number(schedule.waiting_room_time) > 0
+                                            ? `${schedule.waiting_room_time} mins before`
+                                            : 'Disabled'
+                                    }
+                                />
+                                <Separator />
+                                <SettingItem
+                                    label="Allow Rewind"
+                                    value={schedule.allow_rewind ? 'Yes' : 'No'}
+                                />
+                                <Separator />
+                                <SettingItem
+                                    label="Allow Pause"
+                                    value={schedule.allow_play_pause ? 'Yes' : 'No'}
+                                />
+                                <Separator />
+                                <SettingItem
+                                    label="Streaming Type"
+                                    value={
+                                        schedule.session_streaming_service_type === 'embed'
+                                            ? 'Embed in App'
+                                            : 'Redirect'
+                                    }
+                                />
+                            </CardContent>
+                        </Card>
 
-                    {/* Batch Info */}
-                    {schedule.package_session_ids && schedule.package_session_ids.length > 0 && (
-                        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                            <h2 className="mb-4 text-xl font-semibold text-gray-900">
-                                Associated Batches
-                            </h2>
-                            <div className="text-sm text-gray-600">
-                                {schedule.package_session_ids.length} batch
-                                {schedule.package_session_ids.length !== 1 ? 'es' : ''} linked
-                            </div>
-                        </div>
-                    )}
+                        {/* Notifications Card */}
+                        {uniqueNotifications.length > 0 && (
+                            <Card className="overflow-hidden border-border/60 shadow-sm">
+                                <CardHeader className="bg-muted/40 px-6 py-4">
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                                            <Bell className="size-5" />
+                                            Notifications
+                                        </CardTitle>
+                                        <Badge variant="secondary" className="rounded-full px-2 text-xs">
+                                            {uniqueNotifications.length}
+                                        </Badge>
+                                    </div>
+                                </CardHeader>
+                                <Separator />
+                                <CardContent className="space-y-3 p-6">
+                                    {uniqueNotifications.map((notification: any, index: number) => (
+                                        <div
+                                            key={`${notification.type}-${index}`}
+                                            className="group flex flex-col gap-3 rounded-lg border bg-card p-3 shadow-sm transition-all hover:bg-muted/40"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <Badge
+                                                    variant="outline"
+                                                    className="border-primary/20 bg-primary/5 text-[10px] font-semibold uppercase tracking-wider text-primary"
+                                                >
+                                                    {notification.type.replace(/_/g, ' ')}
+                                                </Badge>
+                                                {notification.time && (
+                                                    <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                                        <Timer className="size-3" />
+                                                        {format(new Date(notification.time), 'p')}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {notification.notifyBy.mail && (
+                                                    <Badge variant="secondary" className="gap-1.5 px-2 py-0.5 text-[10px] font-medium">
+                                                        <div className="size-1.5 rounded-full bg-blue-500" />
+                                                        Email
+                                                    </Badge>
+                                                )}
+                                                {notification.notifyBy.whatsapp && (
+                                                    <Badge variant="secondary" className="gap-1.5 px-2 py-0.5 text-[10px] font-medium">
+                                                        <div className="size-1.5 rounded-full bg-green-500" />
+                                                        WhatsApp
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Media Card */}
+                        {(schedule.thumbnail_file_id || schedule.background_score_file_id || schedule.cover_file_id) && (
+                            <Card className="overflow-hidden border-border/60 shadow-sm">
+                                <CardHeader className="bg-muted/40 px-6 py-4">
+                                    <CardTitle className="text-lg font-semibold">Media Files</CardTitle>
+                                </CardHeader>
+                                <Separator />
+                                <CardContent className="space-y-6 p-6">
+
+
+                                    {schedule.thumbnail_file_id && (
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Thumbnail</span>
+                                                <Badge variant="outline" className="text-[10px] text-green-600 border-green-200 bg-green-50">Attached</Badge>
+                                            </div>
+                                            {thumbnailUrl ? (
+                                                <div className="group relative aspect-video w-full overflow-hidden rounded-md border bg-muted shadow-sm">
+                                                    <img
+                                                        src={thumbnailUrl}
+                                                        alt="Session Thumbnail"
+                                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <Skeleton className="aspect-video w-full rounded-md" />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {schedule.background_score_file_id && (
+                                        <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-3 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-green-200/50 dark:bg-green-800/50">
+                                                <CheckCircle2 className="size-4" />
+                                            </div>
+                                            <div className="text-sm font-medium">Background music attached</div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Associatd Batches */}
+                        {schedule.package_session_ids && schedule.package_session_ids.length > 0 && (
+                            <Card className="overflow-hidden border-border/60 shadow-sm">
+                                <CardHeader className="bg-muted/40 px-6 py-4">
+                                    <CardTitle className="text-lg font-semibold">Associated Batches</CardTitle>
+                                </CardHeader>
+                                <Separator />
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50 p-4 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+                                        <span className="font-medium">Linked Batches</span>
+                                        <Badge className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600">
+                                            {schedule.package_session_ids.length}
+                                        </Badge>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+        </LayoutContainer >
     );
 }
 
 // Helper Components
-function InfoRow({
+function InfoItem({
     icon,
     label,
     value,
+    className,
 }: {
     icon: React.ReactNode;
     label: string;
     value: React.ReactNode;
+    className?: string;
 }) {
     return (
-        <div className="flex items-start gap-3">
-            <div className="mt-0.5">{icon}</div>
-            <div className="flex-1">
-                <div className="text-sm font-medium text-gray-500">{label}</div>
-                <div className="mt-1 text-base text-gray-900">{value}</div>
+        <div className={`flex items-start gap-4 ${className} group`}>
+            <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted/50 text-muted-foreground/70 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                {icon}
+            </div>
+            <div className="flex-1 space-y-1">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 transition-colors group-hover:text-muted-foreground">
+                    {label}
+                </div>
+                <div className="text-sm font-medium text-foreground">{value}</div>
             </div>
         </div>
     );
 }
 
-function SettingRow({ label, value }: { label: string; value: string }) {
+function SettingItem({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">{label}</span>
-            <span className="text-sm font-medium text-gray-900">{value}</span>
+            <span className="text-sm text-muted-foreground">{label}</span>
+            <span className="text-sm font-medium text-foreground">{value}</span>
         </div>
     );
 }
