@@ -17,6 +17,7 @@ import {
     Sparkle,
     FilmStrip,
     Books,
+    Code,
 } from '@phosphor-icons/react';
 import { StorageKey } from '@/constants/storage/storage';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
@@ -418,8 +419,15 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: FilmStrip,
-        title: 'Content Studio & API Access',
-        id: 'content-studio-tab',
+        title: 'Content AI Studio',
+        id: 'content-ai-studio',
+        category: 'AI',
+        to: '/video-api-studio/console',
+    },
+    {
+        icon: Code,
+        title: 'Content AI API',
+        id: 'content-ai-api',
         category: 'AI',
         to: '/video-api-studio',
     },
