@@ -236,131 +236,133 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     };
 
     return (
-        <div
-            className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4 transition-shadow hover:shadow-md"
-            onClick={handleCardClick}
-        >
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <h1 className="font-semibold">{session.title}</h1>
-                    <Badge className="rounded-md border border-neutral-300 bg-primary-50 py-1.5 shadow-none">
-                        <LockSimple size={16} className="mr-2" />
-                        {session.access_level}
-                    </Badge>
+        <>
+            <div
+                className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4 transition-shadow hover:shadow-md"
+                onClick={handleCardClick}
+            >
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <h1 className="font-semibold">{session.title}</h1>
+                        <Badge className="rounded-md border border-neutral-300 bg-primary-50 py-1.5 shadow-none">
+                            <LockSimple size={16} className="mr-2" />
+                            {session.access_level}
+                        </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger>
+                                <MyButton
+                                    type="button"
+                                    scale="small"
+                                    buttonType="secondary"
+                                    className="w-6 !min-w-6"
+                                >
+                                    <DotsThree size={32} />
+                                </MyButton>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={handleOpenDeleteDialog}
+                                >
+                                    Delete Live Session
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={() => {
+                                        handleOpenDialog();
+                                    }}
+                                >
+                                    View Participant details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={() => {
+                                        navigate({
+                                            to: '/study-library/live-session/view/$sessionId',
+                                            params: { sessionId: session?.session_id || '' },
+                                        });
+                                    }}
+                                >
+                                    View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={handleEditSession}
+                                >
+                                    Edit Live Session
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <MyButton
-                                type="button"
-                                scale="small"
-                                buttonType="secondary"
-                                className="w-6 !min-w-6"
-                            >
-                                <DotsThree size={32} />
-                            </MyButton>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={handleOpenDeleteDialog}
-                            >
-                                Delete Live Session
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={() => {
-                                    handleOpenDialog();
-                                }}
-                            >
-                                View Participant Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={() => {
-                                    navigate({
-                                        to: '/study-library/live-session/view/$sessionId',
-                                        params: { sessionId: session?.session_id || '' },
-                                    });
-                                }}
-                            >
-                                View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={handleEditSession}
-                            >
-                                Edit Live Session
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
-
-            <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
-                <div className="flex items-center gap-2">
-                    <span className="text-black">
-                        {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:
-                    </span>
-                    <span>{session.subject}</span>
-                </div>
-                {!timeInfo.isLocalTime && (
+                <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
                     <div className="flex items-center gap-2">
-                        <span className="text-black">Start Date & Time:</span>
-                        <span className="">
-                            {timeInfo.localTimeFormatted} ({timeInfo.userTimezone})
+                        <span className="text-black">
+                            {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:
                         </span>
+                        <span>{session.subject}</span>
                     </div>
-                )}
-                {!timeInfo.isLocalTime && (
+                    {!timeInfo.isLocalTime && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-black">Start Date & Time:</span>
+                            <span className="">
+                                {timeInfo.localTimeFormatted} ({timeInfo.userTimezone})
+                            </span>
+                        </div>
+                    )}
+                    {!timeInfo.isLocalTime && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-black">End Time:</span>
+                            <span className="">{timeInfo.localEndTimeFormatted}</span>
+                        </div>
+                    )}
                     <div className="flex items-center gap-2">
-                        <span className="text-black">End Time:</span>
-                        <span className="">{timeInfo.localEndTimeFormatted}</span>
+                        <span className="text-black">Meeting Type:</span>
+                        <span>{session.recurrence_type}</span>
                     </div>
-                )}
-                <div className="flex items-center gap-2">
-                    <span className="text-black">Meeting Type:</span>
-                    <span>{session.recurrence_type}</span>
                 </div>
-            </div>
-            <div className="flex justify-between">
-                <div className="flex items-center gap-4 overflow-hidden text-sm text-neutral-500">
-                    <h1 className="!font-normal text-black">Join Link:</h1>
-                    <span className="flex-1 truncate px-2 py-1 text-sm underline" title={joinLink}>
-                        {joinLink}
-                    </span>
-                    <MyButton
-                        type="button"
-                        scale="small"
-                        buttonType="secondary"
-                        className="mr-4 h-8 min-w-8"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(joinLink);
-                        }}
-                    >
-                        <Copy size={32} />
-                    </MyButton>
-                </div>
+                <div className="flex justify-between">
+                    <div className="flex items-center gap-4 overflow-hidden text-sm text-neutral-500">
+                        <h1 className="!font-normal text-black">Join Link:</h1>
+                        <span className="flex-1 truncate px-2 py-1 text-sm underline" title={joinLink}>
+                            {joinLink}
+                        </span>
+                        <MyButton
+                            type="button"
+                            scale="small"
+                            buttonType="secondary"
+                            className="mr-4 h-8 min-w-8"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                copyToClipboard(joinLink);
+                            }}
+                        >
+                            <Copy size={32} />
+                        </MyButton>
+                    </div>
 
-                <div className="flex items-center gap-4">
-                    <QRCode
-                        value={joinLink}
-                        className="size-16"
-                        id={`qr-code-svg-live-session-${session.session_id}`}
-                    />
-                    <MyButton
-                        type="button"
-                        scale="small"
-                        buttonType="secondary"
-                        className="h-8 min-w-8"
-                        onClick={() =>
-                            handleDownloadQRCode(`qr-code-svg-live-session-${session.session_id}`)
-                        }
-                    >
-                        <DownloadSimple size={32} />
-                    </MyButton>
+                    <div className="flex items-center gap-4">
+                        <QRCode
+                            value={joinLink}
+                            className="size-16"
+                            id={`qr-code-svg-live-session-${session.session_id}`}
+                        />
+                        <MyButton
+                            type="button"
+                            scale="small"
+                            buttonType="secondary"
+                            className="h-8 min-w-8"
+                            onClick={() =>
+                                handleDownloadQRCode(`qr-code-svg-live-session-${session.session_id}`)
+                            }
+                        >
+                            <DownloadSimple size={32} />
+                        </MyButton>
+                    </div>
                 </div>
             </div>
             <MyDialog
@@ -413,22 +415,20 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                     <TabsTrigger
                                         key={'Registration'}
                                         value={'Registration'}
-                                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                            selectedTab === 'Registration'
+                                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${selectedTab === 'Registration'
                                                 ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                                 : 'border-none bg-transparent'
-                                        }`}
+                                            }`}
                                     >
                                         Registered Users
                                     </TabsTrigger>
                                     <TabsTrigger
                                         key={'Attendance'}
                                         value={'Attendance'}
-                                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                            selectedTab === 'Attendance'
+                                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${selectedTab === 'Attendance'
                                                 ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                                 : 'border-none bg-transparent'
-                                        }`}
+                                            }`}
                                     >
                                         Attendance
                                     </TabsTrigger>
@@ -535,6 +535,6 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 isRecurring={session.recurrence_type !== 'once'}
                 onSuccess={handleDeleteSuccess}
             />
-        </div>
+        </>
     );
 }

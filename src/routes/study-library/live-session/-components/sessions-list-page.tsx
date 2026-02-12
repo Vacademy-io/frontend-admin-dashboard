@@ -93,49 +93,73 @@ export default function SessionListPage() {
             sort_direction: 'ASC',
         };
 
-        // Set statuses based on tab
-        if (selectedTab === SessionStatus.LIVE) {
-            baseRequest.statuses = ['LIVE'];
-        } else if (selectedTab === SessionStatus.UPCOMING) {
-            baseRequest.statuses = ['LIVE'];
-            // For upcoming, we'll use date filters
-        } else if (selectedTab === SessionStatus.PAST) {
-            baseRequest.statuses = ['LIVE'];
-            // For past, we'll set end_date to yesterday
-        } else if (selectedTab === SessionStatus.DRAFTS) {
-            baseRequest.statuses = ['DRAFT'];
+        // Get current date in user's local timezone
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+        const todayFormatted = format(nowLocal, 'yyyy-MM-dd');
+
+        // Dynamic date limits
+        const farFuture = new Date(nowLocal);
+        farFuture.setFullYear(farFuture.getFullYear() + 50);
+        const farFutureFormatted = format(farFuture, 'yyyy-MM-dd');
+
+        const farPast = new Date(nowLocal);
+        farPast.setFullYear(farPast.getFullYear() - 50);
+        const farPastFormatted = format(farPast, 'yyyy-MM-dd');
+
+        // Configure payload based on Tab (Strict Rules)
+        switch (selectedTab) {
+            case SessionStatus.UPCOMING:
+                baseRequest.statuses = ['LIVE'];
+                baseRequest.time_status = 'UPCOMING';
+                baseRequest.sort_by = 'meetingDate';
+                baseRequest.sort_direction = 'ASC';
+                // CRITICAL: Override default 30-day limit
+                baseRequest.start_date = startDate ? format(startDate, 'yyyy-MM-dd') : todayFormatted;
+                baseRequest.end_date = endDate ? format(endDate, 'yyyy-MM-dd') : farFutureFormatted;
+                break;
+
+            case SessionStatus.PAST:
+                baseRequest.statuses = ['LIVE'];
+                baseRequest.time_status = 'PAST';
+                baseRequest.sort_by = 'meetingDate';
+                baseRequest.sort_direction = 'DESC';
+                // CRITICAL: Override default "From Today" limit
+                baseRequest.start_date = startDate ? format(startDate, 'yyyy-MM-dd') : farPastFormatted;
+                baseRequest.end_date = endDate ? format(endDate, 'yyyy-MM-dd') : todayFormatted;
+                break;
+
+            case SessionStatus.DRAFTS:
+                baseRequest.statuses = ['DRAFT'];
+                baseRequest.time_status = null;
+                baseRequest.sort_by = 'updatedAt';
+                baseRequest.sort_direction = 'DESC';
+                // CRITICAL: Show all drafts history
+                baseRequest.start_date = startDate ? format(startDate, 'yyyy-MM-dd') : farPastFormatted;
+                baseRequest.end_date = endDate ? format(endDate, 'yyyy-MM-dd') : farFutureFormatted;
+                break;
+
+            case SessionStatus.LIVE:
+                baseRequest.statuses = ['LIVE'];
+                baseRequest.time_status = 'LIVE';
+                // Live Now uses default sorting or backend logic
+                // Respect user date filters if provided, otherwise let backend handle "Current" logic
+                baseRequest.start_date = startDate ? format(startDate, 'yyyy-MM-dd') : todayFormatted;
+                baseRequest.end_date = endDate ? format(endDate, 'yyyy-MM-dd') : todayFormatted;
+                break;
         }
 
-        // Apply search query
+        // Apply Common Filters
         if (searchQuery) {
             baseRequest.search_query = searchQuery;
+            // Append subject filter search if present
+            if (subjectFilter && subjectFilter !== 'DEFAULT') {
+                baseRequest.search_query = `${searchQuery} ${subjectFilter}`;
+            }
+        } else if (subjectFilter && subjectFilter !== 'DEFAULT') {
+            baseRequest.search_query = subjectFilter;
         }
 
-        // Apply date filters
-        if (startDate) {
-            baseRequest.start_date = format(startDate, 'yyyy-MM-dd');
-        }
-        if (endDate) {
-            baseRequest.end_date = format(endDate, 'yyyy-MM-dd');
-        }
-
-        // For upcoming tab, set start_date to today (in user's local timezone) if not already set
-        if (selectedTab === SessionStatus.UPCOMING && !startDate) {
-            // Get current date in user's local timezone
-            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
-            baseRequest.start_date = format(nowLocal, 'yyyy-MM-dd');
-        }
-
-        // For past tab, set end_date to today (in user's local timezone) if not already set
-        if (selectedTab === SessionStatus.PAST && !endDate) {
-            // Get current date in user's local timezone
-            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
-            baseRequest.end_date = format(nowLocal, 'yyyy-MM-dd');
-        }
-
-        // Apply time of day filters
         if (startTimeOfDay) {
             baseRequest.start_time_of_day = startTimeOfDay;
         }
@@ -146,26 +170,15 @@ export default function SessionListPage() {
         // Apply recurrence type filter
         if (meetingTypeFilter) {
             if (meetingTypeFilter === 'custom') {
-                baseRequest.recurrence_types = ['WEEKLY'];
+                baseRequest.recurrence_types = ['weekly'];
             } else {
-                baseRequest.recurrence_types = [meetingTypeFilter.toUpperCase()];
-            }
-        }
-
-        // Apply subject filter
-        if (subjectFilter) {
-            // Note: API doesn't have subject filter directly, we'll filter on client side or use search_query
-            // For now, we can append it to search_query
-            if (baseRequest.search_query) {
-                baseRequest.search_query = `${baseRequest.search_query} ${subjectFilter}`;
-            } else {
-                baseRequest.search_query = subjectFilter;
+                baseRequest.recurrence_types = [meetingTypeFilter];
             }
         }
 
         // Apply access level filter
         if (accessFilter) {
-            baseRequest.access_levels = [accessFilter.toUpperCase()];
+            baseRequest.access_levels = [accessFilter];
         }
 
         // Apply streaming service filter
@@ -611,49 +624,8 @@ export default function SessionListPage() {
         }
 
 
-        // Filter sessions based on tab - exclude/include based on start_time
-        const filteredSessions = searchResponse.sessions.filter((session) => {
-            // Get current date and time in user's local timezone
-            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
-            const todayLocal = format(nowLocal, 'yyyy-MM-dd');
-            const currentTimeLocal = format(nowLocal, 'HH:mm:ss');
-
-            if (selectedTab === SessionStatus.UPCOMING) {
-                // For upcoming tab - exclude sessions whose start_time has already passed
-                // If meeting_date is after today, include the session
-                if (session.meeting_date > todayLocal) {
-                    return true;
-                }
-
-                // If meeting_date is today, only include if start_time is after current time
-                if (session.meeting_date === todayLocal) {
-                    return session.start_time > currentTimeLocal;
-                }
-
-                // If meeting_date is before today, exclude the session
-                return false;
-            }
-
-            if (selectedTab === SessionStatus.PAST) {
-                // For past tab - include only sessions whose last_entry_time (end time) has already passed
-                // If meeting_date is before today, include the session
-                if (session.meeting_date < todayLocal) {
-                    return true;
-                }
-
-                // If meeting_date is today, only include if last_entry_time (end time) is before or equal to current time
-                if (session.meeting_date === todayLocal) {
-                    return session.last_entry_time <= currentTimeLocal;
-                }
-
-                // If meeting_date is after today, exclude the session
-                return false;
-            }
-
-            // For other tabs (Live, Drafts), include all sessions
-            return true;
-        });
+        // Use sessions directly from API response (filtering is now server-side)
+        const filteredSessions = searchResponse.sessions;
 
         return (
             <div>
@@ -735,8 +707,8 @@ export default function SessionListPage() {
                                 key={status}
                                 value={status}
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${selectedTab === status
-                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                        : 'border-none bg-transparent'
+                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
                                     }`}
                             >
                                 {sessionStatusLabels[status]}
