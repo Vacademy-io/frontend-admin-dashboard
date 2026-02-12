@@ -24,6 +24,13 @@ import {
     Bell,
     Settings,
     LayoutGrid,
+    ChevronDown,
+    Coins,
+    Gift,
+    Zap,
+    Cpu,
+    Crown,
+    Star,
 } from 'lucide-react';
 
 // ── Visual mock components ──────────────────────────────────────────
@@ -496,6 +503,271 @@ function CourseStructureMock() {
     );
 }
 
+// ── Pricing section ─────────────────────────────────────────────────
+
+const pricingTiers = [
+    {
+        name: 'Standard',
+        icon: Zap,
+        multiplier: '1×',
+        color: 'border-neutral-200 bg-white',
+        badge: 'bg-neutral-100 text-neutral-600',
+        models: 'Gemini 2.0 Flash, GPT-3.5, DeepSeek-v3',
+    },
+    {
+        name: 'Premium',
+        icon: Star,
+        multiplier: '2×',
+        color: 'border-blue-200 bg-blue-50/50',
+        badge: 'bg-blue-100 text-blue-700',
+        models: 'Gemini 2.5 Pro, GPT-4 Turbo, Claude 3.5 Sonnet',
+    },
+    {
+        name: 'Ultra',
+        icon: Crown,
+        multiplier: '4×',
+        color: 'border-amber-200 bg-amber-50/40',
+        badge: 'bg-amber-100 text-amber-700',
+        models: 'GPT-4o, Claude 3 Opus',
+    },
+];
+
+const creditCosts = [
+    { feature: 'Video Generation', cost: '5.0', unit: 'per video', icon: Video },
+    { feature: 'Image Generation', cost: '3.0', unit: 'per image', icon: FileText },
+    { feature: 'Text / Course Outline', cost: '0.5', unit: 'base + tokens', icon: GraduationCap },
+    { feature: 'Evaluation & Grading', cost: '1.0', unit: 'base + tokens', icon: FileQuestion },
+    { feature: 'Voice (TTS)', cost: '0.2', unit: 'base + chars', icon: Video },
+    { feature: 'Embeddings', cost: '0.1', unit: 'base + tokens', icon: Cpu },
+];
+
+function PricingSection() {
+    return (
+        <section className="bg-neutral-50 px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+                <div className="mb-8 max-w-2xl sm:mb-12">
+                    <h2 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+                        Simple, credit-based pricing
+                    </h2>
+                    <p className="mt-2 text-sm text-neutral-500 sm:mt-3 sm:text-lg">
+                        Pay only for what you generate. Every institute starts with 200 free
+                        credits.
+                    </p>
+                </div>
+
+                {/* Free credits banner */}
+                <div className="mb-8 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 sm:mb-10 sm:gap-4 sm:p-5">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500 sm:size-12">
+                        <Gift className="size-5 text-white sm:size-6" />
+                    </div>
+                    <div>
+                        <div className="text-sm font-semibold text-emerald-800 sm:text-base">
+                            200 Free Credits on Signup
+                        </div>
+                        <div className="mt-0.5 text-xs text-emerald-600 sm:text-sm">
+                            Start creating immediately — no credit card required. Plus, some AI
+                            models are completely free to use.
+                        </div>
+                    </div>
+                </div>
+
+                {/* Credit costs table */}
+                <div className="mb-8 overflow-hidden rounded-xl border border-neutral-200 bg-white sm:mb-10">
+                    <div className="border-b border-neutral-100 px-4 py-3 sm:px-6">
+                        <div className="flex items-center gap-2">
+                            <Coins className="size-4 text-amber-500" />
+                            <span className="text-sm font-semibold text-neutral-800">
+                                Credit Costs by Content Type
+                            </span>
+                        </div>
+                    </div>
+                    <div className="divide-y divide-neutral-100">
+                        {creditCosts.map((item) => (
+                            <div
+                                key={item.feature}
+                                className="flex items-center justify-between px-4 py-3 sm:px-6"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <item.icon className="size-4 text-neutral-400" />
+                                    <span className="text-xs font-medium text-neutral-700 sm:text-sm">
+                                        {item.feature}
+                                    </span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-sm font-bold text-neutral-900 sm:text-base">
+                                        {item.cost}
+                                    </span>
+                                    <span className="ml-1 text-[10px] text-neutral-400 sm:text-xs">
+                                        credits {item.unit}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Model tiers */}
+                <div className="mb-4 text-sm font-semibold text-neutral-800 sm:text-base">
+                    AI Model Tiers
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+                    {pricingTiers.map((tier) => (
+                        <div
+                            key={tier.name}
+                            className={`rounded-xl border p-4 sm:p-5 ${tier.color}`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <tier.icon className="size-4 text-neutral-600 sm:size-5" />
+                                    <span className="text-sm font-semibold text-neutral-800 sm:text-base">
+                                        {tier.name}
+                                    </span>
+                                </div>
+                                <span
+                                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold sm:text-xs ${tier.badge}`}
+                                >
+                                    {tier.multiplier}
+                                </span>
+                            </div>
+                            <div className="mt-2 text-[10px] leading-relaxed text-neutral-500 sm:text-xs">
+                                {tier.models}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Example calculation */}
+                <div className="mt-8 rounded-xl border border-neutral-200 bg-white p-4 sm:mt-10 sm:p-6">
+                    <div className="mb-3 text-xs font-semibold text-neutral-800 sm:text-sm">
+                        Example: Generate a Course Outline with GPT-4o (Ultra)
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        {[
+                            { label: 'Base Cost', value: '0.50' },
+                            { label: '+', value: '' },
+                            { label: 'Tokens (2k)', value: '0.0008' },
+                            { label: '=', value: '' },
+                            { label: 'Total', value: '≈ 0.50', highlight: true },
+                        ].map((item, i) =>
+                            item.value === '' ? (
+                                <span
+                                    key={i}
+                                    className="text-xs font-medium text-neutral-400 sm:text-sm"
+                                >
+                                    {item.label}
+                                </span>
+                            ) : (
+                                <div
+                                    key={i}
+                                    className={`rounded-lg px-3 py-1.5 text-center sm:px-4 sm:py-2 ${
+                                        item.highlight
+                                            ? 'bg-emerald-50 ring-1 ring-emerald-200'
+                                            : 'bg-neutral-50'
+                                    }`}
+                                >
+                                    <div className="text-[9px] text-neutral-500 sm:text-[10px]">
+                                        {item.label}
+                                    </div>
+                                    <div
+                                        className={`text-sm font-bold sm:text-base ${item.highlight ? 'text-emerald-600' : 'text-neutral-800'}`}
+                                    >
+                                        {item.value}
+                                    </div>
+                                </div>
+                            )
+                        )}
+                        <span className="ml-1 text-[10px] text-neutral-400 sm:text-xs">
+                            credits
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ── FAQ section ─────────────────────────────────────────────────────
+
+const faqs = [
+    {
+        q: 'What are credits and how do they work?',
+        a: 'Credits are the currency for AI generation on Vacademy. Every institute receives 200 free credits on signup. Each content generation (video, quiz, text, etc.) consumes a certain number of credits based on the type and AI model used. You can track your balance in the dashboard.',
+    },
+    {
+        q: 'Are there any free AI models I can use?',
+        a: 'Yes! Several models are completely free to use with 0 credit consumption, including Gemini 2.0 Flash Experimental, Mistral Devstral, and Nvidia Nemotron. These are great for experimenting and everyday content generation.',
+    },
+    {
+        q: 'How much does it cost to generate a video?',
+        a: 'Video generation costs a flat rate of 5 credits per video, regardless of the AI model tier. Image generation is 3 credits per image. Text-based content like quizzes and course outlines start at just 0.5 credits.',
+    },
+    {
+        q: 'What content types can I create?',
+        a: 'You can generate AI Videos (narrated explainers), Quizzes (auto-generated assessments), Storybooks (illustrated narratives), Worksheets (printable materials), Interactive Games (memory match, drag & drop), and complete Courses with structured modules.',
+    },
+    {
+        q: 'How does the AI Course Builder work?',
+        a: 'Simply describe your subject and grade level. AI generates a full course structure with organized modules, each containing multi-format content (videos, quizzes, worksheets). You can review, edit, and rearrange everything before publishing.',
+    },
+    {
+        q: 'What happens when I run out of credits?',
+        a: "You'll receive a low-balance alert when your credits drop below 50. You can continue using free-tier models at no cost, or purchase additional credits. You can also switch to more efficient Standard-tier models to stretch your balance.",
+    },
+    {
+        q: 'Can I use this for my entire institution?',
+        a: 'Absolutely. Vacademy is built for institutes — teachers, directors, and admins can all create content under one account. Credits are shared across your institute, and you can manage access and permissions from the admin dashboard.',
+    },
+    {
+        q: 'What languages are supported?',
+        a: 'Our AI supports multiple languages for content generation including English, Hindi, and more. Voice generation (TTS) also supports multiple languages and voice genders. The available languages depend on the AI model being used.',
+    },
+];
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <div className="border-b border-neutral-200 last:border-b-0">
+            <button
+                onClick={() => setOpen(!open)}
+                className="flex w-full items-start justify-between gap-4 py-4 text-left sm:py-5"
+            >
+                <span className="text-sm font-medium text-neutral-800 sm:text-base">{q}</span>
+                <ChevronDown
+                    className={`mt-0.5 size-4 shrink-0 text-neutral-400 transition-transform duration-200 sm:size-5 ${open ? 'rotate-180' : ''}`}
+                />
+            </button>
+            {open && (
+                <div className="pb-4 pr-8 text-xs leading-relaxed text-neutral-500 sm:pb-5 sm:text-sm">
+                    {a}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function FaqSection() {
+    return (
+        <section className="px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
+            <div className="mx-auto max-w-3xl">
+                <div className="mb-8 sm:mb-12">
+                    <h2 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+                        Frequently asked questions
+                    </h2>
+                    <p className="mt-2 text-sm text-neutral-500 sm:mt-3 sm:text-lg">
+                        Everything you need to know about credits, pricing, and content creation.
+                    </p>
+                </div>
+                <div className="rounded-xl border border-neutral-200 bg-white px-4 sm:px-6">
+                    {faqs.map((faq) => (
+                        <FaqItem key={faq.q} q={faq.q} a={faq.a} />
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
 // ── Main page ───────────────────────────────────────────────────────
 
 export default function ExploreLandingPage() {
@@ -801,6 +1073,12 @@ export default function ExploreLandingPage() {
                     </div>
                 </div>
             </section>
+
+            {/* Pricing */}
+            <PricingSection />
+
+            {/* FAQs */}
+            <FaqSection />
 
             {/* CTA Footer */}
             <section className="border-t border-neutral-200 bg-neutral-950 px-4 py-12 sm:px-6 sm:py-20 lg:px-8">
