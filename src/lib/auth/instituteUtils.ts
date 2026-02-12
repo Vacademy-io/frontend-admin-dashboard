@@ -162,7 +162,9 @@ export const setSelectedInstitute = (instituteId: string): void => {
  * Get the selected institute from localStorage
  */
 export const getSelectedInstitute = (): string | undefined => {
-    return localStorage.getItem('selectedInstituteId') || undefined;
+    const id = localStorage.getItem('selectedInstituteId');
+    if (id === 'null') return undefined;
+    return id || undefined;
 };
 
 /**
