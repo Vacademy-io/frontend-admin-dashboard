@@ -412,14 +412,14 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: Robot,
-        title: 'AI Copilot',
+        title: 'AI Course Creator',
         id: 'ai-copilot-tab',
         category: 'AI',
         to: '/study-library/ai-copilot',
     },
     {
         icon: FilmStrip,
-        title: 'Content AI Studio',
+        title: 'AI Content Creator Studio',
         id: 'content-ai-studio',
         category: 'AI',
         to: '/video-api-studio/console',

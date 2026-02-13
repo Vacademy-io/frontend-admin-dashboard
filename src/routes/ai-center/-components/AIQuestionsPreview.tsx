@@ -28,11 +28,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DotsThreeVertical, Copy, Trash } from '@phosphor-icons/react';
 import { PPTComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory';
-import { Separator } from '@/components/ui/separator';
+
 import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';
 import ExportQuestionPaperAI from './export-ai-question-paper/ExportQuestionPaperAI';
 import { toast } from 'sonner';
-import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import type { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 import { Badge } from '@/components/ui/badge';
 import { AxiosError } from 'axios';
 import { MyQuestion, MyQuestionPaperFormInterface } from '@/types/assessments/question-paper-form';
@@ -303,17 +303,19 @@ const AIQuestionsPreview = ({
     return (
         <>
             <Dialog open={noResponse} onOpenChange={setNoResponse}>
-                <DialogContent className="p-0 overflow-hidden rounded-lg">
-                    <div className="bg-destructive/10 p-4 text-destructive flex items-center gap-2 border-b border-destructive/20">
+                <DialogContent className="overflow-hidden rounded-lg p-0">
+                    <div className="flex items-center gap-2 border-b border-destructive/20 bg-destructive/10 p-4 text-destructive">
                         <span className="font-semibold">Failed to load questions</span>
                     </div>
-                    <div className="p-6 flex flex-col gap-4">
-                        <p className="text-muted-foreground text-sm">We couldn't generate the questions for you. Please try again.</p>
+                    <div className="flex flex-col gap-4 p-6">
+                        <p className="text-sm text-muted-foreground">
+                            We couldn't generate the questions for you. Please try again.
+                        </p>
                         <MyButton
                             type="button"
                             scale="small"
                             buttonType="secondary"
-                            className="w-fit text-sm font-semibold !text-primary hover:underline"
+                            className="!text-primary w-fit text-sm font-semibold hover:underline"
                             onClick={() => handleRetryTask(task.id)}
                         >
                             Retry Now
@@ -348,12 +350,12 @@ const AIQuestionsPreview = ({
                             type="button"
                             scale="small"
                             buttonType="secondary"
-                            className="border-none text-sm !text-primary shadow-none hover:bg-primary/10"
+                            className="!text-primary hover:bg-primary/10 border-none text-sm shadow-none"
                             onClick={() => handlViewQuestionsList(task.id)}
                         >
                             {getQuestionsListMutation.status === 'pending' ? (
                                 <>
-                                    <div className="mr-2 size-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                                    <div className="border-primary mr-2 size-3 animate-spin rounded-full border-2 border-t-transparent"></div>
                                     <span>Loading...</span>
                                 </>
                             ) : (
@@ -363,11 +365,11 @@ const AIQuestionsPreview = ({
                     )}
                 </DialogTrigger>
                 {form.getValues('questions') && form.getValues('questions').length > 0 && (
-                    <DialogContent className="no-scrollbar !m-0 flex h-full !w-screen !max-w-none flex-col !gap-0 overflow-hidden !rounded-none !p-0 bg-background text-foreground [&>button]:hidden">
+                    <DialogContent className="no-scrollbar !m-0 flex h-full !w-screen !max-w-none flex-col !gap-0 overflow-hidden !rounded-none bg-background !p-0 text-foreground [&>button]:hidden">
                         <FormProvider {...form}>
                             <form className="flex h-full flex-col">
                                 {/* Header */}
-                                <div className="flex bg-background h-16 w-full items-center justify-between border-b px-6 shadow-sm z-10 shrink-0">
+                                <div className="z-10 flex h-16 w-full shrink-0 items-center justify-between border-b bg-background px-6 shadow-sm">
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-3">
                                             <img
@@ -379,30 +381,51 @@ const AIQuestionsPreview = ({
                                                 <span className="text-sm font-bold leading-tight text-foreground/90">
                                                     {form.getValues('title')}
                                                 </span>
-                                                <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                                                    {form.getValues('tags')?.slice(0, 3).map((tag, idx) => (
-                                                        <Badge variant="secondary" key={idx} className="bg-muted/50 text-[10px] px-1.5 py-0 font-medium text-muted-foreground border-transparent">
-                                                            {tag}
-                                                        </Badge>
-                                                    ))}
-                                                    {form.getValues('tags') && form.getValues('tags')!.length > 3 && (
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Badge variant="secondary" className="bg-muted/50 text-[10px] px-1.5 py-0 font-medium text-muted-foreground border-transparent cursor-help">
-                                                                        +{form.getValues('tags')!.length - 3}
-                                                                    </Badge>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <div className="flex flex-col gap-1">
-                                                                        {form.getValues('tags')?.slice(3).map((tag, idx) => (
-                                                                            <span key={idx} className="text-xs">{tag}</span>
-                                                                        ))}
-                                                                    </div>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-                                                    )}
+                                                <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                                                    {form
+                                                        .getValues('tags')
+                                                        ?.slice(0, 3)
+                                                        .map((tag, idx) => (
+                                                            <Badge
+                                                                variant="secondary"
+                                                                key={idx}
+                                                                className="border-transparent bg-muted/50 px-1.5 py-0 text-[10px] font-medium text-muted-foreground"
+                                                            >
+                                                                {tag}
+                                                            </Badge>
+                                                        ))}
+                                                    {form.getValues('tags') &&
+                                                        form.getValues('tags')!.length > 3 && (
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Badge
+                                                                            variant="secondary"
+                                                                            className="cursor-help border-transparent bg-muted/50 px-1.5 py-0 text-[10px] font-medium text-muted-foreground"
+                                                                        >
+                                                                            +
+                                                                            {form.getValues('tags')!
+                                                                                .length - 3}
+                                                                        </Badge>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <div className="flex flex-col gap-1">
+                                                                            {form
+                                                                                .getValues('tags')
+                                                                                ?.slice(3)
+                                                                                .map((tag, idx) => (
+                                                                                    <span
+                                                                                        key={idx}
+                                                                                        className="text-xs"
+                                                                                    >
+                                                                                        {tag}
+                                                                                    </span>
+                                                                                ))}
+                                                                        </div>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        )}
                                                 </div>
                                             </div>
                                         </div>
@@ -426,7 +449,7 @@ const AIQuestionsPreview = ({
                                         <ExportQuestionPaperAI
                                             responseQuestionsData={assessmentData?.questions}
                                         />
-                                        <div className="h-5 w-px bg-border mx-1" />
+                                        <div className="mx-1 h-5 w-px bg-border" />
                                         <MyButton
                                             type="button"
                                             scale="small"
@@ -445,21 +468,30 @@ const AIQuestionsPreview = ({
                                 <div className="flex flex-1 overflow-hidden">
                                     {/* Sidebar / Slides Strip */}
                                     <div className="flex w-56 flex-col border-r bg-muted/5">
-                                        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 scrollbar-thin scrollbar-thumb-muted-foreground/20">
+                                        <div className="scrollbar-thin scrollbar-thumb-muted-foreground/20 flex-1 overflow-y-auto overflow-x-hidden p-4">
                                             <Sortable
                                                 value={fields}
                                                 onMove={({ activeIndex, overIndex }) =>
                                                     move(activeIndex, overIndex)
                                                 }
                                             >
-                                                <div style={{ height: containerHeight, overflow: 'hidden' }}>
-                                                    <div ref={contentRef} className="origin-top-left scale-[0.28] w-[350%] flex flex-col gap-6 pb-20">
+                                                <div
+                                                    style={{
+                                                        height: containerHeight,
+                                                        overflow: 'hidden',
+                                                    }}
+                                                >
+                                                    <div
+                                                        ref={contentRef}
+                                                        className="flex w-[350%] origin-top-left scale-[0.28] flex-col gap-6 pb-20"
+                                                    >
                                                         {fields.map((field, index) => {
                                                             const hasError =
                                                                 form.formState.errors?.questions?.[
-                                                                index
+                                                                    index
                                                                 ];
-                                                            const isSelected = currentQuestionIndex === index;
+                                                            const isSelected =
+                                                                currentQuestionIndex === index;
 
                                                             return (
                                                                 <SortableItem
@@ -469,20 +501,27 @@ const AIQuestionsPreview = ({
                                                                 >
                                                                     <div
                                                                         key={index}
-                                                                        onClick={() => setCurrentQuestionIndex(index)}
-                                                                        className={`relative rounded-3xl border-4 p-6 transition-all duration-200 group
-                                                                            ${isSelected
-                                                                                ? 'border-blue-600 bg-white ring-8 ring-blue-50'
-                                                                                : 'border-transparent bg-white shadow-sm hover:shadow-md'
+                                                                        onClick={() =>
+                                                                            setCurrentQuestionIndex(
+                                                                                index
+                                                                            )
+                                                                        }
+                                                                        className={`group relative rounded-3xl border-4 p-6 transition-all duration-200
+                                                                            ${
+                                                                                isSelected
+                                                                                    ? 'border-blue-600 bg-white ring-8 ring-blue-50'
+                                                                                    : 'border-transparent bg-white shadow-sm hover:shadow-md'
                                                                             }`}
                                                                     >
                                                                         <div className="flex flex-col gap-4">
                                                                             <div className="flex items-center justify-between gap-4">
                                                                                 <div className="flex items-center gap-4">
-                                                                                    <span className={`text-5xl font-bold ${isSelected ? 'text-blue-600' : 'text-gray-400'}`}>
+                                                                                    <span
+                                                                                        className={`text-5xl font-bold ${isSelected ? 'text-blue-600' : 'text-gray-400'}`}
+                                                                                    >
                                                                                         {index + 1}
                                                                                     </span>
-                                                                                    <span className="text-3xl font-medium text-gray-500 truncate max-w-[400px]">
+                                                                                    <span className="max-w-[400px] truncate text-3xl font-medium text-gray-500">
                                                                                         {getPPTViewTitle(
                                                                                             getValues(
                                                                                                 `questions.${index}.questionType`
@@ -492,23 +531,40 @@ const AIQuestionsPreview = ({
                                                                                 </div>
                                                                                 <div className="flex items-center gap-2">
                                                                                     <DropdownMenu>
-                                                                                        <DropdownMenuTrigger asChild>
+                                                                                        <DropdownMenuTrigger
+                                                                                            asChild
+                                                                                        >
                                                                                             <MyButton
                                                                                                 type="button"
                                                                                                 scale="large"
                                                                                                 buttonType="secondary"
                                                                                                 className="size-16 p-0 text-muted-foreground hover:text-foreground"
-                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                onClick={(
+                                                                                                    e
+                                                                                                ) =>
+                                                                                                    e.stopPropagation()
+                                                                                                }
                                                                                             >
                                                                                                 <DotsThreeVertical className="!size-10" />
                                                                                             </MyButton>
                                                                                         </DropdownMenuTrigger>
-                                                                                        <DropdownMenuContent align="end" className="w-56">
+                                                                                        <DropdownMenuContent
+                                                                                            align="end"
+                                                                                            className="w-56"
+                                                                                        >
                                                                                             <DropdownMenuItem
                                                                                                 className="py-3 text-lg"
-                                                                                                onClick={(e) => {
+                                                                                                onClick={(
+                                                                                                    e
+                                                                                                ) => {
                                                                                                     e.stopPropagation();
-                                                                                                    insert(index + 1, getValues(`questions.${index}`));
+                                                                                                    insert(
+                                                                                                        index +
+                                                                                                            1,
+                                                                                                        getValues(
+                                                                                                            `questions.${index}`
+                                                                                                        )
+                                                                                                    );
                                                                                                 }}
                                                                                             >
                                                                                                 <Copy className="mr-3 size-5" />
@@ -516,11 +572,23 @@ const AIQuestionsPreview = ({
                                                                                             </DropdownMenuItem>
                                                                                             <DropdownMenuItem
                                                                                                 className="py-3 text-lg text-destructive focus:text-destructive"
-                                                                                                onClick={(e) => {
+                                                                                                onClick={(
+                                                                                                    e
+                                                                                                ) => {
                                                                                                     e.stopPropagation();
-                                                                                                    remove(index);
-                                                                                                    if (currentQuestionIndex >= index && currentQuestionIndex > 0) {
-                                                                                                        setCurrentQuestionIndex(currentQuestionIndex - 1);
+                                                                                                    remove(
+                                                                                                        index
+                                                                                                    );
+                                                                                                    if (
+                                                                                                        currentQuestionIndex >=
+                                                                                                            index &&
+                                                                                                        currentQuestionIndex >
+                                                                                                            0
+                                                                                                    ) {
+                                                                                                        setCurrentQuestionIndex(
+                                                                                                            currentQuestionIndex -
+                                                                                                                1
+                                                                                                        );
                                                                                                     }
                                                                                                 }}
                                                                                             >
@@ -532,7 +600,7 @@ const AIQuestionsPreview = ({
                                                                                     <SortableDragHandle
                                                                                         variant="ghost"
                                                                                         size="icon"
-                                                                                        className="size-16 opacity-50 hover:opacity-100 cursor-grab active:cursor-grabbing"
+                                                                                        className="size-16 cursor-grab opacity-50 hover:opacity-100 active:cursor-grabbing"
                                                                                     >
                                                                                         <DotsSixVertical className="!size-12" />
                                                                                     </SortableDragHandle>
@@ -561,7 +629,7 @@ const AIQuestionsPreview = ({
                                                                         </div>
 
                                                                         {hasError && (
-                                                                            <div className="absolute top-4 right-4 h-8 w-8 rounded-full bg-red-500 ring-4 ring-white" />
+                                                                            <div className="absolute right-4 top-4 size-8 rounded-full bg-red-500 ring-4 ring-white" />
                                                                         )}
                                                                     </div>
                                                                 </SortableItem>
@@ -573,14 +641,16 @@ const AIQuestionsPreview = ({
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 h-full w-full bg-muted/10 relative overflow-hidden">
+                                    <div className="relative size-full flex-1 overflow-hidden bg-muted/10">
                                         {questions && questions.length === 0 ? (
-                                            <div className="flex h-full w-full items-center justify-center">
-                                                <h1 className="text-muted-foreground font-medium">No Question Exists.</h1>
+                                            <div className="flex size-full items-center justify-center">
+                                                <h1 className="font-medium text-muted-foreground">
+                                                    No Question Exists.
+                                                </h1>
                                             </div>
                                         ) : (
-                                            <div className="h-full w-full overflow-y-auto p-8">
-                                                <div className="mx-auto w-full max-w-5xl rounded-xl bg-background border shadow-sm min-h-[600px] p-10">
+                                            <div className="size-full overflow-y-auto p-8">
+                                                <div className="mx-auto min-h-[600px] w-full max-w-5xl rounded-xl border bg-background p-10 shadow-sm">
                                                     <MainViewComponentFactory
                                                         key={currentQuestionIndex}
                                                         type={
@@ -590,22 +660,23 @@ const AIQuestionsPreview = ({
                                                         }
                                                         props={{
                                                             form: form as any,
-                                                            currentQuestionIndex: currentQuestionIndex,
-                                                            setCurrentQuestionIndex: setCurrentQuestionIndex,
-                                                            className:
-                                                                'flex w-full flex-col gap-6',
+                                                            currentQuestionIndex:
+                                                                currentQuestionIndex,
+                                                            setCurrentQuestionIndex:
+                                                                setCurrentQuestionIndex,
+                                                            className: 'flex w-full flex-col gap-6',
                                                         }}
                                                     />
                                                 </div>
                                             </div>
                                         )}
                                     </div>
-                                </div >
-                            </form >
-                        </FormProvider >
-                    </DialogContent >
+                                </div>
+                            </form>
+                        </FormProvider>
+                    </DialogContent>
                 )}
-            </Dialog >
+            </Dialog>
         </>
     );
 };

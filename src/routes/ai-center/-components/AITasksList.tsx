@@ -13,7 +13,7 @@ import AIPlanLecturePreview from './AIPlanLecturePreview';
 import AIEvaluatePreview from './AIEvaluatePreview';
 import { ArrowCounterClockwise } from '@phosphor-icons/react';
 import { convertToLocalDateTime } from '@/constants/helper';
-import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import type { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 import { UseFormReturn } from 'react-hook-form';
 import { SectionFormType } from '@/types/assessments/assessment-steps';
 import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/zustand-global-states/ai-add-questions-dialog-zustand';
@@ -86,7 +86,7 @@ const AITasksList = ({
 
             return () => clearInterval(interval); // cleanup on unmount
         }
-        return () => { };
+        return () => {};
     }, [mutate, heading, isAIQuestionDialog9, openQuestionsPreview]);
 
     useEffect(() => {
@@ -180,20 +180,23 @@ const AITasksList = ({
                                         className="flex flex-col gap-2 rounded-lg border bg-neutral-50 p-3 sm:p-4"
                                     >
                                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                                            <h1 className="break-words text-sm font-medium text-neutral-600 sm:text-base">{task.task_name}</h1>
-                                            <h1 className="text-xs text-neutral-500 sm:text-sm text-neutral-600">
+                                            <h1 className="break-words text-sm font-medium text-neutral-600 sm:text-base">
+                                                {task.task_name}
+                                            </h1>
+                                            <h1 className="text-xs text-neutral-500 text-neutral-600 sm:text-sm">
                                                 {convertToLocalDateTime(task.updated_at)}
                                             </h1>
                                         </div>
 
                                         <div className="flex flex-wrap items-center justify-start gap-2">
                                             <Badge
-                                                className={`border border-gray-200 text-neutral-600 shadow-none ${task.status === 'FAILED'
+                                                className={`border border-gray-200 text-neutral-600 shadow-none ${
+                                                    task.status === 'FAILED'
                                                         ? 'bg-red-100'
                                                         : task.status === 'COMPLETED'
-                                                            ? 'bg-green-100'
-                                                            : 'bg-blue-100'
-                                                    }`}
+                                                          ? 'bg-green-100'
+                                                          : 'bg-blue-100'
+                                                }`}
                                             >
                                                 {task.status}
                                             </Badge>
@@ -261,7 +264,7 @@ const AITasksList = ({
                                         {task.file_detail && (
                                             <div className="mt-2 flex flex-col gap-2 rounded-md bg-neutral-100 p-3 sm:flex-row sm:items-center sm:justify-between">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="max-w-[200px] truncate text-xs sm:text-sm text-neutral-600">
+                                                    <span className="max-w-[200px] truncate text-xs text-neutral-600 sm:text-sm">
                                                         {task.file_detail.file_name}
                                                     </span>
                                                 </div>

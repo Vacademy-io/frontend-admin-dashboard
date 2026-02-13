@@ -9,7 +9,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAICenter } from '../../../-contexts/useAICenterContext';
 import GenerateQuestionsFromAudioForm from './GenerateQuestionsFromAudioForm';
-import { QuestionsFromTextData } from '@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import type { QuestionsFromTextData } from '@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { SectionFormType } from '@/types/assessments/assessment-steps';

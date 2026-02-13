@@ -465,3 +465,71 @@ export function getContentTypeLabel(contentType: ContentType): string {
     const found = CONTENT_TYPES.find((ct) => ct.value === contentType);
     return found?.label || contentType;
 }
+
+interface RemoteHistoryItem {
+    id: string;
+    video_id: string;
+    current_stage: VideoStage;
+    status: VideoStatusType;
+    content_type: ContentType;
+    file_ids: Record<string, string>;
+    s3_urls: {
+        audio?: string;
+        words?: string;
+        script?: string;
+        timeline?: string;
+        branding_meta?: string;
+        generated_images?: string;
+    };
+    prompt: string;
+    language: string;
+    error_message: string | null;
+    metadata: Record<string, unknown>;
+    created_at: string;
+    updated_at: string;
+    completed_at: string | null;
+}
+
+export async function getRemoteHistory(apiKey: string, limit: number = 20): Promise<HistoryItem[]> {
+    const response = await fetch(
+        `${AI_SERVICE_BASE_URL}/external/video/v1/history?limit=${limit}`,
+        {
+            headers: {
+                'X-Institute-Key': apiKey,
+                accept: 'application/json',
+            },
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch history: ${response.statusText}`);
+    }
+
+    const data: RemoteHistoryItem[] = await response.json();
+
+    return data.map((item) => ({
+        id: item.id,
+        video_id: item.video_id,
+        prompt: item.prompt,
+        content_type: item.content_type,
+        status: item.status.toLowerCase() as HistoryItem['status'],
+        stage: item.current_stage,
+        created_at: item.created_at,
+        html_url: item.s3_urls.timeline,
+        audio_url: item.s3_urls.audio,
+        words_url: item.s3_urls.words,
+        // Reconstruct options as they aren't fully returned by the history API yet
+        options: {
+            content_type: item.content_type,
+            language: item.language,
+            // Defaults for missing fields
+            voice_gender: 'female',
+            tts_provider: 'edge',
+            captions_enabled: true,
+            html_quality: 'advanced',
+            target_audience: 'General/Adult',
+            target_duration: '2-3 minutes',
+            model: 'vsmart-v1',
+        },
+    }));
+}

@@ -29,7 +29,6 @@ import {
     Receipt,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 type TabId = 'overview' | 'transactions' | 'analytics';
 
@@ -591,13 +590,13 @@ export function AiCreditsPanel({ className }: AiCreditsPanelProps) {
                 </div>
 
                 {/* Content */}
-                <ScrollArea className="max-h-[400px]">
+                <div className="max-h-[400px] overflow-y-auto">
                     <div className="p-3">
                         {activeTab === 'overview' && <OverviewTab />}
                         {activeTab === 'transactions' && <TransactionsTab />}
                         {activeTab === 'analytics' && <AnalyticsTab />}
                     </div>
-                </ScrollArea>
+                </div>
 
                 {/* Footer */}
                 <Separator />
