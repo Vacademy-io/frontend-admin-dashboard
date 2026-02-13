@@ -19,14 +19,15 @@ import {
     SSEEvent,
     ContentType,
     generateVideo,
-    getHistory,
-    saveToHistory,
     getVideoUrls,
+    getRemoteHistory,
 } from '../-services/video-generation';
 import { HistorySidebar } from '../-components/HistorySidebar';
 import { PromptInput } from '../-components/PromptInput';
 import { GenerationProgress } from '../-components/GenerationProgress';
 import { VideoResult } from '../-components/VideoResult';
+import { ContentSelector } from '../-components/ContentSelector';
+import { DEFAULT_OPTIONS } from '../-services/video-generation';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { AiCreditsPanel } from '@/components/common/ai-credits/AiCreditsPanel';
 
@@ -59,6 +60,31 @@ function VideoConsole() {
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
     const [consoleState, setConsoleState] = useState<ConsoleState>('idle');
+
+    // Lifted state for prompt and options
+    const [prompt, setPrompt] = useState(() => localStorage.getItem('video-studio-prompt') || '');
+    const [options, setOptions] = useState<Omit<GenerateVideoRequest, 'prompt'>>(() => {
+        const saved = localStorage.getItem('video-studio-options');
+        if (saved) {
+            try {
+                return { ...DEFAULT_OPTIONS, ...JSON.parse(saved) };
+            } catch (e) {
+                console.error('Failed to parse saved options:', e);
+                return DEFAULT_OPTIONS;
+            }
+        }
+        return DEFAULT_OPTIONS;
+    });
+
+    // Persist prompt and options
+    useEffect(() => {
+        localStorage.setItem('video-studio-prompt', prompt);
+    }, [prompt]);
+
+    useEffect(() => {
+        localStorage.setItem('video-studio-options', JSON.stringify(options));
+    }, [options]);
+
     const [currentGeneration, setCurrentGeneration] = useState<CurrentGeneration | null>(null);
     const [isLoadingVideoUrls, setIsLoadingVideoUrls] = useState(false);
     const [isMobileHistoryOpen, setIsMobileHistoryOpen] = useState(false);
@@ -108,10 +134,32 @@ function VideoConsole() {
         }
     }, [isLoadingKeys, apiKeys, instituteId, isAutoGenerating]);
 
+    // Get the full API key from localStorage (stored when key was generated)
+    const activeApiKey = getFirstAvailableFullKey(apiKeys);
+
     // Load history
     useEffect(() => {
-        setHistory(getHistory());
-    }, []);
+        const fetchHistory = async () => {
+            if (!activeApiKey) return;
+            try {
+                const remoteHistory = await getRemoteHistory(activeApiKey);
+                setHistory(remoteHistory);
+            } catch (error) {
+                console.error('Failed to load history:', error);
+                // Fallback to local if remote fails needed? For now just log error
+                // setHistory(getHistory());
+            }
+        };
+
+        fetchHistory();
+
+        // Poll for updates every 10 seconds if there are pending items
+        const interval = setInterval(() => {
+            fetchHistory();
+        }, 10000);
+
+        return () => clearInterval(interval);
+    }, [activeApiKey]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -121,9 +169,6 @@ function VideoConsole() {
             }
         };
     }, []);
-
-    // Get the full API key from localStorage (stored when key was generated)
-    const activeApiKey = getFirstAvailableFullKey(apiKeys);
 
     const handleGenerate = useCallback(
         async (request: GenerateVideoRequest) => {
@@ -137,6 +182,19 @@ function VideoConsole() {
             setSelectedHistoryId(null);
 
             const contentType = request.content_type || 'VIDEO';
+
+            const updateHistoryState = (newItem: HistoryItem) => {
+                setHistory((prev) => {
+                    const index = prev.findIndex((h) => h.video_id === newItem.video_id);
+                    if (index >= 0) {
+                        const newHistory = [...prev];
+                        newHistory[index] = { ...prev[index], ...newItem };
+                        return newHistory;
+                    } else {
+                        return [newItem, ...prev];
+                    }
+                });
+            };
 
             const { abort, videoId } = generateVideo(
                 request,
@@ -171,8 +229,8 @@ function VideoConsole() {
                             },
                         }));
 
-                        // Update history with URLs if available
-                        saveToHistory({
+                        // Update history in state
+                        updateHistoryState({
                             id: videoId,
                             video_id: videoId,
                             prompt: request.prompt,
@@ -195,7 +253,6 @@ function VideoConsole() {
                                 model: request.model,
                             },
                         });
-                        setHistory(getHistory());
 
                         // When HTML stage is reached, show the player - content is ready
                         // Audio URL comes from TTS stage, timeline from HTML stage
@@ -234,7 +291,7 @@ function VideoConsole() {
                                 : null
                         );
 
-                        saveToHistory({
+                        updateHistoryState({
                             id: videoId,
                             video_id: videoId,
                             prompt: request.prompt,
@@ -254,7 +311,6 @@ function VideoConsole() {
                                 model: request.model,
                             },
                         });
-                        setHistory(getHistory());
                     } else if (event.type === 'error') {
                         // Check if error happened after HTML stage
                         const errorStage = event.stage;
@@ -279,7 +335,7 @@ function VideoConsole() {
                         });
 
                         // Update history
-                        saveToHistory({
+                        updateHistoryState({
                             id: videoId,
                             video_id: videoId,
                             prompt: request.prompt,
@@ -299,7 +355,6 @@ function VideoConsole() {
                                 model: request.model,
                             },
                         });
-                        setHistory(getHistory());
                     }
                 },
                 (error) => {
@@ -332,7 +387,7 @@ function VideoConsole() {
             });
 
             // Save initial history entry
-            saveToHistory({
+            updateHistoryState({
                 id: videoId,
                 video_id: videoId,
                 prompt: request.prompt,
@@ -352,7 +407,6 @@ function VideoConsole() {
                     model: request.model,
                 },
             });
-            setHistory(getHistory());
         },
         [activeApiKey]
     );
@@ -401,8 +455,10 @@ function VideoConsole() {
                         words_url: urls.words_url,
                         status: 'completed',
                     };
-                    saveToHistory(updatedItem);
-                    setHistory(getHistory());
+
+                    setHistory((prev) =>
+                        prev.map((h) => (h.video_id === item.video_id ? updatedItem : h))
+                    );
 
                     setCurrentGeneration({
                         videoId: item.video_id,
@@ -440,7 +496,9 @@ function VideoConsole() {
 
     const handleDeleteHistory = useCallback(
         (videoId: string) => {
-            setHistory(getHistory());
+            // Optimistically remove from UI
+            setHistory((prev) => prev.filter((h) => h.video_id !== videoId));
+
             if (videoId === selectedHistoryId) {
                 setSelectedHistoryId(null);
                 setCurrentGeneration(null);
@@ -469,7 +527,7 @@ function VideoConsole() {
             <LayoutContainer>
                 <div className="flex h-[calc(100vh-theme(spacing.20))] flex-col items-center justify-center gap-4">
                     <Loader2 className="size-12 animate-spin text-violet-600" />
-                    <p className="text-muted-foreground">Setting up Video Console...</p>
+                    <p className="text-muted-foreground">Setting up Content Console...</p>
                 </div>
             </LayoutContainer>
         );
@@ -486,8 +544,8 @@ function VideoConsole() {
                         </h1>
                         <p className="mb-6 text-muted-foreground">
                             {!hasActiveKeys
-                                ? 'You need an active API key to use the Video Console'
-                                : 'Please generate a new API key to use the Video Console'}
+                                ? 'You need an active API key to use the Content Console'
+                                : 'Please generate a new API key to use the Content Console'}
                         </p>
                         <Button onClick={() => navigate({ to: '/video-api-studio' })}>
                             <ArrowLeft className="mr-2 size-4" />
@@ -526,7 +584,7 @@ function VideoConsole() {
                                         <Menu className="size-4" />
                                     </Button>
                                 </SheetTrigger>
-                                <SheetContent side="left" className="w-[300px] p-0">
+                                <SheetContent side="left" className="w-96 p-0">
                                     <HistorySidebar
                                         history={history}
                                         selectedId={selectedHistoryId}
@@ -551,7 +609,7 @@ function VideoConsole() {
                                 <div className="rounded bg-violet-100 p-1 text-violet-600">
                                     <Sparkles className="size-3.5" />
                                 </div>
-                                Video Console
+                                Create AI Content - Videos, StoryBook, Timeline, Puzzlebook, Etc
                             </h1>
                         </div>
                     </div>
@@ -571,30 +629,18 @@ function VideoConsole() {
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-4 sm:p-6">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-2 sm:p-3">
                     {consoleState === 'idle' && !currentGeneration && !isLoadingVideoUrls && (
-                        <div className="flex h-full flex-col items-center justify-center p-4 text-center duration-500 animate-in fade-in zoom-in">
-                            <div className="group relative mb-6">
-                                <div className="absolute inset-0 rounded-full bg-violet-500/20 blur-2xl transition-all duration-500 group-hover:bg-violet-500/30" />
-                                <div className="relative rounded-2xl border border-violet-100/50 bg-gradient-to-br from-violet-100 to-indigo-50 p-6 shadow-sm">
-                                    <Video className="size-12 text-violet-600" />
-                                </div>
-                                {/* Floating Icons */}
-                                <div className="absolute -right-2 -top-2 animate-bounce rounded-lg border border-border bg-white p-1.5 shadow-sm delay-100">
-                                    <Sparkles className="size-3 text-amber-500" />
-                                </div>
-                                <div className="absolute -bottom-2 -left-2 animate-bounce rounded-lg border border-border bg-white p-1.5 shadow-sm delay-700">
-                                    <Sparkles className="size-3 text-indigo-500" />
-                                </div>
-                            </div>
-                            <h2 className="mb-3 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-2xl font-semibold text-transparent">
-                                Create Educational Video
-                            </h2>
-                            <p className="max-w-[460px] leading-relaxed text-muted-foreground">
-                                Describe what you want to explain, and our AI will generate a
-                                complete educational video with narration, visuals, and subtitles.
-                            </p>
-                        </div>
+                        <ContentSelector
+                            selectedType={options.content_type || 'VIDEO'}
+                            onSelect={(type) =>
+                                setOptions((prev: Omit<GenerateVideoRequest, 'prompt'>) => ({
+                                    ...prev,
+                                    content_type: type,
+                                }))
+                            }
+                            onSamplePromptSelect={(p) => setPrompt(p)}
+                        />
                     )}
 
                     {isLoadingVideoUrls && (
@@ -647,6 +693,10 @@ function VideoConsole() {
                         onGenerate={handleGenerate}
                         isGenerating={isGenerating}
                         disabled={!activeApiKey}
+                        prompt={prompt}
+                        onPromptChange={setPrompt}
+                        options={options}
+                        onOptionsChange={setOptions}
                     />
                 </div>
             </div>

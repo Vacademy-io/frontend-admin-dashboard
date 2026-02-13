@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CheckCircle2, Copy, Check, Code2, Link2, Share2 } from 'lucide-react';
 import { AIContentPlayer } from '@/components/ai-video-player/AIContentPlayer';
 import { ContentType, getContentTypeLabel } from '../-services/video-generation';
+import { LatexRenderer } from './LatexRenderer';
 
 interface VideoResultProps {
     videoId: string;
@@ -66,14 +67,16 @@ export function VideoResult({
     const contentLabel = getContentTypeLabel(contentType);
 
     return (
-        <div className="mx-auto w-full max-w-4xl space-y-4">
+        <div className="mx-auto w-full max-w-4xl space-y-2">
             {/* Prompt Display */}
             <Card className="bg-muted/30">
-                <CardContent className="p-4">
+                <CardContent className="p-2">
                     <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">
                             <p className="mb-1 text-sm text-muted-foreground">Prompt</p>
-                            <p className="text-foreground">{prompt}</p>
+                            <div className="text-foreground">
+                                <LatexRenderer text={prompt} className="whitespace-pre-wrap" />
+                            </div>
                         </div>
                         <Badge variant="secondary" className="shrink-0">
                             {contentLabel}
@@ -95,8 +98,8 @@ export function VideoResult({
 
             {/* Share Actions */}
             <Card>
-                <CardContent className="p-4">
-                    <div className="space-y-4">
+                <CardContent className="p-2">
+                    <div className="space-y-2">
                         {/* Shareable URL */}
                         <div className="space-y-2">
                             <label className="flex items-center gap-2 text-sm font-medium">

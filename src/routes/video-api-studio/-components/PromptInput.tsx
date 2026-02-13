@@ -24,6 +24,8 @@ import {
     Volume2,
     Layers,
     ArrowRight,
+    Eye,
+    EyeOff,
 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import {
@@ -33,18 +35,22 @@ import {
     TTS_PROVIDERS,
     TARGET_AUDIENCES,
     TARGET_DURATIONS,
-    DEFAULT_OPTIONS,
     CONTENT_TYPES,
     VoiceGender,
     TtsProvider,
     ContentType,
 } from '../-services/video-generation';
 import { useAIModelsList } from '@/hooks/useAiModels';
+import { LatexRenderer } from './LatexRenderer';
 
 interface PromptInputProps {
     onGenerate: (request: GenerateVideoRequest) => void;
     isGenerating: boolean;
     disabled?: boolean;
+    prompt: string;
+    onPromptChange: (value: string) => void;
+    options: Omit<GenerateVideoRequest, 'prompt'>;
+    onOptionsChange: (options: Omit<GenerateVideoRequest, 'prompt'>) => void;
 }
 
 interface OptionBubbleProps {
@@ -78,9 +84,16 @@ function OptionBubble({ icon, label, value, children }: OptionBubbleProps) {
     );
 }
 
-export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputProps) {
-    const [prompt, setPrompt] = useState('');
-    const [options, setOptions] = useState(DEFAULT_OPTIONS);
+export function PromptInput({
+    onGenerate,
+    isGenerating,
+    disabled,
+    prompt,
+    onPromptChange,
+    options,
+    onOptionsChange,
+}: PromptInputProps) {
+    const [showPreview, setShowPreview] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const { data: modelsList } = useAIModelsList();
 
@@ -89,7 +102,7 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
             textareaRef.current.style.height = 'auto';
             textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
         }
-    }, [prompt]);
+    }, [prompt, showPreview]);
 
     useEffect(() => {
         if (modelsList?.models && modelsList.models.length > 0) {
@@ -98,11 +111,11 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
                 const defaultModel =
                     modelsList.models.find((m) => m.is_default) || modelsList.models[0];
                 if (defaultModel) {
-                    setOptions((prev) => ({ ...prev, model: defaultModel.model_id }));
+                    onOptionsChange({ ...options, model: defaultModel.model_id });
                 }
             }
         }
-    }, [modelsList, options.model]);
+    }, [modelsList, options.model, options, onOptionsChange]);
 
     const handleSubmit = () => {
         if (!prompt.trim() || isGenerating || disabled) return;
@@ -117,7 +130,7 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
     };
 
     const updateOption = <K extends keyof typeof options>(key: K, value: (typeof options)[K]) => {
-        setOptions((prev) => ({ ...prev, [key]: value }));
+        onOptionsChange({ ...options, [key]: value });
     };
 
     const models = modelsList?.models || [];
@@ -132,8 +145,8 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
     );
 
     return (
-        <div className="border-t bg-background/95 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:p-3">
-            <div className="mx-auto max-w-4xl space-y-2">
+        <div className="border-t bg-background/95 p-1.5 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:p-2">
+            <div className="mx-auto max-w-4xl space-y-1.5">
                 {/* Option Bubbles */}
                 <div className="flex flex-wrap items-center gap-1.5">
                     {/* Content Type Selector - First */}
@@ -447,28 +460,60 @@ export function PromptInput({ onGenerate, isGenerating, disabled }: PromptInputP
                             </div>
                         </PopoverContent>
                     </Popover>
+
+                    {/* Preview Toggle */}
+                    <Button
+                        variant={showPreview ? 'secondary' : 'outline'}
+                        size="sm"
+                        onClick={() => setShowPreview(!showPreview)}
+                        className="h-7 gap-1.5 bg-background text-xs font-normal hover:bg-muted"
+                        title="Toggle Markdown/LaTeX Preview"
+                    >
+                        {showPreview ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                        <span className="hidden sm:inline">Preview</span>
+                    </Button>
                 </div>
 
                 {/* Prompt Input */}
-                <div className="relative flex items-end gap-2 rounded-lg border bg-muted/30 p-2 shadow-sm transition-all focus-within:border-ring/50 focus-within:ring-1 focus-within:ring-ring">
-                    <Textarea
-                        ref={textareaRef}
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Describe the video you want to create..."
-                        className="max-h-[160px] min-h-[36px] resize-none border-0 bg-transparent p-0 text-sm placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        disabled={isGenerating || disabled}
-                        rows={1}
-                    />
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={!prompt.trim() || isGenerating || disabled}
-                        size="icon"
-                        className="size-8 shrink-0 rounded-md shadow-sm"
-                    >
-                        <Send className="size-3.5" />
-                    </Button>
+                <div className="relative flex items-end gap-2 rounded-lg border bg-muted/30 p-1.5 shadow-sm transition-all focus-within:border-ring/50 focus-within:ring-1 focus-within:ring-ring">
+                    {showPreview ? (
+                        <div className="min-h-[36px] min-w-0 flex-1 p-2">
+                            <div className="max-h-[200px] overflow-y-auto">
+                                {prompt ? (
+                                    <LatexRenderer
+                                        text={prompt}
+                                        className="whitespace-pre-wrap text-sm leading-relaxed"
+                                    />
+                                ) : (
+                                    <span className="italic text-muted-foreground">
+                                        Nothing to preview
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <Textarea
+                            ref={textareaRef}
+                            value={prompt}
+                            onChange={(e) => onPromptChange(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Describe the video you want to create..."
+                            className="max-h-[160px] min-h-[36px] min-w-0 flex-1 resize-none border-0 bg-transparent p-0 text-sm placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            disabled={isGenerating || disabled}
+                            rows={1}
+                        />
+                    )}
+
+                    {!showPreview && (
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={!prompt.trim() || isGenerating || disabled}
+                            size="icon"
+                            className="size-10 shrink-0 rounded-md shadow-sm sm:size-12"
+                        >
+                            <Send className="size-10 sm:size-10" />
+                        </Button>
+                    )}
                 </div>
 
                 <div className="flex w-full justify-end px-1 pb-1">

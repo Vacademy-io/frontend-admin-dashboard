@@ -12,7 +12,7 @@ import {
     ChevronRight,
     History as HistoryIcon,
 } from 'lucide-react';
-import { HistoryItem, deleteFromHistory } from '../-services/video-generation';
+import { HistoryItem } from '../-services/video-generation';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -70,11 +70,6 @@ export function HistorySidebar({
         return date.toLocaleDateString();
     };
 
-    const truncatePrompt = (prompt: string, maxLength: number = 50) => {
-        if (prompt.length <= maxLength) return prompt;
-        return prompt.substring(0, maxLength) + '...';
-    };
-
     if (isCollapsed) {
         return (
             <div className="flex w-12 flex-col items-center gap-2 border-r bg-card py-4">
@@ -100,7 +95,7 @@ export function HistorySidebar({
     }
 
     return (
-        <div className="flex h-full w-72 flex-col border-r bg-card/50 backdrop-blur-sm">
+        <div className="flex h-full w-96 flex-col border-r bg-card/50 backdrop-blur-sm">
             <div className="flex items-center justify-between border-b bg-card/50 p-4">
                 <div className="flex items-center gap-2">
                     <HistoryIcon className="size-4 text-muted-foreground" />
@@ -156,13 +151,13 @@ export function HistorySidebar({
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <p
-                                            className={`truncate text-sm font-medium ${
+                                            className={`line-clamp-2 pr-7 text-sm font-medium leading-tight ${
                                                 selectedId === item.video_id
                                                     ? 'text-violet-900 dark:text-violet-100'
                                                     : 'text-foreground'
                                             }`}
                                         >
-                                            {truncatePrompt(item.prompt, 35)}
+                                            {item.prompt}
                                         </p>
                                         <div className="mt-1.5 flex items-center gap-2">
                                             <span className="flex items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
@@ -194,15 +189,16 @@ export function HistorySidebar({
                                             <AlertDialogTitle>Delete video?</AlertDialogTitle>
                                             <AlertDialogDescription>
                                                 This will permanently remove &quot;
-                                                {truncatePrompt(item.prompt, 30)}&quot; from your
-                                                history.
+                                                {item.prompt.length > 30
+                                                    ? item.prompt.substring(0, 30) + '...'
+                                                    : item.prompt}
+                                                &quot; from your history.
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                                             <AlertDialogAction
                                                 onClick={() => {
-                                                    deleteFromHistory(item.video_id);
                                                     onDelete(item.video_id);
                                                 }}
                                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

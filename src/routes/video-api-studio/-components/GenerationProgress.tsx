@@ -11,10 +11,10 @@ interface GenerationProgressProps {
 }
 
 const STAGES: { id: VideoStage; label: string; icon: React.ReactNode }[] = [
-    { id: 'SCRIPT', label: 'Script', icon: <FileText className="h-4 w-4" /> },
-    { id: 'TTS', label: 'Audio', icon: <Mic className="h-4 w-4" /> },
-    { id: 'WORDS', label: 'Words', icon: <Type className="h-4 w-4" /> },
-    { id: 'HTML', label: 'Visuals', icon: <Code className="h-4 w-4" /> },
+    { id: 'SCRIPT', label: 'Script', icon: <FileText className="size-4" /> },
+    { id: 'TTS', label: 'Audio', icon: <Mic className="size-4" /> },
+    { id: 'WORDS', label: 'Words', icon: <Type className="size-4" /> },
+    { id: 'HTML', label: 'Visuals', icon: <Code className="size-4" /> },
 ];
 
 function getStageIndex(stage: VideoStage): number {
@@ -33,8 +33,8 @@ export function GenerationProgress({
 
     return (
         <Card className="mx-auto w-full max-w-2xl">
-            <CardContent className="p-6">
-                <div className="space-y-6">
+            <CardContent className="p-3">
+                <div className="space-y-3">
                     {/* Progress Bar */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
@@ -57,16 +57,16 @@ export function GenerationProgress({
                                 <div key={stage.id} className="flex flex-col items-center gap-2">
                                     <div
                                         className={`
-                                            flex h-10 w-10 items-center justify-center rounded-full transition-colors
+                                            flex size-8 items-center justify-center rounded-full transition-colors
                                             ${isCompleted ? 'bg-green-100 text-green-600' : ''}
                                             ${isCurrent ? 'bg-blue-100 text-blue-600' : ''}
                                             ${isPending ? 'bg-muted text-muted-foreground' : ''}
                                         `}
                                     >
                                         {isCompleted ? (
-                                            <CheckCircle2 className="h-5 w-5" />
+                                            <CheckCircle2 className="size-4" />
                                         ) : isCurrent ? (
-                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                            <Loader2 className="size-4 animate-spin" />
                                         ) : (
                                             stage.icon
                                         )}

@@ -116,7 +116,7 @@ function VideoApiStudio() {
                         className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
                     >
                         <Video className="h-4 w-4 mr-2" />
-                        Video Console
+                        Content AI Console
                     </Button>
                 </div>
 
