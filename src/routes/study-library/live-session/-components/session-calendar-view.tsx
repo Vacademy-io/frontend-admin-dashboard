@@ -33,6 +33,14 @@ interface Session {
     link: string;
     status?: 'live' | 'upcoming' | 'past';
     startDate?: Date;
+    default_class_link?: string | null;
+    learner_button_config?: {
+        text: string;
+        url: string;
+        background_color: string;
+        text_color: string;
+        visible: boolean;
+    } | null;
 }
 
 interface DaySchedule {
@@ -224,6 +232,48 @@ export function SessionCalendarView({ schedules }: SessionCalendarViewProps) {
                         </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 pt-2">
+                        {/* Day Level Info */}
+                        {selectedDate && (() => {
+                            const sessions = getSessionsForDate(selectedDate);
+                            const defaultLink = sessions[0]?.default_class_link;
+                            const learnerButton = sessions[0]?.learner_button_config;
+
+                            if (defaultLink || learnerButton) {
+                                return (
+                                    <div className="rounded-md border bg-muted/20 p-3 space-y-2 mb-4">
+                                        {defaultLink && (
+                                            <div className="text-sm">
+                                                <span className="font-semibold text-muted-foreground">Default Link: </span>
+                                                <a
+                                                    href={defaultLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline break-all"
+                                                >
+                                                    {defaultLink}
+                                                </a>
+                                            </div>
+                                        )}
+                                        {learnerButton && learnerButton.visible && (
+                                            <div className="text-sm">
+                                                <span className="font-semibold text-muted-foreground">Custom Button: </span>
+                                                <span
+                                                    style={{
+                                                        backgroundColor: learnerButton.background_color,
+                                                        color: learnerButton.text_color,
+                                                    }}
+                                                    className="inline-block px-2 py-0.5 rounded text-xs font-medium ml-1"
+                                                >
+                                                    {learnerButton.text}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+
                         {selectedDate && getSessionsForDate(selectedDate).map((session) => (
                             <div
                                 key={session.id}

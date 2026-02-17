@@ -52,6 +52,8 @@ import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toZonedTime, format as formatTZ } from 'date-fns-tz';
 import { TIMEZONE_OPTIONS, STREAMING_OPTIONS, WAITING_ROOM_OPTIONS } from '../-constants/options';
+import { DefaultClassLinkInput } from './DefaultClassLinkInput';
+import { LearnerButtonConfigInput } from './LearnerButtonConfigInput';
 
 export default function ScheduleStep1() {
     // Hooks and State
@@ -137,6 +139,8 @@ export default function ScheduleStep1() {
             recurringSchedule: WEEK_DAYS.map((day) => ({
                 day: day.label,
                 isSelect: false,
+                default_class_link: null, // Day-level default link
+                learner_button_config: null, // Day-level custom button
                 sessions: [
                     {
                         startTime: '00:00',
@@ -420,6 +424,9 @@ export default function ScheduleStep1() {
                 return {
                     day: day.label,
                     isSelect: matchingSchedules.length > 0,
+                    // Day-level configurations (take from first schedule since they're the same for all sessions on this day)
+                    default_class_link: matchingSchedules.length > 0 ? (matchingSchedules[0]?.default_class_link || null) : null,
+                    learner_button_config: matchingSchedules.length > 0 ? (matchingSchedules[0]?.learner_button_config || null) : null,
                     sessions:
                         matchingSchedules.length > 0
                             ? matchingSchedules.map((matchingSchedule) => {
@@ -1039,12 +1046,25 @@ export default function ScheduleStep1() {
         if (!schedule) return;
 
         const sourceSession = schedule[sourceDayIndex]?.sessions[sessionIndex];
-        if (!sourceSession) return;
+        const sourceDay = schedule[sourceDayIndex];
+        if (!sourceSession || !sourceDay) return;
 
         // Copy to selected days
         selectedDaysToCopy.forEach((targetDayIndex) => {
             const targetDay = schedule[targetDayIndex];
             if (targetDay && targetDay.isSelect) {
+                // Copy day-level configurations
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.default_class_link`,
+                    sourceDay.default_class_link || null,
+                    { shouldDirty: true }
+                );
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.learner_button_config`,
+                    sourceDay.learner_button_config || null,
+                    { shouldDirty: true }
+                );
+
                 // If target session doesn't exist, create it
                 if (!targetDay.sessions[sessionIndex]) {
                     const currentSessions =
@@ -2055,8 +2075,8 @@ export default function ScheduleStep1() {
                                                                     )}
                                                                 />
                                                             </div>
-                                                        </div>
 
+                                                        </div>
                                                         {/* Session Options */}
                                                         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-4">
                                                             <div className="flex flex-wrap items-center gap-4">
@@ -2128,7 +2148,7 @@ export default function ScheduleStep1() {
                                                             </div>
 
                                                             {/* Copy to days button */}
-                                                            <MyButton
+                                                            < MyButton
                                                                 type="button"
                                                                 buttonType="primary"
                                                                 scale="small"
@@ -2149,11 +2169,41 @@ export default function ScheduleStep1() {
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Default Class Link and Custom Button - Day Level */}
+                                    {isSelect && (
+                                        <div className="mx-4 mb-4 rounded-lg border border-gray-200 bg-white p-4 space-y-6">
+                                            <div className="space-y-4">
+                                                <Controller
+                                                    control={control}
+                                                    name={`recurringSchedule.${dayIndex}.default_class_link`}
+                                                    render={({ field }) => (
+                                                        <DefaultClassLinkInput
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                        />
+                                                    )}
+                                                />
+                                                {dayField.default_class_link !== null && (
+                                                    <Controller
+                                                        control={control}
+                                                        name={`recurringSchedule.${dayIndex}.learner_button_config`}
+                                                        render={({ field }) => (
+                                                            <LearnerButtonConfigInput
+                                                                value={field.value}
+                                                                onChange={field.onChange}
+                                                            />
+                                                        )}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
+                            </div >
                         );
                     })}
-                </div>
+                </div >
             </>
         );
 
