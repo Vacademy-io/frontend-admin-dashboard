@@ -95,6 +95,7 @@ export const STUDENT_REPORT_DETAIL_URL = `${BASE_URL}/assessment-service/admin/p
 export const GET_INSTITUTE_USERS = `${BASE_URL}/auth-service/v1/user-roles/users-of-status`;
 export const INVITE_USERS_URL = `${BASE_URL}/auth-service/v1/user-invitation/invite`;
 export const INVITE_TEACHERS_URL = `${BASE_URL}/admin-core-service/institute/v1/faculty/assign-subjects-and-batches`;
+export const GET_FACULTY_USER_ACCESS_DETAILS = `${BASE_URL}/admin-core-service/institute/v1/faculty/user-access-details`;
 export const DELETE_DISABLE_USER_URL = `${BASE_URL}/auth-service/v1/user-roles/update-role-status`;
 export const ADD_USER_ROLES_URL = `${BASE_URL}/auth-service/v1/user-roles/add-user-roles`;
 export const UPDATE_USER_INVITATION_URL = `${BASE_URL}/auth-service/v1/user-invitation/update`;
@@ -534,3 +535,17 @@ export const BOOKING_TYPES_BY_INSTITUTE = `${BOOKING_BASE}/types/by-institute`;
 
 // Autosuggest Users API
 export const AUTOSUGGEST_USERS = `${BASE_URL}/auth-service/v1/user/autosuggest-users`;
+
+// Manage Custom Teams / Faculty Access v2
+export const GRANT_USER_ACCESS = `${BASE_URL}/admin-core-service/institute/v1/faculty/user-access`;
+export const GET_ALL_FACULTY_V2 = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
+export const CREATE_SUB_ORG = `${BASE_URL}/admin-core-service/institute/v1/sub-org/create`;
+export const GET_SUB_ORGS = `${BASE_URL}/admin-core-service/institute/v1/sub-org/get-all`;
+
+// Custom Roles (Auth Service) - use auth-service/v1 to match other auth endpoints and avoid CORS
+// GET /auth-service/v1/institute/{instituteId}/roles, POST for create
+export const ROLES_BASE = `${BASE_URL}/auth-service/v1/institute`;
+
+// Role Display Settings
+export const GET_ALL_SETTINGS = `${BASE_URL}/admin-core-service/institute/v1/setting/get-all`;
+export const SAVE_GENERIC_SETTING = `${BASE_URL}/admin-core-service/institute/v1/setting/generic/save`;

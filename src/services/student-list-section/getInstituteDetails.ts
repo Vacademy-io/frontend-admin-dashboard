@@ -8,6 +8,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import {
     HOLISTIC_INSTITUTE_ID,
     INIT_INSTITUTE,
+    INIT_INSTITUTE_WITHOUT_BATCHES,
     INIT_INSTITUTE_SETUP,
     DOMAIN_ROUTING_RESOLVE,
 } from '@/constants/urls';
@@ -49,6 +50,20 @@ export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => 
     const response = await authenticatedAxiosInstance<InstituteDetailsType>({
         method: 'GET',
         url: `${INIT_INSTITUTE}/${INSTITUTE_ID}`,
+    });
+    return response.data;
+};
+
+/**
+ * Fetch institute details by institute ID (e.g. sub-org institute ID).
+ * Uses details-non-batches for a lighter response (name, logo, etc. without batch data).
+ */
+export const fetchInstituteDetailsById = async (
+    instituteId: string
+): Promise<Pick<InstituteDetailsType, 'id' | 'institute_name' | 'institute_logo_file_id'>> => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: `${INIT_INSTITUTE_WITHOUT_BATCHES}/${instituteId}`,
     });
     return response.data;
 };
@@ -306,3 +321,11 @@ export const useInstituteQuery = () => {
         staleTime: CACHE_STALE_TIME,
     };
 };
+
+/** Query options for sub-org institute details (suborgId = institute ID of the sub-org) */
+export const getSubOrgInstituteQuery = (suborgId: string | null) => ({
+    queryKey: ['SUBORG_INSTITUTE_DETAILS', suborgId] as const,
+    queryFn: () => fetchInstituteDetailsById(suborgId!),
+    enabled: !!suborgId,
+    staleTime: CACHE_STALE_TIME,
+});

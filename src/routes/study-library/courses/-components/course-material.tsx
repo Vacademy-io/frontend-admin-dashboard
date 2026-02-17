@@ -16,6 +16,14 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { getAllCoursesWithFilters } from '../-services/courses-services';
+import {
+    hasFacultyAssignedPermission,
+    fetchUserAccessDetails,
+    processAccessMappings,
+    saveFacultyAccessData,
+    getAccessiblePackageFilters,
+    hasFacultyPermission,
+} from '@/lib/auth/facultyAccessUtils';
 
 import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
 import { toast } from 'sonner';
@@ -45,6 +53,8 @@ export interface AllCourseFilters {
     min_percentage_completed: number;
     max_percentage_completed: number;
     sort_columns: Record<string, 'ASC' | 'DESC'>;
+    package_ids?: string[];
+    package_session_ids?: string[];
 }
 
 // Add types for API response and course item
@@ -226,15 +236,20 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
         });
     };
     const [authoredSearchValue, setAuthoredSearchValue] = useState('');
-    const [selectedFilters, setSelectedFilters] = useState<AllCourseFilters>({
-        status: ['ACTIVE'],
-        level_ids: [],
-        tag: [],
-        faculty_ids: [],
-        search_by_name: '',
-        min_percentage_completed: 0,
-        max_percentage_completed: 0,
-        sort_columns: { created_at: 'DESC' },
+    const [selectedFilters, setSelectedFilters] = useState<AllCourseFilters>(() => {
+        const filters = getAccessiblePackageFilters();
+        return {
+            status: ['ACTIVE'],
+            level_ids: [],
+            tag: [],
+            faculty_ids: [],
+            search_by_name: '',
+            min_percentage_completed: 0,
+            max_percentage_completed: 0,
+            sort_columns: { created_at: 'DESC' },
+            package_ids: filters?.package_ids || [],
+            package_session_ids: filters?.package_session_ids || [],
+        };
     });
 
     const [sortBy, setSortBy] = useState('oldest');
@@ -326,6 +341,8 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
             min_percentage_completed: 0,
             max_percentage_completed: 0,
             sort_columns: { created_at: 'DESC' },
+            package_ids: [],
+            package_session_ids: [],
         });
         setSearchValue('');
     };
@@ -382,6 +399,55 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
         }
     }, [instituteDetails?.id]);
 
+    // Faculty Access Control - Check permission and fetch access details
+    useEffect(() => {
+        const initializeFacultyAccess = async () => {
+            if (!instituteDetails?.id || !tokenData?.user) {
+                return;
+            }
+
+            // Check if user has faculty assigned permission
+            const hasFacultyPermission = hasFacultyAssignedPermission(instituteDetails.id);
+            if (!hasFacultyPermission) {
+                return;
+            }
+
+            try {
+                // Fetch user access details
+                const accessDetails = await fetchUserAccessDetails(
+                    tokenData.user,
+                    instituteDetails.id
+                );
+
+                // Process access mappings to extract sub-org data
+                const processed = processAccessMappings(accessDetails.accessMappings);
+
+                // Save to localStorage
+                saveFacultyAccessData({
+                    subOrgs: processed.subOrgs,
+                    selectedSubOrgId: processed.subOrgs?.[0]?.subOrgId || null,
+                    globalPackageIds: processed.globalPackageIds,
+                    globalPackageSessionIds: processed.globalPackageSessionIds,
+                    permissions: processed.permissions,
+                });
+
+                // Apply filters if we have access data
+                const filters = getAccessiblePackageFilters();
+                if (filters) {
+                    setSelectedFilters((prev) => ({
+                        ...prev,
+                        package_ids: filters.package_ids,
+                        package_session_ids: filters.package_session_ids,
+                    }));
+                }
+            } catch (error) {
+                console.error('Error initializing faculty access:', error);
+            }
+        };
+
+        initializeFacultyAccess();
+    }, [instituteDetails?.id, tokenData?.user]);
+
     const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});
 
     // Role helpers
@@ -394,7 +460,6 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
         return safeRoles.includes('TEACHER') && !isAdmin;
     }, [roles, isAdmin]);
 
-    // Create stable filter key for React Query
     const filtersKey = useMemo(() => {
         return {
             status: selectedFilters.status,
@@ -405,6 +470,8 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
             min_percentage_completed: selectedFilters.min_percentage_completed,
             max_percentage_completed: selectedFilters.max_percentage_completed,
             sort_columns: selectedFilters.sort_columns,
+            package_ids: selectedFilters.package_ids,
+            package_session_ids: selectedFilters.package_session_ids,
         };
     }, [selectedFilters]);
 
@@ -471,6 +538,13 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
             }
         };
 
+        const isFacultyUser = hasFacultyAssignedPermission(instituteDetails?.id);
+
+        // If faculty, only show All Courses tab
+        if (isFacultyUser) {
+            return [{ key: 'AllCourses', label: labelFor('AllCourses'), show: true }];
+        }
+
         if (roleDisplay?.courseList?.tabs && roleDisplay.courseList.tabs.length > 0) {
             return roleDisplay.courseList.tabs
                 .filter((t) => t.visible !== false)
@@ -504,7 +578,8 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
             },
         ];
         return tabs.filter((t) => t.show);
-    }, [roles, roleDisplay?.courseList]);
+    }, [roles, roleDisplay?.courseList, instituteDetails?.id]);
+
     // Apply default tab from role settings when appropriate
     useEffect(() => {
         const visibleKeys = new Set(availableTabs.map((t) => t.key));
@@ -523,12 +598,14 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
             setSelectedTab(next);
         }
     }, [availableTabs, selectedTab, roleDisplay?.courseList?.defaultTab]);
+
     // Use correct data for CourseListPage
     const getCurrentTabData = () => {
         if (selectedTab === 'AllCourses') return allCoursesData;
         if (selectedTab === 'AuthoredCourses') return authoredCoursesData;
         return null;
     };
+
     // Fetch public URLs for course images and instructor profile pictures when current tab data changes
     useEffect(() => {
         const fetchImages = async () => {
@@ -593,6 +670,9 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
         return <DashboardLoader />;
     }
 
+    const isFacultyUser = hasFacultyAssignedPermission(instituteDetails?.id);
+    const canCreateCourse = !isFacultyUser || hasFacultyPermission('CREATE_COURSE');
+
     if (availableTabs.length === 0) {
         return (
             <div className="flex h-full flex-col items-center justify-center py-20">
@@ -603,8 +683,8 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
                     Try adding a new {getTerminology(ContentTerms.Course, SystemTerms.Course)}.
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                    <AddCourseButton />
-                    {roleDisplay?.courseCreation?.showCreateCourseWithAI && (
+                    {canCreateCourse && <AddCourseButton />}
+                    {canCreateCourse && roleDisplay?.courseCreation?.showCreateCourseWithAI && (
                         <MyButton
                             type="button"
                             scale="large"
@@ -634,8 +714,8 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
                     </div>
                 </div>
                 <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
-                    <AddCourseButton />
-                    {roleDisplay?.courseCreation?.showCreateCourseWithAI && (
+                    {canCreateCourse && <AddCourseButton />}
+                    {canCreateCourse && roleDisplay?.courseCreation?.showCreateCourseWithAI && (
                         <MyButton
                             type="button"
                             scale="large"
@@ -656,10 +736,10 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
                 onValueChange={(value) =>
                     handleTabChange(
                         value as
-                            | 'AuthoredCourses'
-                            | 'AllCourses'
-                            | 'CourseInReview'
-                            | 'CourseApproval'
+                        | 'AuthoredCourses'
+                        | 'AllCourses'
+                        | 'CourseInReview'
+                        | 'CourseApproval'
                     )
                 }
             >
@@ -754,6 +834,7 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
                                                 handlePageChange={handlePageChange}
                                                 deletingCourseId={deletingCourseId}
                                                 showDeleteButton={!isTeacherNonAdmin}
+                                                hideFilters={isFacultyUser}
                                             />
                                             <div className="mt-4 flex h-20 flex-col items-center justify-center text-gray-500">
                                                 No{' '}
@@ -794,6 +875,7 @@ export const CourseMaterial = ({ initialSelectedTab, initialAction }: CourseMate
                                     handlePageChange={handlePageChange}
                                     deletingCourseId={deletingCourseId}
                                     showDeleteButton={!isTeacherNonAdmin}
+                                    hideFilters={isFacultyUser}
                                 />
                             );
                         })()}

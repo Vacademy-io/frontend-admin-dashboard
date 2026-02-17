@@ -23,6 +23,7 @@ import { EmailLogin } from './EmailOtpForm';
 import { useState } from 'react';
 import { amplitudeEvents, trackEvent } from '@/lib/amplitude';
 import { InstituteSelection } from './InstituteSelection';
+import { SubOrgSelection } from './SubOrgSelection';
 import { getInstituteSelectionResult, setSelectedInstitute } from '@/lib/auth/instituteUtils';
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { handleLoginFlow } from '@/lib/auth/loginFlowHandler';
@@ -51,6 +52,7 @@ export function LoginForm() {
     });
     const [allowSignup, setAllowSignup] = useState(false);
     const [showInstituteSelection, setShowInstituteSelection] = useState(false);
+    const [showSubOrgSelection, setShowSubOrgSelection] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(loginSchema),
@@ -98,6 +100,7 @@ export function LoginForm() {
         const urlParams = new URLSearchParams(window.location.search);
         const error = urlParams.get('error');
         const showInstituteSelection = urlParams.get('showInstituteSelection');
+        const showSubOrgSelection = urlParams.get('showSubOrgSelection');
 
         if (error === 'student_access_denied') {
             toast.error('Access Denied', {
@@ -122,6 +125,12 @@ export function LoginForm() {
         // Check if we should show institute selection from URL parameter
         if (showInstituteSelection === 'true') {
             setShowInstituteSelection(true);
+            return;
+        }
+
+        // Check if we should show sub-org selection from URL parameter
+        if (showSubOrgSelection === 'true') {
+            setShowSubOrgSelection(true);
             return;
         }
 
@@ -169,6 +178,11 @@ export function LoginForm() {
                             return;
                         }
 
+                        if (result.shouldShowSubOrgSelection) {
+                            setShowSubOrgSelection(true);
+                            return;
+                        }
+
                         const redirectUrl = result.redirectUrl || '/dashboard';
                         navigate({ to: redirectUrl });
                     } catch (error) {
@@ -210,6 +224,11 @@ export function LoginForm() {
 
                     if (result.shouldShowInstituteSelection) {
                         setShowInstituteSelection(true);
+                        return;
+                    }
+
+                    if (result.shouldShowSubOrgSelection) {
+                        setShowSubOrgSelection(true);
                         return;
                     }
 
@@ -262,6 +281,11 @@ export function LoginForm() {
 
             if (result.shouldShowInstituteSelection) {
                 setShowInstituteSelection(true);
+                return;
+            }
+
+            if (result.shouldShowSubOrgSelection) {
+                setShowSubOrgSelection(true);
                 return;
             }
 
@@ -341,62 +365,54 @@ export function LoginForm() {
         setSelectedInstitute(instituteId);
         setShowInstituteSelection(false);
 
-        // Navigate to the appropriate route based on display settings
+        // Check if we need to show sub-org selection after institute selection
+        const { handleInstituteSelection } = await import('@/lib/auth/loginFlowHandler');
+        const result = await handleInstituteSelection(instituteId);
+
+        if (result.shouldShowSubOrgSelection) {
+            setShowSubOrgSelection(true);
+            return;
+        }
+
+        // Navigate to the appropriate route returned by the handleInstituteSelection utility
+        if (result.redirectUrl) {
+            console.log('🔍 LOGIN FORM DEBUG: Final redirect URL from utility:', result.redirectUrl);
+            navigate({ to: result.redirectUrl });
+            return;
+        }
+
+        // Fallback to display settings if for some reason redirectUrl is missing
         try {
-            // Get user roles to determine which display settings to use
             const accessToken = getTokenFromCookie(TokenKey.accessToken);
             const roles = getUserRoles(accessToken);
             const isAdminRole = roles.includes('ADMIN');
             const roleKey = isAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
 
-            // Fetch display settings to get the correct redirect route with retry logic
-            let ds: { postLoginRedirectRoute?: string } | null = null;
-            const maxRetries = 3;
-            let retryCount = 0;
+            let ds: { postLoginRedirectRoute?: string } | null = getDisplaySettingsFromCache(roleKey);
 
-            while (retryCount < maxRetries && !ds) {
-                try {
-                    console.log(
-                        `🔍 LOGIN FORM DEBUG: Fetching display settings for role: ${roleKey} (attempt ${retryCount + 1}/${maxRetries})`
-                    );
-                    ds = await getDisplaySettings(roleKey, true);
-                    console.log('🔍 LOGIN FORM DEBUG: Display settings fetched successfully:', {
-                        roleKey,
-                        postLoginRedirectRoute: ds?.postLoginRedirectRoute,
-                        attempt: retryCount + 1,
-                    });
-                    break; // Success, exit retry loop
-                } catch (fetchError) {
-                    retryCount++;
-                    console.warn(
-                        `🔍 LOGIN FORM DEBUG: Failed to fetch display settings (attempt ${retryCount}/${maxRetries}):`,
-                        fetchError
-                    );
-
-                    if (retryCount >= maxRetries) {
-                        // Final attempt failed, fallback to dashboard
-                        console.log(
-                            '🔍 LOGIN FORM DEBUG: All retries failed, using dashboard fallback'
-                        );
-                        ds = { postLoginRedirectRoute: '/dashboard' };
-                        break;
-                    } else {
-                        // Wait before retry (exponential backoff)
-                        const delay = Math.pow(2, retryCount - 1) * 500; // 500ms, 1s, 2s
-                        console.log(`🔍 LOGIN FORM DEBUG: Retrying in ${delay}ms...`);
-                        await new Promise((resolve) => setTimeout(resolve, delay));
-                    }
-                }
-            }
-
+            // If not in cache, we could fetch it, but handleLoginFlow/handleInstituteSelection should have handled it.
+            // For safety, fallback to /dashboard if absolutely nothing is found.
             const redirectUrl = ds?.postLoginRedirectRoute || '/dashboard';
-            console.log('🔍 LOGIN FORM DEBUG: Final redirect URL:', redirectUrl);
+            console.log('🔍 LOGIN FORM DEBUG: Fallback redirect URL:', redirectUrl);
             navigate({ to: redirectUrl });
         } catch (error) {
-            console.warn('Unexpected error in institute selection handler:', error);
+            console.warn('Unexpected error in institute selection handler fallback:', error);
             navigate({ to: '/dashboard' });
         }
     };
+
+    // Show sub-org selection if needed
+    if (showSubOrgSelection) {
+        return (
+            <SubOrgSelection
+                onSubOrgSelect={(subOrgId) => {
+                    // After sub-org selection, we can finally redirect to dashboard
+                    // The sub-org ID is already saved in localStorage by the component
+                    handleInstituteSelect(getCachedInstituteBranding()?.instituteId || '');
+                }}
+            />
+        );
+    }
 
     // Show institute selection if needed
     if (showInstituteSelection) {

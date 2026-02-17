@@ -93,8 +93,10 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { convertCapitalToTitleCase } from '@/lib/utils';
-import { getTokenDecodedData, getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { getRolesForCurrentInstitute } from '@/lib/auth/instituteUtils';
 import { TokenKey, Authority } from '@/constants/auth/tokens';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
 import { useCourseSettings } from '@/hooks/useCourseSettings';
 import { ChapterDripConditionDialog } from './ChapterDripConditionDialog';
 import { AddSubjectForm } from '../subjects/-components/add-subject.tsx/add-subject-form';
@@ -247,7 +249,7 @@ export const CourseStructureDetails = ({
 }) => {
     const router = useRouter();
     const searchParams = router.state.location.search;
-    const { getSessionFromPackage, getPackageSessionId } = useInstituteDetailsStore();
+    const { getSessionFromPackage, getPackageSessionId, instituteDetails } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
     const { setActiveItem } = useContentStore();
     const { isInitLoading } = useStudyLibraryContext();
@@ -291,8 +293,10 @@ export const CourseStructureDetails = ({
     const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
     useEffect(() => {
         try {
-            const accessTokenInner = getTokenFromCookie(TokenKey.accessToken);
-            const rolesInner = getUserRoles(accessTokenInner);
+            // Use current institute's roles only (not all institutes) so that e.g. a user
+            // with TEACHER+STUDENT in this institute gets Teacher display settings and
+            // sees the tabs they enabled in Teacher settings.
+            const rolesInner = getRolesForCurrentInstitute();
             const isAdminRoleInner = rolesInner.includes('ADMIN');
             const roleKeyInner = isAdminRoleInner
                 ? ADMIN_DISPLAY_SETTINGS_KEY
@@ -360,9 +364,8 @@ export const CourseStructureDetails = ({
             return TabType.OUTLINE; // Safe default - always show Outline first when settings fail
         }
 
-        // Use role display settings courseDetails.defaultTab if available
-        const accessToken = getTokenFromCookie(TokenKey.accessToken);
-        const roles = getUserRoles(accessToken);
+        // Use current institute's roles so we load the same display settings as in the effect above
+        const roles = getRolesForCurrentInstitute();
         const isAdminRole = roles.includes('ADMIN');
         const roleKey = isAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
         const fromCache = getDisplaySettingsFromCache(roleKey);
@@ -4267,8 +4270,8 @@ export const CourseStructureDetails = ({
             reorderedTabs = reorderedTabs
                 .filter((tab) => vis.get(tab.value as CourseDetailsTabId)?.visible !== false)
                 .sort((a, b) => {
-                    const ao = vis.get(a.value as CourseDetailsTabId)?.order || 0;
-                    const bo = vis.get(b.value as CourseDetailsTabId)?.order || 0;
+                    const ao = vis.get(a.value as CourseDetailsTabId)?.order ?? 999;
+                    const bo = vis.get(b.value as CourseDetailsTabId)?.order ?? 999;
                     return ao - bo;
                 });
         } else {
@@ -4308,8 +4311,8 @@ export const CourseStructureDetails = ({
         <DashboardLoader />
     ) : (
         <div className="flex size-full flex-col gap-3 rounded-lg bg-white py-4 text-neutral-700">
-            {/* Restriction Message */}
-            {!canEditStructure && (
+            {/* Restriction Message (hidden for faculty users with HAS_FACULTY_ASSIGNED) */}
+            {!canEditStructure && !hasFacultyAssignedPermission(instituteDetails?.id) && (
                 <div className="mx-4 rounded-md border border-orange-200 bg-orange-50 p-3">
                     <div className="flex items-center gap-2">
                         <div className="font-medium text-orange-600">

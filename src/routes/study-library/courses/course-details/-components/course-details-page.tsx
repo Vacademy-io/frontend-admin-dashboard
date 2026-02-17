@@ -58,6 +58,8 @@ import InviteDetailsComponent from './invite-details-component';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey, Authority } from '@/constants/auth/tokens';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import {
     ADMIN_DISPLAY_SETTINGS_KEY,
     TEACHER_DISPLAY_SETTINGS_KEY,
@@ -785,8 +787,12 @@ export const CourseDetailsPage = () => {
         levelOptions.length <= 1
     );
 
-    // Show restriction message for non-editable courses
-    const shouldShowRestriction = !isAdmin && (isPublishedCourse || isInReviewCourse);
+    const { instituteDetails } = useInstituteDetailsStore();
+    // Show restriction message for non-editable courses (hide for faculty users with HAS_FACULTY_ASSIGNED)
+    const shouldShowRestriction =
+        !isAdmin &&
+        (isPublishedCourse || isInReviewCourse) &&
+        !hasFacultyAssignedPermission(instituteDetails?.id);
 
     // Show dashboard loader while loading
     if (isLoading) {
