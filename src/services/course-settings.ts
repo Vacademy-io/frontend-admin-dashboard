@@ -177,11 +177,21 @@ const fetchCourseSettingsFromAPI = async (): Promise<CourseSettingsData> => {
         setCachedSettings(settings);
         return settings;
     } catch (error: unknown) {
-        console.error('Error fetching course settings:', error);
+        const err = error as { response?: { status?: number; data?: { ex?: string; responseCode?: string } } };
 
-        // Check if it's a 510 error (Setting not found) or other error
-        const err = error as { response?: { status?: number; data?: { ex?: string } } };
-        if (err.response?.status === 510 || err.response?.data?.ex?.includes('Setting not found')) {
+        // Enhanced logging for development
+        if (process.env.NODE_ENV === 'development') {
+            console.error('[Course Settings] Error details:', {
+                errorType: err.response?.status,
+                errorCode: err.response?.data?.responseCode,
+                errorMessage: err.response?.data?.ex,
+                fullError: error,
+            });
+        }
+
+        // Check if it's a 510 error (Setting not found or deserialization error)
+        if (err.response?.status === 510) {
+            console.warn('[Course Settings] 510 error received - using default settings. Error:', err.response?.data?.ex);
             const settings = DEFAULT_COURSE_SETTINGS;
             setCachedSettings(settings);
             return settings;
@@ -189,7 +199,7 @@ const fetchCourseSettingsFromAPI = async (): Promise<CourseSettingsData> => {
 
         // For other errors, still return default settings but log the error
         const message = (error as Error)?.message || 'unknown error';
-        console.warn('Error loading course settings, using defaults:', message);
+        console.warn('[Course Settings] Error loading course settings, using defaults:', message);
         return DEFAULT_COURSE_SETTINGS; // Don't cache error responses
     }
 };

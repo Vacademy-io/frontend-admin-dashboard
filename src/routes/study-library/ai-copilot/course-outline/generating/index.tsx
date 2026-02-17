@@ -135,6 +135,7 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // YouTube and utility functions are now imported from shared/utils
 
@@ -151,6 +152,10 @@ export function RouteComponent() {
     const navigate = useNavigate();
     const { setOpen } = useSidebar();
     const [slides, setSlides] = useState<SlideGeneration[]>([]);
+
+    // Get institute levels
+    const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
+    const instituteLevels = instituteDetails?.levels || [];
 
     // Collapse sidebar on mount
     useEffect(() => {
@@ -689,6 +694,8 @@ export function RouteComponent() {
                                             jsonData.courseMetadata?.mediaImageUrl ||
                                             jsonData.courseMetadata?.bannerImageUrl ||
                                             jsonData.courseMetadata?.previewImageUrl,
+                                        // Include level from courseConfig (skillLevel is the levelId)
+                                        level: courseConfig.learnerProfile?.skillLevel || '',
                                     };
                                     setCourseMetadata(metadata);
                                     console.log('Course Metadata Set:', metadata);
@@ -1053,7 +1060,7 @@ export function RouteComponent() {
                                 prev
                                     .filter((s) => s.sessionId === regeneratingSessionId)
                                     .indexOf(slide) +
-                                    1
+                                1
                             ) {
                                 return { ...slide, status: 'completed', progress: 100 };
                             } else {
@@ -1701,14 +1708,14 @@ export function RouteComponent() {
                                 <SortableContext
                                     items={
                                         Array.isArray(sessionsWithProgress) &&
-                                        sessionsWithProgress.length > 0
+                                            sessionsWithProgress.length > 0
                                             ? sessionsWithProgress.map((s) => s.sessionId)
                                             : []
                                     }
                                     strategy={verticalListSortingStrategy}
                                 >
                                     {!Array.isArray(sessionsWithProgress) ||
-                                    sessionsWithProgress.length === 0 ? (
+                                        sessionsWithProgress.length === 0 ? (
                                         <div className="py-8 text-center text-neutral-500">
                                             <span>
                                                 No sessions available. Please try refreshing the
@@ -1929,7 +1936,7 @@ export function RouteComponent() {
                                                         handleEditMetadataField(
                                                             'description',
                                                             courseMetadata.description ||
-                                                                shortDescription
+                                                            shortDescription
                                                         );
                                                     }}
                                                     className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
@@ -2001,7 +2008,7 @@ export function RouteComponent() {
                                         </label>
                                     </div>
                                     <Select
-                                        value={courseMetadata.level || 'Beginner'}
+                                        value={courseMetadata.level || ''}
                                         onValueChange={(value) => {
                                             setCourseMetadata((prev: any) => ({
                                                 ...prev,
@@ -2013,12 +2020,22 @@ export function RouteComponent() {
                                             <SelectValue placeholder="Select level" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="Beginner">Beginner</SelectItem>
-                                            <SelectItem value="Basic">Basic</SelectItem>
-                                            <SelectItem value="Intermediate">
-                                                Intermediate
-                                            </SelectItem>
-                                            <SelectItem value="Advanced">Advanced</SelectItem>
+                                            {instituteLevels.length > 0 ? (
+                                                instituteLevels.map((level: any) => (
+                                                    <SelectItem key={level.id} value={level.id}>
+                                                        {level.level_name}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <SelectItem value="Beginner">Beginner</SelectItem>
+                                                    <SelectItem value="Basic">Basic</SelectItem>
+                                                    <SelectItem value="Intermediate">
+                                                        Intermediate
+                                                    </SelectItem>
+                                                    <SelectItem value="Advanced">Advanced</SelectItem>
+                                                </>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -2294,12 +2311,12 @@ export function RouteComponent() {
                                 </div>
                                 <div className="space-y-2">
                                     {courseMetadata?.courseMedia ||
-                                    courseMetadata?.mediaImageUrl ||
-                                    courseMetadata?.bannerImageUrl ||
-                                    courseMetadata?.previewImageUrl ? (
+                                        courseMetadata?.mediaImageUrl ||
+                                        courseMetadata?.bannerImageUrl ||
+                                        courseMetadata?.previewImageUrl ? (
                                         <div className="relative">
                                             {courseMetadata?.courseMedia &&
-                                            courseMetadata.courseMediaType === 'youtube' ? (
+                                                courseMetadata.courseMediaType === 'youtube' ? (
                                                 <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
                                                     <iframe
                                                         src={courseMetadata.courseMedia}
@@ -2309,7 +2326,7 @@ export function RouteComponent() {
                                                     />
                                                 </div>
                                             ) : courseMetadata?.courseMedia &&
-                                              courseMetadata.courseMediaType === 'video' ? (
+                                                courseMetadata.courseMediaType === 'video' ? (
                                                 <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
                                                     <video
                                                         src={courseMetadata.courseMedia}
@@ -2729,190 +2746,189 @@ export function RouteComponent() {
                                         {/* Document Slide */}
                                         {(viewingSlide.slideType === 'objectives' ||
                                             viewingSlide.slideType === 'doc') && (
-                                            <div>
-                                                <YooptaEditorWrapper
-                                                    value={documentContent}
-                                                    onChange={setDocumentContent}
-                                                    placeholder="Enter document content..."
-                                                    minHeight={500}
-                                                />
-                                            </div>
-                                        )}
+                                                <div>
+                                                    <YooptaEditorWrapper
+                                                        value={documentContent}
+                                                        onChange={setDocumentContent}
+                                                        placeholder="Enter document content..."
+                                                        minHeight={500}
+                                                    />
+                                                </div>
+                                            )}
 
                                         {/* Video + Code Slide */}
                                         {(viewingSlide.slideType === 'topic' ||
                                             viewingSlide.slideType === 'video-code-editor' ||
                                             viewingSlide.slideType === 'video-jupyter' ||
                                             viewingSlide.slideType === 'video-scratch') && (
-                                            <div
-                                                ref={resizeContainerRef}
-                                                className="relative flex h-[600px] gap-0"
-                                            >
-                                                {/* Code Editor Section */}
                                                 <div
-                                                    className="flex shrink-0 flex-col overflow-hidden rounded-l-lg border"
-                                                    style={{ width: `${codeEditorWidth}%` }}
+                                                    ref={resizeContainerRef}
+                                                    className="relative flex h-[600px] gap-0"
                                                 >
-                                                    {/* Code Editor Header */}
-                                                    <div className="flex items-center justify-between gap-4 border-b bg-white px-4 py-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-                                                                <Code className="size-4" />
-                                                                <span>Code Editor</span>
-                                                            </div>
-                                                            <span
-                                                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                                                    isEditMode
+                                                    {/* Code Editor Section */}
+                                                    <div
+                                                        className="flex shrink-0 flex-col overflow-hidden rounded-l-lg border"
+                                                        style={{ width: `${codeEditorWidth}%` }}
+                                                    >
+                                                        {/* Code Editor Header */}
+                                                        <div className="flex items-center justify-between gap-4 border-b bg-white px-4 py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                                                                    <Code className="size-4" />
+                                                                    <span>Code Editor</span>
+                                                                </div>
+                                                                <span
+                                                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${isEditMode
                                                                         ? 'bg-emerald-100 text-emerald-700'
                                                                         : 'bg-neutral-200 text-neutral-600'
-                                                                }`}
-                                                            >
-                                                                {isEditMode
-                                                                    ? 'Edit Mode'
-                                                                    : 'View Mode'}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <button
-                                                                onClick={handleRunCode}
-                                                                className="flex items-center gap-2 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
-                                                            >
-                                                                <Play className="size-4" />
-                                                                Run
-                                                            </button>
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <button className="flex items-center gap-2 rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-50">
-                                                                        <Settings className="size-4" />
-                                                                        Settings
-                                                                        <ChevronDown className="size-3" />
-                                                                    </button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent
-                                                                    className="w-56 bg-white"
-                                                                    align="end"
+                                                                        }`}
                                                                 >
-                                                                    {/* View/Edit Mode */}
-                                                                    <DropdownMenuCheckboxItem
-                                                                        checked={isEditMode}
-                                                                        onCheckedChange={(
-                                                                            checked
-                                                                        ) =>
-                                                                            setIsEditMode(!!checked)
-                                                                        }
-                                                                        className="flex items-center justify-between"
+                                                                    {isEditMode
+                                                                        ? 'Edit Mode'
+                                                                        : 'View Mode'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    onClick={handleRunCode}
+                                                                    className="flex items-center gap-2 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                                                                >
+                                                                    <Play className="size-4" />
+                                                                    Run
+                                                                </button>
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <button className="flex items-center gap-2 rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-50">
+                                                                            <Settings className="size-4" />
+                                                                            Settings
+                                                                            <ChevronDown className="size-3" />
+                                                                        </button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent
+                                                                        className="w-56 bg-white"
+                                                                        align="end"
                                                                     >
-                                                                        <div className="flex items-center gap-2">
-                                                                            <Eye className="size-4" />
-                                                                            <span>
-                                                                                View/Edit Mode
-                                                                            </span>
-                                                                        </div>
-                                                                        {isEditMode && (
-                                                                            <div className="flex items-center gap-1">
-                                                                                <div className="flex h-5 w-9 items-center rounded-full bg-emerald-500 px-1">
-                                                                                    <div className="size-3.5 rounded-full bg-white shadow-sm" />
-                                                                                </div>
-                                                                                <Pencil className="size-3 text-neutral-600" />
+                                                                        {/* View/Edit Mode */}
+                                                                        <DropdownMenuCheckboxItem
+                                                                            checked={isEditMode}
+                                                                            onCheckedChange={(
+                                                                                checked
+                                                                            ) =>
+                                                                                setIsEditMode(!!checked)
+                                                                            }
+                                                                            className="flex items-center justify-between"
+                                                                        >
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Eye className="size-4" />
+                                                                                <span>
+                                                                                    View/Edit Mode
+                                                                                </span>
                                                                             </div>
-                                                                        )}
-                                                                    </DropdownMenuCheckboxItem>
+                                                                            {isEditMode && (
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <div className="flex h-5 w-9 items-center rounded-full bg-emerald-500 px-1">
+                                                                                        <div className="size-3.5 rounded-full bg-white shadow-sm" />
+                                                                                    </div>
+                                                                                    <Pencil className="size-3 text-neutral-600" />
+                                                                                </div>
+                                                                            )}
+                                                                        </DropdownMenuCheckboxItem>
 
-                                                                    <DropdownMenuSeparator />
+                                                                        <DropdownMenuSeparator />
 
-                                                                    {/* Switch Theme */}
-                                                                    <DropdownMenuItem
-                                                                        onClick={() =>
-                                                                            setIsDarkTheme(
-                                                                                (prev) => !prev
-                                                                            )
-                                                                        }
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <Sun className="size-4" />
-                                                                        <span>
-                                                                            {isDarkTheme
-                                                                                ? 'Switch to Light Theme'
-                                                                                : 'Switch to Dark Theme'}
-                                                                        </span>
-                                                                    </DropdownMenuItem>
+                                                                        {/* Switch Theme */}
+                                                                        <DropdownMenuItem
+                                                                            onClick={() =>
+                                                                                setIsDarkTheme(
+                                                                                    (prev) => !prev
+                                                                                )
+                                                                            }
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <Sun className="size-4" />
+                                                                            <span>
+                                                                                {isDarkTheme
+                                                                                    ? 'Switch to Light Theme'
+                                                                                    : 'Switch to Dark Theme'}
+                                                                            </span>
+                                                                        </DropdownMenuItem>
 
-                                                                    <DropdownMenuSeparator />
+                                                                        <DropdownMenuSeparator />
 
-                                                                    {/* Copy Code */}
-                                                                    <DropdownMenuItem
-                                                                        onClick={handleCopyCode}
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <Copy className="size-4" />
-                                                                        <span>Copy Code</span>
-                                                                    </DropdownMenuItem>
+                                                                        {/* Copy Code */}
+                                                                        <DropdownMenuItem
+                                                                            onClick={handleCopyCode}
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <Copy className="size-4" />
+                                                                            <span>Copy Code</span>
+                                                                        </DropdownMenuItem>
 
-                                                                    {/* Download Code */}
-                                                                    <DropdownMenuItem
-                                                                        onClick={handleDownloadCode}
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <Download className="size-4" />
-                                                                        <span>Download Code</span>
-                                                                    </DropdownMenuItem>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
+                                                                        {/* Download Code */}
+                                                                        <DropdownMenuItem
+                                                                            onClick={handleDownloadCode}
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <Download className="size-4" />
+                                                                            <span>Download Code</span>
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </div>
                                                         </div>
+                                                        <Editor
+                                                            height="calc(100% - 60px)"
+                                                            language="javascript"
+                                                            value={codeContent}
+                                                            onChange={(value) =>
+                                                                setCodeContent(value || '')
+                                                            }
+                                                            theme={isDarkTheme ? 'vs-dark' : 'light'}
+                                                            options={{
+                                                                minimap: { enabled: false },
+                                                                fontSize: 14,
+                                                                lineNumbers: 'on',
+                                                                scrollBeyondLastLine: false,
+                                                                automaticLayout: true,
+                                                                readOnly: !isEditMode,
+                                                            }}
+                                                        />
                                                     </div>
-                                                    <Editor
-                                                        height="calc(100% - 60px)"
-                                                        language="javascript"
-                                                        value={codeContent}
-                                                        onChange={(value) =>
-                                                            setCodeContent(value || '')
-                                                        }
-                                                        theme={isDarkTheme ? 'vs-dark' : 'light'}
-                                                        options={{
-                                                            minimap: { enabled: false },
-                                                            fontSize: 14,
-                                                            lineNumbers: 'on',
-                                                            scrollBeyondLastLine: false,
-                                                            automaticLayout: true,
-                                                            readOnly: !isEditMode,
+
+                                                    {/* Resize Divider */}
+                                                    <div
+                                                        className="group relative w-1 shrink-0 cursor-col-resize bg-neutral-300 transition-colors hover:bg-indigo-500"
+                                                        onMouseDown={handleResizeStart}
+                                                        style={{
+                                                            cursor: isResizing
+                                                                ? 'col-resize'
+                                                                : 'col-resize',
                                                         }}
-                                                    />
-                                                </div>
-
-                                                {/* Resize Divider */}
-                                                <div
-                                                    className="group relative w-1 shrink-0 cursor-col-resize bg-neutral-300 transition-colors hover:bg-indigo-500"
-                                                    onMouseDown={handleResizeStart}
-                                                    style={{
-                                                        cursor: isResizing
-                                                            ? 'col-resize'
-                                                            : 'col-resize',
-                                                    }}
-                                                >
-                                                    <div className="absolute inset-y-0 left-1/2 flex w-8 -translate-x-1/2 items-center justify-center">
-                                                        <div className="h-12 w-1 rounded-full bg-neutral-400 transition-colors group-hover:bg-indigo-500" />
+                                                    >
+                                                        <div className="absolute inset-y-0 left-1/2 flex w-8 -translate-x-1/2 items-center justify-center">
+                                                            <div className="h-12 w-1 rounded-full bg-neutral-400 transition-colors group-hover:bg-indigo-500" />
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                {/* Video Section */}
-                                                <div
-                                                    className="flex shrink-0 items-center justify-center overflow-hidden rounded-r-lg border bg-black"
-                                                    style={{ width: `${100 - codeEditorWidth}%` }}
-                                                >
-                                                    <div className="flex size-full items-center justify-center bg-black">
-                                                        <div className="px-6 text-center text-white">
-                                                            <Video className="mx-auto mb-2 size-16 opacity-50" />
-                                                            <p className="text-sm opacity-75">
-                                                                Video Player
-                                                            </p>
-                                                            <p className="mt-2 text-xs opacity-50">
-                                                                Video will be displayed here
-                                                            </p>
+                                                    {/* Video Section */}
+                                                    <div
+                                                        className="flex shrink-0 items-center justify-center overflow-hidden rounded-r-lg border bg-black"
+                                                        style={{ width: `${100 - codeEditorWidth}%` }}
+                                                    >
+                                                        <div className="flex size-full items-center justify-center bg-black">
+                                                            <div className="px-6 text-center text-white">
+                                                                <Video className="mx-auto mb-2 size-16 opacity-50" />
+                                                                <p className="text-sm opacity-75">
+                                                                    Video Player
+                                                                </p>
+                                                                <p className="mt-2 text-xs opacity-50">
+                                                                    Video will be displayed here
+                                                                </p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
 
                                         {/* Quiz Slide */}
                                         {viewingSlide.slideType === 'quiz' && (
@@ -2951,7 +2967,7 @@ export function RouteComponent() {
                                                             disabled={
                                                                 quizQuestions.length === 0 ||
                                                                 currentQuizQuestionIndex ===
-                                                                    quizQuestions.length - 1
+                                                                quizQuestions.length - 1
                                                             }
                                                             className="flex size-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
                                                             aria-label="Next question"
@@ -2965,7 +2981,7 @@ export function RouteComponent() {
                                                     <RadioGroup
                                                         value={
                                                             selectedQuizAnswers[
-                                                                currentQuizQuestionIndex
+                                                            currentQuizQuestionIndex
                                                             ] ?? ''
                                                         }
                                                         onValueChange={handleQuizAnswerChange}
@@ -2977,7 +2993,7 @@ export function RouteComponent() {
                                                                     optionIndex.toString();
                                                                 const selected =
                                                                     selectedQuizAnswers[
-                                                                        currentQuizQuestionIndex
+                                                                    currentQuizQuestionIndex
                                                                     ] === value;
                                                                 const isCorrect =
                                                                     currentQuizQuestion.correctAnswerIndex?.toString() ===
@@ -3022,114 +3038,112 @@ export function RouteComponent() {
                                         {/* Homework/Assignment Slide */}
                                         {(viewingSlide.slideType === 'homework' ||
                                             viewingSlide.slideType === 'assignment') && (
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <Label className="text-base font-semibold">
-                                                        Question:
-                                                    </Label>
-                                                    <Textarea
-                                                        value={homeworkQuestion}
-                                                        onChange={(e) =>
-                                                            setHomeworkQuestion(e.target.value)
-                                                        }
-                                                        placeholder="Enter assignment question..."
-                                                        className="mt-2 min-h-[100px]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <div className="mb-2 flex items-center gap-4">
+                                                <div className="space-y-4">
+                                                    <div>
                                                         <Label className="text-base font-semibold">
-                                                            Answer:
+                                                            Question:
                                                         </Label>
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() =>
-                                                                    setHomeworkAnswerType('text')
-                                                                }
-                                                                className={`rounded px-3 py-1 text-sm ${
-                                                                    homeworkAnswerType === 'text'
-                                                                        ? 'bg-indigo-600 text-white'
-                                                                        : 'bg-neutral-100 text-neutral-700'
-                                                                }`}
-                                                            >
-                                                                Text
-                                                            </button>
-                                                            <button
-                                                                onClick={() =>
-                                                                    setHomeworkAnswerType('code')
-                                                                }
-                                                                className={`rounded px-3 py-1 text-sm ${
-                                                                    homeworkAnswerType === 'code'
-                                                                        ? 'bg-indigo-600 text-white'
-                                                                        : 'bg-neutral-100 text-neutral-700'
-                                                                }`}
-                                                            >
-                                                                Code Editor
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    {homeworkAnswerType === 'text' ? (
-                                                        <YooptaEditorWrapper
-                                                            value={homeworkAnswer}
-                                                            onChange={setHomeworkAnswer}
-                                                            placeholder="Enter your answer..."
-                                                            minHeight={300}
+                                                        <Textarea
+                                                            value={homeworkQuestion}
+                                                            onChange={(e) =>
+                                                                setHomeworkQuestion(e.target.value)
+                                                            }
+                                                            placeholder="Enter assignment question..."
+                                                            className="mt-2 min-h-[100px]"
                                                         />
-                                                    ) : (
-                                                        <div className="overflow-hidden rounded-lg border">
-                                                            <Editor
-                                                                height="300px"
-                                                                language="javascript"
-                                                                value={homeworkAnswer}
-                                                                onChange={(value) =>
-                                                                    setHomeworkAnswer(value || '')
-                                                                }
-                                                                theme="light"
-                                                                options={{
-                                                                    minimap: { enabled: false },
-                                                                    fontSize: 14,
-                                                                    lineNumbers: 'on',
-                                                                    scrollBeyondLastLine: false,
-                                                                    automaticLayout: true,
-                                                                }}
-                                                            />
+                                                    </div>
+                                                    <div>
+                                                        <div className="mb-2 flex items-center gap-4">
+                                                            <Label className="text-base font-semibold">
+                                                                Answer:
+                                                            </Label>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setHomeworkAnswerType('text')
+                                                                    }
+                                                                    className={`rounded px-3 py-1 text-sm ${homeworkAnswerType === 'text'
+                                                                        ? 'bg-indigo-600 text-white'
+                                                                        : 'bg-neutral-100 text-neutral-700'
+                                                                        }`}
+                                                                >
+                                                                    Text
+                                                                </button>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setHomeworkAnswerType('code')
+                                                                    }
+                                                                    className={`rounded px-3 py-1 text-sm ${homeworkAnswerType === 'code'
+                                                                        ? 'bg-indigo-600 text-white'
+                                                                        : 'bg-neutral-100 text-neutral-700'
+                                                                        }`}
+                                                                >
+                                                                    Code Editor
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    )}
+                                                        {homeworkAnswerType === 'text' ? (
+                                                            <YooptaEditorWrapper
+                                                                value={homeworkAnswer}
+                                                                onChange={setHomeworkAnswer}
+                                                                placeholder="Enter your answer..."
+                                                                minHeight={300}
+                                                            />
+                                                        ) : (
+                                                            <div className="overflow-hidden rounded-lg border">
+                                                                <Editor
+                                                                    height="300px"
+                                                                    language="javascript"
+                                                                    value={homeworkAnswer}
+                                                                    onChange={(value) =>
+                                                                        setHomeworkAnswer(value || '')
+                                                                    }
+                                                                    theme="light"
+                                                                    options={{
+                                                                        minimap: { enabled: false },
+                                                                        fontSize: 14,
+                                                                        lineNumbers: 'on',
+                                                                        scrollBeyondLastLine: false,
+                                                                        automaticLayout: true,
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
 
                                         {/* Code Editor Slide */}
                                         {(viewingSlide.slideType === 'code-editor' ||
                                             viewingSlide.slideType === 'jupyter' ||
                                             viewingSlide.slideType === 'scratch' ||
                                             viewingSlide.slideType === 'solution') && (
-                                            <div className="overflow-hidden rounded-lg border">
-                                                <div className="border-b bg-neutral-100 px-4 py-2">
-                                                    <span className="text-sm font-medium">
-                                                        {viewingSlide.slideType === 'solution'
-                                                            ? 'Solution Code'
-                                                            : 'Code Editor'}
-                                                    </span>
+                                                <div className="overflow-hidden rounded-lg border">
+                                                    <div className="border-b bg-neutral-100 px-4 py-2">
+                                                        <span className="text-sm font-medium">
+                                                            {viewingSlide.slideType === 'solution'
+                                                                ? 'Solution Code'
+                                                                : 'Code Editor'}
+                                                        </span>
+                                                    </div>
+                                                    <Editor
+                                                        height="500px"
+                                                        language="javascript"
+                                                        value={codeContent}
+                                                        onChange={(value) =>
+                                                            setCodeContent(value || '')
+                                                        }
+                                                        theme="light"
+                                                        options={{
+                                                            minimap: { enabled: false },
+                                                            fontSize: 14,
+                                                            lineNumbers: 'on',
+                                                            scrollBeyondLastLine: false,
+                                                            automaticLayout: true,
+                                                        }}
+                                                    />
                                                 </div>
-                                                <Editor
-                                                    height="500px"
-                                                    language="javascript"
-                                                    value={codeContent}
-                                                    onChange={(value) =>
-                                                        setCodeContent(value || '')
-                                                    }
-                                                    theme="light"
-                                                    options={{
-                                                        minimap: { enabled: false },
-                                                        fontSize: 14,
-                                                        lineNumbers: 'on',
-                                                        scrollBeyondLastLine: false,
-                                                        automaticLayout: true,
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
+                                            )}
                                     </div>
 
                                     {/* Fixed Footer */}

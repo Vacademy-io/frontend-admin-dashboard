@@ -60,6 +60,7 @@ import { Button } from '@/components/ui/button';
 import { scrapeUrlContent } from '@/services/aiCourseApi';
 import { Loader2 } from 'lucide-react';
 import { useAIModelsList } from '@/hooks/useAiModels';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const Route = createLazyFileRoute('/study-library/ai-copilot/')({
     component: RouteComponent,
@@ -140,7 +141,7 @@ function RouteComponent() {
 
     // Form state - keeping all existing state
     const [ageRange, setAgeRange] = useState('');
-    const [skillLevel, setSkillLevel] = useState('intermediate');
+    const [skillLevel, setSkillLevel] = useState(''); // Now stores levelId
     const [prerequisiteFiles, setPrerequisiteFiles] = useState<PrerequisiteFile[]>([]);
     const [prerequisiteUrls, setPrerequisiteUrls] = useState<PrerequisiteUrl[]>([]);
     const [newPrerequisiteUrl, setNewPrerequisiteUrl] = useState('');
@@ -200,6 +201,17 @@ function RouteComponent() {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const userId = tokenData?.user;
+
+    // Get institute levels
+    const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
+    const instituteLevels = instituteDetails?.levels || [];
+
+    // Set default level when levels are loaded
+    useEffect(() => {
+        if (instituteLevels.length > 0 && !skillLevel) {
+            setSkillLevel(instituteLevels[0].id);
+        }
+    }, [instituteLevels, skillLevel]);
 
     // Check if user has API keys
     const checkUserKeys = useCallback(async () => {
@@ -277,14 +289,14 @@ function RouteComponent() {
         if (!userId) return;
         if (
             !confirm(
-                `Are you sure you want to delete the ${type === 'openai' ? 'OpenRouter' : 'Gemini'} key?`
+                `Are you sure you want to delete the ${type === 'openai' ? 'OpenRouter' : 'Gemini'} key ? `
             )
         )
             return;
 
         try {
             await authenticatedAxiosInstance.delete(
-                `${AI_SERVICE_BASE_URL}/api-keys/v1/user/${userId}/delete`
+                `${AI_SERVICE_BASE_URL} /api-keys/v1 / user / ${userId}/delete`
             );
             toast.success(`${type === 'openai' ? 'OpenRouter' : 'Gemini'} key deleted`);
             await checkUserKeys();
@@ -716,9 +728,19 @@ function RouteComponent() {
                                     </div>
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="beginner">Beginner</SelectItem>
-                                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                                    <SelectItem value="advanced">Advanced</SelectItem>
+                                    {instituteLevels.length > 0 ? (
+                                        instituteLevels.map((level) => (
+                                            <SelectItem key={level.id} value={level.id}>
+                                                {level.level_name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <>
+                                            <SelectItem value="beginner">Beginner</SelectItem>
+                                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                                            <SelectItem value="advanced">Advanced</SelectItem>
+                                        </>
+                                    )}
                                 </SelectContent>
                             </Select>
 
@@ -1431,7 +1453,7 @@ function RouteComponent() {
                                             Skill Level
                                         </h4>
                                         <p className="text-sm capitalize text-neutral-600">
-                                            {skillLevel}
+                                            {instituteLevels.find(l => l.id === skillLevel)?.level_name || skillLevel}
                                         </p>
                                     </div>
                                 )}
@@ -1474,8 +1496,8 @@ function RouteComponent() {
                                             {chapterLength === 'custom'
                                                 ? `${customChapterLength} minutes`
                                                 : chapterLength
-                                                  ? `${chapterLength} minutes`
-                                                  : ''}
+                                                    ? `${chapterLength} minutes`
+                                                    : ''}
                                         </p>
                                     </div>
                                 )}
