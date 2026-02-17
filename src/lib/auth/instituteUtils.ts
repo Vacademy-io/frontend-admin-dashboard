@@ -209,7 +209,8 @@ export const getRolesForCurrentInstitute = (): string[] => {
     if (!tokenData?.authorities?.[instituteId]) return [];
 
     const authority = tokenData.authorities[instituteId];
-    return Array.isArray(authority?.roles) ? authority.roles : [];
+    if (!authority) return [];
+    return Array.isArray(authority.roles) ? authority.roles : [];
 };
 
 /**

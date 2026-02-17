@@ -208,7 +208,7 @@ export function Navbar({ showMobileBackButton }: { showMobileBackButton?: boolea
                 : getEffectiveInstituteLogoFileId(
                     instituteDetails?.institute_logo_file_id ?? undefined
                 );
-            if (logoId) {
+            if (logoId && typeof logoId === 'string') {
                 getPublicUrl(logoId).then((url) => {
                     setInstituteLogo(url || '');
                 });
@@ -326,9 +326,9 @@ export function Navbar({ showMobileBackButton }: { showMobileBackButton?: boolea
                                         'min-w-0 break-words font-semibold text-neutral-800 line-clamp-2',
                                         isCompact ? 'max-w-[140px] text-sm' : 'max-w-[220px] text-sm md:max-w-[260px] md:text-base'
                                     )}
-                                    title={effectiveInstituteName}
+                                    title={effectiveInstituteName as string}
                                 >
-                                    {effectiveInstituteName}
+                                    {effectiveInstituteName as string}
                                 </span>
                             ) : null}
                         </div>

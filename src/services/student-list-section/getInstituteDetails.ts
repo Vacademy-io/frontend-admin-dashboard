@@ -1,6 +1,7 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import axios from 'axios';
 import {
+    InstituteDetails,
     InstituteDetailsType,
     SubModuleType,
 } from '@/schemas/student/student-list/institute-schema';
@@ -60,7 +61,7 @@ export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => 
  */
 export const fetchInstituteDetailsById = async (
     instituteId: string
-): Promise<Pick<InstituteDetailsType, 'id' | 'institute_name' | 'institute_logo_file_id'>> => {
+): Promise<Pick<InstituteDetails, 'id' | 'institute_name' | 'institute_logo_file_id'>> => {
     const response = await authenticatedAxiosInstance({
         method: 'GET',
         url: `${INIT_INSTITUTE_WITHOUT_BATCHES}/${instituteId}`,

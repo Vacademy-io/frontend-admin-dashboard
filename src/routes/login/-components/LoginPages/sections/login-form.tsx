@@ -29,7 +29,7 @@ import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { handleLoginFlow } from '@/lib/auth/loginFlowHandler';
 import { getCachedInstituteBranding } from '@/services/domain-routing';
 import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
-import { getDisplaySettings } from '@/services/display-settings';
+import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
 import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
 
 type FormValues = z.infer<typeof loginSchema>;

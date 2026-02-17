@@ -42,7 +42,7 @@ export function SubOrgSelection({ onSubOrgSelect }: SubOrgSelectionProps) {
             setIsLoading(false);
 
             // If only one sub-org, auto-select it
-            if (facultyData.subOrgs.length === 1) {
+            if (facultyData.subOrgs.length === 1 && facultyData.subOrgs[0]) {
                 const subOrgId = facultyData.subOrgs[0].subOrgId;
                 setSelectedSubOrg(subOrgId);
                 setSelectedSubOrgId(subOrgId);

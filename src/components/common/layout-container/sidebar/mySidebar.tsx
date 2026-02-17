@@ -230,7 +230,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     useEffect(() => {
         const timer = setTimeout(() => {
             const fetchPublicUrl = async () => {
-                const effectiveLogoId = getEffectiveInstituteLogoFileId(data?.institute_logo_file_id);
+                const effectiveLogoId = getEffectiveInstituteLogoFileId(data?.institute_logo_file_id || undefined);
                 if (effectiveLogoId) {
                     const publicUrl = await getPublicUrl(effectiveLogoId);
                     setInstituteLogo(publicUrl || '');
