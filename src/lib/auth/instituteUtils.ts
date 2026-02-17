@@ -193,6 +193,27 @@ export const clearSelectedInstitute = (): void => {
 };
 
 /**
+ * Get roles for the current (selected) institute only.
+ * Use this when choosing Admin vs Teacher display settings so that users with
+ * STUDENT in the current institute but ADMIN elsewhere still get the correct
+ * settings for the context they are in.
+ */
+export const getRolesForCurrentInstitute = (): string[] => {
+    const instituteId = getCurrentInstituteId();
+    if (!instituteId) return [];
+
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    if (!accessToken) return [];
+
+    const tokenData = getTokenDecodedData(accessToken);
+    if (!tokenData?.authorities?.[instituteId]) return [];
+
+    const authority = tokenData.authorities[instituteId];
+    if (!authority) return [];
+    return Array.isArray(authority.roles) ? authority.roles : [];
+};
+
+/**
  * Get user's primary role for a specific institute
  */
 export const getUserRoleForInstitute = (instituteId: string): string | null => {
