@@ -609,7 +609,7 @@ function VideoConsole() {
                                 <div className="rounded bg-violet-100 p-1 text-violet-600">
                                     <Sparkles className="size-3.5" />
                                 </div>
-                                Create AI Content - Videos, StoryBook, Timeline, Puzzlebook, Etc
+                                Create AI Content
                             </h1>
                         </div>
                     </div>

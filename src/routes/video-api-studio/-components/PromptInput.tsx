@@ -26,8 +26,17 @@ import {
     ArrowRight,
     Eye,
     EyeOff,
+    Paperclip,
+    Loader2,
 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { getUserId } from '@/utils/userDetails';
+import {
+    handleStartProcessUploadedFile,
+    handleConvertPDFToHTML,
+} from '@/routes/ai-center/-services/ai-center-service';
+import { toast } from 'sonner';
 import {
     GenerateVideoRequest,
     LANGUAGES,
@@ -94,8 +103,11 @@ export function PromptInput({
     onOptionsChange,
 }: PromptInputProps) {
     const [showPreview, setShowPreview] = useState(false);
+    const [isPdfProcessing, setIsPdfProcessing] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const pdfInputRef = useRef<HTMLInputElement>(null);
     const { data: modelsList } = useAIModelsList();
+    const { uploadFile } = useFileUpload();
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -126,6 +138,45 @@ export function PromptInput({
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSubmit();
+        }
+    };
+
+    const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Reset input
+        e.target.value = '';
+
+        setIsPdfProcessing(true);
+        try {
+            // Step 1: Upload to S3
+            const fileId = await uploadFile({
+                file,
+                setIsUploading: () => {},
+                userId: getUserId(),
+            });
+            if (!fileId) throw new Error('Failed to upload PDF');
+
+            // Step 2: Start processing → get pdf_id
+            const processResult = await handleStartProcessUploadedFile(fileId);
+            const pdfId = processResult?.pdf_id;
+            if (!pdfId) throw new Error('Failed to process PDF');
+
+            // Step 3: Convert PDF to HTML
+            const taskName = `Task_${new Date().toLocaleDateString('en-GB')}_${new Date().toLocaleTimeString('en-GB')}`;
+            const htmlResult = await handleConvertPDFToHTML(pdfId, taskName);
+            const html = htmlResult?.html;
+            if (!html) throw new Error('Failed to extract content from PDF');
+
+            // Step 4: Set as prompt
+            onPromptChange(html);
+            toast.success('PDF content extracted successfully');
+        } catch (error) {
+            console.error('PDF upload error:', error);
+            toast.error('Failed to extract content from PDF');
+        } finally {
+            setIsPdfProcessing(false);
         }
     };
 
@@ -476,6 +527,31 @@ export function PromptInput({
 
                 {/* Prompt Input */}
                 <div className="relative flex items-end gap-2 rounded-lg border bg-muted/30 p-1.5 shadow-sm transition-all focus-within:border-ring/50 focus-within:ring-1 focus-within:ring-ring">
+                    <div className="flex shrink-0 flex-col items-center justify-end pb-1">
+                        <input
+                            ref={pdfInputRef}
+                            type="file"
+                            accept=".pdf"
+                            className="hidden"
+                            onChange={handlePdfUpload}
+                            disabled={isPdfProcessing || isGenerating || disabled}
+                        />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => pdfInputRef.current?.click()}
+                            disabled={isPdfProcessing || isGenerating || disabled}
+                            title="Upload PDF as prompt"
+                        >
+                            {isPdfProcessing ? (
+                                <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                                <Paperclip className="size-4" />
+                            )}
+                        </Button>
+                    </div>
+
                     {showPreview ? (
                         <div className="min-h-[36px] min-w-0 flex-1 p-2">
                             <div className="max-h-[200px] overflow-y-auto">

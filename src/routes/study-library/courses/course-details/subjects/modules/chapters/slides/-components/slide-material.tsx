@@ -241,7 +241,13 @@ export const SlideMaterial = ({
                         autoFocus={true}
                         onChange={() => {
                             // Get current editor content and check if it's empty
-                            const currentContent = html.serialize(editor, editor.children);
+                            let currentContent = '';
+                            try {
+                                currentContent = html.serialize(editor, editor.children);
+                            } catch (error) {
+                                console.error('Error serializing content in onChange:', error);
+                                // Fallback to empty string or keep previous content if possible, but here we just log
+                            }
                             const currentIsEmpty = checkIsEmpty(currentContent);
 
                             // Update placeholder state
@@ -278,6 +284,22 @@ export const SlideMaterial = ({
 
             // Get body element and its inner HTML
             if (doc.body) {
+                // Unwrap iframes from divs to ensure they are recognized by Yoopta deserializer
+                const iframes = doc.body.querySelectorAll('iframe');
+                iframes.forEach((iframe) => {
+                    const parent = iframe.parentElement;
+                    if (parent && parent.tagName === 'DIV') {
+                        // Replace parent div with its children
+                        const fragment = document.createDocumentFragment();
+                        while (parent.firstChild) {
+                            fragment.appendChild(parent.firstChild);
+                        }
+                        if (parent.parentNode) {
+                            parent.parentNode.replaceChild(fragment, parent);
+                        }
+                    }
+                });
+
                 contentForDeserialization = doc.body.innerHTML.trim();
 
                 // Recursively unwrap divs until we get to actual content
@@ -307,7 +329,38 @@ export const SlideMaterial = ({
             console.error('Error parsing HTML for Yoopta:', e);
         }
 
-        const editorContent = html.deserialize(editor, contentForDeserialization || '');
+        const rawEditorContent = html.deserialize(editor, contentForDeserialization || '');
+
+        // Sanitize nodes to ensure mandatory properties (like url for Embed/Video) exist to prevent crashes
+        const sanitizeNodes = (nodes: any[]): any[] => {
+            if (!Array.isArray(nodes)) return nodes;
+            return nodes.map((node) => {
+                const newNode = { ...node };
+                // Check if node is Embed or Video type (checking both capitalized and lowercase just in case)
+                if (['Embed', 'Video', 'embed', 'video'].includes(newNode.type)) {
+                    if (!newNode.data) {
+                        newNode.data = { url: '', src: '' };
+                    }
+                    // Ensure url is populated (Yoopta sometimes expects url, sometimes src depending on version/plugin)
+                    if (!newNode.data.url && newNode.data.src) {
+                        newNode.data.url = newNode.data.src;
+                    }
+                    if (!newNode.data.src && newNode.data.url) {
+                        newNode.data.src = newNode.data.url;
+                    }
+                    // Fallbacks
+                    if (newNode.data.url === undefined) newNode.data.url = '';
+                    if (newNode.data.src === undefined) newNode.data.src = '';
+                }
+
+                if (newNode.children) {
+                    newNode.children = sanitizeNodes(newNode.children);
+                }
+                return newNode;
+            });
+        };
+
+        const editorContent = sanitizeNodes(rawEditorContent);
 
         editor.setEditorValue(editorContent);
 
@@ -355,7 +408,15 @@ export const SlideMaterial = ({
 
     const getCurrentEditorHTMLContent: () => string = () => {
         const data = editor.getEditorValue();
-        const htmlString = html.serialize(editor, data);
+        let htmlString = '';
+        try {
+            htmlString = html.serialize(editor, data);
+        } catch (error) {
+            console.error('Error serializing content in getCurrentEditorHTMLContent:', error);
+            // Return empty string or perhaps the last known good state?
+            // For now, empty string is safer than crashing
+            return '';
+        }
         const formattedHtmlString = formatHTMLString(htmlString);
         return formattedHtmlString;
     };
