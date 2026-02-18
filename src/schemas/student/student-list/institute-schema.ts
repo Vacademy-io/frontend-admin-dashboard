@@ -131,7 +131,8 @@ const InstituteSchema = z.object({
     instructorPortalUrl: z.string().nullable().optional(),
 });
 
-export type InstituteDetailsType = z.infer<typeof InstituteSchema> | null;
+export type InstituteDetails = z.infer<typeof InstituteSchema>;
+export type InstituteDetailsType = InstituteDetails | null;
 export type InstituteSetupResponseType = z.infer<typeof InstituteSetupResponseSchema>;
 export type CustomFieldType = z.infer<typeof CustomFieldSchema>;
 export type LevelType = z.infer<typeof LevelSchema>;

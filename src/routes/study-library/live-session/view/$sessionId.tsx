@@ -77,6 +77,14 @@ interface GroupedSchedule {
         id: string;
         status?: 'live' | 'upcoming' | 'past';
         startDate?: Date;
+        default_class_link?: string | null;
+        learner_button_config?: {
+            text: string;
+            url: string;
+            background_color: string;
+            text_color: string;
+            visible: boolean;
+        } | null;
     }>;
 }
 
@@ -190,6 +198,8 @@ function ViewLiveSession() {
                 id: schedule.id,
                 status,
                 startDate: startDateTime,
+                default_class_link: schedule.default_class_link,
+                learner_button_config: schedule.learner_button_config,
             });
         });
 
@@ -562,31 +572,81 @@ function ViewLiveSession() {
                                                                 </div>
                                                             </AccordionTrigger>
                                                             <AccordionContent>
-                                                                <div className="space-y-2 pt-2">
-                                                                    {daySchedule.sessions.map((session) => (
-                                                                        <div
-                                                                            key={session.id}
-                                                                            className="flex items-center justify-between rounded-md bg-muted/50 p-3 hover:bg-muted"
-                                                                        >
-                                                                            <div className="flex items-center gap-4">
-                                                                                <div className="flex items-center gap-2 text-sm text-foreground">
-                                                                                    <Timer className="size-4 text-primary" />
-                                                                                    <span className="font-medium">{session.time}</span>
+                                                                <div className="space-y-4 pt-2">
+                                                                    {/* Day Level Info */}
+                                                                    {(() => {
+                                                                        const firstSession = daySchedule.sessions[0];
+                                                                        const defaultLink = firstSession?.default_class_link;
+                                                                        const learnerButton = firstSession?.learner_button_config;
+
+                                                                        if (defaultLink || (learnerButton && learnerButton.visible)) {
+                                                                            return (
+                                                                                <div className="rounded-md border bg-muted/20 p-3 space-y-2 text-sm">
+                                                                                    {defaultLink && (
+                                                                                        <div>
+                                                                                            <span className="font-semibold text-muted-foreground">Default Link: </span>
+                                                                                            <a
+                                                                                                href={defaultLink}
+                                                                                                target="_blank"
+                                                                                                rel="noopener noreferrer"
+                                                                                                className="text-blue-600 hover:underline break-all"
+                                                                                            >
+                                                                                                {defaultLink}
+                                                                                            </a>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {learnerButton && learnerButton.visible && (
+                                                                                        <div>
+                                                                                            <span className="font-semibold text-muted-foreground">Custom Button: </span>
+                                                                                            <span
+                                                                                                style={{
+                                                                                                    backgroundColor: learnerButton.background_color,
+                                                                                                    color: learnerButton.text_color,
+                                                                                                }}
+                                                                                                className="inline-block px-2 py-0.5 rounded text-xs font-medium ml-1"
+                                                                                            >
+                                                                                                {learnerButton.text}
+                                                                                            </span>
+                                                                                            <span className="text-muted-foreground ml-1 break-all">
+                                                                                                → {learnerButton.url}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
-                                                                                <span className="text-xs text-muted-foreground">
-                                                                                    {session.duration} mins
-                                                                                </span>
-                                                                            </div>
-                                                                            <a
-                                                                                href={session.link}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary/80 hover:underline"
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    })()}
+
+                                                                    <div className="space-y-2">
+                                                                        {daySchedule.sessions.map((session) => (
+                                                                            <div
+                                                                                key={session.id}
+                                                                                className="rounded-md border bg-muted/30 p-3"
                                                                             >
-                                                                                Join <ArrowLeft className="ml-1 size-3 rotate-180" />
-                                                                            </a>
-                                                                        </div>
-                                                                    ))}
+                                                                                {/* Session Time and Duration */}
+                                                                                <div className="flex items-center justify-between">
+                                                                                    <div className="flex items-center gap-3">
+                                                                                        <div className="flex items-center gap-2 text-sm">
+                                                                                            <Timer className="size-4 text-primary" />
+                                                                                            <span className="font-medium">{session.time}</span>
+                                                                                        </div>
+                                                                                        <span className="text-xs text-muted-foreground">
+                                                                                            {session.duration} mins
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <a
+                                                                                        href={session.link}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="text-xs font-medium text-primary hover:underline"
+                                                                                    >
+                                                                                        Join →
+                                                                                    </a>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
                                                                 </div>
                                                             </AccordionContent>
                                                         </AccordionItem>

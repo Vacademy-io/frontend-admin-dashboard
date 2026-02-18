@@ -51,6 +51,7 @@ import { useTabSettings } from '@/hooks/use-tab-settings';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCompactMode } from '@/hooks/use-compact-mode';
+import { getEffectiveInstituteLogoFileId } from '@/lib/auth/facultyAccessUtils';
 
 const voltSidebarData: SidebarItemsType[] = [
     {
@@ -229,17 +230,20 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     useEffect(() => {
         const timer = setTimeout(() => {
             const fetchPublicUrl = async () => {
-                if (data?.institute_logo_file_id) {
-                    const publicUrl = await getPublicUrl(data.institute_logo_file_id);
+                const effectiveLogoId = getEffectiveInstituteLogoFileId(data?.institute_logo_file_id || undefined);
+                if (effectiveLogoId) {
+                    const publicUrl = await getPublicUrl(effectiveLogoId);
                     setInstituteLogo(publicUrl || '');
+                } else {
+                    setInstituteLogo('');
                 }
             };
 
             fetchPublicUrl();
-        }, 300); // Adjust the debounce time as needed
+        }, 300);
 
-        return () => clearTimeout(timer); // Cleanup the timeout on component unmount
-    }, [data?.institute_logo_file_id, getPublicUrl, setInstituteLogo]);
+        return () => clearTimeout(timer);
+    }, [data?.institute_logo_file_id, getPublicUrl, setInstituteLogo, currentRoute]);
 
     if (isLoading) return <DashboardLoader />;
     if (roleDisplay?.ui?.showSidebar === false) return null;
@@ -251,7 +255,10 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 className={cn('py-1', state === 'collapsed' && !isMobile ? 'px-1' : 'px-3')}
             >
                 <div
-                    className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors"
+                    className={cn(
+                        'flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors',
+                        state === 'collapsed' && !isMobile ? 'w-full px-0' : ''
+                    )}
                     onClick={() => {
                         navigate({ to: '/dashboard' });
                         if (isMobile) setOpenMobile(false);
@@ -268,8 +275,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                                         ? 'h-10 max-w-[80px]'
                                         : 'h-20 max-w-[180px]'
                                     : isCompact
-                                      ? 'h-8 max-w-[30px]'
-                                      : 'h-10 max-w-[80px]'
+                                        ? 'h-6 max-w-[24px]'
+                                        : 'h-8 max-w-[40px]'
                             )}
                         />
                     )}
@@ -295,8 +302,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                         className={cn(
                             'flex w-full items-center justify-between gap-1 rounded-lg border bg-muted/20 p-1',
                             state === 'collapsed' &&
-                                !isMobile &&
-                                'h-auto flex-col items-center gap-2 border-none bg-transparent p-0'
+                            !isMobile &&
+                            'h-auto flex-col items-center gap-2 border-none bg-transparent p-0'
                         )}
                     >
                         {(() => {
@@ -363,8 +370,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                                                 className={cn(
                                                     'relative flex min-w-0 flex-1 items-center justify-center gap-1.5 px-1 py-1 transition-all data-[state=active]:bg-transparent data-[state=active]:shadow-none',
                                                     state === 'collapsed' &&
-                                                        !isMobile &&
-                                                        'h-9 w-9 flex-none justify-center rounded-md p-0 ring-1 ring-border/50',
+                                                    !isMobile &&
+                                                    'h-9 w-9 flex-none justify-center rounded-md p-0 ring-1 ring-border/50',
                                                     isLocked && 'opacity-70'
                                                 )}
                                             >
@@ -374,12 +381,12 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                                                         className={cn(
                                                             'absolute inset-0 rounded-md bg-background shadow-sm',
                                                             state === 'collapsed' &&
-                                                                !isMobile &&
-                                                                cn(
-                                                                    colors.bg,
-                                                                    colors.ring,
-                                                                    'shadow-none ring-1'
-                                                                )
+                                                            !isMobile &&
+                                                            cn(
+                                                                colors.bg,
+                                                                colors.ring,
+                                                                'shadow-none ring-1'
+                                                            )
                                                         )}
                                                         transition={{
                                                             type: 'spring',
@@ -454,25 +461,25 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 {sidebarComponent
                     ? sidebarComponent
                     : finalSidebarItems
-                          .filter((item) => {
-                              const show = (item as SidebarItemsType).showForInstitute;
-                              const category = item.category || 'CRM';
-                              return (!show || show === data?.id) && category === activeCategory;
-                          })
-                          .map((obj, key) => (
-                              <SidebarMenuItem
-                                  key={key}
-                                  id={obj.id}
-                                  onClick={() => {
-                                      // Close mobile sidebar when an item is clicked
-                                      if (isMobile && !obj.subItems) {
-                                          setOpenMobile(false);
-                                      }
-                                  }}
-                              >
-                                  <SidebarItem {...obj} />
-                              </SidebarMenuItem>
-                          ))}
+                        .filter((item) => {
+                            const show = (item as SidebarItemsType).showForInstitute;
+                            const category = item.category || 'CRM';
+                            return (!show || show === data?.id) && category === activeCategory;
+                        })
+                        .map((obj, key) => (
+                            <SidebarMenuItem
+                                key={key}
+                                id={obj.id}
+                                onClick={() => {
+                                    // Close mobile sidebar when an item is clicked
+                                    if (isMobile && !obj.subItems) {
+                                        setOpenMobile(false);
+                                    }
+                                }}
+                            >
+                                <SidebarItem {...obj} />
+                            </SidebarMenuItem>
+                        ))}
             </SidebarMenu>
             {roleDisplay?.ui?.showSupportButton !== false && (
                 <div
@@ -514,8 +521,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             ? 'w-[220px]'
                             : 'w-[307px]'
                         : isCompact
-                          ? 'w-14'
-                          : 'w-28'
+                            ? 'w-14'
+                            : 'w-28'
                 )}
             >
                 {sidebarContent}
@@ -543,9 +550,8 @@ function SupportOptions() {
                         weight="fill"
                     />
                     <div
-                        className={`${
-                            hover ? 'text-primary-500' : 'text-neutral-600'
-                        } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
+                        className={`${hover ? 'text-primary-500' : 'text-neutral-600'
+                            } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
                     >
                         {'Support'}
                     </div>

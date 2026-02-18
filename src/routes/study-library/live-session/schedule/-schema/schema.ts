@@ -11,6 +11,15 @@ const weekDaysEnum = z.enum([
     'sunday',
 ]);
 
+// Schema for learner button configuration
+const learnerButtonConfigSchema = z.object({
+    text: z.string().min(1, 'Button text is required').max(50, 'Button text must be 50 characters or less'),
+    url: z.string().url('Invalid URL'),
+    background_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color format'),
+    text_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color format'),
+    visible: z.boolean(),
+}).optional().nullable();
+
 const sessionDetailsSchema = z.object({
     id: z.string().optional(),
     startTime: z.string().optional(),
@@ -43,6 +52,9 @@ export const weeklyClassSchema = z.object({
     id: z.string().optional(),
     day: weekDaysEnum,
     isSelect: z.boolean(),
+    // Day-level configurations (shared across all sessions on this day)
+    default_class_link: z.string().url('Invalid URL').optional().or(z.literal('')).nullable(),
+    learner_button_config: learnerButtonConfigSchema,
     sessions: z.array(sessionDetailsSchema),
 });
 

@@ -101,6 +101,14 @@ export interface Schedule {
         id: string;
         thumbnailFileId: string;
         countAttendanceDaily: boolean;
+        default_class_link?: string | null;
+        learner_button_config?: {
+            text: string;
+            url: string;
+            background_color: string;
+            text_color: string;
+            visible: boolean;
+        } | null;
     }>;
 }
 

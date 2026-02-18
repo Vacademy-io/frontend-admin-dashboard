@@ -2,7 +2,8 @@ import { MySidebar } from './sidebar/mySidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Navbar } from './top-navbar.tsx/navbar';
 import { cn } from '@/lib/utils';
-import React, { useEffect } from 'react';
+import * as React from 'react';
+import { useEffect } from 'react';
 import { InternalSideBar } from './internal-sidebar/internalSideBar';
 import { StudentSidebarProvider } from '@/routes/manage-students/students-list/-providers/student-sidebar-provider';
 import { InternalSidebarComponent } from './internal-sidebar/internalSidebarComponent';
@@ -12,6 +13,8 @@ import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { useIsMobile, useIsTablet } from '@/hooks/use-mobile';
 import { useCompactMode } from '@/hooks/use-compact-mode';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const LayoutContainer = ({
     children,
@@ -47,7 +50,9 @@ export const LayoutContainer = ({
     const isAdmin = roles.includes('ADMIN');
     const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
     const roleDisplay = getDisplaySettingsFromCache(roleKey);
-    const showMainSidebar = roleDisplay?.ui?.showSidebar !== false;
+    const { instituteDetails } = useInstituteDetailsStore();
+    const hasFacultyPermission = hasFacultyAssignedPermission(instituteDetails?.id);
+    const showMainSidebar = !hasFacultyPermission && roleDisplay?.ui?.showSidebar !== false;
 
     useEffect(() => {
         // Skip automatic sidebar control if customSidebarControl is enabled
@@ -139,8 +144,8 @@ export const LayoutContainer = ({
                                 ? 'md:w-[220px]'
                                 : 'md:w-[307px]'
                             : isCompact
-                              ? 'md:w-[56px]'
-                              : 'md:w-[112px]',
+                                ? 'md:w-[56px]'
+                                : 'md:w-[112px]',
                         'flex-shrink-0 transition-all duration-200'
                     )}
                 >

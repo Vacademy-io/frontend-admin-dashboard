@@ -629,19 +629,41 @@ export default function AdminDisplaySettings() {
                                     <Switch
                                         checked={cfg.visible}
                                         onCheckedChange={(checked) =>
-                                            updateSettings((prev) => ({
-                                                ...prev,
-                                                courseDetails: {
-                                                    tabs: (prev.courseDetails?.tabs || []).map(
-                                                        (t) =>
-                                                            t.id === id
-                                                                ? { ...t, visible: checked }
-                                                                : t
-                                                    ),
-                                                    defaultTab:
-                                                        prev.courseDetails?.defaultTab || 'OUTLINE',
-                                                },
-                                            }))
+                                            updateSettings((prev) => {
+                                                const prevTabs = prev.courseDetails?.tabs || [];
+                                                const exists = prevTabs.some((t) => t.id === id);
+                                                const orderForId: Record<string, number> = {
+                                                    OUTLINE: 1,
+                                                    CONTENT_STRUCTURE: 2,
+                                                    LEARNER: 3,
+                                                    TEACHER: 4,
+                                                    ASSESSMENT: 5,
+                                                    PLANNING: 6,
+                                                    ACTIVITY: 7,
+                                                };
+                                                const tabs = exists
+                                                    ? prevTabs.map((t) =>
+                                                          t.id === id
+                                                              ? { ...t, visible: checked }
+                                                              : t
+                                                      )
+                                                    : [
+                                                          ...prevTabs,
+                                                          {
+                                                              id,
+                                                              order: orderForId[id] ?? 99,
+                                                              visible: checked,
+                                                          },
+                                                      ];
+                                                return {
+                                                    ...prev,
+                                                    courseDetails: {
+                                                        tabs,
+                                                        defaultTab:
+                                                            prev.courseDetails?.defaultTab || 'OUTLINE',
+                                                    },
+                                                };
+                                            })
                                         }
                                     />
                                     <span className="text-sm">Visible</span>

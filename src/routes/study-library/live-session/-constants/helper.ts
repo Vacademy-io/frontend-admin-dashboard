@@ -43,6 +43,14 @@ export interface LiveSessionStep1RequestDTO {
     time_zone?: string;
 }
 
+export interface LearnerButtonConfig {
+    text: string;
+    url: string;
+    background_color: string;
+    text_color: string;
+    visible: boolean;
+}
+
 interface ScheduleDTO {
     id?: string;
     day: string;
@@ -51,6 +59,8 @@ interface ScheduleDTO {
     link?: string;
     thumbnail_file_id?: string;
     daily_attendance?: boolean;
+    default_class_link?: string | null;
+    learner_button_config?: LearnerButtonConfig | null;
 }
 
 //step 2 interface
@@ -192,6 +202,8 @@ export function transformFormToDTOStep1(
                                 link: session.link || '',
                                 thumbnail_file_id: session.thumbnailFileId || '',
                                 daily_attendance: session.countAttendanceDaily || false,
+                                default_class_link: dayBlock.default_class_link || null, // From day level
+                                learner_button_config: dayBlock.learner_button_config || null, // From day level
                             };
 
                             updated_schedules.push(baseSchedule);
@@ -211,11 +223,14 @@ export function transformFormToDTOStep1(
                             link: session.link || '',
                             thumbnail_file_id: session.thumbnailFileId || '',
                             daily_attendance: session.countAttendanceDaily || false,
+                            default_class_link: dayBlock.default_class_link || null, // From day level
+                            learner_button_config: dayBlock.learner_button_config || null, // From day level
                         };
                         added_schedules.push(baseSchedule);
                     }
                 }
             );
+
         });
 
         // Anything left in originalScheduleMap is considered deleted

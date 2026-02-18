@@ -25,6 +25,7 @@ import { Route as ManagePaymentsIndexRouteImport } from "./routes/manage-payment
 import { Route as ManagePagesIndexRouteImport } from "./routes/manage-pages/index"
 import { Route as ManageInventoryIndexRouteImport } from "./routes/manage-inventory/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
+import { Route as ManageCustomTeamsIndexRouteImport } from "./routes/manage-custom-teams/index"
 import { Route as ManageContactsIndexRouteImport } from "./routes/manage-contacts/index"
 import { Route as ManageBookingsIndexRouteImport } from "./routes/manage-bookings/index"
 import { Route as LoginIndexRouteImport } from "./routes/login/index"
@@ -249,6 +250,13 @@ const ManageInstituteIndexRoute = ManageInstituteIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() =>
   import("./routes/manage-institute/index.lazy").then((d) => d.Route),
+)
+const ManageCustomTeamsIndexRoute = ManageCustomTeamsIndexRouteImport.update({
+  id: "/manage-custom-teams/",
+  path: "/manage-custom-teams/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/manage-custom-teams/index.lazy").then((d) => d.Route),
 )
 const ManageContactsIndexRoute = ManageContactsIndexRouteImport.update({
   id: "/manage-contacts/",
@@ -1116,6 +1124,7 @@ export interface FileRoutesByFullPath {
   "/login/": typeof LoginIndexRoute
   "/manage-bookings/": typeof ManageBookingsIndexRoute
   "/manage-contacts/": typeof ManageContactsIndexRoute
+  "/manage-custom-teams/": typeof ManageCustomTeamsIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-inventory/": typeof ManageInventoryIndexRoute
   "/manage-pages/": typeof ManagePagesIndexRoute
@@ -1239,6 +1248,7 @@ export interface FileRoutesByTo {
   "/login": typeof LoginIndexRoute
   "/manage-bookings": typeof ManageBookingsIndexRoute
   "/manage-contacts": typeof ManageContactsIndexRoute
+  "/manage-custom-teams": typeof ManageCustomTeamsIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-inventory": typeof ManageInventoryIndexRoute
   "/manage-pages": typeof ManagePagesIndexRoute
@@ -1364,6 +1374,7 @@ export interface FileRoutesById {
   "/login/": typeof LoginIndexRoute
   "/manage-bookings/": typeof ManageBookingsIndexRoute
   "/manage-contacts/": typeof ManageContactsIndexRoute
+  "/manage-custom-teams/": typeof ManageCustomTeamsIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-inventory/": typeof ManageInventoryIndexRoute
   "/manage-pages/": typeof ManagePagesIndexRoute
@@ -1490,6 +1501,7 @@ export interface FileRouteTypes {
     | "/login/"
     | "/manage-bookings/"
     | "/manage-contacts/"
+    | "/manage-custom-teams/"
     | "/manage-institute/"
     | "/manage-inventory/"
     | "/manage-pages/"
@@ -1613,6 +1625,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/manage-bookings"
     | "/manage-contacts"
+    | "/manage-custom-teams"
     | "/manage-institute"
     | "/manage-inventory"
     | "/manage-pages"
@@ -1737,6 +1750,7 @@ export interface FileRouteTypes {
     | "/login/"
     | "/manage-bookings/"
     | "/manage-contacts/"
+    | "/manage-custom-teams/"
     | "/manage-institute/"
     | "/manage-inventory/"
     | "/manage-pages/"
@@ -1861,6 +1875,7 @@ export interface RootRouteChildren {
   LoginIndexRoute: typeof LoginIndexRoute
   ManageBookingsIndexRoute: typeof ManageBookingsIndexRoute
   ManageContactsIndexRoute: typeof ManageContactsIndexRoute
+  ManageCustomTeamsIndexRoute: typeof ManageCustomTeamsIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
   ManageInventoryIndexRoute: typeof ManageInventoryIndexRoute
   ManagePagesIndexRoute: typeof ManagePagesIndexRoute
@@ -2097,6 +2112,13 @@ declare module "@tanstack/react-router" {
       path: "/manage-institute"
       fullPath: "/manage-institute/"
       preLoaderRoute: typeof ManageInstituteIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/manage-custom-teams/": {
+      id: "/manage-custom-teams/"
+      path: "/manage-custom-teams"
+      fullPath: "/manage-custom-teams/"
+      preLoaderRoute: typeof ManageCustomTeamsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-contacts/": {
@@ -2855,6 +2877,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginIndexRoute: LoginIndexRoute,
   ManageBookingsIndexRoute: ManageBookingsIndexRoute,
   ManageContactsIndexRoute: ManageContactsIndexRoute,
+  ManageCustomTeamsIndexRoute: ManageCustomTeamsIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
   ManageInventoryIndexRoute: ManageInventoryIndexRoute,
   ManagePagesIndexRoute: ManagePagesIndexRoute,
