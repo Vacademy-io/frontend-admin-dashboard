@@ -331,33 +331,46 @@ export const SlideMaterial = ({
 
         const rawEditorContent = html.deserialize(editor, contentForDeserialization || '');
 
-        // Sanitize nodes to ensure mandatory properties (like url for Embed/Video) exist to prevent crashes
-        const sanitizeNodes = (nodes: any[]): any[] => {
-            if (!Array.isArray(nodes)) return nodes;
-            return nodes.map((node) => {
-                const newNode = { ...node };
-                // Check if node is Embed or Video type (checking both capitalized and lowercase just in case)
-                if (['Embed', 'Video', 'embed', 'video'].includes(newNode.type)) {
-                    if (!newNode.data) {
-                        newNode.data = { url: '', src: '' };
-                    }
-                    // Ensure url is populated (Yoopta sometimes expects url, sometimes src depending on version/plugin)
-                    if (!newNode.data.url && newNode.data.src) {
-                        newNode.data.url = newNode.data.src;
-                    }
-                    if (!newNode.data.src && newNode.data.url) {
-                        newNode.data.src = newNode.data.url;
-                    }
-                    // Fallbacks
-                    if (newNode.data.url === undefined) newNode.data.url = '';
-                    if (newNode.data.src === undefined) newNode.data.src = '';
+        const processNode = (node: any): any => {
+            const newNode = { ...node };
+            // Check if node is Embed or Video type (checking both capitalized and lowercase just in case)
+            if (['Embed', 'Video', 'embed', 'video'].includes(newNode.type)) {
+                if (!newNode.data) {
+                    newNode.data = { url: '', src: '' };
                 }
+                // Ensure url is populated (Yoopta sometimes expects url, sometimes src depending on version/plugin)
+                if (!newNode.data.url && newNode.data.src) {
+                    newNode.data.url = newNode.data.src;
+                }
+                if (!newNode.data.src && newNode.data.url) {
+                    newNode.data.src = newNode.data.url;
+                }
+                // Fallbacks
+                if (newNode.data.url === undefined) newNode.data.url = '';
+                if (newNode.data.src === undefined) newNode.data.src = '';
+            }
 
-                if (newNode.children) {
-                    newNode.children = sanitizeNodes(newNode.children);
-                }
-                return newNode;
-            });
+            if (newNode.children && Array.isArray(newNode.children)) {
+                newNode.children = newNode.children.map(processNode);
+            }
+            return newNode;
+        };
+
+        // Sanitize nodes to ensure mandatory properties (like url for Embed/Video) exist to prevent crashes
+        const sanitizeNodes = (content: any): any => {
+            // Handle Yoopta Map structure (Record<string, Block>)
+            if (content && typeof content === 'object' && !Array.isArray(content)) {
+                const newContent: Record<string, any> = {};
+                Object.keys(content).forEach((key) => {
+                    newContent[key] = processNode(content[key]);
+                });
+                return newContent;
+            }
+            // Fallback for arrays (e.g. if structure changes or for children processing)
+            if (Array.isArray(content)) {
+                return content.map(processNode);
+            }
+            return content;
         };
 
         const editorContent = sanitizeNodes(rawEditorContent);
