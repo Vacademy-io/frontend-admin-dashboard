@@ -10,7 +10,15 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { QuestionType, QUESTION_TYPES } from '@/constants/dummy-data';
 import { getInstituteId } from '@/constants/helper';
-import { formatTimeStudyLibraryInSeconds } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-helper/helper';
+// function defined locally below to avoid circular dependency
+// import { formatTimeStudyLibraryInSeconds } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-helper/helper';
+
+export const formatTimeStudyLibraryInSeconds = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${hrs}:${mins < 10 ? '0' + mins : mins}:${secs < 10 ? '0' + secs : secs}`;
+};
 
 export function getPPTViewTitle(type: QuestionType): string {
     const question = QUESTION_TYPES.find((q) => q.code === type);
