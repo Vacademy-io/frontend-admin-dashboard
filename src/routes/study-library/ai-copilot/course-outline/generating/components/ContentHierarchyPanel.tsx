@@ -87,14 +87,20 @@ export const ContentHierarchyPanel: React.FC<ContentHierarchyPanelProps> = ({
     }, [sessionsWithProgress]);
 
     const completedSlides = useMemo(() => {
-        return sessionsWithProgress.reduce((acc, session) => 
+        return sessionsWithProgress.reduce((acc, session) =>
             acc + session.slides.filter(s => s.status === 'completed' && s.slideTitle !== '_placeholder_').length, 0
         );
     }, [sessionsWithProgress]);
 
     const generatingSlides = useMemo(() => {
-        return sessionsWithProgress.reduce((acc, session) => 
+        return sessionsWithProgress.reduce((acc, session) =>
             acc + session.slides.filter(s => s.status === 'generating' && s.slideTitle !== '_placeholder_').length, 0
+        );
+    }, [sessionsWithProgress]);
+
+    const hasAiVideo = useMemo(() => {
+        return sessionsWithProgress.some(session =>
+            session.slides.some(s => s.slideType === 'ai-video' || s.slideType === 'ai-video-code')
         );
     }, [sessionsWithProgress]);
 
@@ -118,6 +124,12 @@ export const ContentHierarchyPanel: React.FC<ContentHierarchyPanelProps> = ({
                         </span>
                     )}
                 </div>
+                {hasAiVideo && (
+                    <div className="mt-1 flex items-center gap-1 text-[10px] text-neutral-500">
+                        <Clock className="h-3 w-3" />
+                        AI video will be available after few minutes
+                    </div>
+                )}
             </div>
 
             {/* Tree View */}

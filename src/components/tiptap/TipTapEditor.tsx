@@ -631,24 +631,25 @@ export function TipTapEditor({
                     return;
                   }
 
-                  // Initialize mermaid if not already done
-                  if (!(window as any).__mermaidInitialized) {
+                  // Initialize mermaid with suppressErrors if not already done
+                  if (!(window as any).__mermaidSuppressErrorsApplied) {
                     try {
-                      mermaid.initialize({
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (mermaid.initialize as any)({
                         startOnLoad: false,
                         theme: 'default',
                         securityLevel: 'loose',
+                        suppressErrorRendering: true,
                         flowchart: {
                           useMaxWidth: true,
                           htmlLabels: true,
                           curve: 'basis',
                         },
                       });
+                      (window as any).__mermaidSuppressErrorsApplied = true;
                       (window as any).__mermaidInitialized = true;
-                      console.log('✅ [TipTap Mermaid] Mermaid initialized');
                     } catch (initError) {
-                      console.error('❌ [TipTap Mermaid] Failed to initialize mermaid:', initError);
-                      setError('Failed to initialize mermaid');
+                      console.warn('[TipTap Mermaid] Failed to initialize mermaid:', initError);
                       setSvg('');
                       return;
                     }
@@ -685,9 +686,7 @@ export function TipTapEditor({
                     setSvg('');
                   }
                 } catch (err) {
-                  console.error('❌ [TipTap Mermaid] Render error:', err);
-                  console.error('❌ [TipTap Mermaid] Failed code:', code);
-                  setError(err instanceof Error ? err.message : 'Failed to render diagram');
+                  console.warn('[TipTap Mermaid] Render error (hidden from UI):', err);
                   setSvg('');
                 }
               };
@@ -697,16 +696,7 @@ export function TipTapEditor({
 
             return (
               <NodeViewWrapper className="mermaid-node" style={{ margin: '20px 0', maxWidth: '100%', overflow: 'auto' }}>
-                {error ? (
-                  <div style={{ padding: '10px', border: '1px solid #ff9800', borderRadius: '4px', background: '#fff3e0', maxWidth: '100%' }}>
-                    <div style={{ fontSize: '12px', color: '#e65100', marginBottom: '8px' }}>
-                      <strong>⚠️ Diagram rendering failed:</strong> {error}
-                    </div>
-                    <pre style={{ margin: 0, fontSize: '11px', overflowX: 'auto', wordBreak: 'break-word', whiteSpace: 'pre-wrap', color: '#333' }}>
-                      {code}
-                    </pre>
-                  </div>
-                ) : svg ? (
+                {svg ? (
                   <>
                     <style>{`
                       .mermaid-node svg {
@@ -720,12 +710,7 @@ export function TipTapEditor({
                       style={{ maxWidth: '100%', width: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center' }}
                     />
                   </>
-                ) : (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                    <div style={{ fontSize: '14px', marginBottom: '8px' }}>Loading diagram...</div>
-                    <div style={{ fontSize: '12px', color: '#999' }}>Code: {code.substring(0, 50)}...</div>
-                  </div>
-                )}
+                ) : null}
               </NodeViewWrapper>
             );
           });

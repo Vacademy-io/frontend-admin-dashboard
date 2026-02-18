@@ -12,15 +12,13 @@ import {
     Play,
     ChevronLeft,
     ChevronRight,
-    Edit2,
-    Save,
 } from 'lucide-react';
 import { SlideGeneration, SlideType, QuizQuestion } from '../../../shared/types';
 import { YooptaEditorWrapperSafe as YooptaEditorWrapper } from '../../../shared/components';
 import Editor from '@monaco-editor/react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { MyButton } from '@/components/design-system/button';
+
 import { isYouTubeUrl, getYouTubeEmbedUrl } from '../../../shared/utils/youtube';
 
 interface ContentEditorPanelProps {
@@ -48,7 +46,7 @@ export const ContentEditorPanel: React.FC<ContentEditorPanelProps> = ({
     const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>(DEFAULT_QUIZ_QUESTIONS);
     const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
     const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing] = useState(true);
 
     // Initialize content when slide changes
     useEffect(() => {
@@ -92,7 +90,7 @@ export const ContentEditorPanel: React.FC<ContentEditorPanelProps> = ({
             }
             setCurrentQuizIndex(0);
         }
-        setIsEditing(false);
+        setIsEditing(true);
     }, [slide?.id, slide?.content]);
 
     const handleSave = () => {
@@ -229,23 +227,6 @@ export const ContentEditorPanel: React.FC<ContentEditorPanelProps> = ({
                             {slide.slideTitle}
                         </h3>
                     </div>
-                    <div className="flex items-center gap-2">
-                        {isEditing ? (
-                            <MyButton buttonType="primary" scale="small" onClick={handleSave}>
-                                <Save className="mr-1 size-3.5" />
-                                Save
-                            </MyButton>
-                        ) : (
-                            <MyButton
-                                buttonType="secondary"
-                                scale="small"
-                                onClick={() => setIsEditing(true)}
-                            >
-                                <Edit2 className="mr-1 size-3.5" />
-                                Edit
-                            </MyButton>
-                        )}
-                    </div>
                 </div>
             </div>
 
@@ -255,25 +236,25 @@ export const ContentEditorPanel: React.FC<ContentEditorPanelProps> = ({
                 {(slide.slideType === 'doc' ||
                     slide.slideType === 'objectives' ||
                     slide.slideType === 'topic') && (
-                    <div className="h-full overflow-y-auto">
-                        {isEditing ? (
-                            <div className="h-full">
-                                <YooptaEditorWrapper
-                                    value={documentContent}
-                                    onChange={(content) => setDocumentContent(content)}
-                                    className="h-full"
+                        <div className="h-full overflow-y-auto">
+                            {isEditing ? (
+                                <div className="h-full">
+                                    <YooptaEditorWrapper
+                                        value={documentContent}
+                                        onChange={(content) => setDocumentContent(content)}
+                                        className="h-full"
+                                    />
+                                </div>
+                            ) : (
+                                <div
+                                    className="prose prose-sm max-w-none p-3 sm:p-6"
+                                    dangerouslySetInnerHTML={{
+                                        __html: documentContent || '<p>No content available</p>',
+                                    }}
                                 />
-                            </div>
-                        ) : (
-                            <div
-                                className="prose prose-sm max-w-none p-3 sm:p-6"
-                                dangerouslySetInnerHTML={{
-                                    __html: documentContent || '<p>No content available</p>',
-                                }}
-                            />
-                        )}
-                    </div>
-                )}
+                            )}
+                        </div>
+                    )}
 
                 {/* Video Content */}
                 {(slide.slideType === 'video' || slide.slideType === 'ai-video') && (
@@ -307,118 +288,118 @@ export const ContentEditorPanel: React.FC<ContentEditorPanelProps> = ({
                     slide.slideType === 'solution' ||
                     slide.slideType === 'video-code' ||
                     slide.slideType === 'ai-video-code') && (
-                    <div className="h-full">
-                        <Editor
-                            height="100%"
-                            defaultLanguage="javascript"
-                            value={codeContent}
-                            onChange={(value) => setCodeContent(value || '')}
-                            theme="vs-dark"
-                            options={{
-                                readOnly: !isEditing,
-                                minimap: { enabled: false },
-                                fontSize: 13,
-                                lineNumbers: 'on',
-                                scrollBeyondLastLine: false,
-                                wordWrap: 'on',
-                            }}
-                        />
-                    </div>
-                )}
+                        <div className="h-full">
+                            <Editor
+                                height="100%"
+                                defaultLanguage="javascript"
+                                value={codeContent}
+                                onChange={(value) => setCodeContent(value || '')}
+                                theme="vs-dark"
+                                options={{
+                                    readOnly: !isEditing,
+                                    minimap: { enabled: false },
+                                    fontSize: 13,
+                                    lineNumbers: 'on',
+                                    scrollBeyondLastLine: false,
+                                    wordWrap: 'on',
+                                }}
+                            />
+                        </div>
+                    )}
 
                 {/* Quiz Content */}
                 {(slide.slideType === 'quiz' ||
                     slide.slideType === 'assessment' ||
                     slide.slideType === 'ASSESSMENT') && (
-                    <div className="h-full overflow-y-auto p-3 sm:p-6">
-                        {quizQuestions.length > 0 && quizQuestions[currentQuizIndex] && (
-                            <div className="mx-auto max-w-2xl">
-                                {/* Question Navigation */}
-                                <div className="mb-6 flex items-center justify-between">
-                                    <span className="text-sm font-medium text-neutral-600">
-                                        Question {currentQuizIndex + 1} of {quizQuestions.length}
-                                    </span>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() =>
-                                                setCurrentQuizIndex(
-                                                    Math.max(0, currentQuizIndex - 1)
-                                                )
-                                            }
-                                            disabled={currentQuizIndex === 0}
-                                            className="rounded p-1 hover:bg-neutral-100 disabled:opacity-50"
-                                        >
-                                            <ChevronLeft className="size-5" />
-                                        </button>
-                                        <button
-                                            onClick={() =>
-                                                setCurrentQuizIndex(
-                                                    Math.min(
-                                                        quizQuestions.length - 1,
-                                                        currentQuizIndex + 1
+                        <div className="h-full overflow-y-auto p-3 sm:p-6">
+                            {quizQuestions.length > 0 && quizQuestions[currentQuizIndex] && (
+                                <div className="mx-auto max-w-2xl">
+                                    {/* Question Navigation */}
+                                    <div className="mb-6 flex items-center justify-between">
+                                        <span className="text-sm font-medium text-neutral-600">
+                                            Question {currentQuizIndex + 1} of {quizQuestions.length}
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() =>
+                                                    setCurrentQuizIndex(
+                                                        Math.max(0, currentQuizIndex - 1)
                                                     )
-                                                )
-                                            }
-                                            disabled={currentQuizIndex === quizQuestions.length - 1}
-                                            className="rounded p-1 hover:bg-neutral-100 disabled:opacity-50"
-                                        >
-                                            <ChevronRight className="size-5" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Question */}
-                                <div className="mb-4 rounded-lg bg-neutral-50 p-4 sm:mb-6 sm:p-6">
-                                    <h4 className="mb-4 text-lg font-medium text-neutral-900">
-                                        {quizQuestions[currentQuizIndex]?.question}
-                                    </h4>
-                                    <RadioGroup
-                                        value={selectedAnswers[currentQuizIndex] || ''}
-                                        onValueChange={(value) =>
-                                            setSelectedAnswers((prev) => ({
-                                                ...prev,
-                                                [currentQuizIndex]: value,
-                                            }))
-                                        }
-                                        disabled={!isEditing}
-                                    >
-                                        <div className="space-y-3">
-                                            {quizQuestions[currentQuizIndex]?.options?.map(
-                                                (option, optionIndex) => (
-                                                    <div
-                                                        key={optionIndex}
-                                                        className="flex items-center space-x-3"
-                                                    >
-                                                        <RadioGroupItem
-                                                            value={optionIndex.toString()}
-                                                            id={`option-${optionIndex}`}
-                                                        />
-                                                        <Label
-                                                            htmlFor={`option-${optionIndex}`}
-                                                            className="cursor-pointer text-sm text-neutral-700"
-                                                        >
-                                                            {option}
-                                                        </Label>
-                                                    </div>
-                                                )
-                                            )}
+                                                }
+                                                disabled={currentQuizIndex === 0}
+                                                className="rounded p-1 hover:bg-neutral-100 disabled:opacity-50"
+                                            >
+                                                <ChevronLeft className="size-5" />
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    setCurrentQuizIndex(
+                                                        Math.min(
+                                                            quizQuestions.length - 1,
+                                                            currentQuizIndex + 1
+                                                        )
+                                                    )
+                                                }
+                                                disabled={currentQuizIndex === quizQuestions.length - 1}
+                                                className="rounded p-1 hover:bg-neutral-100 disabled:opacity-50"
+                                            >
+                                                <ChevronRight className="size-5" />
+                                            </button>
                                         </div>
-                                    </RadioGroup>
-                                </div>
-
-                                {/* Explanation */}
-                                {quizQuestions[currentQuizIndex]?.explanation && (
-                                    <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                                        <p className="text-sm text-green-800">
-                                            <span className="font-medium">Explanation: </span>
-                                            {quizQuestions[currentQuizIndex]?.explanation}
-                                        </p>
                                     </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )}
+
+                                    {/* Question */}
+                                    <div className="mb-4 rounded-lg bg-neutral-50 p-4 sm:mb-6 sm:p-6">
+                                        <h4 className="mb-4 text-lg font-medium text-neutral-900">
+                                            {quizQuestions[currentQuizIndex]?.question}
+                                        </h4>
+                                        <RadioGroup
+                                            value={selectedAnswers[currentQuizIndex] || ''}
+                                            onValueChange={(value) =>
+                                                setSelectedAnswers((prev) => ({
+                                                    ...prev,
+                                                    [currentQuizIndex]: value,
+                                                }))
+                                            }
+                                            disabled={!isEditing}
+                                        >
+                                            <div className="space-y-3">
+                                                {quizQuestions[currentQuizIndex]?.options?.map(
+                                                    (option, optionIndex) => (
+                                                        <div
+                                                            key={optionIndex}
+                                                            className="flex items-center space-x-3"
+                                                        >
+                                                            <RadioGroupItem
+                                                                value={optionIndex.toString()}
+                                                                id={`option-${optionIndex}`}
+                                                            />
+                                                            <Label
+                                                                htmlFor={`option-${optionIndex}`}
+                                                                className="cursor-pointer text-sm text-neutral-700"
+                                                            >
+                                                                {option}
+                                                            </Label>
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
+                                        </RadioGroup>
+                                    </div>
+
+                                    {/* Explanation */}
+                                    {quizQuestions[currentQuizIndex]?.explanation && (
+                                        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                                            <p className="text-sm text-green-800">
+                                                <span className="font-medium">Explanation: </span>
+                                                {quizQuestions[currentQuizIndex]?.explanation}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                 {/* Homework/Assignment Content */}
                 {(slide.slideType === 'homework' || slide.slideType === 'assignment') && (
