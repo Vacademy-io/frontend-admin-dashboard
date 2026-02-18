@@ -300,6 +300,21 @@ export const SlideMaterial = ({
                     }
                 });
 
+                // Unwrap anchors from divs to ensure they are recognized (especially for File blocks)
+                const anchors = doc.body.querySelectorAll('a');
+                anchors.forEach((anchor) => {
+                    const parent = anchor.parentElement;
+                    if (parent && parent.tagName === 'DIV') {
+                        const fragment = document.createDocumentFragment();
+                        while (parent.firstChild) {
+                            fragment.appendChild(parent.firstChild);
+                        }
+                        if (parent.parentNode) {
+                            parent.parentNode.replaceChild(fragment, parent);
+                        }
+                    }
+                });
+
                 contentForDeserialization = doc.body.innerHTML.trim();
 
                 // Recursively unwrap divs until we get to actual content
@@ -333,8 +348,8 @@ export const SlideMaterial = ({
 
         const processNode = (node: any): any => {
             const newNode = { ...node };
-            // Check if node is Embed or Video type (checking both capitalized and lowercase just in case)
-            if (['Embed', 'Video', 'embed', 'video'].includes(newNode.type)) {
+            // Check if node is Embed, Video, File, or Link type
+            if (['Embed', 'Video', 'File', 'Link', 'embed', 'video', 'file', 'link'].includes(newNode.type)) {
                 if (!newNode.data) {
                     newNode.data = { url: '', src: '' };
                 }
@@ -348,6 +363,49 @@ export const SlideMaterial = ({
                 // Fallbacks
                 if (newNode.data.url === undefined) newNode.data.url = '';
                 if (newNode.data.src === undefined) newNode.data.src = '';
+
+                // For File blocks, ensure name is present and clean
+                if (['File', 'file'].includes(newNode.type)) {
+                    let name = newNode.data.name;
+
+                    // 1. If name is missing, try to extract from src/url
+                    if (!name) {
+                        const src = newNode.data.src || newNode.data.url;
+                        if (src) {
+                            try {
+                                const urlObj = new URL(src);
+                                const parts = urlObj.pathname.split('/');
+                                name = parts[parts.length - 1];
+                            } catch (e) {
+                                // If not a valid URL, try simple split
+                                const parts = src.split('/');
+                                name = parts[parts.length - 1];
+                            }
+                        }
+                        if (!name) {
+                            name = 'Attachment';
+                        }
+                    }
+
+                    // 2. Clean up the name
+                    if (name && typeof name === 'string') {
+                        // Decode URI components (e.g. %20 -> space)
+                        try {
+                            name = decodeURIComponent(name);
+                        } catch (e) {
+                            // ignore error
+                        }
+
+                        // Remove common MIME type suffixes that might be appended (e.g. .application/pdf)
+                        // This regex matches .type/subtype at the end of the string
+                        name = name.replace(/\.(application|image|text|video|audio|font|model)\/[\w\.\-\+]+$/, '');
+
+                        // Also remove generated timestamp prefixes if customary (optional, based on observation)
+                        // name = name.replace(/^\d+-/, '');
+
+                        newNode.data.name = name;
+                    }
+                }
             }
 
             if (newNode.children && Array.isArray(newNode.children)) {
@@ -356,7 +414,7 @@ export const SlideMaterial = ({
             return newNode;
         };
 
-        // Sanitize nodes to ensure mandatory properties (like url for Embed/Video) exist to prevent crashes
+        // Sanitize nodes to ensure mandatory properties (like url for Embed/Video/File) exist to prevent crashes
         const sanitizeNodes = (content: any): any => {
             // Handle Yoopta Map structure (Record<string, Block>)
             if (content && typeof content === 'object' && !Array.isArray(content)) {
@@ -2402,8 +2460,7 @@ export const SlideMaterial = ({
                                                     addUpdateAudioSlide,
                                                     SaveDraft,
                                                     playerRef
-                                                );
-                                            }
+                                                );                                            }
                                         }}
                                     />
                                 )}
