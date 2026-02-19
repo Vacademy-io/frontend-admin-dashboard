@@ -208,8 +208,9 @@ function RouteComponent() {
 
     // Set default level when levels are loaded
     useEffect(() => {
-        if (instituteLevels.length > 0 && !skillLevel) {
-            setSkillLevel(instituteLevels[0].id);
+        const firstLevel = instituteLevels[0];
+        if (firstLevel && !skillLevel) {
+            setSkillLevel(firstLevel.id);
         }
     }, [instituteLevels, skillLevel]);
 
