@@ -43,6 +43,15 @@ export interface LiveSession {
     allow_rewind?: boolean | null;
     allow_play_pause?: boolean | null;
     timezone?: string; // Changed from time_zone to timezone to match API response
+    default_class_link?: string | null;
+    defaultClassName?: string | null;
+    learner_button_config?: {
+        text: string;
+        url: string;
+        background_color: string;
+        text_color: string;
+        visible: boolean;
+    } | null;
 }
 
 export const createLiveSessionStep1 = async (data: LiveSessionStep1RequestDTO) => {

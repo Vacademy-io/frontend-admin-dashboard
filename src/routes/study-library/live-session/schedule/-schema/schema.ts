@@ -54,6 +54,7 @@ export const weeklyClassSchema = z.object({
     isSelect: z.boolean(),
     // Day-level configurations (shared across all sessions on this day)
     default_class_link: z.string().url('Invalid URL').optional().or(z.literal('')).nullable(),
+    default_class_name: z.string().max(100, 'Class name must be 100 characters or less').optional().nullable(),
     learner_button_config: learnerButtonConfigSchema,
     sessions: z.array(sessionDetailsSchema),
 });
@@ -92,6 +93,7 @@ export const sessionFormSchema = z
         defaultLink: z.string({ required_error: 'Live class link is required' }).url('Invalid URL'),
         meetingType: z.nativeEnum(RecurringType),
         recurringSchedule: z.array(weeklyClassSchema).optional(),
+        learner_button_config: learnerButtonConfigSchema,
     })
     .superRefine((data, ctx) => {
         // Validate total duration is greater than zero

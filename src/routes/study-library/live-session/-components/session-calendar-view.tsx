@@ -34,6 +34,7 @@ interface Session {
     status?: 'live' | 'upcoming' | 'past';
     startDate?: Date;
     default_class_link?: string | null;
+    defaultClassName?: string | null;
     learner_button_config?: {
         text: string;
         url: string;
@@ -236,38 +237,76 @@ export function SessionCalendarView({ schedules }: SessionCalendarViewProps) {
                         {selectedDate && (() => {
                             const sessions = getSessionsForDate(selectedDate);
                             const defaultLink = sessions[0]?.default_class_link;
+                            const defaultClassName = sessions[0]?.defaultClassName;
                             const learnerButton = sessions[0]?.learner_button_config;
 
                             if (defaultLink || learnerButton) {
                                 return (
-                                    <div className="rounded-md border bg-muted/20 p-3 space-y-2 mb-4">
-                                        {defaultLink && (
-                                            <div className="text-sm">
-                                                <span className="font-semibold text-muted-foreground">Default Link: </span>
-                                                <a
-                                                    href={defaultLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:underline break-all"
-                                                >
-                                                    {defaultLink}
-                                                </a>
+                                    <div className="rounded-lg border border-blue-100 bg-gradient-to-br from-blue-50/50 to-white p-4 shadow-sm mb-4">
+                                        <div className="mb-2 flex items-center gap-2">
+                                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-500 shadow-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                </svg>
                                             </div>
-                                        )}
-                                        {learnerButton && learnerButton.visible && (
-                                            <div className="text-sm">
-                                                <span className="font-semibold text-muted-foreground">Custom Button: </span>
-                                                <span
-                                                    style={{
-                                                        backgroundColor: learnerButton.background_color,
-                                                        color: learnerButton.text_color,
-                                                    }}
-                                                    className="inline-block px-2 py-0.5 rounded text-xs font-medium ml-1"
-                                                >
-                                                    {learnerButton.text}
-                                                </span>
-                                            </div>
-                                        )}
+                                            <h5 className="text-sm font-semibold text-gray-900">Default Class Information</h5>
+                                        </div>
+                                        <div className="space-y-2.5 text-sm">
+                                            {defaultClassName && (
+                                                <div className="flex items-start gap-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                    </svg>
+                                                    <div className="flex-1">
+                                                        <span className="font-medium text-gray-700">Class Name: </span>
+                                                        <span className="font-semibold text-gray-900">{defaultClassName}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {defaultLink && (
+                                                <div className="flex items-start gap-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                    </svg>
+                                                    <div className="flex-1">
+                                                        <span className="font-medium text-gray-700">Link: </span>
+                                                        <a
+                                                            href={defaultLink}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700 hover:underline break-all"
+                                                        >
+                                                            {defaultLink}
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                            </svg>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {learnerButton && learnerButton.visible && (
+                                                <div className="flex items-start gap-2 pt-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                                                    </svg>
+                                                    <div className="flex-1">
+                                                        <span className="font-medium text-gray-700">Custom Button: </span>
+                                                        <span
+                                                            style={{
+                                                                backgroundColor: learnerButton.background_color,
+                                                                color: learnerButton.text_color,
+                                                            }}
+                                                            className="inline-block rounded-md px-2.5 py-1 text-xs font-semibold shadow-sm"
+                                                        >
+                                                            {learnerButton.text}
+                                                        </span>
+                                                        <span className="ml-2 text-xs text-gray-600 break-all">
+                                                            → {learnerButton.url}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             }

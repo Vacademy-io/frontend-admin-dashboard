@@ -25,6 +25,15 @@ export interface LiveSession {
     registration_form_link_for_public_sessions: string;
     allow_rewind?: boolean | null;
     timezone?: string;
+    default_class_link?: string | null;
+    default_class_name?: string | null;
+    learner_button_config?: {
+        text: string;
+        url: string;
+        background_color: string;
+        text_color: string;
+        visible: boolean;
+    } | null;
 }
 
 export interface SessionsByDate {
@@ -102,6 +111,7 @@ export interface Schedule {
         thumbnailFileId: string;
         countAttendanceDaily: boolean;
         default_class_link?: string | null;
+        default_class_name?: string | null;
         learner_button_config?: {
             text: string;
             url: string;
@@ -360,6 +370,15 @@ export interface SessionSearchResponseItem {
     meeting_link: string;
     registration_form_link_for_public_sessions: string | null;
     timezone: string;
+    default_class_link?: string | null;
+    default_class_name?: string | null;
+    learner_button_config?: {
+        text: string;
+        url: string;
+        background_color: string;
+        text_color: string;
+        visible: boolean;
+    } | null;
 }
 
 export interface PaginationMetadata {

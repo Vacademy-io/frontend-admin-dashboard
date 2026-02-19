@@ -647,6 +647,9 @@ export default function SessionListPage() {
                                 registration_form_link_for_public_sessions:
                                     session.registration_form_link_for_public_sessions || '',
                                 timezone: session.timezone,
+                                default_class_link: session.default_class_link,
+                                defaultClassName: session.default_class_name,
+                                learner_button_config: session.learner_button_config,
                             };
 
                             if (selectedTab === SessionStatus.PAST) {
