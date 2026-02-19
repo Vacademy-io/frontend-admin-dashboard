@@ -47,3 +47,9 @@ yarn-error.log*
 
 # Logs
 npm-debug.log*
+
+# IDE settings
+.vscode/
+
+# Sample SCORM files
+sample_scorm/

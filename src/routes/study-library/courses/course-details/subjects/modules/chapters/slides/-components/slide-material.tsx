@@ -62,6 +62,7 @@ import {
     type DisplaySettingsData,
 } from '@/types/display-settings';
 import { processHtmlImages, containsBase64Images, getBase64ImagesSize } from '@/utils/image-processing';
+import ScormSlidePreview from './scorm-slide-preview';
 
 
 export const SlideMaterial = ({
@@ -134,7 +135,7 @@ export const SlideMaterial = ({
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { setOpen: setSidebarOpen } = useSidebar();
-    const { addUpdateDocumentSlide, addUpdateQuizSlide, addUpdateAudioSlide } = useSlidesMutations(
+    const { addUpdateDocumentSlide, addUpdateQuizSlide, addUpdateAudioSlide, addUpdateScormSlide } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -1577,6 +1578,12 @@ export const SlideMaterial = ({
             return;
         }
 
+        // Handle SCORM slides
+        if (activeItem.source_type?.toUpperCase() === 'SCORM') {
+            setContent(<ScormSlidePreview activeItem={activeItem} isLearnerView={isLearnerView} />);
+            return;
+        }
+
         // Fallback
         setContent(
             <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
@@ -1764,6 +1771,32 @@ export const SlideMaterial = ({
                 } catch (error) {
                     console.error('Error saving audio slide:', error);
                     toast.error('Error saving audio slide');
+                }
+                return;
+            }
+
+            // Handle SCORM slides
+            if (activeItem?.source_type === 'SCORM') {
+                if (!activeItem.scorm_slide) {
+                    toast.error('SCORM slide data is missing');
+                    return;
+                }
+                try {
+                    await addUpdateScormSlide({
+                        id: activeItem.id,
+                        title: activeItem.title,
+                        description: activeItem.description || null,
+                        status: status as 'DRAFT' | 'PUBLISHED',
+                        slide_order: activeItem.slide_order,
+                        new_slide: false,
+                        scorm_slide: {
+                            id: activeItem.scorm_slide.id,
+                        },
+                    });
+                    toast.success('SCORM slide saved successfully!');
+                } catch (error) {
+                    console.error('Error saving SCORM slide:', error);
+                    toast.error('Error saving SCORM slide');
                 }
                 return;
             }
