@@ -41,6 +41,8 @@ export interface LiveSessionStep1RequestDTO {
     session_streaming_service_type?: string;
     cover_file_id?: string | null;
     time_zone?: string;
+    learner_button_config?: LearnerButtonConfig | null;
+    update_recurrence_scope?: 'ONLY_THIS' | 'ALL_FUTURE' | null;
 }
 
 export interface LearnerButtonConfig {
@@ -60,6 +62,7 @@ interface ScheduleDTO {
     thumbnail_file_id?: string;
     daily_attendance?: boolean;
     default_class_link?: string | null;
+    default_class_name?: string | null;
     learner_button_config?: LearnerButtonConfig | null;
 }
 
@@ -123,7 +126,8 @@ export function transformFormToDTOStep1(
     originalSchedules: WeeklyClass[] = [],
     musicFileId: string | undefined,
     thumbnailFileId: string | undefined,
-    coverFileId: string | undefined | null
+    coverFileId: string | undefined | null,
+    updateRecurrenceScope?: 'ONLY_THIS' | 'ALL_FUTURE' | null,
 ): LiveSessionStep1RequestDTO {
     const {
         id: sessionId,
@@ -144,6 +148,7 @@ export function transformFormToDTOStep1(
         allowRewind,
         allowPause,
         timeZone,
+        learner_button_config,
     } = form;
 
     // Convert hours and minutes to total duration in hours
@@ -203,6 +208,7 @@ export function transformFormToDTOStep1(
                                 thumbnail_file_id: session.thumbnailFileId || '',
                                 daily_attendance: session.countAttendanceDaily || false,
                                 default_class_link: dayBlock.default_class_link || null, // From day level
+                                default_class_name: dayBlock.default_class_name || null, // From day level
                                 learner_button_config: dayBlock.learner_button_config || null, // From day level
                             };
 
@@ -224,6 +230,7 @@ export function transformFormToDTOStep1(
                             thumbnail_file_id: session.thumbnailFileId || '',
                             daily_attendance: session.countAttendanceDaily || false,
                             default_class_link: dayBlock.default_class_link || null, // From day level
+                            default_class_name: dayBlock.default_class_name || null, // From day level
                             learner_button_config: dayBlock.learner_button_config || null, // From day level
                         };
                         added_schedules.push(baseSchedule);
@@ -266,6 +273,8 @@ export function transformFormToDTOStep1(
         session_streaming_service_type: streamingType,
         cover_file_id: coverFileId,
         time_zone: timeZone,
+        learner_button_config: learner_button_config || null,
+        update_recurrence_scope: updateRecurrenceScope || null,
     };
 }
 
