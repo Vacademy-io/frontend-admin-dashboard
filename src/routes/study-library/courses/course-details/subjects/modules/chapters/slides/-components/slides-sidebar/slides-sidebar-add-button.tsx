@@ -14,6 +14,7 @@ import {
     Code,
     BookOpen,
     MusicNotes,
+    Package,
 } from '@phosphor-icons/react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { AddVideoDialog } from './add-video-dialog';
@@ -22,6 +23,7 @@ import { AddDocDialog } from './add-doc-dialog';
 import { AddPdfDialog } from './add-pdf-dialog';
 import { AddPptDialog } from './add-ppt-dialog';
 import { AddAudioDialog } from './add-audio-dialog';
+import { AddScormDialog } from './add-scorm-dialog';
 import { useRouter } from '@tanstack/react-router';
 import {
     useSlidesMutations,
@@ -108,6 +110,7 @@ export const ChapterSidebarAddButton = () => {
         isQuestionDialogOpen,
         isAudioDialogOpen,
         isPptDialogOpen,
+        isScormDialogOpen,
 
         openPdfDialog,
         closePdfDialog,
@@ -123,6 +126,8 @@ export const ChapterSidebarAddButton = () => {
         closeAudioDialog,
         openPptDialog,
         closePptDialog,
+        openScormDialog,
+        closeScormDialog,
     } = useDialogStore();
 
     // Function to reorder slides after adding a new one at the top
@@ -260,6 +265,12 @@ export const ChapterSidebarAddButton = () => {
                 icon: <Code className="size-4 text-green-500" />,
                 description: 'Interactive code environment',
             },
+            {
+                label: 'SCORM Package',
+                value: 'scorm',
+                icon: <Package className="size-4 text-teal-500" />,
+                description: 'Import SCORM 1.2/2004 modules',
+            },
         ],
         []
     );
@@ -294,6 +305,8 @@ export const ChapterSidebarAddButton = () => {
                     return ct.codeEditor !== false;
                 case 'audio':
                     return true; // Audio slides are enabled by default
+                case 'scorm':
+                    return true; // SCORM slides are enabled by default
                 // presentation treated as a document-type control
                 case 'presentation':
                     return ct.document !== false;
@@ -644,6 +657,10 @@ export const ChapterSidebarAddButton = () => {
             case 'audio':
                 openAudioDialog();
                 break;
+
+            case 'scorm':
+                openScormDialog();
+                break;
         }
     };
 
@@ -805,6 +822,18 @@ export const ChapterSidebarAddButton = () => {
             >
                 <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddPptDialog openState={(open) => !open && closePptDialog()} />
+                </div>
+            </MyDialog>
+
+            <MyDialog
+                trigger={<></>}
+                heading="Import SCORM Package"
+                dialogWidth="min-w-[400px] w-auto"
+                open={isScormDialogOpen}
+                onOpenChange={closeScormDialog}
+            >
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
+                    <AddScormDialog openState={(open) => !open && closeScormDialog()} />
                 </div>
             </MyDialog>
         </div>

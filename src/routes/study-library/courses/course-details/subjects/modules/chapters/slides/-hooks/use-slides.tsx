@@ -9,6 +9,7 @@ import {
     ADD_UPDATE_QUIZ_SLIDE,
     ADD_UPDATE_ASSIGNMENT_SLIDE,
     ADD_UPDATE_AUDIO_SLIDE,
+    SCORM_ADD_OR_UPDATE,
     UPDATE_SLIDE_STATUS,
     UPDATE_SLIDE_ORDER,
     UPDATE_QUESTION_ORDER,
@@ -154,6 +155,15 @@ export interface AudioSlide {
     transcript?: string;
 }
 
+// SCORM slide interface
+export interface ScormSlide {
+    id: string;
+    original_file_id?: string;
+    launch_path?: string;
+    launch_url?: string; // media file metadata UUID for the launch file
+    scorm_version?: string;
+}
+
 // Main slide interface
 export interface Slide {
     id: string;
@@ -170,6 +180,7 @@ export interface Slide {
     assignment_slide?: AssignmentSlide | null;
     quiz_slide?: QuizSlide | null;
     audio_slide?: AudioSlide | null;
+    scorm_slide?: ScormSlide | null;
     is_loaded: boolean;
     new_slide: boolean;
     // Split-screen mode properties (frontend only)
@@ -366,6 +377,18 @@ export interface AudioSlidePayload {
         source_type: 'FILE' | 'URL';
         external_url?: string | null;
         transcript?: string | null;
+    };
+}
+
+export interface ScormSlidePayload {
+    id?: string | null;
+    title: string;
+    description?: string | null;
+    status: 'DRAFT' | 'PUBLISHED';
+    slide_order?: number | null;
+    new_slide: boolean;
+    scorm_slide: {
+        id: string; // The ScormSlide id returned from upload
     };
 }
 
@@ -637,6 +660,31 @@ export const useSlidesMutations = (
         },
     });
 
+    const addUpdateScormSlideMutation = useMutation({
+        mutationFn: async (payload: ScormSlidePayload) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${SCORM_ADD_OR_UPDATE}?chapterId=${chapterId}&moduleId=${moduleId}&subjectId=${subjectId}&packageSessionId=${packageSessionId}&instituteId=${INSTITUTE_ID}`,
+                payload
+            );
+            return { data: response.data, isNewSlide: payload.new_slide };
+        },
+        onSuccess: async (result) => {
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            if (result.isNewSlide) {
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000);
+            }
+        },
+    });
+
     const updateSlideStatus = useMutation({
         mutationFn: async ({ chapterId, slideId, status, instituteId }: UpdateStatusParams) => {
             return await authenticatedAxiosInstance.put(
@@ -735,6 +783,8 @@ export const useSlidesMutations = (
             addUpdateAssignmentSlideMutation.mutateAsync(payload).then((result) => result.data),
         addUpdateAudioSlide: (payload: AudioSlidePayload) =>
             addUpdateAudioSlideMutation.mutateAsync(payload).then((result) => result.data),
+        addUpdateScormSlide: (payload: ScormSlidePayload) =>
+            addUpdateScormSlideMutation.mutateAsync(payload).then((result) => result.data),
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,
         updateQuestionOrder: (payload: SlideQuestionsDataInterface) =>
@@ -748,6 +798,7 @@ export const useSlidesMutations = (
             addUpdateQuizSlideMutation.isPending ||
             addUpdateAssignmentSlideMutation.isPending ||
             addUpdateAudioSlideMutation.isPending ||
+            addUpdateScormSlideMutation.isPending ||
             updateSlideOrderMutation.isPending ||
             updateQuestionSlideMutation.isPending ||
             updateAssignmentSlideMutation.isPending,

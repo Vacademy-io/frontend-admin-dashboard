@@ -25,6 +25,7 @@ import {
     File,
     GameController,
     MusicNotes,
+    Package,
     Question,
 } from '@phosphor-icons/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -55,6 +56,11 @@ const getSlideTypeDisplay = (slide: Slide): string => {
     if (sourceType === 'VIDEO' && slide.video_slide?.embedded_type) {
         const embedded = slide.video_slide.embedded_type ?? '';
         return `${sourceType.toLowerCase().replace('_', ' ')} - ${embedded.toLowerCase().replace('_', ' ')}`;
+    }
+
+    // For SCORM slides
+    if (sourceType === 'SCORM') {
+        return 'SCORM';
     }
 
     // For all other cases, show the main source_type
@@ -97,7 +103,11 @@ export const getIcon = (
             ? 'QUESTION'
             : source_type === 'VIDEO'
               ? 'VIDEO'
-              : source_type === 'DOCUMENT' && document_slide_type;
+              : source_type === 'AUDIO'
+                ? 'AUDIO'
+                : source_type === 'SCORM'
+                  ? 'SCORM'
+                  : source_type === 'DOCUMENT' && document_slide_type;
 
     switch (type) {
         case 'PDF':
@@ -119,6 +129,8 @@ export const getIcon = (
             return <FileDoc className={`${iconClass} text-orange-500`} />;
         case 'AUDIO':
             return <MusicNotes className={`${iconClass} text-indigo-500`} />;
+        case 'SCORM':
+            return <Package className={`${iconClass} text-teal-500`} />;
         default:
             return <></>;
     }
@@ -146,6 +158,7 @@ const SlideItem = ({
             (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
             (slide.source_type === 'QUIZ' && slide.title) || // Always use slide.title for QUIZ
             (slide.source_type === 'AUDIO' && slide?.title) ||
+            (slide.source_type === 'SCORM' && slide?.title) ||
             'Untitled'
         );
     };
