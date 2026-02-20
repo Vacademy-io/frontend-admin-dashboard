@@ -110,6 +110,7 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
         overviewTab: true,
         testTab: true,
         progressTab: true,
+        coursesTab: true,
         notificationTab: false,
         membershipTab: false,
         paymentHistoryTab: true,

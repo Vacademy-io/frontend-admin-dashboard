@@ -39,6 +39,7 @@ const STUDENT_SIDE_VIEW_DEFAULTS: StudentSideViewSettings = {
     overviewTab: true,
     testTab: true,
     progressTab: true,
+    coursesTab: true,
     notificationTab: false,
     membershipTab: false,
     paymentHistoryTab: true,

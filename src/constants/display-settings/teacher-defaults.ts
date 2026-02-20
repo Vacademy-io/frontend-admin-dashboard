@@ -119,6 +119,7 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
         overviewTab: true,
         testTab: true,
         progressTab: true,
+        coursesTab: true,
         notificationTab: false,
         membershipTab: false,
         paymentHistoryTab: true,

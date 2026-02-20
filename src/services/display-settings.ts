@@ -356,6 +356,7 @@ function mergeDisplayWithDefaults(
         overviewTab: true,
         testTab: true,
         progressTab: true,
+        coursesTab: true,
         notificationTab: false,
         membershipTab: false,
         paymentHistoryTab: true,
@@ -369,6 +370,7 @@ function mergeDisplayWithDefaults(
         overviewTab: incoming?.studentSideView?.overviewTab ?? defStudentSideView.overviewTab,
         testTab: incoming?.studentSideView?.testTab ?? defStudentSideView.testTab,
         progressTab: incoming?.studentSideView?.progressTab ?? defStudentSideView.progressTab,
+        coursesTab: incoming?.studentSideView?.coursesTab ?? defStudentSideView.coursesTab,
         notificationTab:
             incoming?.studentSideView?.notificationTab ?? defStudentSideView.notificationTab,
         membershipTab: incoming?.studentSideView?.membershipTab ?? defStudentSideView.membershipTab,
