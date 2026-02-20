@@ -515,10 +515,11 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                     // 1. Interactive Pause Point: Detect Takeaways/Comparisons
                     // Stop exactly once when entering this segment to force attention
                     const topEntry = active[active.length - 1]; // highest z-index
-                    const needsEngagement = topEntry.html.includes('key-takeaway') || topEntry.html.includes('wrong-right-container');
+                    const topEntryHtml = topEntry?.html || '';
+                    const needsEngagement = topEntryHtml.includes('key-takeaway') || topEntryHtml.includes('wrong-right-container');
 
-                    if (needsEngagement && topEntry.id !== lastEngagedEntryId && isPlayingRef.current) {
-                        setLastEngagedEntryId(topEntry.id || null);
+                    if (needsEngagement && topEntry?.id !== lastEngagedEntryId && isPlayingRef.current) {
+                        setLastEngagedEntryId(topEntry?.id || null);
                         if (audioRef.current) {
                             audioRef.current.pause();
                         }
