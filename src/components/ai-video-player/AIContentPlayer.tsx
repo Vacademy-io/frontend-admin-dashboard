@@ -102,6 +102,11 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
     const [duration, setDuration] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
 
+    // Engagement & Focus state
+    const [isPausedForEngagement, setIsPausedForEngagement] = useState(false);
+    const [lastEngagedEntryId, setLastEngagedEntryId] = useState<string | null>(null);
+    const [isFocusMode, setIsFocusMode] = useState(false);
+
     // User-driven state (for QUIZ, STORYBOOK, etc.)
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAutoplay, setIsAutoplay] = useState(false);
@@ -428,7 +433,7 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
     }, [meta.audio_start_at]);
 
     const handleTimeDrivenPlayPause = useCallback(() => {
-        if (isPlaying) {
+        if (isPlaying || isPausedForEngagement) {
             isPlayingRef.current = false; // Update ref immediately
             if (audioStartedRef.current && audioRef.current) {
                 audioRef.current.pause();
@@ -438,6 +443,16 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                 animationFrameRef.current = null;
             }
             setIsPlaying(false);
+
+            // Resume from engagement pause if that was active
+            if (isPausedForEngagement) {
+                setIsPausedForEngagement(false);
+                setIsPlaying(true);
+                isPlayingRef.current = true;
+                if (audioStartedRef.current && audioRef.current) {
+                    audioRef.current.play().catch(console.error);
+                }
+            }
         } else {
             isPlayingRef.current = true; // Update ref immediately before scheduling animation
             setIsPlaying(true);
@@ -487,6 +502,46 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
             }
 
             setCurrentTime(time);
+
+            // Educational features for Time-Driven Video
+            if (navigationMode === 'time_driven') {
+                const active = entries.filter((entry) => {
+                    const start = entry.inTime ?? entry.start ?? 0;
+                    const end = entry.exitTime ?? entry.end ?? Infinity;
+                    return time >= start && time < end;
+                });
+
+                if (active.length > 0) {
+                    // 1. Interactive Pause Point: Detect Takeaways/Comparisons
+                    // Stop exactly once when entering this segment to force attention
+                    const topEntry = active[active.length - 1]; // highest z-index
+                    const needsEngagement = topEntry.html.includes('key-takeaway') || topEntry.html.includes('wrong-right-container');
+
+                    if (needsEngagement && topEntry.id !== lastEngagedEntryId && isPlayingRef.current) {
+                        setLastEngagedEntryId(topEntry.id || null);
+                        if (audioRef.current) {
+                            audioRef.current.pause();
+                        }
+                        setIsPlaying(false);
+                        isPlayingRef.current = false;
+                        setIsPausedForEngagement(true);
+                    }
+
+                    // 2. Focus Mode: Dynamically adjust speed based on complexity
+                    if (isFocusMode && audioRef.current) {
+                        const hasComplexVisuals = active.some(e =>
+                            e.html.includes('animateSVG') ||
+                            e.html.includes('mermaid') ||
+                            e.html.includes('RoughNotation')
+                        );
+                        // Slow down to 0.75x if complex diagram is drawing, else normal speed
+                        audioRef.current.playbackRate = hasComplexVisuals ? 0.75 : 1.0;
+                    } else if (audioRef.current && audioRef.current.playbackRate !== 1.0) {
+                        // Reset back to normal if focus mode is off
+                        audioRef.current.playbackRate = 1.0;
+                    }
+                }
+            }
         }
     }, [
         meta.audio_start_at,
@@ -496,7 +551,9 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
         currentIndex,
         pageAudioRanges,
         isAutoplay,
-        entries.length,
+        entries,
+        lastEngagedEntryId,
+        isFocusMode,
         handleNext,
         onComplete,
     ]);
@@ -949,6 +1006,44 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                     </div>
                 )}
 
+                {/* Engagement Pause Overlay */}
+                {isPausedForEngagement && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'rgba(0, 0, 0, 0.4)',
+                            backdropFilter: 'blur(4px)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 40,
+                            cursor: 'pointer',
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleTimeDrivenPlayPause();
+                        }}
+                    >
+                        <div style={{
+                            background: '#2563eb',
+                            color: 'white',
+                            padding: '16px 32px',
+                            borderRadius: '50px',
+                            fontSize: '20px',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            boxShadow: '0 8px 32px rgba(37, 99, 235, 0.4)',
+                            transform: 'translateY(100px)',
+                            animation: 'slideUpBounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        }}>
+                            Got it? Click to continue <Play className="size-5" />
+                        </div>
+                    </div>
+                )}
+
                 {/* Captions / Subtitles Display */}
                 {navigationMode === 'time_driven' && wordsUrl && (
                     <CaptionDisplay
@@ -989,27 +1084,60 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
                                 marginBottom: '12px',
                                 cursor: 'pointer',
                                 padding: '4px 0',
+                                position: 'relative',
                             }}
                         >
                             <div
-                                className="progress-bar"
+                                className="progress-bar-container"
                                 style={{
-                                    height: '5px',
-                                    background: 'rgba(255, 255, 255, 0.3)',
-                                    borderRadius: '3px',
-                                    overflow: 'hidden',
+                                    height: '6px',
+                                    display: 'flex',
+                                    gap: '2px', // Separation between concept segments
+                                    width: '100%',
                                 }}
                             >
-                                <div
-                                    className="progress-fill"
-                                    style={{
-                                        width: `${progressPercent}%`,
-                                        height: '100%',
-                                        background: '#ef4444',
-                                        borderRadius: '3px',
-                                        transition: 'width 0.1s ease',
-                                    }}
-                                />
+                                {entries.filter(e => e.end || e.exitTime).map((entry, idx, arr) => {
+                                    const start = entry.inTime ?? entry.start ?? 0;
+                                    const end = entry.exitTime ?? entry.end ?? duration;
+                                    const segmentDuration = end - start;
+                                    if (segmentDuration <= 0 || duration === 0) return null;
+
+                                    const segmentWidth = (segmentDuration / duration) * 100;
+
+                                    // Calculate fill within this specific segment
+                                    let fillWidth = 0;
+                                    if (currentTime > end) {
+                                        fillWidth = 100; // Passed it completely
+                                    } else if (currentTime > start) {
+                                        fillWidth = ((currentTime - start) / segmentDuration) * 100; // Partially inside
+                                    }
+
+                                    return (
+                                        <div
+                                            key={`seg-${idx}`}
+                                            style={{
+                                                width: `${segmentWidth}%`,
+                                                height: '100%',
+                                                background: 'rgba(255, 255, 255, 0.2)',
+                                                borderRadius: '3px',
+                                                overflow: 'hidden',
+                                                position: 'relative'
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    position: 'absolute',
+                                                    left: 0,
+                                                    top: 0,
+                                                    bottom: 0,
+                                                    width: `${fillWidth}%`,
+                                                    background: '#ef4444',
+                                                    transition: 'width 0.1s linear'
+                                                }}
+                                            />
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
@@ -1120,6 +1248,29 @@ export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
 
                         {/* Content type badge */}
                         <span style={badgeStyle}>{CONTENT_TYPE_LABELS[contentType]}</span>
+
+                        {/* Focus Mode Toggle (Dynamic Playback Speed) */}
+                        {navigationMode === 'time_driven' && (
+                            <button
+                                onClick={() => setIsFocusMode(!isFocusMode)}
+                                style={{
+                                    ...btnStyle,
+                                    marginLeft: '12px',
+                                    padding: '4px 10px',
+                                    borderRadius: '16px',
+                                    border: `1px solid ${isFocusMode ? '#3b82f6' : 'rgba(255,255,255,0.3)'}`,
+                                    background: isFocusMode ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                    color: isFocusMode ? '#60a5fa' : 'white',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    transition: 'all 0.2s ease',
+                                }}
+                                title="Focus Mode: Automatically slows down during complex diagrams"
+                            >
+                                <span style={{ marginRight: '6px', fontSize: '14px' }}>🧠</span>
+                                FOCUS {isFocusMode ? 'ON' : 'OFF'}
+                            </button>
+                        )}
 
                         {/* Spacer */}
                         <div style={{ flex: 1 }} />
