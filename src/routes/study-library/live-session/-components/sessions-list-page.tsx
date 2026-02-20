@@ -19,6 +19,7 @@ import { CaretDown, VideoCameraSlash, Clock } from '@phosphor-icons/react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
 import { useQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';
@@ -141,7 +142,7 @@ export default function SessionListPage() {
 
             case SessionStatus.LIVE:
                 baseRequest.statuses = ['LIVE'];
-                baseRequest.time_status = 'LIVE';
+                // baseRequest.time_status = 'LIVE'; // Removed as per requirement to fix filtering
                 // Live Now uses default sorting or backend logic
                 // Respect user date filters if provided, otherwise let backend handle "Current" logic
                 baseRequest.start_date = startDate ? format(startDate, 'yyyy-MM-dd') : todayFormatted;
@@ -624,8 +625,42 @@ export default function SessionListPage() {
         }
 
 
-        // Use sessions directly from API response (filtering is now server-side)
-        const filteredSessions = searchResponse.sessions;
+
+        // Use sessions directly from API response (filtering is server-side mostly, but client-side for LIVE tab specific logic)
+        let filteredSessions = searchResponse.sessions;
+
+        // FRONTEND FILTERING for LIVE, UPCOMING, PAST tabs to handle midnight crossover correctly
+        if (
+            selectedTab === SessionStatus.LIVE ||
+            selectedTab === SessionStatus.UPCOMING ||
+            selectedTab === SessionStatus.PAST
+        ) {
+            const now = new Date();
+            filteredSessions = searchResponse.sessions.filter((session) => {
+                const sessionTimezone = session.timezone || 'Asia/Kolkata';
+
+                // Construct session start and end times
+                const sessionStartString = `${session.meeting_date}T${session.start_time}`;
+                const sessionEndString = `${session.meeting_date}T${session.last_entry_time}`;
+
+                const startTime = fromZonedTime(sessionStartString, sessionTimezone);
+                let endTime = fromZonedTime(sessionEndString, sessionTimezone);
+
+                // Handle midnight crossover (e.g., 23:00 to 00:30)
+                if (endTime < startTime) {
+                    endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
+                }
+
+                if (selectedTab === SessionStatus.LIVE) {
+                    return startTime <= now && now <= endTime;
+                } else if (selectedTab === SessionStatus.UPCOMING) {
+                    return now < startTime;
+                } else if (selectedTab === SessionStatus.PAST) {
+                    return now > endTime;
+                }
+                return true;
+            });
+        }
 
         return (
             <div>
