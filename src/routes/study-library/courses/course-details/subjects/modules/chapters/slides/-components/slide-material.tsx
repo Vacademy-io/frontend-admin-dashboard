@@ -466,15 +466,22 @@ export const SlideMaterial = ({
         setContent(<EditorWithPlaceholder initialIsEmpty={isEmpty} />);
         editor.focus();
 
-        // Capture initial HTML for DOC slides to detect unsaved changes later
+        // Capture initial HTML for DOC slides to detect unsaved changes later.
+        // IMPORTANT: We must capture AFTER Yoopta has loaded the content, because
+        // html.deserialize → html.serialize is NOT a lossless round-trip.
+        // If we compare raw stored HTML against Yoopta's serialized output, they
+        // will always differ even with zero user edits → false positive dialog.
         if (
             activeItem?.source_type === 'DOCUMENT' &&
             activeItem?.document_slide?.type === 'DOC'
         ) {
-            const normalized = formatHTMLString(sanitizedDocData || '');
-            initialDocHtmlRef.current = { slideId: activeItem.id, html: normalized };
-            currentDocHtmlRef.current = normalized;
             prevDocSlideRef.current = activeItem;
+            // Use a short delay so Yoopta finishes rendering before we snapshot
+            setTimeout(() => {
+                const editorHtml = getCurrentEditorHTMLContent();
+                initialDocHtmlRef.current = { slideId: activeItem.id, html: editorHtml };
+                currentDocHtmlRef.current = editorHtml;
+            }, 300);
         }
     };
 
@@ -522,28 +529,22 @@ export const SlideMaterial = ({
         const initialHtml =
             initialDocHtmlRef.current.slideId === previous.id
                 ? initialDocHtmlRef.current.html
-                : formatHTMLString(previous.document_slide?.data || '');
+                : getCurrentEditorHTMLContent();
         // Always read latest editor state at the moment of handling to avoid stale saves
         const currentHtml = getCurrentEditorHTMLContent() || initialHtml;
         const hasEditorChanged = currentHtml !== initialHtml;
-        const dataVsPublishedDifferent =
-            (previous.document_slide?.data || '') !== (previous.document_slide?.published_data || '');
 
-        if (!hasEditorChanged && !dataVsPublishedDifferent) {
+        // Only act if the user actually changed something in the editor
+        if (!hasEditorChanged) {
             return;
         }
 
         // Mark as handled to avoid duplicate calls during add+switch cascades
         lastHandledPrevSlideIdRef.current = previous.id;
 
-        if (!hidePublishButtons && hasEditorChanged) {
-            // Admin: prompt to save draft
-            setUnsavedDocPrompt({ open: true, slide: previous, html: currentHtml });
-        } else if (hidePublishButtons && (hasEditorChanged || dataVsPublishedDifferent)) {
-            // Non-admin: auto publish
-            autoPublishDocSlide(previous, currentHtml);
-        }
-    }, [autoPublishDocSlide, hidePublishButtons]);
+        // Always auto-save draft on slide switch — never show a blocking dialog
+        void autoPublishDocSlide(previous, currentHtml);
+    }, [autoPublishDocSlide]);
 
     // Snapshot-based handler to avoid stale editor reads during transitions
     const handleUnsavedDocWithSnapshot = useCallback(
@@ -573,26 +574,21 @@ export const SlideMaterial = ({
             const initialHtml =
                 initialDocHtmlRef.current.slideId === previous.id
                     ? initialDocHtmlRef.current.html
-                    : formatHTMLString(previous.document_slide?.data || '');
+                    : snapshotHtml; // fallback: treat as unchanged if we have no baseline
 
             const hasEditorChanged = snapshotHtml !== initialHtml;
-            const dataVsPublishedDifferent =
-                (previous.document_slide?.data || '') !==
-                (previous.document_slide?.published_data || '');
 
-            if (!hasEditorChanged && !dataVsPublishedDifferent) {
+            // Only act if the user actually changed something
+            if (!hasEditorChanged) {
                 return;
             }
 
             lastHandledPrevSlideIdRef.current = previous.id;
 
-            if (!hidePublishButtons && hasEditorChanged) {
-                setUnsavedDocPrompt({ open: true, slide: previous, html: snapshotHtml });
-            } else if (hidePublishButtons && (hasEditorChanged || dataVsPublishedDifferent)) {
-                void autoPublishDocSlide(previous, snapshotHtml);
-            }
+            // Always auto-save draft silently — never show a blocking dialog on slide switch
+            void autoPublishDocSlide(previous, snapshotHtml);
         },
-        [hidePublishButtons, items]
+        [autoPublishDocSlide]
     );
 
     // On slide switch, detect unsaved changes for DOC and act based on role
@@ -725,11 +721,7 @@ export const SlideMaterial = ({
     );
 
     // State for Admin unsaved DOC modal
-    const [unsavedDocPrompt, setUnsavedDocPrompt] = useState<{
-        open: boolean;
-        slide: Slide | null;
-        html: string;
-    }>({ open: false, slide: null, html: '' });
+
 
     // Helper: Auto publish DOC for non-admins on slide switch/state change (hoisted function)
     async function autoPublishDocSlide(slide: Slide, htmlString: string) {
@@ -763,6 +755,26 @@ export const SlideMaterial = ({
             }
 
             const { totalPages } = await convertHtmlToPdf(processedHtmlString);
+
+            // Determine status and published_data based on role
+            let newStatus = slide.status;
+            let publishedData = slide.document_slide?.published_data || '';
+
+            if (hidePublishButtons) {
+                // Non-admin (Teacher): Auto-publish
+                newStatus = 'PUBLISHED';
+                publishedData = processedHtmlString;
+            } else {
+                // Admin: Auto-save draft
+                // If currently published, it becomes UNSYNC because draft has changed
+                if (slide.status === 'PUBLISHED') {
+                    newStatus = 'UNSYNC';
+                } else {
+                    newStatus = slide.status || 'DRAFT';
+                }
+                // Do NOT update publishedData for admins — keep live version safe
+            }
+
             await addUpdateDocumentSlide({
                 id: slide?.id || '',
                 title: slide?.title || '',
@@ -776,14 +788,18 @@ export const SlideMaterial = ({
                     title: slide?.document_slide?.title || '',
                     cover_file_id: '',
                     total_pages: totalPages,
-                    published_data: processedHtmlString,
+                    published_data: publishedData,
                     published_document_total_pages: 1,
                 },
-                status: 'PUBLISHED',
+                status: newStatus,
                 new_slide: false,
                 notify: false,
             });
-            toast.success('Changes saved and published');
+            if (!hidePublishButtons) {
+                toast.success('Draft auto-saved');
+            } else {
+                toast.success('Changes saved and published');
+            }
         } catch (error) {
             console.error('Error auto-publishing DOC slide:', error);
             toast.error('Failed to auto-save changes');
@@ -2235,82 +2251,7 @@ export const SlideMaterial = ({
             className="flex w-full flex-1 flex-col transition-all duration-300 ease-in-out"
             ref={selectionRef}
         >
-            {/* Admin unsaved DOC changes prompt */}
-            {unsavedDocPrompt.open && !hidePublishButtons && unsavedDocPrompt.slide && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30">
-                    <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-                        <h4 className="mb-2 text-lg font-semibold text-neutral-800">Unsaved changes</h4>
-                        <p className="mb-4 text-sm text-neutral-600">
-                            You have unsaved changes on "{unsavedDocPrompt.slide.title}". Save them as draft?
-                        </p>
-                        <div className="flex justify-end gap-3">
-                            <MyButton
-                                buttonType="secondary"
-                                scale="medium"
-                                onClick={() => setUnsavedDocPrompt({ open: false, slide: null, html: '' })}
-                            >
-                                Discard
-                            </MyButton>
-                            <MyButton
-                                buttonType="primary"
-                                scale="medium"
-                                onClick={async () => {
-                                    try {
-                                        const slide = unsavedDocPrompt.slide!;
-                                        const htmlString = unsavedDocPrompt.html;
 
-                                        // Process images in HTML content before saving
-                                        let processedHtmlString = htmlString;
-                                        if (containsBase64Images(htmlString)) {
-                                            console.log('Processing base64 images in unsaved DOC content...');
-                                            const { processedHtml, uploadedImages, failedUploads } = await processHtmlImages(htmlString);
-                                            processedHtmlString = processedHtml;
-
-                                            if (failedUploads > 0) {
-                                                toast.error(`Warning: ${failedUploads} images failed to upload`);
-                                            }
-                                            if (uploadedImages > 0) {
-                                                console.log(`Successfully processed ${uploadedImages} images in unsaved draft`);
-                                            }
-                                        }
-
-                                        const { totalPages } = await convertHtmlToPdf(processedHtmlString);
-                                        const nextStatus = slide.status === 'PUBLISHED' ? 'UNSYNC' : 'DRAFT';
-                                        await addUpdateDocumentSlide({
-                                            id: slide.id,
-                                            title: slide.title || '',
-                                            image_file_id: '',
-                                            description: slide.description || '',
-                                            slide_order: null,
-                                            document_slide: {
-                                                id: slide.document_slide?.id || '',
-                                                type: 'DOC',
-                                                data: processedHtmlString,
-                                                title: slide.document_slide?.title || '',
-                                                cover_file_id: '',
-                                                total_pages: totalPages,
-                                                published_data: slide.document_slide?.published_data || null,
-                                                published_document_total_pages: 1,
-                                            },
-                                            status: nextStatus,
-                                            new_slide: false,
-                                            notify: false,
-                                        });
-                                        toast.success('Draft saved');
-                                    } catch (error) {
-                                        console.error('Error saving draft:', error);
-                                        toast.error('Failed to save draft');
-                                    } finally {
-                                        setUnsavedDocPrompt({ open: false, slide: null, html: '' });
-                                    }
-                                }}
-                            >
-                                Save as Draft
-                            </MyButton>
-                        </div>
-                    </div>
-                </div>
-            )}
             {activeItem && (
                 <div className="sticky top-0 z-50 -mx-2 -mt-2 flex flex-wrap items-center justify-between gap-1 border-b border-neutral-200 bg-white/80 px-2 py-1 shadow-sm backdrop-blur-sm sm:-mx-3 sm:-mt-3 sm:px-3 sm:py-1.5 md:-mx-4 md:-mt-4 md:flex-nowrap md:gap-3 md:px-4 md:py-2.5 lg:-mx-7 lg:-mt-7 lg:gap-4 lg:px-7 lg:py-3">
                     <div className="w-full min-w-0 md:w-auto md:flex-1">

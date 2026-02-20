@@ -24,6 +24,7 @@ interface CreateCourseParams {
     durationInDays?: number;
     sessions: SessionProgress[];
     status?: 'ACTIVE' | 'DRAFT';
+    levelId?: string; // levelId to use for the course
     courseMetadata?: {
         aboutCourse?: string;
         learningOutcome?: string;
@@ -62,7 +63,7 @@ function findIdByPackageId(data: BatchForSessionType[], packageId: string): stri
 export async function createCourseWithContent(
     params: CreateCourseParams
 ): Promise<CreateCourseResult> {
-    const { courseName, sessions, courseMetadata } = params;
+    const { courseName, sessions, courseMetadata, levelId } = params;
 
     // Remove unused variable
     // const instituteId = getInstituteId(); // Not needed, using INSTITUTE_ID instead
@@ -133,27 +134,27 @@ export async function createCourseWithContent(
     const addFacultyToCourse =
         currentUserId && token?.email != null
             ? [
-                  {
-                      user: {
-                          id: currentUserId,
-                          username: token?.username ?? '',
-                          email: token?.email ?? '',
-                          full_name: token?.fullname ?? token?.username ?? '',
-                          address_line: '',
-                          city: '',
-                          region: '',
-                          pin_code: '',
-                          mobile_number: '',
-                          date_of_birth: '',
-                          gender: '',
-                          password: '',
-                          profile_pic_file_id: '',
-                          roles: [],
-                          root_user: true,
-                      },
-                      new_user: false,
-                  },
-              ]
+                {
+                    user: {
+                        id: currentUserId,
+                        username: token?.username ?? '',
+                        email: token?.email ?? '',
+                        full_name: token?.fullname ?? token?.username ?? '',
+                        address_line: '',
+                        city: '',
+                        region: '',
+                        pin_code: '',
+                        mobile_number: '',
+                        date_of_birth: '',
+                        gender: '',
+                        password: '',
+                        profile_pic_file_id: '',
+                        roles: [],
+                        root_user: true,
+                    },
+                    new_user: false,
+                },
+            ]
             : [];
 
     const coursePayload = {
@@ -162,7 +163,7 @@ export async function createCourseWithContent(
         course_name: courseName,
         // Only use UUID for thumbnail_file_id as it strictly expects a file ID
         thumbnail_file_id: isUuid(previewImage) ? previewImage : '',
-        contain_levels: false,
+        contain_levels: !!levelId, // true when using existing level, false when creating DEFAULT
         // Course metadata fields
         about_the_course_html: courseMetadata?.aboutCourse || '',
         why_learn_html: courseMetadata?.learningOutcome || '',
@@ -187,12 +188,12 @@ export async function createCourseWithContent(
                 session_name: 'DEFAULT',
                 status: 'ACTIVE',
                 start_date: '',
-                new_session: true,
+                new_session: !levelId, // false when using existing level, true when creating new
                 levels: [
                     {
-                        id: 'DEFAULT',
-                        new_level: true,
-                        level_name: 'DEFAULT',
+                        id: levelId || 'DEFAULT',
+                        new_level: !levelId, // false when using existing level, true when creating DEFAULT
+                        level_name: levelId ? undefined : 'DEFAULT', // Only set level_name for new levels
                         duration_in_days: 0,
                         thumbnail_file_id: '',
                         package_id: '',
@@ -509,7 +510,7 @@ export async function createCourseWithContent(
 }
 
 // Global progress setter (will be set by the hook)
-let setCreationProgress: (progress: string) => void = () => {};
+let setCreationProgress: (progress: string) => void = () => { };
 
 export function setProgressCallback(callback: (progress: string) => void) {
     setCreationProgress = callback;

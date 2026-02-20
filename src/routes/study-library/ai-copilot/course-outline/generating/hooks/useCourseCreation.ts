@@ -103,6 +103,7 @@ export const useCourseCreation = (courseMetadata: any, sessionsWithProgress: Ses
                 sessions: sessionsWithProgress,
                 courseMetadata: metadata,
                 status: creationStatus,
+                levelId: courseMetadata.level || undefined, // Pass the levelId from courseMetadata
             });
 
             setCreationProgress('Course created successfully!');

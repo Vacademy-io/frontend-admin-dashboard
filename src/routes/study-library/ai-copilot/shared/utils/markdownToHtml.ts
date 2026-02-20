@@ -17,9 +17,7 @@ export function convertMermaidCodeToDiv(text: string): string {
     }
 
     // Replace mermaid code blocks with div.mermaid
-    // We use a regex that captures the code inside the block
     return text.replace(/```mermaid\s*\n?([\s\S]*?)\n?```/g, (match, code) => {
-        // Preserve the exact mermaid code, trimming only leading/trailing whitespace
         const trimmedCode = code.trim();
         return `<div class="mermaid">\n${trimmedCode}\n</div>`;
     });
@@ -28,17 +26,37 @@ export function convertMermaidCodeToDiv(text: string): string {
 export function markdownToHtml(markdown: string): string {
     if (!markdown) return '';
 
+    // AGGRESSIVE PRE-PROCESSING: Ensure block elements are on their own lines
+    // This fixes issues where AI output lacks newlines (e.g., "Text### Header" or "Text- List")
+    let processedMarkdown = markdown
+        // Ensure headers have newlines before them
+        .replace(/([^\n])\s*(#{1,6}\s)/g, '$1\n\n$2')
+        // Ensure lists have newlines before them (if not already at start of line)
+        .replace(/([^\n])\s*([\*\-\+]\s)/g, '$1\n$2')
+        .replace(/([^\n])\s*(\d+\.\s)/g, '$1\n$2')
+        // Ensure mermaid diagrams have newlines before them
+        .replace(/([^\n])\s*(```mermaid)/g, '$1\n\n$2')
+        .replace(/([^\n])\s*(\bgraph\s+\w+)/g, '$1\n\n$2')
+        .replace(/([^\n])\s*(\bflowchart\s+\w+)/g, '$1\n\n$2')
+        .replace(/([^\n])\s*(\bsequenceDiagram\b)/g, '$1\n\n$2')
+        .replace(/([^\n])\s*(\bclassDiagram\b)/g, '$1\n\n$2');
+
     // Check if content is markdown (has markdown syntax)
-    const hasMarkdownSyntax = /^#+\s|^\*\s|^-\s|^\d+\.\s|```|\[.*\]\(.*\)/m.test(markdown);
+    const hasMarkdownSyntax = /^#+\s|^\*\s|^-\s|^\d+\.\s|```|\[.*\]\(.*\)/m.test(processedMarkdown);
 
     // If it doesn't look like markdown, just check/convert mermaid blocks
     if (!hasMarkdownSyntax) {
-        return convertMermaidCodeToDiv(markdown);
+        // Even if not standard markdown, we might have unfenced mermaid
+        // So we should try to process it anyway if we see mermaid keywords
+        if (/graph\s+\w+|flowchart\s+\w+|sequenceDiagram|classDiagram/.test(processedMarkdown)) {
+            // Continue processing
+        } else {
+            return convertMermaidCodeToDiv(processedMarkdown);
+        }
     }
 
-    // Extract mermaid code blocks first
+    // Extract fenced mermaid code blocks first
     const mermaidBlocks: Array<{ code: string; placeholder: string }> = [];
-    let processedMarkdown = markdown;
     let mermaidIndex = 0;
 
     // Replace mermaid code blocks with placeholders
@@ -68,6 +86,18 @@ export function markdownToHtml(markdown: string): string {
 
     const flushParagraph = () => {
         if (currentParagraph.length > 0) {
+            const firstLine = (currentParagraph[0] || '').trim();
+
+            // Check for potential mermaid diagram (unfenced)
+            // This handles cases where AI generates mermaid code without '```mermaid' fences
+            const isMermaid = /^(graph|flowchart)\s+(TD|TB|BT|RL|LR)|^graph\s+[A-Za-z]+|^(sequenceDiagram|classDiagram|stateDiagram|stateDiagram-v2|erDiagram|gantt|pie|journey|gitGraph|mindmap|requirementDiagram|c4Context)/.test(firstLine);
+
+            if (isMermaid) {
+                htmlLines.push(`<div class="mermaid">\n${currentParagraph.join('\n')}\n</div>`);
+                currentParagraph = [];
+                return;
+            }
+
             const paraText = currentParagraph.join(' ').trim();
             if (paraText) {
                 // Check if the paragraph is actually an HTML block (starts with <)
@@ -96,6 +126,11 @@ export function markdownToHtml(markdown: string): string {
         return /^\s*<(div|p|h[1-6]|ul|ol|li|blockquote|section|article|header|footer|nav|table|form|hr|br|pre|iframe)/i.test(trimmed);
     };
 
+    // Helper to identify mermaid start
+    const isMermaidStart = (line: string): boolean => {
+        return /^(graph|flowchart)\s+(TD|TB|BT|RL|LR)|^graph\s+[A-Za-z]+|^(sequenceDiagram|classDiagram|stateDiagram|stateDiagram-v2|erDiagram|gantt|pie|journey|gitGraph|mindmap|requirementDiagram|c4Context)/.test(line);
+    };
+
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i]?.trim() || '';
 
@@ -110,6 +145,23 @@ export function markdownToHtml(markdown: string): string {
         if (!line) {
             flushParagraph();
             flushList();
+            continue;
+        }
+
+        // Check if the lines starts a mermaid block (Unfenced)
+        if (isMermaidStart(line)) {
+            flushParagraph(); // Flush any previous text
+            flushList();
+
+            // Start collecting mermaid lines
+            // We assume the rest of the paragraph (until next blank line) is part of the mermaid diagram
+            currentParagraph.push(line);
+
+            // Continue to next lines, but treating them differently? 
+            // Actually, if we just push to currentParagraph and then flushParagraph() checks isMermaidStart(currentParagraph[0]),
+            // then it will work perfectly!
+            // The KEY is that we flushed the PREVIOUS text above.
+            // So now 'line' becomes the first element of 'currentParagraph'.
             continue;
         }
 
@@ -179,6 +231,17 @@ export function markdownToHtml(markdown: string): string {
 
     let html = htmlLines.join('\n');
 
+    // Extract mermaid divs BEFORE applying inline markdown formatting
+    // to prevent corrupting diagram code with <strong>, <em>, etc.
+    const mermaidDivPlaceholders: Array<{ placeholder: string; content: string }> = [];
+    let mermaidDivIndex = 0;
+    html = html.replace(/<div class="mermaid">([\s\S]*?)<\/div>/g, (match) => {
+        const placeholder = `__MERMAID_DIV_${mermaidDivIndex}__`;
+        mermaidDivPlaceholders.push({ placeholder, content: match });
+        mermaidDivIndex++;
+        return placeholder;
+    });
+
     // Process inline markdown in the HTML
     // Be careful not to replace things inside attributes or existing HTML tags
     // This is a naive implementation, but should work for basic content
@@ -198,6 +261,11 @@ export function markdownToHtml(markdown: string): string {
         })
         // Links
         .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+    // Restore mermaid div placeholders (must happen before mermaid block placeholders)
+    mermaidDivPlaceholders.forEach(({ placeholder, content }) => {
+        html = html.replace(placeholder, content);
+    });
 
     // Replace mermaid placeholders with <div class="mermaid">...</div>
     mermaidBlocks.forEach(({ code, placeholder }) => {
