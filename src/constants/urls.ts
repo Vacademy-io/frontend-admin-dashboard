@@ -236,6 +236,13 @@ export const DELETE_INVITES = `${BASE_URL}/admin-core-service/v1/enroll-invite/e
 
 export const GET_COURSE_DETAILS = `${BASE_URL}/admin-core-service/packages/v1/package-detail`;
 export const UPDATE_COURSE_BY_ID = `${BASE_URL}/admin-core-service/course/v1/update-course`;
+export const GET_LEARNER_PACKAGES_BY_USER_ID = `${BASE_URL}/admin-core-service/learner-packages/v1/search-by-user-id`;
+
+// Bulk Assign / De-assign (V3 Learner Management)
+export const BULK_ASSIGN_LEARNERS = `${BASE_URL}/admin-core-service/v3/learner-management/assign`;
+export const BULK_DEASSIGN_LEARNERS = `${BASE_URL}/admin-core-service/v3/learner-management/deassign`;
+export const GET_DEFAULT_INVITE = (instituteId: string, packageSessionId: string) =>
+    `${BASE_URL}/admin-core-service/v1/enroll-invite/default/${instituteId}/${packageSessionId}`;
 
 export const GET_FACULTY_ASSIGNMENTS = `${BASE_URL}/admin-core-service/institute/v1/faculty/batch-subject-assignments`;
 export const UPDATE_FACULTY_ASSIGNMENTS = `${BASE_URL}/admin-core-service/institute/v1/faculty/update-assign-subjects-and-batches`;

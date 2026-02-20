@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import DummyProfile from '@/assets/svgs/dummy_profile_photo.svg';
 import { StatusChips } from '@/components/design-system/chips';
 import { StudentOverview } from './student-overview/student-overview';
+import { StudentCourses } from './student-courses/student-courses';
 import { StudentLearningProgress } from './student-learning-progress/student-learning-progress';
 import { StudentTestRecord } from './student-test-records/student-test-record';
 import { StudentEmailNotifications } from './student-email-notifications/student-email-notifications';
@@ -84,7 +85,9 @@ export const StudentSidebar = ({
                 setTabSettings(settings);
 
                 // Set default category to first visible tab
-                if (settings.overviewTab) {
+                if (settings.coursesTab) {
+                    setCategory('courses');
+                } else if (settings.overviewTab) {
                     setCategory('overview');
                 } else if (settings.progressTab) {
                     setCategory('learningProgress');
@@ -217,6 +220,25 @@ export const StudentSidebar = ({
                                             <span className="relative">
                                                 Overview
                                                 {category === 'overview' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {tabSettings.coursesTab && (
+                                        <button
+                                            ref={category === 'courses' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'courses'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
+                                            onClick={() => setCategory('courses')}
+                                        >
+                                            <span className="relative">
+                                                Courses
+                                                {category === 'courses' && (
                                                     <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
                                                 )}
                                             </span>
@@ -498,6 +520,9 @@ export const StudentSidebar = ({
                         </div>
                     </div>
                     <ErrorBoundary>
+                        {category === 'courses' && tabSettings?.coursesTab && (
+                            <StudentCourses isSubmissionTab={isSubmissionTab} />
+                        )}
                         {category === 'overview' && tabSettings?.overviewTab && (
                             <StudentOverview isSubmissionTab={isSubmissionTab} />
                         )}

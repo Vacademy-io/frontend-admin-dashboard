@@ -106,6 +106,7 @@ export interface StudentSideViewSettings {
     overviewTab: boolean;
     testTab: boolean;
     progressTab: boolean;
+    coursesTab: boolean;
     notificationTab: boolean;
     membershipTab: boolean;
     paymentHistoryTab: boolean;

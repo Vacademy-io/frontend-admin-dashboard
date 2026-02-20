@@ -1508,7 +1508,6 @@ function getHelperScripts(): string {
     return `
         <script>
             // Re-render Math using KaTeX
-
             window.renderMath = function(selector) {
                 if (window.renderMathInElement && window.katex) {
                     const el = selector ? (typeof selector === 'string' ? document.querySelector(selector) : selector) : document.body;
@@ -1518,6 +1517,8 @@ function getHelperScripts(): string {
                                 delimiters: [
                                     {left: '$$', right: '$$', display: true},
                                     {left: '$', right: '$', display: false},
+                                    {left: '\\\\(', right: '\\\\)', display: false},
+                                    {left: '\\\\[', right: '\\\\]', display: true}
                                 ],
                                 throwOnError: false
                             });
@@ -1535,7 +1536,58 @@ function getHelperScripts(): string {
                 }
             };
 
-            // Animation helpers
+            // SVG drawing animation
+            window.animateSVG = function(svgId, duration, callback) {
+                if (window.Vivus) {
+                    var cb = typeof callback === 'function' ? callback : undefined;
+                    try {
+                        let target = svgId;
+                        if (typeof svgId === 'string' && !svgId.startsWith('#') && !document.getElementById(svgId)) {
+                            new Vivus(svgId, {
+                                duration: duration || 100,
+                                type: 'oneByOne',
+                                animTimingFunction: Vivus.EASE_OUT
+                            }, cb);
+                        } else {
+                            new Vivus(svgId, {
+                                duration: duration || 100,
+                                type: 'oneByOne',
+                                animTimingFunction: Vivus.EASE_OUT
+                            }, cb);
+                        }
+                    } catch(e) { console.warn('Vivus init error', e); }
+                }
+            };
+
+            // Hand-drawn annotation
+            window.annotate = function(selectorOrEl, options) {
+                if (window.RoughNotation) {
+                    try {
+                        const el = typeof selectorOrEl === 'string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+                        if (el) {
+                            // Ensure backward compatibility if options is just a string (type)
+                            const opts = typeof options === 'object' ? options : {
+                                type: options || 'underline',
+                                color: arguments[2] || 'red',
+                                padding: arguments[3] || 5
+                            };
+
+                            const annotation = RoughNotation.annotate(el, {
+                                type: opts.type || 'underline',
+                                color: opts.color || '#dc2626',
+                                strokeWidth: opts.strokeWidth || 3,
+                                padding: opts.padding || 5,
+                                animationDuration: opts.duration || 800
+                            });
+                            annotation.show();
+                            return annotation;
+                        }
+                    } catch (e) { console.warn('annotate error', e); }
+                }
+                return null;
+            };
+
+            // Simple fade in
             window.fadeIn = function(selector, duration, delay) {
                 try {
                     gsap.fromTo(selector,
@@ -1545,6 +1597,28 @@ function getHelperScripts(): string {
                 } catch (e) { console.warn('fadeIn error', e); }
             };
 
+            // Typewriter effect
+            window.typewriter = function(selectorOrEl, duration, delay) {
+                const el = typeof selectorOrEl === 'string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+                if (!el) return;
+                const text = el.textContent;
+                el.textContent = '';
+                el.style.opacity = '1';
+                let i = 0;
+                const speed = (duration || 1) * 1000 / Math.max(1, text.length);
+                setTimeout(() => {
+                    const interval = setInterval(() => {
+                        if (i < text.length) {
+                            el.textContent += text.charAt(i);
+                            i++;
+                        } else {
+                            clearInterval(interval);
+                        }
+                    }, speed);
+                }, (delay || 0) * 1000);
+            };
+
+            // Pop in with scale
             window.popIn = function(selector, duration, delay) {
                 try {
                     gsap.fromTo(selector,
@@ -1554,6 +1628,7 @@ function getHelperScripts(): string {
                 } catch (e) { console.warn('popIn error', e); }
             };
 
+            // Slide up from below
             window.slideUp = function(selector, duration, delay) {
                 try {
                     gsap.fromTo(selector,
@@ -1563,51 +1638,77 @@ function getHelperScripts(): string {
                 } catch (e) { console.warn('slideUp error', e); }
             };
 
-            // Rough Notation helper
-            window.annotate = function(selector, type, color, padding) {
-                if (window.RoughNotation) {
-                    try {
-                        const elements = document.querySelectorAll(selector);
-                        elements.forEach(el => {
-                            const annotation = RoughNotation.annotate(el, {
-                                type: type || 'underline',
-                                color: color || 'red',
-                                padding: padding || 5
-                            });
-                            annotation.show();
-                        });
-                    } catch (e) { console.warn('annotate error', e); }
+            // Reveal lines with stagger
+            window.revealLines = function(selectorOrEl, staggerDelay) {
+                const el = typeof selectorOrEl === 'string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+                if (!el) return;
+                const lines = el.querySelectorAll('.line');
+                if (lines.length === 0) {
+                    window.fadeIn(el, 0.5);
+                    return;
+                }
+                try {
+                    gsap.fromTo(lines,
+                        {opacity: 0, y: 20},
+                        {opacity: 1, y: 0, duration: 0.4, stagger: staggerDelay || 0.3, ease: 'power2.out'}
+                    );
+                } catch (e) { console.warn('revealLines err', e); }
+            };
+
+            // Show text then annotate
+            window.showThenAnnotate = function(textSelector, termSelector, annotationType, annotationColor, textDelay, annotationDelay) {
+                window.fadeIn(textSelector, 0.5, textDelay || 0);
+                setTimeout(() => {
+                    window.annotate(termSelector, {
+                        type: annotationType || 'underline',
+                        color: annotationColor || '#dc2626',
+                        duration: 600
+                    });
+                }, ((textDelay || 0) + (annotationDelay || 0.8)) * 1000);
+            };
+
+            window.sounds = {
+                pop: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
+                click: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
+                whoosh: 'https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3',
+                success: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'
+            };
+
+            window.playSound = function(soundName) {
+                if (window.sounds && window.sounds[soundName]) {
+                    const audio = new Audio(window.sounds[soundName]);
+                    audio.volume = 0.5;
+                    audio.play().catch(e => console.log('Sound play failed:', e));
                 }
             };
 
-            // Vivus SVG animation helper
-            // Vivus SVG animation helper
-            window.animateSVG = function(elementId, typeOrDuration, duration) {
-                if (window.Vivus) {
+            // Render Mermaid
+            window.renderMermaid = function(selector) {
+                if (window.mermaid) {
                     try {
-                        let options = {
-                            start: 'autostart',
-                            type: 'oneByOne',
-                            duration: 200
-                        };
-
-                        // Handle overloaded arguments: (id, duration) vs (id, type, duration)
-                        if (typeof typeOrDuration === 'number') {
-                            options.duration = typeOrDuration;
-                        } else if (typeof typeOrDuration === 'string') {
-                            options.type = typeOrDuration;
-                            if (duration) options.duration = duration;
-                        }
-
-                        new Vivus(elementId, options);
-                    } catch (e) { console.warn('animateSVG error', e); }
+                        mermaid.init(undefined, selector ? document.querySelectorAll(selector) : document.querySelectorAll('.mermaid'));
+                    } catch (e) {
+                        console.error('Mermaid render error:', e);
+                    }
                 }
             };
 
             // Initialize on load
             window.addEventListener('load', () => {
                 if(window.gsap && window.MotionPathPlugin) gsap.registerPlugin(MotionPathPlugin);
-                if(window.mermaid) mermaid.initialize({startOnLoad:true});
+
+                if (window.RoughNotation && !window.RoughNotation.annotateAll) {
+                    window.RoughNotation.annotateAll = function(annotations) {
+                        if (Array.isArray(annotations) && window.RoughNotation.annotationGroup) {
+                                const group = window.RoughNotation.annotationGroup(annotations);
+                                group.show();
+                        } else if (Array.isArray(annotations)) {
+                                annotations.forEach(a => a.show && a.show());
+                        }
+                    };
+                }
+
+                if(window.mermaid) window.renderMermaid();
                 if(window.renderMathInElement && window.katex) window.renderMath();
                 if(window.Prism) window.highlightCode();
             });
