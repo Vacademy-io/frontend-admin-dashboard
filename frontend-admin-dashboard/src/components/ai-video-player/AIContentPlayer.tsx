@@ -1,0 +1,1271 @@
+/**
+ * AI Content Player Component
+ * Unified player supporting 12 content types with 3 navigation modes
+ *
+ * Content Types: VIDEO, QUIZ, STORYBOOK, INTERACTIVE_GAME, PUZZLE_BOOK,
+ *                SIMULATION, FLASHCARDS, MAP_EXPLORATION, WORKSHEET,
+ *                CODE_PLAYGROUND, TIMELINE, CONVERSATION
+ *
+ * Navigation Modes: time_driven, user_driven, self_contained
+ */
+
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import {
+    Play,
+    Pause,
+    RotateCcw,
+    Maximize2,
+    Minimize2,
+    ChevronLeft,
+    ChevronRight,
+    Printer,
+    Volume2,
+    Subtitles,
+    Repeat,
+} from 'lucide-react';
+import {
+    Entry,
+    TimelineMeta,
+    AIContentPlayerProps,
+    CONTENT_TYPE_LABELS,
+    formatEntryLabel,
+    getDefaultMeta,
+} from './types';
+import {
+    processHtmlContent,
+    generateTimelineHtml,
+    generateFlashcardHtml,
+    generateStorybookHtml,
+    generateQuizHtml,
+    generateConversationHtml,
+} from './html-processor';
+import { initializeLibraries } from './library-loader';
+import { useCaptions } from './hooks/useCaptions';
+import { CaptionDisplay, CaptionSettingsPopover } from './components';
+import '@/components/ai-course-builder/components/styles/AIVideoComponents.css';
+
+/**
+ * ScaleCalculator - Calculates scale to fit video in container
+ */
+class ScaleCalculator {
+    private targetWidth: number;
+    private targetHeight: number;
+
+    constructor(targetWidth: number = 1920, targetHeight: number = 1080) {
+        this.targetWidth = targetWidth;
+        this.targetHeight = targetHeight;
+    }
+
+    calculateScale(containerWidth: number, containerHeight: number): number {
+        const targetRatio = this.targetWidth / this.targetHeight;
+        const containerRatio = containerWidth / containerHeight;
+
+        if (containerRatio > targetRatio) {
+            return containerHeight / this.targetHeight;
+        }
+        return containerWidth / this.targetWidth;
+    }
+}
+
+/**
+ * Format time in seconds to MM:SS
+ */
+const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+/**
+ * Main AIContentPlayer Component
+ */
+export const AIContentPlayer: React.FC<AIContentPlayerProps> = ({
+    timelineUrl,
+    audioUrl,
+    wordsUrl,
+    className = '',
+    width = 1920,
+    height = 1080,
+    onEntryChange,
+    onComplete,
+}) => {
+    // Core state
+    const [entries, setEntries] = useState<Entry[]>([]);
+    const [meta, setMeta] = useState<TimelineMeta>(getDefaultMeta('VIDEO'));
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [scale, setScale] = useState(1);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    // Time-driven state (for VIDEO)
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    // User-driven state (for QUIZ, STORYBOOK, etc.)
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isAutoplay, setIsAutoplay] = useState(false);
+
+    // Refs
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const playerRef = useRef<HTMLDivElement>(null);
+    const audioStartedRef = useRef(false);
+    const animationFrameRef = useRef<number | null>(null);
+    const playStartTimeRef = useRef(0);
+    const introStartTimeRef = useRef(0);
+    const isPlayingRef = useRef(false); // Ref to avoid stale closure issues
+
+    const scaleCalculator = useMemo(() => new ScaleCalculator(width, height), [width, height]);
+
+    // Computed values
+    const contentType = meta.content_type;
+    const navigationMode = meta.navigation;
+
+    // Captions hook (only for time-driven content with audio)
+    const {
+        words: allWords, // Get all words for range calculation
+        currentWords,
+        currentPhrase,
+        currentWordIndex,
+        settings: captionSettings,
+        updateSettings: updateCaptionSettings,
+        toggleCaptions,
+    } = useCaptions({
+        // Fetch words for time-driven VIDEO or user-driven STORYBOOK
+        wordsUrl:
+            navigationMode === 'time_driven' ||
+            contentType === 'STORYBOOK' ||
+            contentType === 'FLASHCARDS'
+                ? wordsUrl
+                : undefined,
+        currentTime,
+        audioStartAt: meta.audio_start_at,
+    });
+
+    // Map page index to audio time range {start, end}
+    const pageAudioRanges = useMemo(() => {
+        if (!allWords || allWords.length === 0 || entries.length === 0) return new Map();
+
+        const ranges = new Map<number, { start: number; end: number }>();
+        let currentWordIndex = 0;
+
+        entries.forEach((entry, index) => {
+            const text =
+                entry.entry_meta?.audio_text ||
+                entry.entry_meta?.text ||
+                entry.entry_meta?.description ||
+                '';
+            // Simple tokenization: remove punctuation, lowercase
+            const tokens = text
+                .toLowerCase()
+                .replace(/[^\w\s]/g, '')
+                .split(/\s+/)
+                .filter((t: string) => t.length > 0);
+
+            if (tokens.length === 0) return;
+
+            let startIndex = -1;
+            let endIndex = -1;
+
+            // Greedy sequential matching
+            // We assume words in words.json appear in the same order as pages
+            for (let i = 0; i < tokens.length; i++) {
+                const token = tokens[i];
+                // Look ahead up to 20 words to find a match
+                for (
+                    let j = currentWordIndex;
+                    j < Math.min(currentWordIndex + 20, allWords.length);
+                    j++
+                ) {
+                    const word = allWords[j];
+                    if (!word) continue;
+
+                    const wToken = word.word.toLowerCase().replace(/[^\w\s]/g, '');
+
+                    if (wToken === token) {
+                        if (startIndex === -1) startIndex = j;
+                        endIndex = j;
+                        currentWordIndex = j + 1; // Advance main pointer
+                        break;
+                    }
+                }
+            }
+
+            const startWord = startIndex !== -1 ? allWords[startIndex] : undefined;
+            const endWord = endIndex !== -1 ? allWords[endIndex] : undefined;
+
+            if (startWord && endWord) {
+                ranges.set(index, {
+                    start: startWord.start,
+                    end: endWord.end,
+                });
+            }
+        });
+
+        return ranges;
+    }, [allWords, entries]);
+
+    // Handle "Read Page" for Storybook
+    const handleReadPage = useCallback(() => {
+        const range = pageAudioRanges.get(currentIndex);
+        if (range && audioRef.current) {
+            // Stop any ongoing playback or animation
+            if (isPlaying) {
+                // If already playing, just pause
+                setIsPlaying(false);
+                audioRef.current.pause();
+                return;
+            }
+
+            // Seek and play
+            // Add slight padding to start to ensure we don't clip the first syllable
+            const seekTime = Math.max(0, range.start);
+            audioRef.current.currentTime = seekTime;
+
+            // NOTE: We need to handle stopping at range.end manually in onTimeUpdate
+
+            audioRef.current.play().catch(console.error);
+            setIsPlaying(true);
+            // We use the audioStartedRef to indicate we are in a valid playback state
+            audioStartedRef.current = true;
+        }
+    }, [currentIndex, pageAudioRanges, isPlaying]);
+
+    // =====================================================
+    // USER-DRIVEN NAVIGATION (QUIZ, STORYBOOK, etc.)
+    // =====================================================
+
+    const handleNext = useCallback(() => {
+        // Stop audio if playing
+        if (isPlaying) {
+            setIsPlaying(false);
+            if (audioRef.current) audioRef.current.pause();
+        }
+
+        if (currentIndex < entries.length - 1) {
+            const newIndex = currentIndex + 1;
+            setCurrentIndex(newIndex);
+            onEntryChange?.(newIndex, entries[newIndex]!);
+        } else {
+            onComplete?.();
+        }
+    }, [currentIndex, entries, onEntryChange, onComplete, isPlaying]);
+
+    const handlePrev = useCallback(() => {
+        if (currentIndex > 0) {
+            // Stop audio if playing
+            if (isPlaying) {
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.pause();
+            }
+            const newIndex = currentIndex - 1;
+            setCurrentIndex(newIndex);
+            onEntryChange?.(newIndex, entries[newIndex]!);
+        }
+    }, [currentIndex, entries, onEntryChange, isPlaying]);
+
+    // Load timeline data
+    useEffect(() => {
+        const loadTimeline = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+
+                const response = await fetch(timelineUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to load timeline: ${response.status}`);
+                }
+
+                const rawData = await response.json();
+
+                let loadedEntries: Entry[];
+                let loadedMeta: TimelineMeta;
+
+                // Parse structure
+                if (Array.isArray(rawData)) {
+                    // Old format: array of frames
+                    loadedEntries = rawData;
+                    loadedMeta = getDefaultMeta('VIDEO');
+                } else if (rawData.entries && Array.isArray(rawData.entries)) {
+                    // New format: { meta, entries }
+                    loadedEntries = rawData.entries;
+                    loadedMeta = {
+                        ...getDefaultMeta(rawData.meta?.content_type || 'VIDEO'),
+                        ...rawData.meta,
+                    };
+                } else {
+                    throw new Error('Timeline data is in an unrecognized format');
+                }
+
+                if (loadedEntries.length === 0) {
+                    throw new Error('Timeline data is empty');
+                }
+
+                // Initialize libraries for content type
+                await initializeLibraries(loadedMeta.content_type);
+
+                setMeta(loadedMeta);
+                setEntries(loadedEntries);
+
+                // Set duration
+                if (loadedMeta.total_duration && loadedMeta.total_duration > 0) {
+                    setDuration(loadedMeta.total_duration);
+                }
+
+                // Autoplay default for STORYBOOK
+                if (loadedMeta.content_type === 'STORYBOOK') {
+                    setIsAutoplay(true);
+                }
+
+                console.log(
+                    `🎬 Loaded ${loadedMeta.content_type} with ${loadedEntries.length} entries`
+                );
+            } catch (err) {
+                console.error('Error loading timeline:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load timeline');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (timelineUrl) {
+            loadTimeline();
+        } else {
+            setError('No timeline URL provided');
+            setIsLoading(false);
+        }
+    }, [timelineUrl]);
+
+    // Scale calculation
+    useEffect(() => {
+        const updateScale = () => {
+            if (containerRef.current) {
+                const { clientWidth, clientHeight } = containerRef.current;
+                if (clientWidth > 0 && clientHeight > 0) {
+                    const newScale = scaleCalculator.calculateScale(clientWidth, clientHeight);
+                    setScale(newScale);
+                }
+            }
+        };
+
+        const rafId = requestAnimationFrame(() => {
+            updateScale();
+            setTimeout(updateScale, 100);
+        });
+
+        const observer = new ResizeObserver(updateScale);
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+
+        return () => {
+            cancelAnimationFrame(rafId);
+            observer.disconnect();
+        };
+    }, [scaleCalculator, entries.length, isFullscreen]);
+
+    // Autoplay effect for Storybook/Flashcards
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+
+        if (
+            isAutoplay &&
+            (contentType === 'STORYBOOK' || contentType === 'FLASHCARDS') &&
+            navigationMode === 'user_driven'
+        ) {
+            // Only play if audio exists and we are NOT currently playing.
+            if (!isPlaying && pageAudioRanges.has(currentIndex)) {
+                const range = pageAudioRanges.get(currentIndex);
+                if (range && audioRef.current) {
+                    // Small delay to ensure state settles
+                    timer = setTimeout(() => {
+                        // Double check we are still not playing
+                        if (!isPlayingRef.current) {
+                            const seekTime = Math.max(0, range.start);
+                            audioRef.current!.currentTime = seekTime;
+                            audioRef.current!.play().catch(console.error);
+                            setIsPlaying(true);
+                            audioStartedRef.current = true;
+                        }
+                    }, 50);
+                }
+            }
+        }
+
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
+    }, [currentIndex, isAutoplay, contentType, navigationMode, pageAudioRanges, isPlaying]);
+
+    // =====================================================
+    // TIME-DRIVEN NAVIGATION (VIDEO)
+    // =====================================================
+
+    // Keep ref in sync with state
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
+
+    const animateIntro = useCallback(() => {
+        // Use ref instead of state to avoid stale closure issues
+        if (!isPlayingRef.current) return;
+
+        const elapsed = (performance.now() - playStartTimeRef.current) / 1000;
+        const newTime = introStartTimeRef.current + elapsed;
+
+        if (newTime >= meta.audio_start_at && !audioStartedRef.current) {
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play().catch(console.error);
+                audioStartedRef.current = true;
+            }
+            setCurrentTime(newTime);
+        } else if (!audioStartedRef.current) {
+            setCurrentTime(newTime);
+            animationFrameRef.current = requestAnimationFrame(animateIntro);
+        }
+    }, [meta.audio_start_at]);
+
+    const handleTimeDrivenPlayPause = useCallback(() => {
+        if (isPlaying) {
+            isPlayingRef.current = false; // Update ref immediately
+            if (audioStartedRef.current && audioRef.current) {
+                audioRef.current.pause();
+            }
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = null;
+            }
+            setIsPlaying(false);
+        } else {
+            isPlayingRef.current = true; // Update ref immediately before scheduling animation
+            setIsPlaying(true);
+            if (currentTime >= meta.audio_start_at) {
+                if (audioRef.current) {
+                    const audioTime = currentTime - meta.audio_start_at;
+                    audioRef.current.currentTime = Math.max(0, audioTime);
+                    audioRef.current.play().catch(console.error);
+                    audioStartedRef.current = true;
+                }
+            } else {
+                audioStartedRef.current = false;
+                playStartTimeRef.current = performance.now();
+                introStartTimeRef.current = currentTime;
+                animationFrameRef.current = requestAnimationFrame(animateIntro);
+            }
+        }
+    }, [isPlaying, currentTime, meta.audio_start_at, animateIntro]);
+
+    const handleTimeUpdate = useCallback(() => {
+        if (audioRef.current && audioStartedRef.current) {
+            const time = audioRef.current.currentTime + meta.audio_start_at;
+
+            // For Storybook/Flashcards: Check if we reached the end of the current page's audio
+            if (
+                navigationMode === 'user_driven' &&
+                (contentType === 'STORYBOOK' || contentType === 'FLASHCARDS') &&
+                isPlaying
+            ) {
+                const range = pageAudioRanges.get(currentIndex);
+                if (range && audioRef.current.currentTime >= range.end) {
+                    if (isAutoplay) {
+                        // Auto-advance
+                        if (currentIndex < entries.length - 1) {
+                            handleNext();
+                        } else {
+                            // End of content
+                            audioRef.current.pause();
+                            setIsPlaying(false);
+                            onComplete?.();
+                        }
+                    } else {
+                        audioRef.current.pause();
+                        setIsPlaying(false);
+                    }
+                }
+            }
+
+            setCurrentTime(time);
+        }
+    }, [
+        meta.audio_start_at,
+        navigationMode,
+        contentType,
+        isPlaying,
+        currentIndex,
+        pageAudioRanges,
+        isAutoplay,
+        entries.length,
+        handleNext,
+        onComplete,
+    ]);
+
+    const handleLoadedMetadata = useCallback(() => {
+        if (audioRef.current && (!meta.total_duration || meta.total_duration === 0)) {
+            setDuration(audioRef.current.duration);
+        }
+    }, [meta.total_duration]);
+
+    const handleAudioEnded = useCallback(() => {
+        if (meta.total_duration && currentTime < meta.total_duration) {
+            audioStartedRef.current = false;
+            playStartTimeRef.current = performance.now();
+            introStartTimeRef.current = currentTime;
+
+            const animateOutro = () => {
+                if (!isPlayingRef.current) return;
+
+                const elapsed = (performance.now() - playStartTimeRef.current) / 1000;
+                const newTime = introStartTimeRef.current + elapsed;
+
+                if (newTime >= meta.total_duration!) {
+                    setCurrentTime(meta.total_duration!);
+                    isPlayingRef.current = false;
+                    setIsPlaying(false);
+                    onComplete?.();
+                } else {
+                    setCurrentTime(newTime);
+                    requestAnimationFrame(animateOutro);
+                }
+            };
+            requestAnimationFrame(animateOutro);
+        } else {
+            isPlayingRef.current = false;
+            setIsPlaying(false);
+            onComplete?.();
+        }
+    }, [meta.total_duration, currentTime, onComplete]);
+
+    const handleProgressClick = useCallback(
+        (e: React.MouseEvent<HTMLDivElement>) => {
+            if (duration === 0) return;
+
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const newTime = (x / rect.width) * duration;
+
+            setCurrentTime(newTime);
+
+            if (newTime >= meta.audio_start_at) {
+                const audioTime = newTime - meta.audio_start_at;
+                if (audioRef.current) {
+                    audioRef.current.currentTime = audioTime;
+                    audioStartedRef.current = true;
+                    if (isPlaying) {
+                        audioRef.current.play().catch(console.error);
+                    }
+                }
+                if (animationFrameRef.current) {
+                    cancelAnimationFrame(animationFrameRef.current);
+                    animationFrameRef.current = null;
+                }
+            } else {
+                audioStartedRef.current = false;
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.currentTime = 0;
+                }
+                if (isPlaying) {
+                    playStartTimeRef.current = performance.now();
+                    introStartTimeRef.current = newTime;
+                    animationFrameRef.current = requestAnimationFrame(animateIntro);
+                }
+            }
+        },
+        [duration, meta.audio_start_at, isPlaying, animateIntro]
+    );
+
+    // =====================================================
+    // COMMON HANDLERS
+    // =====================================================
+
+    const handleReset = useCallback(() => {
+        if (navigationMode === 'time_driven') {
+            isPlayingRef.current = false;
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.pause();
+            }
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = null;
+            }
+            audioStartedRef.current = false;
+            setCurrentTime(0);
+            setIsPlaying(false);
+        } else {
+            setCurrentIndex(0);
+            if (entries[0]) {
+                onEntryChange?.(0, entries[0]);
+            }
+        }
+    }, [navigationMode, entries, onEntryChange]);
+
+    const handleFullscreenToggle = useCallback(() => {
+        if (!playerRef.current) return;
+
+        if (!document.fullscreenElement) {
+            playerRef.current.requestFullscreen().then(() => setIsFullscreen(true));
+        } else {
+            document.exitFullscreen().then(() => setIsFullscreen(false));
+        }
+    }, []);
+
+    // Print handler for WORKSHEET
+    const handlePrint = useCallback(() => {
+        window.print();
+    }, []);
+
+    // Text-to-speech for CONVERSATION
+    const handleSpeak = useCallback((text: string) => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        speechSynthesis.speak(utterance);
+    }, []);
+
+    // Fullscreen change listener
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+
+    // Cleanup
+    useEffect(() => {
+        return () => {
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+        };
+    }, []);
+
+    // =====================================================
+    // ACTIVE ENTRIES COMPUTATION
+    // =====================================================
+
+    const activeEntries = useMemo(() => {
+        if (entries.length === 0) return [];
+
+        if (navigationMode === 'time_driven') {
+            // For VIDEO: find all entries active at current time
+            const active = entries.filter((entry) => {
+                const start = entry.inTime ?? entry.start ?? 0;
+                const end = entry.exitTime ?? entry.end ?? Infinity;
+                return currentTime >= start && currentTime < end;
+            });
+
+            active.sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+
+            const processed = active.map((entry, index) => ({
+                ...entry,
+                // First entry (index 0) is the main content with white background
+                // Subsequent entries are overlays with transparent background
+                processedHtml: processHtmlContent(entry.html, contentType, index > 0),
+            }));
+
+            return processed;
+        } else if (navigationMode === 'user_driven') {
+            // For QUIZ, STORYBOOK, etc.: show current entry
+            const entry = entries[currentIndex];
+            if (!entry) return [];
+
+            // Check if we need to generate HTML for TIMELINE
+            let htmlContent = entry.html;
+            if (contentType === 'TIMELINE' && entry.entry_meta) {
+                // If html is basic placeholder or empty, generate from meta
+                if (!htmlContent || htmlContent.includes('<div>Event') || htmlContent.length < 50) {
+                    htmlContent = generateTimelineHtml(entry, currentIndex, entries);
+                }
+            } else if (contentType === 'FLASHCARDS') {
+                // Always generate premium flashcard HTML from metadata to ensure consistent UI
+                // unless it's already using our specific class structure
+                if (!htmlContent || !htmlContent.includes('flashcard-stage')) {
+                    htmlContent = generateFlashcardHtml(entry, currentIndex, entries);
+                }
+            } else if (contentType === 'STORYBOOK') {
+                if (!htmlContent || !htmlContent.includes('storybook-page')) {
+                    htmlContent = generateStorybookHtml(entry, currentIndex, entries);
+                }
+            } else if (contentType === 'QUIZ') {
+                if (!htmlContent || !htmlContent.includes('quiz-container')) {
+                    htmlContent = generateQuizHtml(entry, currentIndex, entries);
+                }
+            } else if (contentType === 'CONVERSATION') {
+                if (!htmlContent || !htmlContent.includes('conversation-container')) {
+                    htmlContent = generateConversationHtml(entry, currentIndex, entries);
+                }
+            }
+
+            return [
+                {
+                    ...entry,
+                    processedHtml: processHtmlContent(htmlContent, contentType),
+                },
+            ];
+        } else {
+            // For GAME, SIMULATION, CODE_PLAYGROUND: show first entry only
+            const entry = entries[0];
+            if (!entry) return [];
+
+            return [
+                {
+                    ...entry,
+                    processedHtml: processHtmlContent(entry.html, contentType),
+                },
+            ];
+        }
+    }, [entries, currentTime, currentIndex, navigationMode, contentType]);
+
+    // =====================================================
+    // MESSAGE HANDLING (Inter-iframe communication)
+    // =====================================================
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            // Validate origin if needed, or check event.data structure
+            if (!event.data || typeof event.data !== 'object') return;
+
+            const { type, payload } = event.data;
+
+            switch (type) {
+                case 'QUIZ_ANSWER_SELECTED':
+                    console.log('Quiz answer selected:', payload);
+                    // Handle score tracking here if needed
+                    break;
+                case 'QUIZ_COMPLETED':
+                    console.log('Quiz completed:', payload);
+                    // Maybe auto-advance or show summary
+                    break;
+                case 'NAVIGATE_NEXT':
+                    handleNext();
+                    break;
+                case 'NAVIGATE_PREV':
+                    handlePrev();
+                    break;
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => {
+            window.removeEventListener('message', handleMessage);
+        };
+    }, [handleNext, handlePrev]);
+
+    // =====================================================
+
+    // =====================================================
+    // RENDER
+    // =====================================================
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className={`ai-video-player ${className}`}>
+                <div className="video-container">
+                    <div className="loading-overlay">
+                        <div className="loading-spinner">
+                            <div className="spinner"></div>
+                            <p>Loading content...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className={`ai-video-player ${className}`}>
+                <div className="video-placeholder">
+                    <div className="video-placeholder-content">
+                        <p>Error Loading Content</p>
+                        <p style={{ fontSize: '0.875rem', color: '#666' }}>{error}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // No entries
+    if (entries.length === 0) {
+        return (
+            <div className={`ai-video-player ${className}`}>
+                <div className="video-placeholder">
+                    <div className="video-placeholder-content">
+                        <p>No Content Available</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const progressPercent =
+        navigationMode === 'time_driven'
+            ? duration > 0
+                ? (currentTime / duration) * 100
+                : 0
+            : ((currentIndex + 1) / entries.length) * 100;
+
+    return (
+        <div
+            ref={playerRef}
+            className={`ai-video-player ${className} ${isFullscreen ? 'fullscreen' : ''}`}
+            style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: isFullscreen ? '#000' : 'transparent',
+            }}
+        >
+            {/* Video Container */}
+            <div
+                className="video-container"
+                style={{
+                    width: '100%',
+                    height: isFullscreen ? '100%' : 'auto',
+                    maxWidth: '100%',
+                    aspectRatio: isFullscreen ? 'auto' : '16/9',
+                    maxHeight: '100%',
+                    borderRadius: isFullscreen ? '0' : '8px',
+                    overflow: 'hidden',
+                    boxShadow: isFullscreen ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                    position: 'relative',
+                }}
+                onMouseEnter={(e) => {
+                    const controls = e.currentTarget.querySelector(
+                        '.video-controls-overlay'
+                    ) as HTMLElement;
+                    if (controls) controls.style.opacity = '1';
+                }}
+                onMouseLeave={(e) => {
+                    const controls = e.currentTarget.querySelector(
+                        '.video-controls-overlay'
+                    ) as HTMLElement;
+                    if (controls) controls.style.opacity = '0';
+                }}
+                onClick={navigationMode === 'time_driven' ? handleTimeDrivenPlayPause : undefined}
+            >
+                {/* Content Frame */}
+                <div
+                    ref={containerRef}
+                    className="video-frame-container"
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minHeight: isFullscreen ? '0px' : '300px',
+                        aspectRatio: isFullscreen ? 'auto' : '16/9',
+                        background: '#ffffff',
+                        position: 'relative',
+                        overflow: 'hidden',
+                    }}
+                >
+                    {activeEntries.length > 0 ? (
+                        <div
+                            style={{
+                                width: `${width}px`,
+                                height: `${height}px`,
+                                transform: `scale(${scale})`,
+                                transformOrigin: 'center center',
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                marginTop: `-${height / 2}px`,
+                                marginLeft: `-${width / 2}px`,
+                            }}
+                            className="frame-wrapper"
+                        >
+                            {activeEntries.map((entry, index) => (
+                                <iframe
+                                    key={`entry-${entry.id}-${index}`}
+                                    srcDoc={entry.processedHtml}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        border: 'none',
+                                        background: index === 0 ? '#ffffff' : 'transparent',
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        zIndex: entry.z ?? 0,
+                                        pointerEvents:
+                                            entry.id?.startsWith('branding-watermark') ||
+                                            navigationMode === 'time_driven'
+                                                ? 'none'
+                                                : 'auto',
+                                    }}
+                                    title={`Content Layer ${entry.id}`}
+                                    sandbox="allow-scripts allow-same-origin"
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#666',
+                            }}
+                        >
+                            <p>No content available</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Center Play Button (only for time_driven and when paused) */}
+                {navigationMode === 'time_driven' && !isPlaying && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            background: 'rgba(0, 0, 0, 0.7)',
+                            borderRadius: '50%',
+                            width: '80px',
+                            height: '80px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            zIndex: 5,
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleTimeDrivenPlayPause();
+                        }}
+                    >
+                        <Play className="size-10 text-white" style={{ marginLeft: '4px' }} />
+                    </div>
+                )}
+
+                {/* Captions / Subtitles Display */}
+                {navigationMode === 'time_driven' && wordsUrl && (
+                    <CaptionDisplay
+                        words={currentWords}
+                        currentTime={currentTime}
+                        audioStartAt={meta.audio_start_at}
+                        settings={captionSettings}
+                        currentPhrase={currentPhrase}
+                        currentWordIndex={currentWordIndex}
+                    />
+                )}
+
+                {/* Controls Overlay */}
+                <div
+                    className="video-controls-overlay"
+                    style={{
+                        position: 'absolute',
+                        top: isFullscreen ? 'auto' : 0,
+                        bottom: isFullscreen ? 0 : 'auto',
+                        left: 0,
+                        right: 0,
+                        background: isFullscreen
+                            ? 'linear-gradient(transparent, rgba(0,0,0,0.8))'
+                            : 'linear-gradient(rgba(0,0,0,0.8), transparent)',
+                        padding: isFullscreen ? '40px 16px 16px 16px' : '16px 16px 40px 16px',
+                        opacity: isFullscreen ? 1 : 0,
+                        transition: 'opacity 0.3s ease',
+                        zIndex: 10,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Progress Bar (only for time_driven) */}
+                    {navigationMode === 'time_driven' && (
+                        <div
+                            className="video-progress"
+                            onClick={handleProgressClick}
+                            style={{
+                                marginBottom: '12px',
+                                cursor: 'pointer',
+                                padding: '4px 0',
+                            }}
+                        >
+                            <div
+                                className="progress-bar"
+                                style={{
+                                    height: '5px',
+                                    background: 'rgba(255, 255, 255, 0.3)',
+                                    borderRadius: '3px',
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                <div
+                                    className="progress-fill"
+                                    style={{
+                                        width: `${progressPercent}%`,
+                                        height: '100%',
+                                        background: '#ef4444',
+                                        borderRadius: '3px',
+                                        transition: 'width 0.1s ease',
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Controls */}
+                    <div
+                        className="playback-controls"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '16px',
+                        }}
+                    >
+                        {/* Time-driven controls */}
+                        {navigationMode === 'time_driven' && (
+                            <>
+                                <button
+                                    onClick={handleTimeDrivenPlayPause}
+                                    style={btnStyle}
+                                    aria-label={isPlaying ? 'Pause' : 'Play'}
+                                >
+                                    {isPlaying ? (
+                                        <Pause className="size-6 text-white" />
+                                    ) : (
+                                        <Play className="size-6 text-white" />
+                                    )}
+                                </button>
+                                <button onClick={handleReset} style={btnStyle} title="Restart">
+                                    <RotateCcw className="size-5 text-white" />
+                                </button>
+                                <span style={timeStyle}>
+                                    {formatTime(currentTime)} / {formatTime(duration)}
+                                </span>
+                            </>
+                        )}
+
+                        {/* User-driven controls */}
+                        {navigationMode === 'user_driven' && (
+                            <>
+                                <button
+                                    onClick={handlePrev}
+                                    disabled={currentIndex === 0}
+                                    style={{
+                                        ...btnStyle,
+                                        opacity: currentIndex === 0 ? 0.5 : 1,
+                                    }}
+                                    aria-label="Previous"
+                                >
+                                    <ChevronLeft className="size-6 text-white" />
+                                </button>
+                                <span style={timeStyle}>
+                                    {formatEntryLabel(
+                                        meta.entry_label,
+                                        currentIndex,
+                                        entries.length
+                                    )}
+                                </span>
+
+                                {/* STORYBOOK: Read Page Button */}
+                                {contentType === 'STORYBOOK' &&
+                                    pageAudioRanges.has(currentIndex) && (
+                                        <button
+                                            onClick={handleReadPage}
+                                            style={{
+                                                ...btnStyle,
+                                                background: isPlaying
+                                                    ? 'rgba(255, 255, 255, 0.2)'
+                                                    : 'transparent',
+                                                borderRadius: '4px',
+                                                border: '1px solid rgba(255, 255, 255, 0.4)',
+                                                padding: '4px 12px',
+                                                margin: '0 8px',
+                                                display: 'flex',
+                                                gap: '6px',
+                                            }}
+                                            title={isPlaying ? 'Pause Narration' : 'Read Page'}
+                                        >
+                                            {isPlaying ? (
+                                                <Pause className="size-4 text-white" />
+                                            ) : (
+                                                <Volume2 className="size-4 text-white" />
+                                            )}
+                                            <span
+                                                style={{
+                                                    fontSize: '12px',
+                                                    fontWeight: 600,
+                                                    color: 'white',
+                                                }}
+                                            >
+                                                {isPlaying ? 'PAUSE' : 'READ ME'}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                <button
+                                    onClick={handleNext}
+                                    disabled={currentIndex === entries.length - 1}
+                                    style={{
+                                        ...btnStyle,
+                                        opacity: currentIndex === entries.length - 1 ? 0.5 : 1,
+                                    }}
+                                    aria-label="Next"
+                                >
+                                    <ChevronRight className="size-6 text-white" />
+                                </button>
+                            </>
+                        )}
+
+                        {/* Content type badge */}
+                        <span style={badgeStyle}>{CONTENT_TYPE_LABELS[contentType]}</span>
+
+                        {/* Spacer */}
+                        <div style={{ flex: 1 }} />
+
+                        {/* Storybook: Autoplay Toggle (with Text) */}
+                        {contentType === 'STORYBOOK' && (
+                            <button
+                                onClick={() => setIsAutoplay(!isAutoplay)}
+                                style={{
+                                    ...btnStyle,
+                                    opacity: isAutoplay ? 1 : 0.8,
+                                    background: isAutoplay
+                                        ? 'rgba(74, 222, 128, 0.2)'
+                                        : 'transparent',
+                                    color: isAutoplay ? '#4ade80' : 'white',
+                                    padding: '4px 12px',
+                                    borderRadius: '4px',
+                                    gap: '6px',
+                                    border: isAutoplay
+                                        ? '1px solid rgba(74, 222, 128, 0.4)'
+                                        : '1px solid transparent',
+                                }}
+                                title={isAutoplay ? 'Disable Autoplay' : 'Enable Autoplay'}
+                            >
+                                <Repeat className="size-4" />
+                                <span style={{ fontSize: '12px', fontWeight: 600 }}>Autoplay</span>
+                            </button>
+                        )}
+
+                        {/* WORKSHEET: Print button */}
+                        {contentType === 'WORKSHEET' && (
+                            <button onClick={handlePrint} style={btnStyle} title="Print Worksheet">
+                                <Printer className="size-5 text-white" />
+                            </button>
+                        )}
+
+                        {/* CONVERSATION: TTS button */}
+                        {contentType === 'CONVERSATION' && (
+                            <button
+                                onClick={() => {
+                                    const entry = entries[currentIndex];
+                                    if (entry) {
+                                        // Extract text from HTML (simple approach)
+                                        const div = document.createElement('div');
+                                        div.innerHTML = entry.html;
+                                        const text = div.textContent || '';
+                                        handleSpeak(text);
+                                    }
+                                }}
+                                style={btnStyle}
+                                title="Read Aloud"
+                            >
+                                <Volume2 className="size-5 text-white" />
+                            </button>
+                        )}
+
+                        {/* Captions toggle (CC button) - only for time-driven with words */}
+                        {navigationMode === 'time_driven' && wordsUrl && (
+                            <>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleCaptions();
+                                    }}
+                                    style={{
+                                        ...btnStyle,
+                                        opacity: captionSettings.enabled ? 1 : 0.6,
+                                        background: captionSettings.enabled
+                                            ? 'rgba(255, 255, 255, 0.2)'
+                                            : 'transparent',
+                                        borderRadius: '4px',
+                                    }}
+                                    title={
+                                        captionSettings.enabled
+                                            ? 'Turn off captions'
+                                            : 'Turn on captions'
+                                    }
+                                >
+                                    <Subtitles className="size-5 text-white" />
+                                </button>
+                                {captionSettings.enabled && (
+                                    <CaptionSettingsPopover
+                                        settings={captionSettings}
+                                        onUpdate={updateCaptionSettings}
+                                    />
+                                )}
+                            </>
+                        )}
+
+                        {/* Fullscreen button */}
+                        <button
+                            onClick={handleFullscreenToggle}
+                            style={btnStyle}
+                            title="Fullscreen"
+                        >
+                            {isFullscreen ? (
+                                <Minimize2 className="size-5 text-white" />
+                            ) : (
+                                <Maximize2 className="size-5 text-white" />
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Audio Element (for time_driven AND storybook) */}
+            {audioUrl && (
+                <audio
+                    ref={audioRef}
+                    src={audioUrl}
+                    onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onEnded={handleAudioEnded}
+                    crossOrigin="anonymous"
+                />
+            )}
+        </div>
+    );
+};
+
+// Shared styles
+const btnStyle: React.CSSProperties = {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+};
+
+const timeStyle: React.CSSProperties = {
+    fontFamily: 'monospace',
+    fontSize: '0.875rem',
+    color: '#ffffff',
+    fontWeight: 500,
+};
+
+const badgeStyle: React.CSSProperties = {
+    fontSize: '0.75rem',
+    color: 'rgba(255, 255, 255, 0.8)',
+    background: 'rgba(255, 255, 255, 0.2)',
+    padding: '4px 10px',
+    borderRadius: '4px',
+};
+
+// Legacy export for backward compatibility
+export { AIContentPlayer as AIVideoPlayer };
+export default AIContentPlayer;
