@@ -1,5 +1,15 @@
 import React from 'react';
 import { Registration } from '../../../-types/registration-types';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface SectionProps {
     formData: Partial<Registration>;
@@ -7,38 +17,12 @@ interface SectionProps {
 }
 
 export const StudentDetailsSection: React.FC<SectionProps> = ({ formData, updateFormData }) => {
+    // Get levels from institute store
+    const { getAllLevels } = useInstituteDetailsStore();
+    const levels = getAllLevels();
+
     return (
         <div className="space-y-6">
-            {/* Registration Details (Read Only) */}
-            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-                <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-neutral-500">
-                    <span className="i-ph-info-circle size-4" />
-                    Registration Details
-                </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                    <div>
-                        <span className="block text-xs text-neutral-500">Registration ID</span>
-                        <span className="text-sm font-medium text-orange-600">{formData.id}</span>
-                    </div>
-                    <div>
-                        <span className="block text-xs text-neutral-500">Inquiry ID</span>
-                        <span className="text-sm font-medium text-neutral-900">
-                            {formData.inquiryId || '–'}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="block text-xs text-neutral-500">Registration Date</span>
-                        <span className="text-sm font-medium text-neutral-900">
-                            {new Date().toLocaleDateString('en-GB', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                            })}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
             {/* Basic Information */}
             <div className="space-y-4">
                 <h4 className="text-sm font-semibold uppercase text-neutral-500">
@@ -46,12 +30,11 @@ export const StudentDetailsSection: React.FC<SectionProps> = ({ formData, update
                 </h4>
 
                 <div>
-                    <label className="mb-1 block text-sm font-medium text-neutral-700">
+                    <Label className="mb-1 block text-sm font-medium text-neutral-700">
                         Full Name <span className="text-red-500">*</span> (As per Birth Certificate)
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="text"
-                        className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                         placeholder="Enter student's full name"
                         value={formData.studentName || ''}
                         onChange={(e) => updateFormData({ studentName: e.target.value })}
@@ -60,12 +43,11 @@ export const StudentDetailsSection: React.FC<SectionProps> = ({ formData, update
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Date of Birth <span className="text-red-500">*</span>
-                        </label>
-                        <input
+                        </Label>
+                        <Input
                             type="date"
-                            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                             value={formData.dateOfBirth || ''}
                             onChange={(e) => updateFormData({ dateOfBirth: e.target.value })}
                         />
@@ -100,95 +82,111 @@ export const StudentDetailsSection: React.FC<SectionProps> = ({ formData, update
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Nationality <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        </Label>
+                        <Select
                             value={formData.nationality || 'Indian'}
-                            onChange={(e) => updateFormData({ nationality: e.target.value })}
+                            onValueChange={(value) => updateFormData({ nationality: value })}
                         >
-                            <option value="Indian">Indian</option>
-                            <option value="Other">Other</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select nationality" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Indian">Indian</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Religion
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        </Label>
+                        <Select
                             value={formData.religion || ''}
-                            onChange={(e) => updateFormData({ religion: e.target.value })}
+                            onValueChange={(value) => updateFormData({ religion: value })}
                         >
-                            <option value="">Select</option>
-                            <option value="Hindu">Hindu</option>
-                            <option value="Muslim">Muslim</option>
-                            <option value="Christian">Christian</option>
-                            <option value="Sikh">Sikh</option>
-                            <option value="Jain">Jain</option>
-                            <option value="Other">Other</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Hindu">Hindu</SelectItem>
+                                <SelectItem value="Muslim">Muslim</SelectItem>
+                                <SelectItem value="Christian">Christian</SelectItem>
+                                <SelectItem value="Sikh">Sikh</SelectItem>
+                                <SelectItem value="Jain">Jain</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Category <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        </Label>
+                        <Select
                             value={formData.category || ''}
-                            onChange={(e) => updateFormData({ category: e.target.value })}
+                            onValueChange={(value) => updateFormData({ category: value })}
                         >
-                            <option value="">Select</option>
-                            <option value="General">General</option>
-                            <option value="OBC">OBC</option>
-                            <option value="SC">SC</option>
-                            <option value="ST">ST</option>
-                            <option value="EWS">EWS</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="General">General</SelectItem>
+                                <SelectItem value="OBC">OBC</SelectItem>
+                                <SelectItem value="SC">SC</SelectItem>
+                                <SelectItem value="ST">ST</SelectItem>
+                                <SelectItem value="EWS">EWS</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <p className="mt-1 text-xs text-neutral-500">(General/OBC/SC/ST/EWS)</p>
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Blood Group
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        </Label>
+                        <Select
                             value={formData.bloodGroup || ''}
-                            onChange={(e) => updateFormData({ bloodGroup: e.target.value })}
+                            onValueChange={(value) => updateFormData({ bloodGroup: value })}
                         >
-                            <option value="">Select</option>
-                            <option value="A+">A+</option>
-                            <option value="A-">A-</option>
-                            <option value="B+">B+</option>
-                            <option value="B-">B-</option>
-                            <option value="O+">O+</option>
-                            <option value="O-">O-</option>
-                            <option value="AB+">AB+</option>
-                            <option value="AB-">AB-</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="A+">A+</SelectItem>
+                                <SelectItem value="A-">A-</SelectItem>
+                                <SelectItem value="B+">B+</SelectItem>
+                                <SelectItem value="B-">B-</SelectItem>
+                                <SelectItem value="O+">O+</SelectItem>
+                                <SelectItem value="O-">O-</SelectItem>
+                                <SelectItem value="AB+">AB+</SelectItem>
+                                <SelectItem value="AB-">AB-</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <p className="mt-1 text-xs text-neutral-500">(A+/A-/B+/B-/O+/O-/AB+/AB-)</p>
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Mother Tongue
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        </Label>
+                        <Select
                             value={formData.motherTongue || ''}
-                            onChange={(e) => updateFormData({ motherTongue: e.target.value })}
+                            onValueChange={(value) => updateFormData({ motherTongue: value })}
                         >
-                            <option value="">Select</option>
-                            <option value="Hindi">Hindi</option>
-                            <option value="English">English</option>
-                            <option value="Gujarati">Gujarati</option>
-                            <option value="Marathi">Marathi</option>
-                            <option value="Tamil">Tamil</option>
-                            <option value="Telugu">Telugu</option>
-                            <option value="Other">Other</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Hindi">Hindi</SelectItem>
+                                <SelectItem value="English">English</SelectItem>
+                                <SelectItem value="Gujarati">Gujarati</SelectItem>
+                                <SelectItem value="Marathi">Marathi</SelectItem>
+                                <SelectItem value="Tamil">Tamil</SelectItem>
+                                <SelectItem value="Telugu">Telugu</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div>
                         <label className="mb-1 block text-sm font-medium text-neutral-700">
@@ -218,86 +216,56 @@ export const StudentDetailsSection: React.FC<SectionProps> = ({ formData, update
                 </h4>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
+                            ID Type
+                        </Label>
+                        <Select
+                            value={formData.idType || ''}
+                            onValueChange={(value) => updateFormData({ idType: value as any })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select ID Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="AADHAR_CARD">Aadhaar Card</SelectItem>
+                                <SelectItem value="BIRTH_CERTIFICATE">Birth Certificate</SelectItem>
+                                <SelectItem value="PASSPORT">Passport</SelectItem>
+                                <SelectItem value="OTHER">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
                         <label className="mb-1 block text-sm font-medium text-neutral-700">
-                            Aadhaar Number (Optional)
+                            ID Number
                         </label>
                         <input
                             type="text"
                             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                            placeholder="XXXX XXXX XXXX"
-                            value={formData.aadhaarNumber || ''}
-                            onChange={(e) => updateFormData({ aadhaarNumber: e.target.value })}
+                            placeholder="Enter ID number"
+                            value={formData.idNumber || ''}
+                            onChange={(e) => updateFormData({ idNumber: e.target.value })}
                         />
                     </div>
                     <div>
                         <label className="mb-1 block text-sm font-medium text-neutral-700">
-                            Birth Certificate Number
+                            Languages Known
                         </label>
                         <input
                             type="text"
                             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                            placeholder="Enter birth certificate number"
-                            value={formData.birthCertificateNumber || ''}
-                            onChange={(e) =>
-                                updateFormData({ birthCertificateNumber: e.target.value })
-                            }
+                            placeholder="E.g., English, Hindi, Marathi"
+                            value={formData.languagesKnown || ''}
+                            onChange={(e) => updateFormData({ languagesKnown: e.target.value })}
                         />
                     </div>
                 </div>
             </div>
 
-            {/* Special Requirements */}
+            {/* Health Information */}
             <div className="space-y-4">
                 <h4 className="text-sm font-semibold uppercase text-neutral-500">
-                    Special Requirements
+                    Health Information
                 </h4>
-
-                <div className="space-y-4 rounded-lg border border-neutral-200 p-4">
-                    <label className="flex items-start gap-3">
-                        <input
-                            type="checkbox"
-                            className="mt-1 size-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                            checked={formData.hasSpecialNeeds || false}
-                            onChange={(e) => updateFormData({ hasSpecialNeeds: e.target.checked })}
-                        />
-                        <div>
-                            <span className="block text-sm font-medium text-neutral-900">
-                                Student has special educational needs
-                            </span>
-                            <span className="block text-xs text-neutral-500">
-                                Learning disability, ADHD, Autism, etc.
-                            </span>
-                        </div>
-                    </label>
-
-                    {formData.hasSpecialNeeds && (
-                        <textarea
-                            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                            rows={2}
-                            placeholder="Please provide details..."
-                            value={formData.specialNeedsDetails || ''}
-                            onChange={(e) =>
-                                updateFormData({ specialNeedsDetails: e.target.value })
-                            }
-                        />
-                    )}
-
-                    <label className="flex items-start gap-3">
-                        <input
-                            type="checkbox"
-                            className="mt-1 size-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                            checked={formData.isPhysicallyChallenged || false}
-                            onChange={(e) =>
-                                updateFormData({ isPhysicallyChallenged: e.target.checked })
-                            }
-                        />
-                        <div>
-                            <span className="block text-sm font-medium text-neutral-900">
-                                Student is physically challenged
-                            </span>
-                        </div>
-                    </label>
-                </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>

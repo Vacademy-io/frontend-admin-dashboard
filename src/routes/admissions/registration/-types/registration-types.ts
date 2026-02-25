@@ -84,7 +84,7 @@ export interface Registration {
     category: string;
     bloodGroup: string;
     motherTongue: string;
-    languagesKnown?: string[]; // Or handled as needed
+    languagesKnown?: string;
     aadhaarNumber?: string;
     birthCertificateNumber?: string;
     hasSpecialNeeds?: boolean;
@@ -105,8 +105,15 @@ export interface Registration {
     tcNumber?: string;
     tcIssueDate?: string;
     tcSubmittedLater?: boolean;
+    tcPending?: boolean;
     applyingForClass: string;
     preferredBoard: string;
+
+    // Level & Package Selection
+    selectedLevelId?: string;
+    packageSessionId?: string;
+    idType?: 'AADHAR_CARD' | 'BIRTH_CERTIFICATE' | 'PASSPORT' | 'OTHER';
+    idNumber?: string;
 
     // Address
     currentAddress: AddressInfo;

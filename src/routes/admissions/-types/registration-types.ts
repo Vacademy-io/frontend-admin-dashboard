@@ -82,6 +82,8 @@ export interface AcademicInfo {
     subjectsStudied?: string;
     tcNumber?: string;
     tcIssueDate?: string;
+    lastExamResult?: string;
+    tcPending?: boolean;
 }
 
 export interface SiblingInfo {
@@ -105,10 +107,17 @@ export interface Registration {
     category?: string;
     aadhaarNumber?: string;
 
+    // ID Information (NEW)
+    idType?: 'AADHAR_CARD' | 'BIRTH_CERTIFICATE' | 'PASSPORT' | 'OTHER';
+    idNumber?: string;
+
     // Extended student fields
     birthCertificateNumber?: string;
     motherTongue?: string;
     languagesKnown?: string[];
+
+    // Selected Level (NEW) - for API submission
+    selectedLevelId?: string;
 
     // Special Requirements
     hasSpecialNeeds?: boolean;
@@ -251,6 +260,7 @@ export interface Registration {
     tcNumber?: string;
     tcIssueDate?: string;
     tcSubmittedLater?: boolean;
+    tcPending?: boolean;
     hasSiblingsInSchool?: boolean;
     fatherInfo?: {
         name: string;

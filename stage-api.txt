@@ -1,0 +1,40 @@
+GET
+/admin-core-service/v1/application/stages
+Parameters
+Try it out
+Name	Description
+instituteId
+string
+(query)
+instituteId
+source
+string
+(query)
+source
+sourceId
+string
+(query)
+sourceId
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+*/*
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "id": "string",
+    "sequence": "string",
+    "source": "string",
+    "type": "FORM",
+    "stage_name": "string",
+    "source_id": "string",
+    "institute_id": "string",
+    "config_json": "string"
+  }
+]

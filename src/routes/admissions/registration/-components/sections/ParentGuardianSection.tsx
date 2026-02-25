@@ -1,5 +1,14 @@
 import React from 'react';
 import { Registration } from '../../../-types/registration-types';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface SectionProps {
     formData: Partial<Registration>;
@@ -33,26 +42,25 @@ export const ParentGuardianSection: React.FC<SectionProps> = ({ formData, update
         options?: string[]
     ) => (
         <div>
-            <label className="mb-1 block text-sm font-medium text-neutral-700">
+            <Label className="mb-1 block text-sm font-medium text-neutral-700">
                 {label} {required && <span className="text-red-500">*</span>}
-            </label>
+            </Label>
             {options ? (
-                <select
-                    className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                >
-                    <option value="">Select</option>
-                    {options.map((opt) => (
-                        <option key={opt} value={opt}>
-                            {opt}
-                        </option>
-                    ))}
-                </select>
+                <Select value={value} onValueChange={onChange}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {options.map((opt) => (
+                            <SelectItem key={opt} value={opt}>
+                                {opt}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             ) : (
-                <input
+                <Input
                     type={type}
-                    className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                     placeholder={placeholder}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
@@ -86,89 +94,12 @@ export const ParentGuardianSection: React.FC<SectionProps> = ({ formData, update
                         'tel'
                     )}
                     {renderField(
-                        'Alternate Mobile',
-                        data.alternateMobile || '',
-                        (v) => updateParentInfo(type, 'alternateMobile', v),
-                        '+91 XXXXX XXXXX',
-                        false,
-                        'tel'
-                    )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {renderField(
                         'Email Address',
                         data.email || '',
                         (v) => updateParentInfo(type, 'email', v),
                         'example@email.com',
                         type === 'fatherInfo',
                         'email'
-                    )}
-                    {renderField(
-                        'Qualification',
-                        data.qualification || '',
-                        (v) => updateParentInfo(type, 'qualification', v),
-                        'Select',
-                        true,
-                        'text',
-                        ['Post Graduate', 'Graduate', 'High School', 'Others']
-                    )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                    {renderField(
-                        'Occupation',
-                        data.occupation || '',
-                        (v) => updateParentInfo(type, 'occupation', v),
-                        'Select',
-                        true,
-                        'text',
-                        ['Salaried', 'Self Employed', 'Business', 'Others', 'Homemaker']
-                    )}
-                    {renderField(
-                        'Organization',
-                        data.organization || '',
-                        (v) => updateParentInfo(type, 'organization', v),
-                        'Company name'
-                    )}
-                    {renderField(
-                        'Designation',
-                        data.designation || '',
-                        (v) => updateParentInfo(type, 'designation', v),
-                        'Job title'
-                    )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                    {renderField(
-                        'Annual Income',
-                        data.annualIncome || '',
-                        (v) => updateParentInfo(type, 'annualIncome', v),
-                        'Select',
-                        true,
-                        'text',
-                        ['< 1 Lakh', '1-5 Lakh', '5-10 Lakh', '> 10 Lakh']
-                    )}
-                    {renderField(
-                        'Aadhaar Number',
-                        data.aadharNumber || '',
-                        (v) => updateParentInfo(type, 'aadharNumber', v),
-                        'XXXX XXXX XXXX'
-                    )}
-                    {renderField(
-                        'PAN Number',
-                        data.panNumber || '',
-                        (v) => updateParentInfo(type, 'panNumber', v),
-                        'ABCDE1234F'
-                    )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-6">
-                    {renderField(
-                        'Office Address',
-                        data.officeAddress || '',
-                        (v) => updateParentInfo(type, 'officeAddress', v),
-                        'Full office address'
                     )}
                 </div>
             </div>
@@ -206,64 +137,6 @@ export const ParentGuardianSection: React.FC<SectionProps> = ({ formData, update
                 {activeTab === 'FATHER' && renderParentForm('fatherInfo', 'Father')}
                 {activeTab === 'MOTHER' && renderParentForm('motherInfo', 'Mother')}
                 {activeTab === 'GUARDIAN' && renderParentForm('guardianInfo', 'Guardian')}
-            </div>
-
-            {/* Emergency Contact */}
-            <div className="space-y-4 border-t border-neutral-200 pt-6">
-                <h4 className="flex items-center gap-2 text-sm font-semibold uppercase text-neutral-500">
-                    <span className="i-ph-phone size-4" />
-                    Emergency Contact
-                </h4>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    {renderField(
-                        'Contact Person',
-                        formData.emergencyContact?.name || '',
-                        (v) =>
-                            updateFormData({
-                                emergencyContact: { ...formData.emergencyContact!, name: v },
-                            }),
-                        'Full name',
-                        true
-                    )}
-                    {renderField(
-                        'Relationship',
-                        formData.emergencyContact?.relationship || '',
-                        (v) =>
-                            updateFormData({
-                                emergencyContact: {
-                                    ...formData.emergencyContact!,
-                                    relationship: v,
-                                },
-                            }),
-                        'Select',
-                        true,
-                        'text',
-                        ['Grandparent', 'Uncle', 'Aunt', 'Brother', 'Sister', 'Other']
-                    )}
-                    {renderField(
-                        'Mobile',
-                        formData.emergencyContact?.mobile || '',
-                        (v) =>
-                            updateFormData({
-                                emergencyContact: { ...formData.emergencyContact!, mobile: v },
-                            }),
-                        '+91 XXXXX',
-                        true,
-                        'tel'
-                    )}
-                    {renderField(
-                        'Alternate No.',
-                        formData.emergencyContact?.alternateMobile || '',
-                        (v) =>
-                            updateFormData({
-                                emergencyContact: {
-                                    ...formData.emergencyContact!,
-                                    alternateMobile: v,
-                                },
-                            }),
-                        '+91 XXXXX'
-                    )}
-                </div>
             </div>
         </div>
     );

@@ -1,0 +1,183 @@
+curl --location 'https://backend-stage.vacademy.io/admin-core-service/v1/applicant/apply' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJwZXJtaXNzaW9ucyI6W10sImZ1bGxuYW1lIjoiQWtzaGF0IFNodWtsYSIsInVzZXIiOiIyNzg2NTJlNC1mNWIzLTRkOTUtYmY5OS01M2Q2NzkzOWE3Y2IiLCJlbWFpbCI6ImExQGdtYWlsLmNvbSIsImlzX3Jvb3RfdXNlciI6dHJ1ZSwiYXV0aG9yaXRpZXMiOnsiNDk0NDU5OTItNzI4NS00N2M3LWI5NGYtYjg1NWU5ZWY5MTM3Ijp7InBlcm1pc3Npb25zIjpbIlJFQUQiLCJXUklURSJdLCJyb2xlcyI6WyJBRE1JTiJdfSwiYjdmOGJiMmEtZTc5My00YjcyLWE2ZDItMzUwODMyYmMxYmI2Ijp7InBlcm1pc3Npb25zIjpbIlJFQUQiLCJXUklURSJdLCJyb2xlcyI6WyJBRE1JTiJdfX0sInVzZXJuYW1lIjoiYWtzaGF0Iiwic3ViIjoiYWtzaGF0IiwiaWF0IjoxNzY5MjI4MTgwLCJleHAiOjE3NzE4MjAxODB9.wowm1-XrS6WHgrrSYfLTKCrcXcxXXbtPmYryGnDBsYs' \
+--data-raw '{
+    "enquiry_id": null,
+    "institute_id": "df6faecd-0437-4700-8373-6c642c862c37",
+    "session_id": "11111111-2222-3333-4444-555555555555",
+    "source": "LEVEL",
+    "source_id": "class_5",
+    "form_data": {
+        "parent_name": "Mega Parent",
+        "parent_phone": "9999988888",
+        "parent_email": "mega.parent@test.com",
+        "child_name": "Final Logic Kid5",
+        "child_dob": "2016-05-10",
+        "child_gender": "MALE",
+        "address_line": "42 Galaxy Apartment",
+        "city": "Mumbai",
+        "pin_code": "400001",
+        "blood_group": "O+",
+        "nationality": "Indian"
+    },
+    "custom_field_values": {
+        "5cf6f1fb-1b0d-42a1-83ac-ba517ba8cee0": "MB"
+    }
+}'
+
+
+
+Payload Fields 
+{
+    "enquiry_id": null,
+    "institute_id": "df6faecd-0437-4700-8373-6c642c862c37",
+    "session_id": "11111111-2222-3333-4444-555555555555",
+    "source": "LEVEL",
+    "source_id": "class_5",
+    "destination_package_session_id": "1111",
+    "form_data": {
+        "parent_name": "Mega Parent",
+        "parent_phone": "9999988888",
+        "parent_email": "mega.parent@test.com",
+        "child_name": "Full Field Child",
+        "child_dob": "2015-08-15",
+        "child_gender": "FEMALE",
+
+        "address_line": "42 Galaxy Apartment",
+        "city": "Mumbai",
+        "pin_code": "400001",
+        "father_name": "Father Doe",
+        "mother_name": "Mother Doe",
+
+        "id_number": "AADHAR-1234-5678",
+        "id_type": "AADHAR_CARD",
+
+        "previous_school_name": "St. Xaviers High",
+        "previous_school_board": "ICSE",
+        "last_class_attended": "Class 4",
+        "last_exam_result": "95%",
+        "subjects_studied": "Math, Science, English, Art",
+
+        "applying_for_class": "Class 5",
+        "academic_year": "2025-26",
+        "board_preference": "CBSE",
+
+        "tc_number": "TC-998877",
+        "tc_issue_date": "2025-03-31",
+        "tc_pending": false,
+        "has_special_education_needs": true,
+        "is_physically_challenged": false,
+        "medical_conditions": "Mild Asthma",
+        "dietary_restrictions": "Peanut Allergy",
+
+        "blood_group": "B+",
+        "mother_tongue": "Hindi",
+        "languages_known": "English, Hindi, Marathi",
+        "category": "GENERAL",
+        "nationality": "Indian"
+    }
+}
+
+
+2. Get all applications api
+
+/admin-core-service/v1/applicant/list
+Parameters
+instituteId -> insituteId from store
+
+source 
+
+sourceId
+
+overallStatus
+
+applicationStageId
+
+packageSessionId
+
+pageNo
+
+pageSize
+
+
+Responses
+
+
+Media type
+{
+  "totalElements": 0,
+  "totalPages": 0,
+  "pageable": {
+    "paged": true,
+    "unpaged": true,
+    "pageNumber": 0,
+    "pageSize": 0,
+    "offset": 0,
+    "sort": {
+      "unsorted": true,
+      "sorted": true,
+      "empty": true
+    }
+  },
+  "numberOfElements": 0,
+  "size": 0,
+  "content": [
+    {
+      "id": "string",
+      "createdAt": "2026-02-05T10:48:08.799Z",
+      "updatedAt": "2026-02-05T10:48:08.799Z",
+      "application_stage_id": "string",
+      "application_stage_status": "string",
+      "overall_status": "string",
+      "source": "string",
+      "source_id": "string",
+      "data": {
+        "additionalProp1": {},
+        "additionalProp2": {},
+        "additionalProp3": {}
+      }
+    }
+  ],
+  "number": 0,
+  "sort": {
+    "unsorted": true,
+    "sorted": true,
+    "empty": true
+  },
+  "first": true,
+  "last": true,
+  "empty": true
+}
+
+
+
+3. GET application stage data 
+
+curl --request GET \
+  --url 'https://backend-stage.vacademy.io/admin-core-service/v1/application/stages?instituteId=4983ac8a-4527-496d-89f0-79c6bc25f753&source=INSTITUTE&sourceId=4983ac8a-4527-496d-89f0-79c6bc25f753' \
+  --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJwZXJtaXNzaW9ucyI6W10sImZ1bGxuYW1lIjoiUHJpeWFuc2h1IiwidXNlciI6IjZjYmFkM2U2LTg0MDctNGYyOS04YTg3LWY0NTdkM2NiMDEzMyIsImVtYWlsIjoiaGFwcHlAZ21haWwuY29tIiwiaXNfcm9vdF91c2VyIjp0cnVlLCJhdXRob3JpdGllcyI6eyI0OTgzYWM4YS00NTI3LTQ5NmQtODlmMC03OWM2YmMyNWY3NTMiOnsicGVybWlzc2lvbnMiOltdLCJyb2xlcyI6WyJDT1VOU0VMTE9SIl19fSwidXNlcm5hbWUiOiJoYXBweSIsInN1YiI6ImhhcHB5IiwiaWF0IjoxNzcwMjgyOTQxLCJleHAiOjE3NzI4NzQ5NDF9.y96fK6_dFJ_5YB81PjyxEnXb7NidWnaLqNv5ksW_0jo'
+
+response
+
+  [
+  {
+    "id": "f4eebc99-9c0b-4ef8-bb6d-6bb9bd380a42",
+    "sequence": "1",
+    "source": "INSTITUTE",
+    "type": "FORM",
+    "stage_name": "Application Form",
+    "source_id": "4983ac8a-4527-496d-89f0-79c6bc25f753",
+    "institute_id": "4983ac8a-4527-496d-89f0-79c6bc25f753",
+    "config_json": ""
+  },
+  {
+    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+    "sequence": "1",
+    "source": "INSTITUTE",
+    "type": "PAYMENT",
+    "stage_name": "Admission Fee Payment2",
+    "source_id": "4983ac8a-4527-496d-89f0-79c6bc25f753",
+    "institute_id": "4983ac8a-4527-496d-89f0-79c6bc25f753",
+    "config_json": "{\"order_id\": null, \"display_text\": \"Please pay the admission fee to proceed.\", \"gateway_rules\": {\"fallback\": \"RAZORPAY\", \"preferred\": \"RAZORPAY\"}, \"payment_status\": null, \"payment_option_id\": \"e3458a23-2b76-47e2-bc73-b11eb093a3e1\"}"
+  }
+]

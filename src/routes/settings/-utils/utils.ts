@@ -12,6 +12,7 @@ import CustomFieldsSettings from '@/components/settings/CustomFieldsSettings';
 import CertificatesSettings from '../-components/Certificates/CertificatesSettings';
 import { TemplateSettings } from '@/components/templates';
 import AiSettings from '../-components/AiSettings';
+import StageSettings from '../-components/Stage/StageSettings';
 
 export const getAvailableSettingsTabs = () => {
     return [
@@ -59,6 +60,11 @@ export const getAvailableSettingsTabs = () => {
             tab: SettingsTabs.Course,
             value: 'Course Settings',
             component: CourseSettings,
+        },
+        {
+            tab: SettingsTabs.Stage,
+            value: 'Stage Settings',
+            component: StageSettings,
         },
         {
             tab: SettingsTabs.CustomFields,

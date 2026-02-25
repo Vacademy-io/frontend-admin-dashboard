@@ -1,5 +1,15 @@
 import React from 'react';
 import { Registration } from '../../../-types/registration-types';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface SectionProps {
     formData: Partial<Registration>;
@@ -7,6 +17,39 @@ interface SectionProps {
 }
 
 export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFormData }) => {
+    // Get package sessions from institute store
+    const { instituteDetails } = useInstituteDetailsStore();
+    const [packageSessions, setPackageSessions] = React.useState<
+        Array<{
+            id: string;
+            name: string;
+            levelName: string;
+        }>
+    >([]);
+    const [sessionName, setSessionName] = React.useState('');
+
+    React.useEffect(() => {
+        if (instituteDetails?.batches_for_sessions) {
+            const sessions = instituteDetails.batches_for_sessions.map((batch) => ({
+                id: batch.id,
+                name: `${batch.package_dto.package_name} - ${batch.level.level_name}`,
+                levelName: batch.level.level_name,
+            }));
+            setPackageSessions(sessions);
+        }
+
+        // Get session name from URL
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get('sessionId');
+        if (sessionId && instituteDetails?.sessions) {
+            const session = instituteDetails.sessions.find((s) => s.id === sessionId);
+            if (session) {
+                setSessionName(session.session_name);
+                updateFormData({ academicYear: session.session_name });
+            }
+        }
+    }, [instituteDetails, updateFormData]);
+
     return (
         <div className="space-y-6">
             {/* Current/Previous School Details */}
@@ -31,91 +74,65 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Previous School Board <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        </Label>
+                        <Select
                             value={formData.previousSchoolBoard || ''}
-                            onChange={(e) =>
-                                updateFormData({ previousSchoolBoard: e.target.value })
+                            onValueChange={(value) =>
+                                updateFormData({ previousSchoolBoard: value })
                             }
                         >
-                            <option value="">Select board</option>
-                            <option value="CBSE">CBSE</option>
-                            <option value="ICSE">ICSE</option>
-                            <option value="State Board">State Board</option>
-                            <option value="IB">IB</option>
-                            <option value="IGCSE">IGCSE</option>
-                            <option value="Other">Other</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select board" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="CBSE">CBSE</SelectItem>
+                                <SelectItem value="ICSE">ICSE</SelectItem>
+                                <SelectItem value="State Board">State Board</SelectItem>
+                                <SelectItem value="IB">IB</SelectItem>
+                                <SelectItem value="IGCSE">IGCSE</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <p className="mt-1 text-xs text-neutral-500">CBSE / ICSE</p>
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Last Class Attended <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        </Label>
+                        <Select
                             value={formData.lastClassAttended || ''}
-                            onChange={(e) => updateFormData({ lastClassAttended: e.target.value })}
+                            onValueChange={(value) => updateFormData({ lastClassAttended: value })}
                         >
-                            <option value="">Select class</option>
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map((cls) => (
-                                <option key={cls} value={cls.toString()}>
-                                    Class {cls}
-                                </option>
-                            ))}
-                            <option value="Kindergarten">Kindergarten</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select class" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Array.from({ length: 12 }, (_, i) => i + 1).map((cls) => (
+                                    <SelectItem key={cls} value={cls.toString()}>
+                                        Class {cls}
+                                    </SelectItem>
+                                ))}
+                                <SelectItem value="Kindergarten">Kindergarten</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 
                 <div>
-                    <label className="mb-1 block text-sm font-medium text-neutral-700">
-                        Previous School Address
-                    </label>
-                    <textarea
-                        className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                        rows={2}
-                        placeholder="Enter previous school address"
-                        value={formData.previousSchoolAddress || ''}
-                        onChange={(e) => updateFormData({ previousSchoolAddress: e.target.value })}
+                    <Label className="mb-1 block text-sm font-medium text-neutral-700">
+                        Academic Year <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                        type="text"
+                        value={sessionName || formData.academicYear || ''}
+                        readOnly
+                        disabled
+                        className="bg-neutral-50"
+                        placeholder="Session will be auto-filled"
                     />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
-                            Medium of Instruction <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                            value={formData.mediumOfInstruction || ''}
-                            onChange={(e) =>
-                                updateFormData({ mediumOfInstruction: e.target.value })
-                            }
-                        >
-                            <option value="">Select medium</option>
-                            <option value="English">English</option>
-                            <option value="Hindi">Hindi</option>
-                            <option value="Regional">Regional</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
-                            Academic Year <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                            value={formData.academicYear || ''}
-                            onChange={(e) => updateFormData({ academicYear: e.target.value })}
-                        >
-                            <option value="">Select year</option>
-                            <option value="2024-2025">2024-2025</option>
-                            <option value="2025-2026">2025-2026</option>
-                        </select>
-                    </div>
+                    <p className="mt-1 text-xs text-neutral-500">Based on selected session</p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -184,12 +201,12 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                         <input
                             type="checkbox"
                             className="mt-1 size-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                            checked={formData.tcSubmittedLater || false}
-                            onChange={(e) => updateFormData({ tcSubmittedLater: e.target.checked })}
+                            checked={formData.tcPending || false}
+                            onChange={(e) => updateFormData({ tcPending: e.target.checked })}
                         />
                         <div>
                             <span className="block text-sm font-medium text-yellow-900">
-                                TC will be submitted later
+                                TC Pending / Will be submitted later
                             </span>
                             <span className="block text-xs text-yellow-700">
                                 (Admission cannot be confirmed without TC)
@@ -208,79 +225,55 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Class / Grade Applying For <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                            value={formData.applyingForClass || ''}
-                            onChange={(e) => updateFormData({ applyingForClass: e.target.value })}
+                        </Label>
+                        <Select
+                            value={formData.packageSessionId || ''}
+                            onValueChange={(value) => {
+                                updateFormData({ packageSessionId: value });
+                                // Also update applyingForClass for backward compatibility
+                                const selected = packageSessions.find((ps) => ps.id === value);
+                                if (selected) {
+                                    updateFormData({ applyingForClass: selected.levelName });
+                                }
+                            }}
                         >
-                            <option value="">Select class</option>
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map((cls) => (
-                                <option key={cls} value={cls.toString()}>
-                                    Class {cls}
-                                </option>
-                            ))}
-                            <option value="Kindergarten">Kindergarten</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select class/package" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {packageSessions.map((session) => (
+                                    <SelectItem key={session.id} value={session.id}>
+                                        {session.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <p className="mt-1 text-xs text-neutral-500">
+                            Select the package and level for admission
+                        </p>
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        <Label className="mb-1 block text-sm font-medium text-neutral-700">
                             Board Preference <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        </Label>
+                        <Select
                             value={formData.preferredBoard || ''}
-                            onChange={(e) => updateFormData({ preferredBoard: e.target.value })}
+                            onValueChange={(value) => updateFormData({ preferredBoard: value })}
                         >
-                            <option value="">Select board</option>
-                            <option value="CBSE">CBSE</option>
-                            <option value="ICSE">ICSE</option>
-                            <option value="State Board">State Board</option>
-                            <option value="IB">IB</option>
-                            <option value="IGCSE">IGCSE</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select board" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="CBSE">CBSE</SelectItem>
+                                <SelectItem value="ICSE">ICSE</SelectItem>
+                                <SelectItem value="State Board">State Board</SelectItem>
+                                <SelectItem value="IB">IB</SelectItem>
+                                <SelectItem value="IGCSE">IGCSE</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-neutral-700">
-                            Academic Year <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                            value={formData.academicYear || ''}
-                            onChange={(e) => updateFormData({ academicYear: e.target.value })}
-                        >
-                            <option value="">Select year</option>
-                            <option value="2025-2026">2025-2026</option>
-                            <option value="2026-2027">2026-2027</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {/* Sibling Information */}
-            <div className="space-y-4 border-t border-neutral-200 pt-4">
-                <h4 className="text-sm font-semibold uppercase text-neutral-500">
-                    Sibling Information
-                </h4>
-                <div>
-                    <label className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            className="size-5 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                            checked={formData.hasSiblingsInSchool || false}
-                            onChange={(e) =>
-                                updateFormData({ hasSiblingsInSchool: e.target.checked })
-                            }
-                        />
-                        <span className="text-sm text-neutral-700">
-                            Sibling currently studying in this school
-                        </span>
-                    </label>
                 </div>
             </div>
         </div>
