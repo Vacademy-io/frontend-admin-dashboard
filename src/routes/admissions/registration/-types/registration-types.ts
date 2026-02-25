@@ -15,6 +15,7 @@ export interface AddressInfo {
     city: string;
     state: string;
     pincode: string;
+    pinCode?: string;
     country: string;
     // Keeping old fields for backward compatibility if needed, but intended to be replaced
     addressLine1?: string;
