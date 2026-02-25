@@ -229,9 +229,9 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                             Class / Grade Applying For <span className="text-red-500">*</span>
                         </Label>
                         <Select
-                            value={formData.packageSessionId || ''}
+                            value={formData.applyingForClass || ''}
                             onValueChange={(value) => {
-                                updateFormData({ packageSessionId: value });
+                                updateFormData({ applyingForClass: value });
                                 // Also update applyingForClass for backward compatibility
                                 const selected = packageSessions.find((ps) => ps.id === value);
                                 if (selected) {

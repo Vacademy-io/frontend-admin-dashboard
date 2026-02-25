@@ -226,6 +226,11 @@ export function RegistrationFormPage() {
                 // Prefill address if available
                 if (parentData.address_line || parentData.city || parentData.pin_code) {
                     parentUpdates.currentAddress = {
+                        houseNo: '',
+                        street: '',
+                        area: '',
+                        state: '',
+                        country: '',
                         ...formData.currentAddress,
                         addressLine1: parentData.address_line || '',
                         city: parentData.city || '',
@@ -249,6 +254,11 @@ export function RegistrationFormPage() {
                 // Prefill address if available
                 if (parentData.address_line || parentData.city || parentData.pin_code) {
                     parentUpdates.currentAddress = {
+                        houseNo: '',
+                        street: '',
+                        area: '',
+                        state: '',
+                        country: '',
                         ...formData.currentAddress,
                         addressLine1: parentData.address_line || '',
                         city: parentData.city || '',
@@ -292,6 +302,11 @@ export function RegistrationFormPage() {
         // Prefill address if available
         if (parentData.address_line || parentData.city || parentData.pin_code) {
             updates.currentAddress = {
+                houseNo: '',
+                street: '',
+                area: '',
+                state: '',
+                country: '',
                 ...formData.currentAddress,
                 addressLine1: parentData.address_line || '',
                 city: parentData.city || '',
@@ -415,7 +430,7 @@ export function RegistrationFormPage() {
     const handleSubmit = async () => {
         setIsSaving(true);
         try {
-            if (!formData.packageSessionId) {
+            if (!formData.applyingForClass) {
                 alert('Please select a class/grade from the Academic Info section');
                 setIsSaving(false);
                 return;
@@ -429,15 +444,6 @@ export function RegistrationFormPage() {
 
             // Prepare custom field values
             const custom_field_values: Record<string, string> = {};
-            // Map form data to custom fields if needed
-            // customFieldsForApplication.forEach((field) => {
-            //     custom_field_values[field.id] = '';
-            // });
-
-            // Get level ID from the selected package session
-            const selectedBatch = instituteDetails?.batches_for_sessions?.find(
-                (batch) => batch.id === formData.packageSessionId
-            );
 
             // Combine address fields into a single address_line
             const addressParts = [
@@ -453,7 +459,7 @@ export function RegistrationFormPage() {
                 enquiry_id: enquiryId || null,
                 institute_id: instituteId,
                 session_id: sessionId,
-                destination_package_session_id: formData.packageSessionId,
+                destination_package_session_id: formData?.applyingForClass,
                 source: 'INSTITUTE',
                 source_id: instituteId,
                 form_data: {

@@ -255,7 +255,9 @@ export const StudentDetailsSection: React.FC<SectionProps> = ({ formData, update
                             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                             placeholder="E.g., English, Hindi, Marathi"
                             value={formData.languagesKnown || ''}
-                            onChange={(e) => updateFormData({ languagesKnown: e.target.value })}
+                            onChange={(e) =>
+                                updateFormData({ languagesKnown: e.target.value.split(',') })
+                            }
                         />
                     </div>
                 </div>
