@@ -13,6 +13,7 @@ import CertificatesSettings from '../-components/Certificates/CertificatesSettin
 import { TemplateSettings } from '@/components/templates';
 import AiSettings from '../-components/AiSettings';
 import FeeManagementMain from '../fee-management/-components/FeeManagementMain';
+import FeeManagementV2Main from '../fee-management-v2/-components/FeeManagementV2Main';
 
 export const getAvailableSettingsTabs = () => {
     return [
@@ -85,6 +86,11 @@ export const getAvailableSettingsTabs = () => {
             tab: SettingsTabs.FeeManagement,
             value: 'Fee Management',
             component: FeeManagementMain,
+        },
+        {
+            tab: SettingsTabs.FeeManagement2,
+            value: 'Fee Management 2',
+            component: FeeManagementV2Main,
         },
     ];
 };
