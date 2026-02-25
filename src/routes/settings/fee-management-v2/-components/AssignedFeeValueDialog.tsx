@@ -27,23 +27,16 @@ interface PresetPlan {
 
 const PRESET_PLANS: PresetPlan[] = [
     {
-        id: 'one-time',
-        label: 'One-time',
-        description: 'Full amount due once',
-        count: 1,
-        intervalMonths: 0,
-    },
-    {
         id: 'quarterly',
         label: 'Quarterly',
-        description: '4 payments every 3 months',
+        description: '4 payments, every 3 months',
         count: 4,
         intervalMonths: 3,
     },
     {
         id: 'term-wise',
         label: 'Term-wise',
-        description: '3 payments every 4 months',
+        description: '3 payments, every 4 months',
         count: 3,
         intervalMonths: 4,
     },
@@ -125,7 +118,10 @@ export default function AssignedFeeValueDialog({ feeTypeId, feeTypeName, onClose
         status: existingAfv?.status ?? 'ACTIVE',
     });
 
-    const [selectedPlanId, setSelectedPlanId] = useState<string>('one-time');
+    const [selectedPlanId, setSelectedPlanId] = useState<string>('quarterly');
+
+    // Single due date used only for the one-time (non-installment) path
+    const [oneTimeDueDate, setOneTimeDueDate] = useState<string>(firstOfMonth(0));
 
     const [installments, setInstallments] = useState<InstallmentRow[]>(() => {
         if (!existingAfv) return [];
@@ -275,12 +271,30 @@ export default function AssignedFeeValueDialog({ feeTypeId, feeTypeName, onClose
                                 setForm((f) => ({ ...f, has_installment: v }));
                                 if (!v) {
                                     setInstallments([]);
-                                    setSelectedPlanId('one-time');
+                                    setSelectedPlanId('quarterly');
                                 }
                             }}
                             label="Split into Installments"
                         />
                     </div>
+
+                    {/* ── One-time due date (no installments) ── */}
+                    {!form.has_installment && (
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                                Due Date
+                            </label>
+                            <input
+                                type="date"
+                                value={oneTimeDueDate}
+                                onChange={(e) => setOneTimeDueDate(e.target.value)}
+                                className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <p className="mt-1 text-[11px] text-gray-400">
+                                Full amount is due in a single payment on this date.
+                            </p>
+                        </div>
+                    )}
 
                     {/* ── Installment section ── */}
                     {form.has_installment && (
