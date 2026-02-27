@@ -49,6 +49,7 @@ export interface LoginFlowOptions {
     | 'username_password'
     | 'oauth'
     | 'email_otp'
+    | 'phone_otp'
     | 'sso'
     | 'demo_account'
     | 'signup'
