@@ -97,6 +97,7 @@ export const enum SettingsTabs {
     Templates = 'templates',
     AiSettings = 'aiSettings',
     FeeManagement = 'feeManagement',
+    FeeManagement2 = 'feeManagement2',
 }
 
 export const DAYS_IN_MONTH = 30;
