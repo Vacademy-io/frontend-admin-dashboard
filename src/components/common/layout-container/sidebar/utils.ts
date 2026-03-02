@@ -168,6 +168,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/admissions/admission-form',
                 subItemId: 'admission-form',
             },
+            {
+                subItem: 'Application',
+                subItemLink: '/admissions/application',
+                subItemId: 'application',
+            },
         ],
     },
     {
