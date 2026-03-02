@@ -178,7 +178,7 @@ export interface FixedField {
     canBeEdited: boolean;
     canBeRenamed: boolean;
     order: number;
-    groupName?: string | null; // Comma-separated group names if field is in multiple groups
+    groupName: string | null; // Comma-separated group names if field is in multiple groups
     usage?: CustomFieldUsage;
 }
 

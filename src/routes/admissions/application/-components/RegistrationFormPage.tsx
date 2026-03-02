@@ -795,7 +795,7 @@ export function RegistrationFormPage() {
                                 ) : activeSection === 4 ? (
                                     <MyButton
                                         buttonType="secondary"
-                                        onClick={() => navigate({ to: '/admissions/registration' })}
+                                        onClick={() => navigate({ to: '/admissions/application' })}
                                         className="h-10"
                                     >
                                         Back to List
