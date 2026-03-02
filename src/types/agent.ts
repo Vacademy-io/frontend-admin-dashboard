@@ -1,11 +1,10 @@
-
 // Request/Response Types
 export interface AgentChatRequest {
-    sessionId?: string;          // Optional: for continuing existing session
-    instituteId: string;         // Required: current institute context
-    message: string;             // Required: user's message
-    model?: string;              // Optional: LLM model (default: anthropic/claude-3.5-sonnet)
-    context?: AgentContext;      // Optional: additional context
+    sessionId?: string; // Optional: for continuing existing session
+    instituteId: string; // Required: current institute context
+    message: string; // Required: user's message
+    model?: string; // Optional: LLM model (default: anthropic/claude-3.5-sonnet)
+    context?: AgentContext; // Optional: additional context
 }
 
 export interface AgentContext {
@@ -24,7 +23,7 @@ export interface AgentChatResponse {
 
 export interface AgentRespondRequest {
     response: string;
-    optionId?: string;           // When responding to specific option
+    optionId?: string; // When responding to specific option
 }
 
 // SSE Event Types
@@ -49,10 +48,10 @@ export interface AgentEvent {
     // TOOL_CALL event
     toolName?: string;
     toolDescription?: string;
-    toolArguments?: Record<string, any>;
+    toolArguments?: Record<string, unknown>;
 
     // TOOL_RESULT event
-    toolResult?: any;
+    toolResult?: unknown;
     toolSuccess?: boolean;
     toolError?: string;
 
@@ -93,17 +92,9 @@ export interface AgentMessage {
     eventType?: AgentEventType;
     toolCall?: {
         name: string;
-        arguments: Record<string, any>;
-        result?: any;
+        arguments: Record<string, unknown>;
+        result?: unknown;
         success?: boolean;
     };
     confirmationOptions?: ConfirmationOption[];
 }
-
-// Available LLM Models
-export const AVAILABLE_MODELS = [
-    { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', description: 'Best for complex reasoning' },
-    { id: 'openai/gpt-4o', name: 'GPT-4o', description: 'Fast and capable' },
-    { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', description: 'Cost-effective' },
-    { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5', description: 'Good for general tasks' },
-] as const;

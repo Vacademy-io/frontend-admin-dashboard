@@ -2,6 +2,8 @@ import { getTokenDecodedData, getTokenFromCookie } from './sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 // import { IAccessToken } from '@/constants/auth/tokens';
 import { InstituteDetailsType } from '@/schemas/student/student-list/institute-schema';
+import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY, CUSTOM_ROLE_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
 
 export interface Institute {
     id: string;
@@ -162,7 +164,9 @@ export const setSelectedInstitute = (instituteId: string): void => {
  * Get the selected institute from localStorage
  */
 export const getSelectedInstitute = (): string | undefined => {
-    return localStorage.getItem('selectedInstituteId') || undefined;
+    const id = localStorage.getItem('selectedInstituteId');
+    if (id === 'null') return undefined;
+    return id || undefined;
 };
 
 /**
@@ -188,6 +192,27 @@ export const getCurrentInstituteId = (): string | undefined => {
  */
 export const clearSelectedInstitute = (): void => {
     localStorage.removeItem('selectedInstituteId');
+};
+
+/**
+ * Get roles for the current (selected) institute only.
+ * Use this when choosing Admin vs Teacher display settings so that users with
+ * STUDENT in the current institute but ADMIN elsewhere still get the correct
+ * settings for the context they are in.
+ */
+export const getRolesForCurrentInstitute = (): string[] => {
+    const instituteId = getCurrentInstituteId();
+    if (!instituteId) return [];
+
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    if (!accessToken) return [];
+
+    const tokenData = getTokenDecodedData(accessToken);
+    if (!tokenData?.authorities?.[instituteId]) return [];
+
+    const authority = tokenData.authorities[instituteId];
+    if (!authority) return [];
+    return Array.isArray(authority.roles) ? authority.roles : [];
 };
 
 /**
@@ -238,4 +263,28 @@ export const hasRoleInInstitute = (instituteId: string, role: string): boolean =
 export const getInstitutesWithRole = (role: string): Institute[] => {
     const institutes = getInstitutesFromToken();
     return institutes.filter((institute) => institute.roles.includes(role));
+};
+
+/**
+ * Get the currently active display settings role key for the user
+ * Synchronously uses localStorage to support dynamic custom role keys
+ */
+export const getActiveRoleDisplaySettingsKey = (): string => {
+    const roles = getRolesForCurrentInstitute();
+    if (roles.includes('ADMIN')) return ADMIN_DISPLAY_SETTINGS_KEY;
+
+    const instituteId = getCurrentInstituteId();
+    if (!instituteId) return TEACHER_DISPLAY_SETTINGS_KEY;
+
+    const hasFaculty = hasFacultyAssignedPermission(instituteId);
+
+    if (hasFaculty) {
+        const activeKey = localStorage.getItem('ACTIVE_ROLE_DISPLAY_SETTINGS_KEY');
+        if (activeKey && activeKey.startsWith(CUSTOM_ROLE_DISPLAY_SETTINGS_KEY)) {
+            return activeKey;
+        }
+        return CUSTOM_ROLE_DISPLAY_SETTINGS_KEY;
+    }
+
+    return TEACHER_DISPLAY_SETTINGS_KEY;
 };

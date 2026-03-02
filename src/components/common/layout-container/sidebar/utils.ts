@@ -1,33 +1,28 @@
 import {
-    House,
-    Users,
-    BookOpen,
-    Scroll,
-    Globe,
-    FileMagnifyingGlass,
-    HeadCircuit,
-    ChartLineUp,
-    Tag,
-    FlowArrow,
-    CreditCard,
-    Strategy,
-    Timer,
-    ChartBar,
-    AddressBook,
-    Sparkle,
-} from '@phosphor-icons/react';
-import { School, FileUser } from 'lucide-react';
-import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import {
-    ChalkboardTeacher,
+    Robot,
+    Megaphone,
     GearSix,
-    Lightning,
-    NotePencil,
     UsersFour,
+    PlusCircle,
+    House,
+    CreditCard,
+    AddressBook,
+    Video,
+    CalendarCheck,
+    ChartBar,
+    Lightning,
+    Question,
+    PencilCircle,
+    Files,
+    Sparkle,
+    FilmStrip,
+    Books,
+    Code,
 } from '@phosphor-icons/react';
 import { StorageKey } from '@/constants/storage/storage';
-import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { NamingSettingsType } from '@/routes/settings/-constants/terms';
+import { SidebarItemsType } from '@/types/layout-container/layout-container-types';
 
 // Utility function to get naming settings from localStorage
 const getNamingSettings = (): NamingSettingsType[] => {
@@ -87,22 +82,19 @@ export const getTerminologyPlural = (key: string, defaultValue: string): string 
 };
 
 export const SidebarItemsData: SidebarItemsType[] = [
+    // CRM with ERP
     {
         icon: House,
         title: 'Dashboard',
         id: 'dashboard',
         to: '/dashboard',
-    },
-    {
-        icon: ChartLineUp,
-        title: 'Learner Live Activities',
-        id: 'learner-insights',
-        to: '/learner-insights',
+        category: 'CRM',
     },
     {
         icon: UsersFour,
         title: 'Manage Institute',
         id: 'manage-institute',
+        category: 'CRM',
         subItems: [
             {
                 subItem: getTerminologyPlural(ContentTerms.Batch, SystemTerms.Batch),
@@ -119,13 +111,63 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/manage-institute/teams',
                 subItemId: 'teams',
             },
+            {
+                subItem: 'Inventory Management',
+                subItemLink: '/manage-inventory',
+                subItemId: 'inventory-management',
+            },
+            {
+                subItem: 'Manage Packages',
+                subItemLink: '/admin-package-management',
+                subItemId: 'manage-packages',
+                adminOnly: true,
+            },
         ],
     },
     {
-        icon: School,
+        icon: AddressBook,
+        title: 'Manage Contacts',
+        id: 'manage-contacts',
+        category: 'CRM',
+        subItems: [
+            {
+                subItem: 'All Contacts',
+                subItemLink: '/manage-contacts',
+                subItemId: 'all-contacts',
+            },
+            {
+                subItem: 'Linked Course Contacts',
+                subItemLink: '/manage-students/students-list',
+                subItemId: 'linked-contacts',
+            },
+            {
+                subItem: 'User Tags',
+                subItemLink: '/user-tags/institute',
+                subItemId: 'user-tags-main',
+            },
+            {
+                subItem: 'Link Tag',
+                subItemLink: '/user-tags/link',
+                subItemId: 'link-tag',
+            },
+            {
+                subItem: 'Invite Users',
+                subItemLink: '/manage-students/invite',
+                subItemId: 'invite',
+            },
+        ],
+    },
+    {
+        icon: AddressBook, // Can reuse AddressBook icon or import a new one like Users
         title: 'Admissions',
         id: 'admissions',
+        category: 'CRM',
         subItems: [
+            {
+                subItem: 'Admission Form',
+                subItemLink: '/admissions/admission-form',
+                subItemId: 'admission-form',
+            },
             {
                 subItem: 'Enquiries',
                 subItemLink: '/admissions/enquiries',
@@ -134,161 +176,38 @@ export const SidebarItemsData: SidebarItemsType[] = [
         ],
     },
     {
-        icon: Users,
-        title: `Manage ${getTerminology(RoleTerms.Learner, SystemTerms.Learner)}`, // Student
-        id: 'student-mangement',
-        subItems: [
-            {
-                subItem: `${getTerminology(RoleTerms.Learner, SystemTerms.Learner)} list`, // Student
-                subItemLink: '/manage-students/students-list',
-                subItemId: 'students-list',
-            },
-            {
-                subItem: 'Invite',
-                subItemLink: '/manage-students/invite',
-                subItemId: 'invite',
-            },
-            // Enroll Requests deprecated
-        ],
-    },
-    {
-        icon: Tag,
-        title: 'Manage User Tags',
-        id: 'user-tags',
-        subItems: [
-            {
-                subItem: 'Link Tag',
-                subItemLink: '/user-tags/link',
-                subItemId: 'link-tag',
-            },
-            {
-                subItem: 'Institute Tags',
-                subItemLink: '/user-tags/institute',
-                subItemId: 'institute-tags',
-            },
-        ],
-    },
-
-    {
-        icon: Users,
-        title: 'Manage Campaigns',
-        id: 'manage-campaigns',
-        subItems: [
-            {
-                subItem: 'Campaign List',
-                subItemLink: '/audience-manager/list',
-                subItemId: 'list',
-            },
-        ],
-    },
-    {
-        icon: Strategy,
-        title: 'Planning',
-        id: 'planning',
-        subItems: [
-            {
-                subItem: 'Planning',
-                subItemLink: '/planning/planning',
-                subItemId: 'planning',
-            },
-            {
-                subItem: 'Activity Logs',
-                subItemLink: '/planning/activity-logs',
-                subItemId: 'activity-logs',
-            },
-        ],
-    },
-
-    {
         icon: CreditCard,
-        title: 'Manage Payments',
-        id: 'manage-payments',
-        to: '/manage-payments',
-    },
-    {
-        icon: BookOpen,
-        title: 'Learning Center',
-        id: 'study-library',
+        title: 'Membership',
+        id: 'membership-management',
+        category: 'CRM',
         subItems: [
             {
-                subItem: getTerminology(ContentTerms.Course, SystemTerms.Course), // Course
-                subItemLink: '/study-library/courses',
-                subItemId: 'course',
+                subItem: 'Lead List',
+                subItemLink: '/audience-manager/list',
+                subItemId: 'lead-list',
             },
             {
-                subItem: `${getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession)}`, // LiveSession
-                subItemLink: '/study-library/live-session',
-                subItemId: 'live-session',
+                subItem: 'Manage Payments',
+                subItemLink: '/manage-payments',
+                subItemId: 'manage-payments-sub',
             },
             {
-                subItem: 'Attendance Tracker',
-                subItemLink: '/study-library/attendance-tracker',
-                subItemId: 'attendance-tracker',
+                subItem: 'Manage Expiry',
+                subItemLink: '/membership-expiry',
+                subItemId: 'membership-expiry-sub',
             },
             {
-                subItem: 'Reports',
-                subItemLink: '/study-library/reports',
-                subItemId: 'reports',
-            },
-            {
-                subItem: 'Doubt Management',
-                subItemLink: '/study-library/doubt-management',
-                subItemId: 'doubt-management',
+                subItem: 'Enrollment Stats',
+                subItemLink: '/membership-stats',
+                subItemId: 'membership-stats-sub',
             },
         ],
     },
     {
-        icon: Lightning,
-        id: 'volt',
-        title: 'Volt',
-        to: '/study-library/volt',
-    },
-    {
-        icon: NotePencil,
-        id: 'Homework Creation',
-        title: 'Homework',
-        to: '/homework-creation/assessment-list?selectedTab=liveTests',
-    },
-    {
-        icon: Scroll,
-        title: 'Assessment Centre',
-        id: 'assessment-centre',
-        to: '/assessment',
-        subItems: [
-            {
-                subItem: 'Assessment List',
-                subItemLink: '/assessment/assessment-list?selectedTab=liveTests',
-                subItemId: 'assessment-list',
-            },
-            {
-                subItem: 'Question Papers',
-                subItemLink: '/assessment/question-papers',
-                subItemId: 'question-papers',
-            },
-        ],
-    },
-    {
-        icon: FileMagnifyingGlass,
-        title: 'Evaluation Centre',
-        id: 'evaluation-centre',
-        subItems: [
-            {
-                subItem: 'Evaluations',
-                subItemLink: '/evaluation/evaluations',
-                subItemId: 'evaluations',
-            },
-            {
-                subItem: 'Evaluation tool',
-                subItemLink: '/evaluation/evaluation-tool',
-                subItemId: 'evaluation-tool',
-            },
-        ],
-    },
-    {
-        icon: HeadCircuit,
-        title: 'Announcement',
-        id: 'announcement',
-        to: '/announcement/create',
+        icon: Megaphone,
+        title: 'Communications',
+        id: 'communications',
+        category: 'CRM',
         subItems: [
             {
                 subItem: 'Create Announcement',
@@ -319,119 +238,215 @@ export const SidebarItemsData: SidebarItemsType[] = [
         ],
     },
     {
-        icon: FlowArrow,
-        id: 'workflow',
-        title: 'Workflows',
-        to: '/workflow/list',
-    },
-    {
-        icon: Globe,
-        id: 'community-centre',
-        title: 'Community Centre',
-        to: '/community',
-    },
-    {
-        icon: HeadCircuit,
-        title: 'VSmart AI Tools',
-        id: 'ai-center',
-        to: '/ai-center/ai-tools',
+        icon: Robot,
+        title: 'Automations',
+        id: 'automations',
+        category: 'CRM',
         subItems: [
             {
-                subItem: 'AI Tools',
-                subItemLink: '/ai-center/ai-tools',
-                subItemId: 'ai-tools',
+                subItem: 'Workflows',
+                subItemLink: '/workflow/list',
+                subItemId: 'workflow-list',
             },
             {
-                subItem: 'Vsmart Upload',
-                subItemLink: '/ai-center/ai-tools/vsmart-upload',
-                subItemId: 'vsmart-upload',
-            },
-            {
-                subItem: 'Vsmart Audio',
-                subItemLink: '/ai-center/ai-tools/vsmart-audio',
-                subItemId: 'vsmart-audio',
-            },
-            {
-                subItem: 'Vsmart Topics',
-                subItemLink: '/ai-center/ai-tools/vsmart-prompt',
-                subItemId: 'vsmart-prompt',
-            },
-            {
-                subItem: 'Vsmart Chat',
-                subItemLink: '/ai-center/ai-tools/vsmart-chat',
-                subItemId: 'vsmart-chat',
-            },
-            {
-                subItem: 'Vsmart Extract',
-                subItemLink: '/ai-center/ai-tools/vsmart-extract',
-                subItemId: 'vsmart-extract',
-            },
-            {
-                subItem: 'Vsmart Image',
-                subItemLink: '/ai-center/ai-tools/vsmart-image',
-                subItemId: 'vsmart-image',
-            },
-            {
-                subItem: 'Vsmart Organizer',
-                subItemLink: '/ai-center/ai-tools/vsmart-organizer',
-                subItemId: 'vsmart-organizer',
-            },
-            {
-                subItem: 'Vsmart Sorter',
-                subItemLink: '/ai-center/ai-tools/vsmart-sorter',
-                subItemId: 'vsmart-sorter',
-            },
-            {
-                subItem: 'Vsmart Lecturer',
-                subItemLink: '/ai-center/ai-tools/vsmart-lecture',
-                subItemId: 'vsmart-lecture',
-            },
-            {
-                subItem: 'Vsmart Feedback',
-                subItemLink: '/ai-center/ai-tools/vsmart-feedback',
-                subItemId: 'vsmart-feedback',
-            },
-            {
-                subItem: 'My Resources',
-                subItemLink: '/ai-center/my-resources',
-                subItemId: 'my-resources',
+                subItem: 'Website Builder',
+                subItemLink: '/manage-pages',
+                subItemId: 'website-builder',
             },
         ],
-    },
-    {
-        icon: ChalkboardTeacher,
-        id: 'instructor-copilot',
-        title: 'Instructor Copilot',
-        to: '/instructor-copilot',
-    },
-    {
-        icon: Timer,
-        id: 'membership-expiry',
-        title: 'Membership Expiry',
-        to: '/membership-expiry',
-    },
-    {
-        icon: ChartBar,
-        id: 'membership-stats',
-        title: 'Enrollment Stats',
-        to: '/membership-stats',
-    },
-    {
-        icon: Sparkle,
-        id: 'challenge-analytics',
-        title: 'Challenge Analytics',
-        to: '/challenge-analytics',
-    },
-    {
-        icon: AddressBook,
-        id: 'manage-contacts',
-        title: 'Manage Contacts',
-        to: '/manage-contacts',
     },
     {
         icon: GearSix,
         id: 'settings',
         title: 'Settings',
         to: '/settings',
+        category: 'CRM',
+    },
+
+    // LMS
+    {
+        icon: Books,
+        title: 'Courses',
+        id: 'courses',
+        to: '/study-library/courses',
+        category: 'LMS',
+    },
+    {
+        icon: PlusCircle,
+        title: 'Course Creation',
+        id: 'course-creation',
+        category: 'LMS',
+        subItems: [
+            {
+                subItem: 'Create new course from scratch',
+                subItemLink: '/study-library/courses?action=create',
+                subItemId: 'create-course-scratch',
+            },
+            {
+                subItem: 'Create course from AI',
+                subItemLink: '/study-library/ai-copilot',
+                subItemId: 'create-course-ai',
+            },
+        ],
+    },
+    {
+        icon: Video,
+        title: 'Live Sessions',
+        id: 'live-sessions',
+        category: 'LMS',
+        subItems: [
+            {
+                subItem: 'Scheduled Sessions',
+                subItemLink: '/study-library/live-session',
+                subItemId: 'scheduled-sessions',
+            },
+            {
+                subItem: 'Create new',
+                subItemLink: '/study-library/live-session/schedule/step1',
+                subItemId: 'create-live-session',
+            },
+            {
+                subItem: 'Session Attendance',
+                subItemLink: '/study-library/attendance-tracker',
+                subItemId: 'session-attendance',
+            },
+        ],
+    },
+    {
+        icon: CalendarCheck,
+        title: 'Course Planning and Logbook',
+        id: 'course-planning-logging',
+        category: 'LMS',
+        subItems: [
+            {
+                subItem: 'Curriculum timeline Planner',
+                subItemLink: '/planning/planning',
+                subItemId: 'curriculum-planner',
+            },
+            {
+                subItem: 'AI Lecture planning',
+                subItemLink: '/ai-center/ai-tools/vsmart-lecture',
+                subItemId: 'ai-lecture-planning',
+            },
+            {
+                subItem: 'Log Course Progress',
+                subItemLink: '/planning/activity-logs',
+                subItemId: 'log-course-progress',
+            },
+        ],
+    },
+    {
+        icon: ChartBar,
+        title: 'Learning Reports',
+        id: 'learning-reports',
+        to: '/study-library/reports',
+        category: 'LMS',
+    },
+    {
+        icon: Lightning,
+        title: 'Learning Engagement',
+        id: 'learning-engagement',
+        category: 'LMS',
+        subItems: [
+            {
+                subItem: 'Interactive class', // Volt
+                subItemLink: '/study-library/volt',
+                subItemId: 'interactive-class-volt',
+            },
+            {
+                subItem: 'Create Engaging Content',
+                subItemLink: '/video-api-studio',
+                subItemId: 'create-engaging-content',
+            },
+        ],
+    },
+    {
+        icon: Question,
+        title: 'Doubt Management',
+        id: 'doubt-management',
+        to: '/study-library/doubt-management',
+        category: 'LMS',
+    },
+    {
+        icon: PencilCircle, // Assuming pencilCircle variable name mismatch fix to come
+        title: 'Assessments and Tests',
+        id: 'assessments-tests',
+        category: 'LMS',
+        subItems: [
+            {
+                subItem: 'Scheduled Tests',
+                subItemLink: '/assessment/assessment-list?selectedTab=liveTests',
+                subItemId: 'scheduled-tests',
+            },
+            {
+                subItem: 'Create Deadline Based Tests',
+                subItemLink: '/assessment/create-assessment/defaultId/EXAM?currentStep=0',
+                subItemId: 'create-deadline-test',
+            },
+            {
+                subItem: 'Create anytime attempt Test',
+                subItemLink: '/assessment/create-assessment/defaultId/MOCK?currentStep=0',
+                subItemId: 'create-anytime-test',
+            },
+            {
+                subItem: 'Create survey',
+                subItemLink: '/assessment/create-assessment/defaultId/SURVEY?currentStep=0',
+                subItemId: 'create-survey',
+            },
+            {
+                subItem: 'Test Evaluations',
+                subItemLink: '/evaluation/evaluations',
+                subItemId: 'test-evaluations',
+            },
+            {
+                subItem: 'Scanned Answer sheet Evaluation',
+                subItemLink: '/evaluation/evaluation-tool',
+                subItemId: 'scanned-evaluation',
+            },
+        ],
+    },
+    {
+        icon: Files,
+        title: 'Questions Banks and Papers',
+        id: 'question-banks',
+        to: '/assessment/question-papers',
+        category: 'LMS',
+    },
+
+    // AI Tools
+    {
+        icon: Sparkle,
+        title: 'AI Tools',
+        id: 'ai-tools-tab',
+        category: 'AI',
+        to: '/ai-center/ai-tools',
+    },
+    {
+        icon: Robot, // Or User icon if available
+        title: 'Instructor Copilot',
+        id: 'instructor-copilot-tab',
+        category: 'AI',
+        to: '/instructor-copilot',
+    },
+    {
+        icon: Robot,
+        title: 'AI Course Creator',
+        id: 'ai-copilot-tab',
+        category: 'AI',
+        to: '/study-library/ai-copilot',
+    },
+    {
+        icon: FilmStrip,
+        title: 'AI Content Creator Studio',
+        id: 'content-ai-studio',
+        category: 'AI',
+        to: '/video-api-studio/console',
+    },
+    {
+        icon: Code,
+        title: 'Content AI API',
+        id: 'content-ai-api',
+        category: 'AI',
+        to: '/video-api-studio',
     },
 ];

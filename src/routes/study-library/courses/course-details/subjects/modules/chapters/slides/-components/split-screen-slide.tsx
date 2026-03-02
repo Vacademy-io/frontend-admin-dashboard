@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useIsMobile, useIsTablet } from '@/hooks/use-mobile';
 import { Card } from '@/components/ui/card';
 import { JupyterNotebookSlide } from './jupyter-notebook-slide';
 import { ScratchProjectSlide } from './scratch-project-slide';
@@ -47,6 +48,12 @@ interface SplitScreenData {
         description?: string;
         source_type?: string;
         published_url?: string;
+        id?: string;
+    };
+    // For HTML_VIDEO slides
+    htmlVideoData?: {
+        htmlUrl: string;
+        audioUrl: string;
     };
     // For Jupyter
     projectName?: string;
@@ -90,9 +97,17 @@ export const SplitScreenSlide: React.FC<SplitScreenSlideProps> = ({
     onDataChange,
     currentSlideId,
 }) => {
+    // Determine layout direction from splitScreenData (for code editor config)
+    const layout = (splitScreenData as any).layout || 'split-right';
+    const isCodeOnRight = layout === 'split-right';
+
+    // Default to 50% split, but adjust based on layout preference
     const [leftWidth, setLeftWidth] = useState(50); // Percentage for left panel
     const [isResizing, setIsResizing] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const isMobile = useIsMobile();
+    const isTabletView = useIsTablet();
+    const isSmallScreen = isMobile || isTabletView;
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -142,21 +157,43 @@ export const SplitScreenSlide: React.FC<SplitScreenSlideProps> = ({
               source_id: splitScreenData.videoSlideId,
               title: splitScreenData.originalVideoData.title || 'Video',
               description: splitScreenData.originalVideoData.description || '',
-              source_type: 'VIDEO',
+              source_type: (splitScreenData.originalVideoData.source_type as any) || 'VIDEO',
               status: 'DRAFT',
               slide_order: 0,
               image_file_id: '',
-              video_slide: {
-                  id: crypto.randomUUID(),
-                  title: splitScreenData.originalVideoData.title || 'Video',
-                  description: splitScreenData.originalVideoData.description || '',
-                  url: splitScreenData.originalVideoData.url || '',
-                  published_url: splitScreenData.originalVideoData.url || '',
-                  video_length_in_millis: 0,
-                  published_video_length_in_millis: 0,
-                  source_type: splitScreenData.originalVideoData.source_type || 'VIDEO',
-                  questions: [],
-              },
+              video_slide:
+                  splitScreenData.originalVideoData.source_type === 'HTML_VIDEO'
+                      ? undefined
+                      : {
+                            id: crypto.randomUUID(),
+                            title: splitScreenData.originalVideoData.title || 'Video',
+                            description: splitScreenData.originalVideoData.description || '',
+                            url: splitScreenData.originalVideoData.url || '',
+                            published_url: splitScreenData.originalVideoData.url || '',
+                            video_length_in_millis: 0,
+                            published_video_length_in_millis: 0,
+                            source_type: splitScreenData.originalVideoData.source_type || 'VIDEO',
+                            questions: [],
+                        },
+              // For HTML_VIDEO slides, include html_video_slide data
+              ...(splitScreenData.originalVideoData.source_type === 'HTML_VIDEO' && {
+                  html_video_slide: {
+                      id: crypto.randomUUID(),
+                      url:
+                          (splitScreenData.originalVideoData as any).ai_gen_video_id ||
+                          splitScreenData.originalVideoData.url ||
+                          '',
+                      video_length_in_millis: 0,
+                      ai_gen_video_id:
+                          (splitScreenData.originalVideoData as any).ai_gen_video_id ||
+                          splitScreenData.originalVideoData.url ||
+                          '',
+                  },
+                  // Store htmlVideoData for VideoSlidePreview to use
+                  ...(splitScreenData.htmlVideoData && {
+                      htmlVideoData: splitScreenData.htmlVideoData,
+                  }),
+              }),
               document_slide: null,
               question_slide: null,
               assignment_slide: null,
@@ -283,37 +320,136 @@ export const SplitScreenSlide: React.FC<SplitScreenSlideProps> = ({
             </div>
 
             {/* Split Screen Content */}
-            <div className="flex flex-1 overflow-hidden" ref={containerRef}>
-                {/* Left Panel - Interactive Content */}
-                <div className="flex flex-col" style={{ width: `${leftWidth}%` }}>
-                    <div className="flex-1 overflow-hidden">{renderInteractiveContent()}</div>
-                </div>
+            <div
+                className={`flex flex-1 overflow-hidden ${isSmallScreen ? 'flex-col' : ''}`}
+                ref={containerRef}
+            >
+                {/* Conditionally render panels based on layout */}
+                {isCodeOnRight ? (
+                    <>
+                        {/* Left Panel - Video */}
+                        <div
+                            className="flex flex-col"
+                            style={{ width: isSmallScreen ? '100%' : `${100 - leftWidth}%` }}
+                        >
+                            <div className="border-b bg-gray-50 p-2">
+                                <h4 className="font-medium text-gray-700">
+                                    {videoSlide.title || 'Untitled Video'}
+                                </h4>
+                            </div>
+                            <div className="flex-1 overflow-hidden p-2 sm:p-4">
+                                {/* Show "Video is being generated" message if video is not ready */}
+                                {(splitScreenData as any).videoNotReady ||
+                                (splitScreenData.originalVideoData?.source_type === 'HTML_VIDEO' &&
+                                    !splitScreenData.htmlVideoData) ? (
+                                    <div className="flex h-full items-center justify-center rounded-lg bg-gray-100">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="size-12 animate-spin rounded-full border-y-2 border-primary-500"></div>
+                                            <p className="text-sm text-gray-600">
+                                                Video is being generated...
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                This may take a few minutes. Please check back
+                                                later.
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <VideoSlidePreview
+                                        activeItem={videoSlide}
+                                        embedUrl={splitScreenData.originalVideoData?.published_url}
+                                    />
+                                )}
+                            </div>
+                        </div>
 
-                {/* Resizable Divider */}
-                <div
-                    className={`
-                        flex w-1 cursor-col-resize items-center justify-center bg-gray-200 transition-colors hover:bg-gray-300
-                        ${isResizing ? 'bg-blue-400' : ''}
-                    `}
-                    onMouseDown={handleMouseDown}
-                >
-                    <GripVertical className="size-4 text-gray-400" />
-                </div>
+                        {/* Resizable Divider - Hidden on mobile */}
+                        {!isSmallScreen && (
+                            <div
+                                className={`
+                                    flex w-1 cursor-col-resize items-center justify-center bg-gray-200 transition-colors hover:bg-gray-300
+                                    ${isResizing ? 'bg-blue-400' : ''}
+                                `}
+                                onMouseDown={handleMouseDown}
+                            >
+                                <GripVertical className="size-4 text-gray-400" />
+                            </div>
+                        )}
 
-                {/* Right Panel - Video */}
-                <div className="flex flex-col" style={{ width: `${100 - leftWidth}%` }}>
-                    <div className="border-b bg-gray-50 p-2">
-                        <h4 className="font-medium text-gray-700">
-                            {videoSlide.title || 'Untitled Video'}
-                        </h4>
-                    </div>
-                    <div className="flex-1 overflow-hidden p-4">
-                        <VideoSlidePreview
-                            activeItem={videoSlide}
-                            embedUrl={splitScreenData.originalVideoData?.published_url}
-                        />
-                    </div>
-                </div>
+                        {/* Right Panel - Interactive Content */}
+                        <div
+                            className="flex flex-col"
+                            style={{ width: isSmallScreen ? '100%' : `${leftWidth}%` }}
+                        >
+                            <div className="flex-1 overflow-hidden">
+                                {renderInteractiveContent()}
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        {/* Left Panel - Interactive Content */}
+                        <div
+                            className="flex flex-col"
+                            style={{ width: isSmallScreen ? '100%' : `${leftWidth}%` }}
+                        >
+                            <div className="flex-1 overflow-hidden">
+                                {renderInteractiveContent()}
+                            </div>
+                        </div>
+
+                        {/* Resizable Divider - Hidden on mobile */}
+                        {!isSmallScreen && (
+                            <div
+                                className={`
+                                    flex w-1 cursor-col-resize items-center justify-center bg-gray-200 transition-colors hover:bg-gray-300
+                                    ${isResizing ? 'bg-blue-400' : ''}
+                                `}
+                                onMouseDown={handleMouseDown}
+                            >
+                                <GripVertical className="size-4 text-gray-400" />
+                            </div>
+                        )}
+
+                        {/* Right Panel - Video */}
+                        <div
+                            className="flex flex-col"
+                            style={{
+                                width: isSmallScreen ? '100%' : `${100 - leftWidth}%`,
+                            }}
+                        >
+                            <div className="border-b bg-gray-50 p-2">
+                                <h4 className="font-medium text-gray-700">
+                                    {videoSlide.title || 'Untitled Video'}
+                                </h4>
+                            </div>
+                            <div className="flex-1 overflow-hidden p-2 sm:p-4">
+                                {/* Show "Video is being generated" message if video is not ready */}
+                                {(splitScreenData as any).videoNotReady ||
+                                (splitScreenData.originalVideoData?.source_type === 'HTML_VIDEO' &&
+                                    !splitScreenData.htmlVideoData) ? (
+                                    <div className="flex h-full items-center justify-center rounded-lg bg-gray-100">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="size-12 animate-spin rounded-full border-y-2 border-primary-500"></div>
+                                            <p className="text-sm text-gray-600">
+                                                Video is being generated...
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                This may take a few minutes. Please check back
+                                                later.
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <VideoSlidePreview
+                                        activeItem={videoSlide}
+                                        embedUrl={splitScreenData.originalVideoData?.published_url}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

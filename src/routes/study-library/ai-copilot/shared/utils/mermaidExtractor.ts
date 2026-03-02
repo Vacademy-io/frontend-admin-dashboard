@@ -94,26 +94,45 @@ export function extractMermaidDiagrams(htmlContent: string): {
     textNodes.forEach((node) => {
         const text = node.textContent || '';
         const html = node.innerHTML || '';
-        
+
         // Only process if the node contains ONLY mermaid code (no other meaningful text)
         // Check if text starts with "mermaid" followed by mermaid syntax
-        if (text.trim().toLowerCase().startsWith('mermaid ') && 
-            (text.includes('graph') || text.includes('flowchart') || 
-             text.includes('sequenceDiagram') || text.includes('classDiagram'))) {
-            
+        // Check if text starts with "mermaid" followed by mermaid syntax OR just mermaid syntax
+        const lowerText = text.trim().toLowerCase();
+        const hasMermaidPrefix = lowerText.startsWith('mermaid ');
+
+        // List of mermaid diagram types
+        const isMermaidType = (
+            lowerText.startsWith('graph ') ||
+            lowerText.startsWith('flowchart ') ||
+            lowerText.startsWith('sequencediagram') ||
+            lowerText.startsWith('classdiagram') ||
+            lowerText.startsWith('statediagram') ||
+            lowerText.startsWith('erdiagram') ||
+            lowerText.startsWith('gantt') ||
+            lowerText.startsWith('pie') ||
+            lowerText.startsWith('journey') ||
+            lowerText.startsWith('gitgraph') ||
+            lowerText.startsWith('mindmap') ||
+            lowerText.startsWith('requirementdiagram') ||
+            lowerText.startsWith('c4context')
+        );
+
+        if (hasMermaidPrefix || isMermaidType) {
+
             // Check if this is ONLY mermaid code (no other HTML elements like h1, h2, etc.)
             const hasOtherElements = node.querySelectorAll('h1, h2, h3, h4, h5, h6, ul, ol, li, strong, em, a').length > 0;
-            
+
             // Only extract if it's pure mermaid code without other content
             if (!hasOtherElements) {
                 // Extract mermaid code (remove "mermaid" prefix)
                 let mermaidCode = text.trim();
-                if (mermaidCode.toLowerCase().startsWith('mermaid ')) {
+                if (hasMermaidPrefix) {
                     mermaidCode = mermaidCode.substring(8).trim();
                 }
-                
-                // Only process if it looks like valid mermaid syntax
-                if (mermaidCode && (mermaidCode.includes('graph') || mermaidCode.includes('flowchart'))) {
+
+                // Only process if it looks like valid mermaid syntax (double check)
+                if (mermaidCode) {
                     const diagramId = `mermaid-diagram-${diagramIndex++}`;
                     diagrams.push({
                         id: diagramId,
@@ -151,21 +170,21 @@ export async function renderMermaidDiagrams(
     }
 
     const placeholders = container.querySelectorAll('.mermaid-placeholder');
-    
+
     placeholders.forEach((placeholder) => {
         const diagramId = placeholder.getAttribute('data-mermaid-id');
         const encodedCode = placeholder.getAttribute('data-mermaid-code');
-        
+
         if (diagramId && encodedCode) {
             const code = decodeURIComponent(encodedCode);
             const diagram = diagrams.find((d) => d.id === diagramId);
-            
+
             if (diagram) {
                 // Create a container for the mermaid diagram
                 const mermaidContainer = document.createElement('div');
                 mermaidContainer.className = 'mermaid-diagram-wrapper';
                 mermaidContainer.setAttribute('data-mermaid-id', diagramId);
-                
+
                 // The actual rendering will be done by the MermaidDiagram React component
                 // For now, we'll just mark it so React can find and render it
                 placeholder.parentNode?.replaceChild(mermaidContainer, placeholder);

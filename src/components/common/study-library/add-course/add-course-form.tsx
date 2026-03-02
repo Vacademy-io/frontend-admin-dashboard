@@ -1,3 +1,6 @@
+import { getActiveRoleDisplaySettingsKey } from '@/lib/auth/instituteUtils';
+import { getInstituteId } from '@/constants/helper';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
 // add-course-form.tsx
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
@@ -28,7 +31,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { useCourseSettings } from '@/hooks/useCourseSettings';
 import {
     ADMIN_DISPLAY_SETTINGS_KEY,
-    TEACHER_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY, CUSTOM_ROLE_DISPLAY_SETTINGS_KEY,
     type DisplaySettingsData,
 } from '@/types/display-settings';
 import {
@@ -37,6 +40,8 @@ import {
 } from '@/services/display-settings';
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { GET_COURSE_BATCHES } from '@/constants/urls';
 
 export interface Level {
     id: string;
@@ -85,9 +90,8 @@ export const AddCourseForm = ({
             try {
                 const accessToken = getTokenFromCookie(TokenKey.accessToken);
                 const roles = getUserRoles(accessToken);
-                const roleKey = roles.includes('ADMIN')
-                    ? ADMIN_DISPLAY_SETTINGS_KEY
-                    : TEACHER_DISPLAY_SETTINGS_KEY;
+                const hasFaculty = hasFacultyAssignedPermission(getInstituteId());
+    const roleKey = getActiveRoleDisplaySettingsKey();
 
                 const cached = getDisplaySettingsFromCache(roleKey);
                 if (cached && isMounted) {
@@ -323,18 +327,35 @@ export const AddCourseForm = ({
                 {
                     onSuccess: async (response) => {
                         try {
-                            const instituteDetails = await fetchInstituteDetails();
-                            if (!instituteDetails?.batches_for_sessions) {
-                                throw new Error('Institute details not loaded');
-                            }
-                            const packageSessionId = findIdByPackageId(
-                                instituteDetails.batches_for_sessions,
-                                response.data
-                            );
-                            if (!packageSessionId) {
-                                throw new Error(
-                                    'Package session ID not found for the created course'
+                            let packageSessionId = '';
+
+                            try {
+                                await new Promise((resolve) => setTimeout(resolve, 1500));
+                                const batchesResponse = await authenticatedAxiosInstance.get(
+                                    `${GET_COURSE_BATCHES}/${response.data}/batches`
                                 );
+
+                                if (batchesResponse.data && batchesResponse.data.length > 0) {
+                                    packageSessionId = batchesResponse.data.map((batch: any) => batch.id).join(',');
+                                }
+                            } catch (error) {
+                                console.warn('Failed to get course batches directly:', error);
+                            }
+
+                            if (!packageSessionId) {
+                                const instituteDetails = await fetchInstituteDetails();
+                                if (!instituteDetails?.batches_for_sessions) {
+                                    throw new Error('Institute details not loaded');
+                                }
+                                packageSessionId = findIdByPackageId(
+                                    instituteDetails.batches_for_sessions,
+                                    response.data
+                                );
+                                if (!packageSessionId) {
+                                    throw new Error(
+                                        'Package session ID not found for the created course'
+                                    );
+                                }
                             }
 
                             if (formattedData.course_depth === 2) {
@@ -375,7 +396,7 @@ export const AddCourseForm = ({
 
                             toast.success(
                                 `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
-                                    ' created successfully'
+                                ' created successfully'
                             );
                             setIsOpen(false);
                             setStep(1);

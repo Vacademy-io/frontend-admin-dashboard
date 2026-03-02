@@ -88,6 +88,7 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const Route = createLazyFileRoute('/study-library/ai-copilot/course-outline/')({
     component: RouteComponent,
@@ -213,7 +214,7 @@ interface CourseData {
 const mockCourseData: CourseData = {
     title: 'Python Programming',
     subtitle: 'A beginner-level course for aspiring developers',
-    level: 'Beginner',
+    level: '', // Will be populated with levelId from institute levels
     totalSessions: 8,
     totalDuration: '12 Hours Total',
     tags: ['#Python', '#BeginnerLevel', '#Programming', '#Coding'],
@@ -927,6 +928,10 @@ function RouteComponent() {
     const navigate = useNavigate();
     const initialData = initializeMockData();
     const [courseData, setCourseData] = useState<CourseData>(initialData);
+
+    // Get institute levels
+    const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
+    const instituteLevels = instituteDetails?.levels || [];
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor)
@@ -1074,13 +1079,9 @@ function RouteComponent() {
         // Pre-fill all fields from current courseData
         // Note: Some fields may not be available in CourseData, so we'll use defaults or extract what we can
 
-        // Extract skill level from courseData.level (e.g., "Advanced" -> "advanced")
-        const skillLevelMap: Record<string, string> = {
-            'Beginner': 'beginner',
-            'Intermediate': 'intermediate',
-            'Advanced': 'advanced',
-        };
-        setRegenerateSkillLevel(skillLevelMap[courseData.level] || '');
+        // Extract skill level from courseData.level (levelId)
+        // No need for mapping anymore, we're using levelId directly
+        setRegenerateSkillLevel(courseData.level || '');
 
         // Pre-fill number of sessions
         setRegenerateCourseNumberOfSessions(courseData.totalSessions.toString());
@@ -2127,10 +2128,20 @@ function RouteComponent() {
                                         <SelectValue placeholder="Select level" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Beginner">Beginner</SelectItem>
-                                        <SelectItem value="Basic">Basic</SelectItem>
-                                        <SelectItem value="Intermediate">Intermediate</SelectItem>
-                                        <SelectItem value="Advanced">Advanced</SelectItem>
+                                        {instituteLevels.length > 0 ? (
+                                            instituteLevels.map((level) => (
+                                                <SelectItem key={level.id} value={level.id}>
+                                                    {level.level_name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <SelectItem value="Beginner">Beginner</SelectItem>
+                                                <SelectItem value="Basic">Basic</SelectItem>
+                                                <SelectItem value="Intermediate">Intermediate</SelectItem>
+                                                <SelectItem value="Advanced">Advanced</SelectItem>
+                                            </>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -2741,9 +2752,19 @@ function RouteComponent() {
                                                 <SelectValue placeholder="Select skill level" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="beginner">Beginner</SelectItem>
-                                                <SelectItem value="intermediate">Intermediate</SelectItem>
-                                                <SelectItem value="advanced">Advanced</SelectItem>
+                                                {instituteLevels.length > 0 ? (
+                                                    instituteLevels.map((level) => (
+                                                        <SelectItem key={level.id} value={level.id}>
+                                                            {level.level_name}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <>
+                                                        <SelectItem value="beginner">Beginner</SelectItem>
+                                                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                                                        <SelectItem value="advanced">Advanced</SelectItem>
+                                                    </>
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>

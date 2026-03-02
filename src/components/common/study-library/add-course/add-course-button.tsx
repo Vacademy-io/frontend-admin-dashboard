@@ -5,11 +5,23 @@ import { AddCourseForm } from './add-course-form';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '../../layout-container/sidebar/utils';
 
-export const AddCourseButton = () => {
-    const [openDialog, setOpenDialog] = useState(false);
+export interface AddCourseButtonProps {
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+}
 
-    const handleOpenChange = (open: boolean) => {
-        setOpenDialog(open);
+export const AddCourseButton = ({
+    open,
+    onOpenChange,
+}: AddCourseButtonProps) => {
+    const [internalOpen, setInternalOpen] = useState(false);
+
+    const isControlled = open !== undefined && onOpenChange !== undefined;
+    const isOpen = isControlled ? open : internalOpen;
+    const setIsOpen = isControlled ? onOpenChange : setInternalOpen;
+
+    const handleOpenChange = (newOpen: boolean) => {
+        setIsOpen(newOpen);
     };
 
     return (
@@ -21,7 +33,7 @@ export const AddCourseButton = () => {
             }
             heading={`Add ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`}
             dialogWidth="w-[500px]"
-            open={openDialog}
+            open={isOpen}
             onOpenChange={handleOpenChange}
             isTour
         >

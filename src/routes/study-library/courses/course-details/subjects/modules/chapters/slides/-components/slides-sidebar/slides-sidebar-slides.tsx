@@ -25,6 +25,7 @@ import {
     File,
     GameController,
     MusicNotes,
+    Package,
     Question,
 } from '@phosphor-icons/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -36,27 +37,34 @@ interface FormValues {
 
 // Function to get the display text for slide type
 const getSlideTypeDisplay = (slide: Slide): string => {
+    const sourceType = slide.source_type ?? '';
     // For HTML_VIDEO slides, show "HTML Video"
-    if (slide.source_type === 'HTML_VIDEO') {
+    if (sourceType === 'HTML_VIDEO') {
         return 'HTML Video';
     }
 
     // For DOCUMENT slides with specific sub-types (not DOC), show just the sub-type
     if (
-        slide.source_type === 'DOCUMENT' &&
+        sourceType === 'DOCUMENT' &&
         slide.document_slide?.type &&
         slide.document_slide.type !== 'DOC'
     ) {
-        return slide.document_slide.type.toLowerCase().replace('_', ' ');
+        return (slide.document_slide.type ?? '').toLowerCase().replace('_', ' ');
     }
 
     // For VIDEO slides with embedded_type, show the embedded_type
-    if (slide.source_type === 'VIDEO' && slide.video_slide?.embedded_type) {
-        return `${slide.source_type.toLowerCase().replace('_', ' ')} - ${slide.video_slide.embedded_type.toLowerCase().replace('_', ' ')}`;
+    if (sourceType === 'VIDEO' && slide.video_slide?.embedded_type) {
+        const embedded = slide.video_slide.embedded_type ?? '';
+        return `${sourceType.toLowerCase().replace('_', ' ')} - ${embedded.toLowerCase().replace('_', ' ')}`;
+    }
+
+    // For SCORM slides
+    if (sourceType === 'SCORM') {
+        return 'SCORM';
     }
 
     // For all other cases, show the main source_type
-    return slide.source_type.toLowerCase().replace('_', ' ');
+    return sourceType ? sourceType.toLowerCase().replace('_', ' ') : 'Slide';
 };
 
 export const getIcon = (
@@ -95,7 +103,11 @@ export const getIcon = (
             ? 'QUESTION'
             : source_type === 'VIDEO'
               ? 'VIDEO'
-              : source_type === 'DOCUMENT' && document_slide_type;
+              : source_type === 'AUDIO'
+                ? 'AUDIO'
+                : source_type === 'SCORM'
+                  ? 'SCORM'
+                  : source_type === 'DOCUMENT' && document_slide_type;
 
     switch (type) {
         case 'PDF':
@@ -117,6 +129,8 @@ export const getIcon = (
             return <FileDoc className={`${iconClass} text-orange-500`} />;
         case 'AUDIO':
             return <MusicNotes className={`${iconClass} text-indigo-500`} />;
+        case 'SCORM':
+            return <Package className={`${iconClass} text-teal-500`} />;
         default:
             return <></>;
     }
@@ -144,6 +158,7 @@ const SlideItem = ({
             (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
             (slide.source_type === 'QUIZ' && slide.title) || // Always use slide.title for QUIZ
             (slide.source_type === 'AUDIO' && slide?.title) ||
+            (slide.source_type === 'SCORM' && slide?.title) ||
             'Untitled'
         );
     };
@@ -258,8 +273,8 @@ const SlideItem = ({
                                 <div className="space-y-1">
                                     <p className="font-medium">{getSlideTitle()}</p>
                                     <p className="text-xs capitalize text-neutral-500">
-                                        {slide.source_type.toLowerCase().replace('_', ' ')} •{' '}
-                                        {slide.status.toLowerCase()}
+                                        {(slide.source_type ?? '').toLowerCase().replace('_', ' ')} •{' '}
+                                        {(slide.status ?? '').toLowerCase()}
                                     </p>
                                 </div>
                             </TooltipContent>

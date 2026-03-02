@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -27,7 +27,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import Editor from '@monaco-editor/react';
-import { YooptaEditorWrapperSafe as YooptaEditorWrapper } from '../../../../shared/components';
+// import { YooptaEditorWrapperSafe as YooptaEditorWrapper } from '../../../../shared/components'; // Removed - using local viewer
 import { MyButton } from '@/components/design-system/button';
 import {
     processDocumentContent,
@@ -35,9 +35,175 @@ import {
     cleanQuizContent,
     parseVideoContent,
 } from '../utils/contentParsers';
-import { DocumentWithMermaidSimple } from '../../../../shared/components/DocumentWithMermaid';
+// import { DocumentWithMermaidSimple } from '../../../../shared/components/DocumentWithMermaid'; // Removed - using YooptaViewer
+import { markdownToHtml } from '../../../../shared/utils/markdownToHtml';
 import type { SlideGeneration, SlideType, QuizQuestion } from '../../../../shared/types';
 import { AIVideoPlayer } from '@/components/ai-video-player';
+
+// Yoopta Imports for Viewer
+import { createYooptaEditor } from '@yoopta/editor';
+import YooptaEditor from '@yoopta/editor';
+import { html } from '@yoopta/exports';
+import { plugins, TOOLS, MARKS } from '@/constants/study-library/yoopta-editor-plugins-tools';
+
+// Internal YooptaViewer component to mimic the "Finished" course view
+const YooptaViewer = ({ content, className }: { content: string; className?: string }) => {
+    const editor = useMemo(() => createYooptaEditor(), []);
+    const selectionRef = useRef(null);
+    const [isMounted, setIsMounted] = useState(false);
+
+    // Wait for editor to fully mount
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsMounted(true);
+        }, 600);
+        return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+        if (!content || !isMounted) return;
+
+        const deserializeContent = () => {
+            try {
+                // 1. Parse HTML string to DOM
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+
+                // If parsing fails or body is empty, fallback
+                if (!doc.body) {
+                    const fallback = html.deserialize(editor, content);
+                    editor.setEditorValue(fallback);
+                    return;
+                }
+
+                const blocks: Record<string, any> = {};
+
+                // Helper to generate simple ID
+                const generateId = () => `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+                // 2. Iterate through top-level children and process
+                // We create a wrapper div first to handle potential top-level text nodes or fragments
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = doc.body.innerHTML;
+
+                // Unwrap single-child wrapper if standard behavior (matches SlideMaterial)
+                // But generally we want to process the *children* of the content
+                // If content is just text, wrapper.children might be empty (if text node), 
+                // so we handle that case by checking childNodes.
+
+                const processNodes = (nodes: NodeListOf<ChildNode>) => {
+                    Array.from(nodes).forEach((node) => {
+                        // Handle Element Nodes
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            const element = node as Element;
+
+                            // Check for Mermaid DIV
+                            const isMermaid =
+                                element.tagName === 'DIV' &&
+                                (element.classList.contains('mermaid') || element.getAttribute('class')?.includes('mermaid'));
+
+                            if (isMermaid) {
+                                // MANUALLY Construct Mermaid Block
+                                const id = generateId();
+                                blocks[id] = {
+                                    id,
+                                    type: 'mermaid',
+                                    props: {
+                                        code: element.textContent?.trim() || '',
+                                        timestamp: Date.now() // Ensure render trigger
+                                    },
+                                    children: [{ text: '' }]
+                                };
+                            } else {
+                                // Standard HTML Element -> Use Yoopta Deserializer
+                                try {
+                                    const partialBlocks = html.deserialize(editor, element.outerHTML);
+                                    if (partialBlocks && typeof partialBlocks === 'object') {
+                                        Object.assign(blocks, partialBlocks);
+                                    }
+                                } catch (e) {
+                                    console.warn('Failed to deserialize chunk:', element.outerHTML);
+                                }
+                            }
+                        }
+                        // Handle Text Nodes (non-empty)
+                        else if (node.nodeType === Node.TEXT_NODE) {
+                            const text = node.textContent?.trim();
+                            if (text) {
+                                try {
+                                    // Wrap text in p tag for deserializer
+                                    const partialBlocks = html.deserialize(editor, `<p>${text}</p>`);
+                                    if (partialBlocks && typeof partialBlocks === 'object') {
+                                        Object.assign(blocks, partialBlocks);
+                                    }
+                                } catch (e) { }
+                            }
+                        }
+                    });
+                };
+
+                processNodes(wrapper.childNodes);
+
+                // If result is empty but we had content, fallback to direct full deserialization
+                if (Object.keys(blocks).length === 0 && content.trim()) {
+                    console.warn('Manual parsing yielded no blocks, falling back to full deserialize');
+                    const fallback = html.deserialize(editor, content);
+                    editor.setEditorValue(fallback);
+                } else {
+                    editor.setEditorValue(blocks);
+                }
+
+            } catch (error) {
+                console.error('Failed to manually deserialize content:', error);
+                // Last resort fallback
+                try {
+                    const fallbackContent = html.deserialize(editor, content);
+                    editor.setEditorValue(fallbackContent);
+                } catch (e) {
+                    console.error('Critical failure in content rendering:', e);
+                }
+            }
+        };
+
+        deserializeContent();
+    }, [content, editor, isMounted]);
+
+    return (
+        <div
+            className={className}
+            ref={selectionRef}
+            // Use CSS to simulate read-only but allow text selection
+            style={{
+                width: '100%',
+                pointerEvents: 'none',
+                userSelect: 'text',
+                position: 'relative'
+            }}
+        >
+            <style>{`
+                .yoopta-editor .yoopta-block {
+                    margin-bottom: 0.5rem;
+                }
+                /* Ensure mermaid blocks are visible */
+                .yoopta-mermaid-block {
+                    pointer-events: auto !important; /* Allow interactions within mermaid if needed */
+                }
+            `}</style>
+            <YooptaEditor
+                editor={editor}
+                plugins={plugins}
+                tools={TOOLS}
+                marks={MARKS}
+                value={editor.children}
+                readOnly={true}
+                selectionBoxRoot={selectionRef}
+                style={{ width: '100%' }}
+                autoFocus={false}
+            />
+        </div>
+    );
+};
+
 
 interface SortableSlideItemProps {
     slide: SlideGeneration;
@@ -94,16 +260,16 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = slide.content;
             const codeBlocks = tempDiv.querySelectorAll('pre code, pre');
-            
+
             // For topic slides, extract regular code (excluding mermaid)
             if (slide.slideType === 'topic') {
                 let regularCode = '';
                 codeBlocks.forEach((block) => {
                     const codeText = block.textContent || '';
-                    const isMermaid = codeText.includes('graph') || 
-                                     codeText.includes('flowchart') || 
-                                     codeText.includes('sequenceDiagram') || 
-                                     codeText.includes('classDiagram');
+                    const isMermaid = codeText.includes('graph') ||
+                        codeText.includes('flowchart') ||
+                        codeText.includes('sequenceDiagram') ||
+                        codeText.includes('classDiagram');
                     if (!isMermaid && codeText.trim().length > 0) {
                         regularCode = codeText;
                     }
@@ -299,13 +465,14 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
 
     const handleDocumentChange = (html: string) => {
         setDocumentContent(html);
-        // In a real app, you would save this to the slide content
-        // For now, we'll just update the local state
+        if (onContentEdit) {
+            onContentEdit(slide.id, html);
+        }
     };
 
     // Resizer handlers
     const resizerRef = useRef<HTMLDivElement>(null);
-    
+
     const handleMouseDown = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -315,14 +482,14 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!isResizing || !resizerRef.current) return;
-            
+
             const container = resizerRef.current.closest('.resizable-container') as HTMLElement;
             if (!container) return;
-            
+
             const rect = container.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const percentage = (x / rect.width) * 100;
-            
+
             // Limit between 20% and 80%
             const clampedPercentage = Math.max(20, Math.min(80, percentage));
             setSplitterPosition(clampedPercentage);
@@ -373,16 +540,16 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
             const codeBlocks = tempDiv.querySelectorAll('pre code, pre');
-            
+
             // Check if topic has code blocks (excluding mermaid)
             let hasRegularCode = false;
             let regularCode = '';
             codeBlocks.forEach((block) => {
                 const codeText = block.textContent || '';
-                const isMermaid = codeText.includes('graph') || 
-                                 codeText.includes('flowchart') || 
-                                 codeText.includes('sequenceDiagram') || 
-                                 codeText.includes('classDiagram');
+                const isMermaid = codeText.includes('graph') ||
+                    codeText.includes('flowchart') ||
+                    codeText.includes('sequenceDiagram') ||
+                    codeText.includes('classDiagram');
                 if (!isMermaid && codeText.trim().length > 0) {
                     hasRegularCode = true;
                     if (!regularCode) {
@@ -390,23 +557,23 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                     }
                 }
             });
-            
+
             // Always render topic slides as video + code
             // If no code is found, use default placeholder code
             if (!regularCode) {
                 regularCode = '// Your code here\nconsole.log("Hello, World!");';
             }
-            
+
             // Extract video script (everything except regular code blocks)
             const scriptDiv = document.createElement('div');
             scriptDiv.innerHTML = content;
             const scriptCodeBlocks = scriptDiv.querySelectorAll('pre code, pre');
             scriptCodeBlocks.forEach((block) => {
                 const codeText = block.textContent || '';
-                const isMermaid = codeText.includes('graph') || 
-                                 codeText.includes('flowchart') || 
-                                 codeText.includes('sequenceDiagram') || 
-                                 codeText.includes('classDiagram');
+                const isMermaid = codeText.includes('graph') ||
+                    codeText.includes('flowchart') ||
+                    codeText.includes('sequenceDiagram') ||
+                    codeText.includes('classDiagram');
                 if (!isMermaid) {
                     const parent = block.parentElement;
                     if (parent && parent.tagName === 'PRE') {
@@ -417,7 +584,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                 }
             });
             const scriptHtml = scriptDiv.innerHTML.trim();
-            
+
             // Initialize video URL from content
             useEffect(() => {
                 if (slide.content) {
@@ -463,21 +630,21 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
             // Convert video URL to embed format
             const convertToEmbedUrl = (url: string): string | null => {
                 if (!url || !url.trim()) return null;
-                
+
                 // YouTube URL patterns
                 const youtubeWatchMatch = url.match(/(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)/);
                 const youtubeShortMatch = url.match(/(?:youtu\.be\/)([a-zA-Z0-9_-]+)/);
                 const youtubeEmbedMatch = url.match(/(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/);
-                
+
                 if (youtubeWatchMatch || youtubeShortMatch) {
                     const videoId = youtubeWatchMatch ? youtubeWatchMatch[1] : youtubeShortMatch![1];
                     return `https://www.youtube.com/embed/${videoId}`;
                 }
-                
+
                 if (youtubeEmbedMatch) {
                     return url; // Already in embed format
                 }
-                
+
                 // For other video URLs, return as is (might be Vimeo, etc.)
                 return url;
             };
@@ -485,10 +652,10 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
             // Get embed URL from input or uploaded video
             const embedUrl = convertToEmbedUrl(videoUrlInput);
             const videoSource = uploadedVideoUrl || embedUrl;
-            
+
             // Use codeContent state if available, otherwise use extracted regularCode
             const currentCode = codeContent || regularCode;
-            
+
             // Initialize code content if not already set
             if (!codeContent && regularCode) {
                 setCodeContent(regularCode);
@@ -513,17 +680,17 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                 if (onContentEdit) {
                     // Preserve existing content and add/update video URL
                     let updatedContent = slide.content || '';
-                    
+
                     // Remove existing YouTube URLs from content (both watch and embed formats)
                     updatedContent = updatedContent.replace(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/g, '');
                     updatedContent = updatedContent.replace(/https:\/\/www\.youtube\.com\/embed\/[a-zA-Z0-9_-]+/g, '');
                     updatedContent = updatedContent.replace(/https:\/\/youtube\.com\/embed\/[a-zA-Z0-9_-]+/g, '');
                     // Remove uploaded video references
                     updatedContent = updatedContent.replace(/\[UPLOADED_VIDEO:[^\]]+\]/g, '');
-                    
+
                     // Clean up extra whitespace
                     updatedContent = updatedContent.replace(/\n{3,}/g, '\n\n').trim();
-                    
+
                     // Add new video URL if provided
                     if (tempVideoUrl && tempVideoUrl.trim()) {
                         // Add URL to content (append it with proper spacing)
@@ -533,7 +700,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                             updatedContent = tempVideoUrl.trim();
                         }
                     }
-                    
+
                     onContentEdit(slide.id, updatedContent);
                 }
                 setVideoUrlDialogOpen(false);
@@ -560,26 +727,26 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                         setUploadedVideoUrl(videoUrl);
                         // Clear URL input when uploading file
                         setVideoUrlInput('');
-                        
+
                         // Save to slide content if onContentEdit is available
                         if (onContentEdit) {
                             // For uploaded files, we'll store a reference or the file name
                             // In a real app, you'd upload to a server and get a URL
                             // For now, we'll store the file name and create a local URL
                             let updatedContent = slide.content || '';
-                            
+
                             // Remove existing YouTube URLs from content
                             updatedContent = updatedContent.replace(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/g, '');
                             updatedContent = updatedContent.replace(/https:\/\/www\.youtube\.com\/embed\/[a-zA-Z0-9_-]+/g, '');
                             updatedContent = updatedContent.replace(/https:\/\/youtube\.com\/embed\/[a-zA-Z0-9_-]+/g, '');
-                            
+
                             // Add file reference
                             if (updatedContent.trim()) {
                                 updatedContent += `\n\n[UPLOADED_VIDEO:${file.name}]`;
                             } else {
                                 updatedContent = `[UPLOADED_VIDEO:${file.name}]`;
                             }
-                            
+
                             onContentEdit(slide.id, updatedContent);
                         }
                     } else {
@@ -596,12 +763,12 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
             const handleUploadClick = () => {
                 fileInputRef.current?.click();
             };
-            
+
             return (
                 <>
                     <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
                         <div className="resizable-container flex gap-2" style={{ height: '600px' }}>
-                            <div 
+                            <div
                                 className="border rounded-lg overflow-hidden bg-white flex flex-col flex-shrink-0"
                                 style={{ width: `${splitterPosition}%` }}
                             >
@@ -643,7 +810,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                                 onMouseDown={handleMouseDown}
                                 style={{ cursor: isResizing ? 'col-resize' : 'col-resize' }}
                             />
-                            <div 
+                            <div
                                 className="border rounded-lg overflow-hidden bg-white flex flex-col flex-shrink-0"
                                 style={{ width: `${100 - splitterPosition}%` }}
                             >
@@ -756,8 +923,32 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
         // Document/Objectives pages - editable
         if (slideType === 'doc' || slideType === 'objectives') {
             // Use documentContent state if available, otherwise use content
-            const rawContent = documentContent || content;
-            
+            let displayContent = documentContent || content || '';
+
+            // Handle Yoopta clipboard format or markdown conversion
+            if (
+                displayContent &&
+                (displayContent.includes('id="yoopta-clipboard"') ||
+                    displayContent.includes('data-editor-id'))
+            ) {
+                // Extract content from Yoopta format if needed
+                const bodyMatch = displayContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                if (bodyMatch && bodyMatch[1]) {
+                    const extractedContent = bodyMatch[1].trim();
+                    const textContent = extractedContent.replace(/<[^>]*>/g, '').trim();
+                    if (!textContent || textContent === '') {
+                        displayContent = '';
+                    } else {
+                        displayContent = extractedContent;
+                    }
+                }
+            } else {
+                // Explicitly convert markdown/raw text to HTML before passing to DocumentWithMermaidSimple
+                // This ensures inline formatting (bold, italic) and unfenced diagrams are processed
+                displayContent = markdownToHtml(displayContent);
+            }
+
+
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
                     <div className="mb-3">
@@ -780,11 +971,12 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                             )}
                         </div>
                     </div>
-                    {/* Render document with mermaid diagram support */}
+                    {/* Render using YooptaViewer based on SlideMaterial logic */}
+                    {/* This uses the same plugins and deserialization as the finished course view */}
                     <div className="min-h-[400px] p-4 bg-white rounded border border-neutral-200">
-                        <DocumentWithMermaidSimple
-                            htmlContent={rawContent}
-                            className="prose max-w-none"
+                        <YooptaViewer
+                            content={displayContent}
+                            className="w-full"
                         />
                     </div>
                 </div>
@@ -795,7 +987,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
         if (slideType === 'ai-video') {
             // Store status to avoid type narrowing issues
             const slideStatus: 'pending' | 'generating' | 'completed' = slide.status;
-            
+
             // Check if video data is available
             if (slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && slideStatus === 'completed') {
                 return (
@@ -855,7 +1047,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                     return null;
                 }
                 console.log('🔍 Extracting video ID from:', url);
-                
+
                 // Handle youtube.com/embed/VIDEO_ID format
                 const embedMatch = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/);
                 if (embedMatch) {
@@ -887,7 +1079,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
             const videoId = videoUrl ? getVideoIdFromUrl(videoUrl) : null;
             const watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : (videoUrl || '#');
             const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
-            
+
             console.log('🎥 Final video data:', { videoId, watchUrl, thumbnailUrl });
 
             return (
@@ -1037,11 +1229,11 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
         if (slideType === 'video-code-editor' || slideType === 'video-jupyter' || slideType === 'video-scratch') {
             const youtubeMatch = content.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
             const videoUrl = youtubeMatch ? `https://www.youtube.com/embed/${youtubeMatch[1]}` : undefined;
-            
+
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
                     <div className="resizable-container flex gap-2" style={{ height: '600px' }}>
-                        <div 
+                        <div
                             className="border rounded-lg overflow-hidden bg-white flex flex-col flex-shrink-0"
                             style={{ width: `${splitterPosition}%` }}
                         >
@@ -1070,7 +1262,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                             onMouseDown={handleMouseDown}
                             style={{ cursor: isResizing ? 'col-resize' : 'col-resize' }}
                         />
-                        <div 
+                        <div
                             className="border rounded-lg overflow-hidden bg-white flex flex-col flex-shrink-0"
                             style={{ width: `${100 - splitterPosition}%` }}
                         >
@@ -1125,7 +1317,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                 };
                 const newIndex = quizQuestions.length;
                 setQuizQuestions([...quizQuestions, newQuestion]);
-                
+
                 // Scroll to the newly added question after state update
                 setTimeout(() => {
                     const questionElement = questionRefs.current[newIndex];
@@ -1160,21 +1352,21 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                 const updated = [...quizQuestions];
                 const currentQuestion = updated[index];
                 if (!currentQuestion) return;
-                
+
                 if (field === 'options' && Array.isArray(value)) {
-                    updated[index] = { 
+                    updated[index] = {
                         question: currentQuestion.question || '',
                         options: value,
                         correctAnswerIndex: currentQuestion.correctAnswerIndex
                     };
                 } else if (field === 'correctAnswerIndex' && typeof value === 'number') {
-                    updated[index] = { 
+                    updated[index] = {
                         question: currentQuestion.question || '',
                         options: currentQuestion.options || [],
                         correctAnswerIndex: value
                     };
                 } else {
-                    updated[index] = { 
+                    updated[index] = {
                         question: currentQuestion.question || '',
                         options: currentQuestion.options || [],
                         correctAnswerIndex: currentQuestion.correctAnswerIndex,
@@ -1189,7 +1381,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                 const updated = [...quizQuestions];
                 const currentQuestion = updated[questionIndex];
                 if (!currentQuestion) return;
-                
+
                 updated[questionIndex] = {
                     question: currentQuestion.question || '',
                     options: [...(currentQuestion.options || []), ''],
@@ -1203,15 +1395,15 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                 const updated = [...quizQuestions];
                 const currentQuestion = updated[questionIndex];
                 if (!currentQuestion) return;
-                
+
                 const options = [...(currentQuestion.options || [])];
                 options.splice(optionIndex, 1);
-                
+
                 const currentCorrectIndex = currentQuestion.correctAnswerIndex ?? 0;
                 const newCorrectIndex = currentCorrectIndex >= optionIndex
                     ? Math.max(0, currentCorrectIndex - 1)
                     : currentCorrectIndex;
-                
+
                 updated[questionIndex] = {
                     question: currentQuestion.question || '',
                     options,
@@ -1256,89 +1448,89 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                         ) : (
                             <>
                                 {quizQuestions.map((question, qIndex) => (
-                                    <div 
-                                        key={qIndex} 
+                                    <div
+                                        key={qIndex}
                                         ref={(el) => {
                                             questionRefs.current[qIndex] = el;
                                         }}
                                         className="bg-white rounded-lg border border-neutral-200 p-4 space-y-4"
                                     >
-                                    <div className="flex items-center justify-between">
-                                        <h4 className="text-sm font-semibold text-neutral-900">Question {qIndex + 1}</h4>
-                                        <button
-                                            onClick={() => deleteQuestion(qIndex)}
-                                            className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded px-2 py-1 transition-colors"
-                                            title="Delete Question"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                    
-                                    <div>
-                                        <Label className="text-xs text-neutral-700 mb-1 block">Question Text</Label>
-                                        <Textarea
-                                            value={question.question || ''}
-                                            onChange={(e) => {
-                                                updateQuestion(qIndex, 'question', e.target.value);
-                                                setTimeout(saveQuizQuestions, 100);
-                                            }}
-                                            placeholder="Enter your question here..."
-                                            className="min-h-[80px] text-sm"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-xs text-neutral-700 mb-2 block">Options</Label>
-                                        <div className="space-y-2">
-                                            {(question.options || []).map((option, optIndex) => (
-                                                <div key={optIndex} className="flex items-center gap-2">
-                                                    <input
-                                                        type="radio"
-                                                        name={`correct-${qIndex}`}
-                                                        checked={Number(question.correctAnswerIndex ?? 0) === optIndex}
-                                                        onChange={() => {
-                                                            updateQuestion(qIndex, 'correctAnswerIndex', optIndex);
-                                                            setTimeout(saveQuizQuestions, 100);
-                                                        }}
-                                                        className="h-4 w-4 text-indigo-600"
-                                                    />
-                                                    <Input
-                                                        value={option || ''}
-                                                        onChange={(e) => {
-                                                            const newOptions = [...(question.options || [])];
-                                                            newOptions[optIndex] = e.target.value;
-                                                            updateQuestion(qIndex, 'options', newOptions);
-                                                            setTimeout(saveQuizQuestions, 100);
-                                                        }}
-                                                        placeholder={`Option ${optIndex + 1}`}
-                                                        className="flex-1 text-sm"
-                                                    />
-                                                    {(question.options || []).length > 2 && (
-                                                        <button
-                                                            onClick={() => {
-                                                                removeOption(qIndex, optIndex);
-                                                                setTimeout(saveQuizQuestions, 100);
-                                                            }}
-                                                            className="text-xs text-red-600 hover:text-red-700 px-2 py-1"
-                                                            title="Remove Option"
-                                                        >
-                                                            ×
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            ))}
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-sm font-semibold text-neutral-900">Question {qIndex + 1}</h4>
                                             <button
-                                                onClick={() => {
-                                                    addOption(qIndex);
-                                                    setTimeout(saveQuizQuestions, 100);
-                                                }}
-                                                className="text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded px-2 py-1 transition-colors"
+                                                onClick={() => deleteQuestion(qIndex)}
+                                                className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded px-2 py-1 transition-colors"
+                                                title="Delete Question"
                                             >
-                                                + Add Option
+                                                Delete
                                             </button>
                                         </div>
+
+                                        <div>
+                                            <Label className="text-xs text-neutral-700 mb-1 block">Question Text</Label>
+                                            <Textarea
+                                                value={question.question || ''}
+                                                onChange={(e) => {
+                                                    updateQuestion(qIndex, 'question', e.target.value);
+                                                    setTimeout(saveQuizQuestions, 100);
+                                                }}
+                                                placeholder="Enter your question here..."
+                                                className="min-h-[80px] text-sm"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <Label className="text-xs text-neutral-700 mb-2 block">Options</Label>
+                                            <div className="space-y-2">
+                                                {(question.options || []).map((option, optIndex) => (
+                                                    <div key={optIndex} className="flex items-center gap-2">
+                                                        <input
+                                                            type="radio"
+                                                            name={`correct-${qIndex}`}
+                                                            checked={Number(question.correctAnswerIndex ?? 0) === optIndex}
+                                                            onChange={() => {
+                                                                updateQuestion(qIndex, 'correctAnswerIndex', optIndex);
+                                                                setTimeout(saveQuizQuestions, 100);
+                                                            }}
+                                                            className="h-4 w-4 text-indigo-600"
+                                                        />
+                                                        <Input
+                                                            value={option || ''}
+                                                            onChange={(e) => {
+                                                                const newOptions = [...(question.options || [])];
+                                                                newOptions[optIndex] = e.target.value;
+                                                                updateQuestion(qIndex, 'options', newOptions);
+                                                                setTimeout(saveQuizQuestions, 100);
+                                                            }}
+                                                            placeholder={`Option ${optIndex + 1}`}
+                                                            className="flex-1 text-sm"
+                                                        />
+                                                        {(question.options || []).length > 2 && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    removeOption(qIndex, optIndex);
+                                                                    setTimeout(saveQuizQuestions, 100);
+                                                                }}
+                                                                className="text-xs text-red-600 hover:text-red-700 px-2 py-1"
+                                                                title="Remove Option"
+                                                            >
+                                                                ×
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    onClick={() => {
+                                                        addOption(qIndex);
+                                                        setTimeout(saveQuizQuestions, 100);
+                                                    }}
+                                                    className="text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded px-2 py-1 transition-colors"
+                                                >
+                                                    + Add Option
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
                                 ))}
                                 {/* Add Question button at the end */}
                                 <div className="flex justify-center pt-2">
@@ -1501,7 +1693,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                 </div>
             </div>
             {(slide.status === 'completed' || slide.status === 'generating') && renderSlideContent()}
-            
+
             {/* Video URL Dialog - only show for topic slides */}
             {slide.slideType === 'topic' && (
                 <Dialog open={videoUrlDialogOpen} onOpenChange={setVideoUrlDialogOpen}>

@@ -49,6 +49,7 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
     },
     coursePage: {
         viewInviteLinks: true,
+        viewShortInviteLinks: false,
         viewCourseConfiguration: true,
         viewCourseOverviewItem: true,
         viewContentNumbering: true,
@@ -83,6 +84,7 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
     ui: {
         showSupportButton: true,
         showSidebar: true,
+        showAiCredits: true,
     },
     contentTypes: {
         pdf: true,
@@ -109,12 +111,15 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
         overviewTab: true,
         testTab: true,
         progressTab: true,
+        coursesTab: true,
         notificationTab: false,
         membershipTab: false,
+        paymentHistoryTab: true,
         userTaggingTab: false,
         fileTab: false,
         portalAccessTab: false,
         reportsTab: false,
+        enrollDerollTab: false,
     },
     learnerManagement: {
         allowPortalAccess: true,

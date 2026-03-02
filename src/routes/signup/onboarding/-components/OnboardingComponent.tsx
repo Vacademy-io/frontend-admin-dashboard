@@ -54,17 +54,19 @@ export function OnboardingComponent() {
     // }, []);
 
     return (
-        <div className="flex h-screen w-full">
-            <div className="flex w-1/2 flex-col items-center justify-center bg-primary-50">
+        <div className="flex min-h-screen w-full flex-col lg:flex-row">
+            <div className="flex w-full flex-col items-center justify-center bg-primary-50 p-4 lg:w-1/2 lg:p-0">
                 <div>
-                    <div className="grid grid-cols-2 gap-4">
-                        {searchParams.assess && <VacademyAssessLogo />}
-                        {searchParams.lms && <VacademyLMSLogo />}
-                        {searchParams.volt && <VacademyVoltLogo />}
-                        {searchParams.vsmart && <VacademyVSmartLogo />}
+                    <div className="grid grid-cols-2 gap-2 lg:gap-4">
+                        {searchParams.assess && <VacademyAssessLogo className="w-24 lg:w-auto" />}
+                        {searchParams.lms && <VacademyLMSLogo className="w-24 lg:w-auto" />}
+                        {searchParams.volt && <VacademyVoltLogo className="w-24 lg:w-auto" />}
+                        {searchParams.vsmart && <VacademyVSmartLogo className="w-24 lg:w-auto" />}
                     </div>
-                    <p>Fast-track your access in 3 steps—explore the tool now!</p>
-                    <Separator className="my-6" />
+                    <p className="mt-2 text-sm lg:text-base">
+                        Fast-track your access in 3 steps—explore the tool now!
+                    </p>
+                    <Separator className="my-2 lg:my-6" />
                     <CreateOnboardingSidebar
                         steps={steps}
                         currentStep={currentStep}
@@ -73,7 +75,7 @@ export function OnboardingComponent() {
                     />
                 </div>
             </div>
-            <div className="flex w-1/2 items-center justify-center">
+            <div className="flex w-full items-center justify-center p-8 lg:w-1/2 lg:p-0">
                 <OnboardingSteps
                     currentStep={currentStep}
                     handleCompleteCurrentStep={completeCurrentStep}

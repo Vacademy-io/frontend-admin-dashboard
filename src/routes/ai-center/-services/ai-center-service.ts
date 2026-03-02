@@ -216,11 +216,13 @@ export const handleGenerateAssessmentQuestionsPageWise = async (
     userPrompt: string,
     taskId: string
 ) => {
+    const instituteId = getInstituteId();
     const response = await axios({
         method: 'POST',
         url: HTML_TO_QUESTIONS_FROM_FILE_AI_URL,
         params: {
             userPrompt,
+            instituteId,
         },
         data: { html: html, taskId: taskId },
     });
@@ -242,10 +244,12 @@ export const handleConvertPDFToHTML = async (pdfId: string, taskName: string) =>
 };
 
 export const handleGetQuestionsFromHTMLUrl = async (html: string, userPrompt: string) => {
+    const instituteId = getInstituteId();
     const response = await axios({
         method: 'POST',
         params: {
             userPrompt,
+            instituteId,
         },
         url: GET_QUESTIONS_URL_FROM_HTML_AI_URL,
         data: { html: html },

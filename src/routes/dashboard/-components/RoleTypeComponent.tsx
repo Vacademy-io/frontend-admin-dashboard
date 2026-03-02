@@ -87,11 +87,12 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
             instituteId: string | undefined;
             selectedFilter: RoleTypeSelectedFilter;
         }) => fetchInstituteDashboardUsers(instituteId, selectedFilter),
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
+            const users = Array.isArray(data) ? data : data?.content || [];
             if (selectedTab === 'instituteUsers') {
-                setDashboardUsers({ ...dashboardUsers, ['instituteUsers']: data || [] });
+                setDashboardUsers({ ...dashboardUsers, ['instituteUsers']: users });
             } else {
-                setDashboardUsers({ ...dashboardUsers, ['invites']: data || [] });
+                setDashboardUsers({ ...dashboardUsers, ['invites']: users });
             }
         },
         onError: (error: unknown) => {
@@ -184,11 +185,18 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                     status: [{ id: '1', name: 'INVITED' }],
                 }),
             ])
-                .then(([instituteUsersData, invitesData]) => {
+                .then(([instituteUsersData, invitesData]: [any, any]) => {
+                    const instituteUsers = Array.isArray(instituteUsersData)
+                        ? instituteUsersData
+                        : instituteUsersData?.content || [];
+                    const invites = Array.isArray(invitesData)
+                        ? invitesData
+                        : invitesData?.content || [];
+
                     setDashboardUsers((prev) => ({
                         ...prev,
-                        instituteUsers: instituteUsersData || [],
-                        invites: invitesData || [],
+                        instituteUsers: instituteUsers,
+                        invites: invites,
                     }));
                 })
                 .catch((error) => {
@@ -250,11 +258,18 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                     status: [{ id: '1', name: 'INVITED' }],
                 }),
             ])
-                .then(([instituteUsersData, invitesData]) => {
+                .then(([instituteUsersData, invitesData]: [any, any]) => {
+                    const instituteUsers = Array.isArray(instituteUsersData)
+                        ? instituteUsersData
+                        : instituteUsersData?.content || [];
+                    const invites = Array.isArray(invitesData)
+                        ? invitesData
+                        : invitesData?.content || [];
+
                     setDashboardUsers((prev) => ({
                         ...prev,
-                        instituteUsers: instituteUsersData || [],
-                        invites: invitesData || [],
+                        instituteUsers: instituteUsers,
+                        invites: invites,
                     }));
                 })
                 .catch((error) => {

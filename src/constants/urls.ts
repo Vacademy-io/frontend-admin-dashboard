@@ -8,12 +8,27 @@ export const AI_SERVICE_BASE_URL =
 
 // AI Video URLs API
 export const GET_VIDEO_URLS = (videoId: string) => `${AI_SERVICE_BASE_URL}/video/urls/${videoId}`;
+export const SCRAPE_URL = `${AI_SERVICE_BASE_URL}/utils/scrape-url`;
 
 // Institute AI Settings APIs
 export const GET_INSTITUTE_AI_SETTINGS = (instituteId: string) =>
     `${AI_SERVICE_BASE_URL}/institute/ai-settings/v1/get?institute_id=${instituteId}`;
 export const UPDATE_INSTITUTE_AI_SETTINGS = (instituteId: string) =>
     `${AI_SERVICE_BASE_URL}/institute/ai-settings/v1/update?institute_id=${instituteId}`;
+
+// Institute Video Branding APIs (intro/outro/watermark HTML)
+export const GET_VIDEO_BRANDING = (instituteId: string) =>
+    `${AI_SERVICE_BASE_URL}/institute/video-branding/v1/get?institute_id=${instituteId}`;
+export const UPDATE_VIDEO_BRANDING = (instituteId: string) =>
+    `${AI_SERVICE_BASE_URL}/institute/video-branding/v1/update?institute_id=${instituteId}`;
+
+// Institute Video Style APIs (brand colors, fonts, layout theme)
+export const GET_VIDEO_STYLE = (instituteId: string) =>
+    `${AI_SERVICE_BASE_URL}/institute/video-style/v1/get?institute_id=${instituteId}`;
+export const UPDATE_VIDEO_STYLE = (instituteId: string) =>
+    `${AI_SERVICE_BASE_URL}/institute/video-style/v1/update?institute_id=${instituteId}`;
+export const GET_VIDEO_TEMPLATES = () =>
+    `${AI_SERVICE_BASE_URL}/institute/video-templates/v1/list`;
 
 // Institute IDs from environment variables for multi-org deployment
 export const SSDC_INSTITUTE_ID =
@@ -36,6 +51,10 @@ export const GET_CAMPAIGN_USERS = `${BASE_URL}/admin-core-service/v1/audience/le
 export const GET_ENQUIRIES = `${BASE_URL}/admin-core-service/v1/audience/enquiries`;
 export const SUBMIT_ENQUIRY_WITH_LEAD = `${BASE_URL}/admin-core-service/open/v1/audience/lead/submit-with-enquiry`;
 export const GET_CUSTOM_FIELD_SETUP = `${BASE_URL}/admin-core-service/common/custom-fields/setup`;
+
+// Field Mapping
+export const FIELD_MAPPING_BASE_URL = `${BASE_URL}/admin-core-service/common/field-mapping`;
+
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
 export const SIGNUP_URL = `${BASE_URL}/auth-service/v1/signup-root`;
@@ -44,6 +63,7 @@ export const FORGOT_PASSWORD = `${BASE_URL}/auth-service/v1/send-password`;
 export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 
 export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/media-service/convert/doc-to-html`;
+export const CONVERT_PPT_TO_PDF_URL = `${BASE_URL}/media-service/convert/ppt-to-pdf`;
 export const SUBMIT_RATING_URL = `${BASE_URL}/admin-core-service/rating`;
 export const GET_ALL_USER_RATINGS = `${BASE_URL}/admin-core-service/rating/get-source-ratings-admin`;
 export const GET_ALL_RATING_SUMMARY = `${BASE_URL}/admin-core-service/rating/summary`;
@@ -66,6 +86,12 @@ export const GET_DASHBOARD_ASSESSMENT_COUNT_URL = `${BASE_URL}/assessment-servic
 export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details`;
 export const INIT_INSTITUTE_WITHOUT_BATCHES = `${BASE_URL}/admin-core-service/institute/v1/details-non-batches`;
 export const INIT_INSTITUTE_SETUP = `${BASE_URL}/admin-core-service/institute/v1/setup-without-batches`;
+
+// Package Management APIs
+export const PAGINATED_BATCHES = `${BASE_URL}/admin-core-service/institute/v1/paginated-batches`;
+export const BATCHES_BY_IDS = `${BASE_URL}/admin-core-service/institute/v1/batches-by-ids`;
+export const BATCHES_SUMMARY = `${BASE_URL}/admin-core-service/institute/v1/batches-summary`;
+
 export const ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-details/get`;
 export const GET_STUDENTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all`;
 export const GET_ASSESSMENT_DETAILS = `${BASE_URL}/assessment-service/assessment/create/v1/status`;
@@ -86,6 +112,7 @@ export const GET_INSTITUTE_USERS = `${BASE_URL}/auth-service/v1/user-roles/users
 export const GET_USER_AUTOSUGGEST = `${BASE_URL}/auth-service/v1/user/autosuggest-users`;
 export const INVITE_USERS_URL = `${BASE_URL}/auth-service/v1/user-invitation/invite`;
 export const INVITE_TEACHERS_URL = `${BASE_URL}/admin-core-service/institute/v1/faculty/assign-subjects-and-batches`;
+export const GET_FACULTY_USER_ACCESS_DETAILS = `${BASE_URL}/admin-core-service/institute/v1/faculty/user-access-details`;
 export const DELETE_DISABLE_USER_URL = `${BASE_URL}/auth-service/v1/user-roles/update-role-status`;
 export const ADD_USER_ROLES_URL = `${BASE_URL}/auth-service/v1/user-roles/add-user-roles`;
 export const UPDATE_USER_INVITATION_URL = `${BASE_URL}/auth-service/v1/user-invitation/update`;
@@ -168,6 +195,7 @@ export const COPY_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/copy`;
 export const MOVE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/move`;
 
 export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
+export const BULK_ADD_COURSES = `${BASE_URL}/admin-core-service/course/v1/bulk-add-courses`;
 export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;
 export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course-details`;
 
@@ -205,6 +233,8 @@ export const UPDATE_ASSIGNMENT_ORDER = `${BASE_URL}/admin-core-service/slide/ass
 export const ADD_UPDATE_QUIZ_SLIDE = `${BASE_URL}/admin-core-service/slide/quiz-slide/add-or-update`;
 export const ADD_UPDATE_ASSIGNMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/assignment-slide/add-or-update`;
 export const ADD_UPDATE_AUDIO_SLIDE = `${BASE_URL}/admin-core-service/slide/audio-slide/add-update-audio-slide`;
+export const SCORM_UPLOAD = `${BASE_URL}/admin-core-service/scorm/v1/upload`;
+export const SCORM_ADD_OR_UPDATE = `${BASE_URL}/admin-core-service/scorm/v1/add-or-update`;
 export const GET_SLIDE_ACTIVITY = `${BASE_URL}/admin-core-service/learner-tracking/activity-log/v1/learner-activity`;
 export const GET_USER_VIDEO_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-video-activity-logs`;
 export const GET_USER_DOC_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-document-activity-logs`;
@@ -219,6 +249,23 @@ export const GET_SLIDES_COUNT = `${BASE_URL}/admin-core-service/slide/v1/slide-c
 export const GET_INVITE_LINKS = `${BASE_URL}/admin-core-service/v1/enroll-invite/get-enroll-invite`;
 export const MAKE_INVITE_LINK_DEFAULT = `${BASE_URL}/admin-core-service/v1/enroll-invite/update-default-enroll-invite-config`;
 export const GET_SINGLE_INVITE_DETAILS = `${BASE_URL}/admin-core-service/v1/enroll-invite/{instituteId}/{enrollInviteId}`;
+export const DELETE_INVITES = `${BASE_URL}/admin-core-service/v1/enroll-invite/enroll-invites`;
+
+export const GET_COURSE_DETAILS = `${BASE_URL}/admin-core-service/packages/v1/package-detail`;
+export const UPDATE_COURSE_BY_ID = `${BASE_URL}/admin-core-service/course/v1/update-course`;
+export const GET_LEARNER_PACKAGES_BY_USER_ID = `${BASE_URL}/admin-core-service/learner-packages/v1/search-by-user-id`;
+
+// Bulk Assign / De-assign (V3 Learner Management)
+export const BULK_ASSIGN_LEARNERS = `${BASE_URL}/admin-core-service/v3/learner-management/assign`;
+export const BULK_DEASSIGN_LEARNERS = `${BASE_URL}/admin-core-service/v3/learner-management/deassign`;
+export const GET_DEFAULT_INVITE = (instituteId: string, packageSessionId: string) =>
+    `${BASE_URL}/admin-core-service/v1/enroll-invite/default/${instituteId}/${packageSessionId}`;
+
+export const GET_FACULTY_ASSIGNMENTS = `${BASE_URL}/admin-core-service/institute/v1/faculty/batch-subject-assignments`;
+export const UPDATE_FACULTY_ASSIGNMENTS = `${BASE_URL}/admin-core-service/institute/v1/faculty/update-assign-subjects-and-batches`;
+
+export const GET_COURSE_BATCHES = `${BASE_URL}/admin-core-service/course/v1`;
+export const UPDATE_BATCH_INVENTORY = `${BASE_URL}/admin-core-service/package-session`;
 
 export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
@@ -253,6 +300,8 @@ export const EXPORT_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-manag
 export const EXPORT_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-report`;
 export const EXPORT_LEARNERS_SUBJECT_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-subject-wise-report`;
 export const EXPORT_LEARNERS_MODULE_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-module-progress-report`;
+export const EXPORT_CHAPTER_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/chapter-wise-batch-report`;
+export const EXPORT_CHAPTER_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/chapter-wise-learners-report`;
 
 export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-credentials`;
 export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;
@@ -298,6 +347,8 @@ export const GET_LECTURE_FEEDBACK_PREVIEW_URL = `${BASE_URL}/media-service/task-
 
 // AI Model Selection
 export const GET_AVAILABLE_AI_MODELS = `${BASE_URL}/media-service/ai/retry/available-models`;
+export const GET_AI_MODELS_V2 = `${AI_SERVICE_BASE_URL}/models/v2/list`;
+export const GET_AI_MODELS_USE_CASE = `${AI_SERVICE_BASE_URL}/models/v2/use-case`;
 export const INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/institute-setting`;
 export const UPDATE_INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/institute/update`;
 export const LEARNERS_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/learner-setting`;
@@ -387,6 +438,7 @@ export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-optio
 
 export const GET_INSITITUTE_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/get`;
 export const UPDATE_CUSTOM_FIELD_SETTINGS = `${BASE_URL}/admin-core-service/institute/v1/custom-field/create-or-update`;
+export const GET_CUSTOM_FIELD_LIST_WITH_USAGE = `${BASE_URL}/admin-core-service/institute/v1/custom-field/list-with-usage`;
 // Message Templates
 export const MESSAGE_TEMPLATE_BASE = `${BASE_URL}/admin-core-service/institute/template/v1`;
 export const CREATE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/create`;
@@ -438,6 +490,11 @@ export const GET_MY_SYSTEM_FILES = `${BASE_URL}/admin-core-service/system-files/
 // Learner Portal Access
 export const GET_LEARNER_PORTAL_ACCESS = `${BASE_URL}/admin-core-service/admin/learner-portal/v1/access`;
 export const SEND_LEARNER_RESET_PASSWORD = `${BASE_URL}/admin-core-service/admin/learner-portal/v1/send-cred`;
+
+// Enrollment & User Plan Actions
+export const ENROLL_LEARNER_V2 = `${BASE_URL}/admin-core-service/v2/learner/enroll`;
+export const CANCEL_USER_PLAN = (user_plan_id: string) =>
+    `${BASE_URL}/admin-core-service/v1/user-plan/${user_plan_id}/cancel`;
 
 // Planning Logs
 export const PLANNING_LOGS_BASE = `https://backend-stage.vacademy.io/admin-core-service/planning-logs/v1`;
@@ -505,3 +562,17 @@ export const BOOKING_TYPES_BY_INSTITUTE = `${BOOKING_BASE}/types/by-institute`;
 
 // Autosuggest Users API
 export const AUTOSUGGEST_USERS = `${BASE_URL}/auth-service/v1/user/autosuggest-users`;
+
+// Manage Custom Teams / Faculty Access v2
+export const GRANT_USER_ACCESS = `${BASE_URL}/admin-core-service/institute/v1/faculty/user-access`;
+export const GET_ALL_FACULTY_V2 = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
+export const CREATE_SUB_ORG = `${BASE_URL}/admin-core-service/institute/v1/sub-org/create`;
+export const GET_SUB_ORGS = `${BASE_URL}/admin-core-service/institute/v1/sub-org/get-all`;
+
+// Custom Roles (Auth Service) - use auth-service/v1 to match other auth endpoints and avoid CORS
+// GET /auth-service/v1/institute/{instituteId}/roles, POST for create
+export const ROLES_BASE = `${BASE_URL}/auth-service/v1/institute`;
+
+// Role Display Settings
+export const GET_ALL_SETTINGS = `${BASE_URL}/admin-core-service/institute/v1/setting/get-all`;
+export const SAVE_GENERIC_SETTING = `${BASE_URL}/admin-core-service/institute/v1/setting/generic/save`;

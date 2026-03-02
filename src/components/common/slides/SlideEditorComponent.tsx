@@ -9,6 +9,7 @@ import { filterSlidesByIdType } from './utils/util';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { Button } from '@/components/ui/button';
 import { ListStart, Save, Loader2, PlaySquare, Tv2, PlusCircle, Share2, ChevronDown, Check, Edit2, UploadCloud } from 'lucide-react';
+import { getInstituteId } from '@/constants/helper';
 import SlideList from './SlideList';
 import { QuizSlide } from './slidesTypes/QuizSlides'; // Ensure path is correct
 import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Assumed path
@@ -604,7 +605,7 @@ const SlidesEditorComponent = ({
             // 2. Generate slides from transcript
             const slideGenResponse = await authenticatedAxiosInstance.post(
                 GENERATE_SLIDES_FROM_TEXT_API_URL,
-                { language: 'English', text: transcript.text },
+                { language: 'English', text: transcript.text, institute_id: getInstituteId() },
                 { headers: { 'Content-Type': 'application/json' } }
             );
 
@@ -1505,6 +1506,7 @@ const SlidesEditorComponent = ({
                 {
                     language: aiLanguage,
                     text: aiTopic,
+                    institute_id: getInstituteId(),
                 },
                 { headers: { 'Content-Type': 'application/json' } }
             );
@@ -1671,6 +1673,7 @@ const SlidesEditorComponent = ({
             const payload = {
                 language: 'English',
                 text: prompt,
+                institute_id: getInstituteId(),
                 initial_data: JSON.stringify({
                     type: 'excalidraw',
                     version: 2,

@@ -1,6 +1,7 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { ChapterSidebarAddButton } from '../-components/slides-sidebar/slides-sidebar-add-button';
 import { ChapterSidebarSlides } from '../-components/slides-sidebar/slides-sidebar-slides';
+import { ChapterNavigator } from '../-components/chapter-navigator';
 import '../slides-sidebar-scrollbar.css';
 // import { studyLibrarySteps } from '@/constants/intro/steps';
 // import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
@@ -302,6 +303,18 @@ export function NonAdminSlidesView({
                     })()}
                 </div>
 
+                {/* Chapter Navigator */}
+                <div className="w-full border-b border-primary-100 bg-white/50 p-2">
+                    <ChapterNavigator
+                        currentChapterId={chapterId}
+                        currentModuleId={moduleId}
+                        courseId={courseId}
+                        levelId={levelId}
+                        subjectId={subjectId}
+                        sessionId={sessionId}
+                    />
+                </div>
+
                 <div className={`flex w-full flex-1 flex-col gap-4 px-3 pb-3 pt-4`}>
                     <div className="flex w-full flex-col items-center gap-6 pb-10">
                         <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
@@ -340,6 +353,12 @@ export function NonAdminSlidesView({
             isLearnerView,
             isDraftCourse,
             unsavedChanges,
+            chapterId,
+            moduleId,
+            courseId,
+            levelId,
+            subjectId,
+            sessionId,
         ]
     );
 

@@ -1,3 +1,4 @@
+import { getActiveRoleDisplaySettingsKey } from '@/lib/auth/instituteUtils';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -12,6 +13,7 @@ import {
     Desktop,
     ChalkboardTeacher,
     Student,
+    ArrowLeft,
 } from '@phosphor-icons/react';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useSidebarStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states';
@@ -38,7 +40,7 @@ import { useSelectedSessionStore } from '@/stores/study-library/selected-session
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { SidebarSimple } from '@phosphor-icons/react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
+import { useSuspenseQuery, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { Separator } from '@/components/ui/separator';
 import EditDashboardProfileComponent from '@/routes/dashboard/-components/EditDashboardProfileComponent';
@@ -68,8 +70,18 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useCompactMode } from '@/hooks/use-compact-mode';
 import { CompactModeToggle } from '@/components/compact-mode/CompactModeToggle';
+import { useAiCreditsQuery } from '@/services/ai-credits/get-ai-credits';
+import { AiCreditsPanel } from '@/components/common/ai-credits/AiCreditsPanel';
+import {
+    hasFacultyAssignedPermission,
+    getEffectiveInstituteLogoFileId,
+    getEffectiveInstituteName,
+    getSelectedSubOrgId,
+    getSelectedSubOrgLinkageType,
+} from '@/lib/auth/facultyAccessUtils';
+import { getSubOrgInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 
-export function Navbar() {
+export function Navbar({ showMobileBackButton }: { showMobileBackButton?: boolean }) {
     const roleColors: Record<string, string> = {
         ADMIN: '#F4F9FF',
         'COURSE CREATOR': '#F4FFF9',
@@ -91,7 +103,7 @@ export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const { navHeading } = useNavHeadingStore();
     const { sidebarOpen, setSidebarOpen } = useSidebarStore();
-    const { instituteLogo } = useInstituteLogoStore();
+    const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
     const { getPublicUrl } = useFileUpload();
     const { adminLogo, setAdminLogo, resetAdminLogo } = useAdminLogoStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -104,9 +116,7 @@ export function Navbar() {
 
     // Effective display settings (cached or defaults) for permission gating
     const isAdminRoleForDS = roles.includes('ADMIN');
-    const roleKeyForDS = isAdminRoleForDS
-        ? ADMIN_DISPLAY_SETTINGS_KEY
-        : TEACHER_DISPLAY_SETTINGS_KEY;
+    const roleKeyForDS = getActiveRoleDisplaySettingsKey();
     const cachedDS = getDisplaySettingsFromCache(roleKeyForDS);
     const defaultDS = isAdminRoleForDS
         ? DEFAULT_ADMIN_DISPLAY_SETTINGS
@@ -131,6 +141,9 @@ export function Navbar() {
         initialPageParam: 0,
         staleTime: 30_000,
     });
+
+    const showAiCredits = effectiveDS.ui?.showAiCredits !== false;
+    const { data: aiCredits, isError: isCreditsError } = useAiCreditsQuery(showAiCredits);
 
     const [showAllDialog, setShowAllDialog] = useState(false);
     const unreadCount = useMemo(() => {
@@ -174,14 +187,62 @@ export function Navbar() {
         return () => clearTimeout(timer); // Cleanup the timeout on component unmount
     }, [adminDetails?.profile_pic_file_id, getPublicUrl, setAdminLogo]);
 
-    // Check if sidebar should be shown
-    const showSidebar = (() => {
-        const rolesForDS = getUserRoles(accessToken);
-        const isAdminRole = rolesForDS.includes('ADMIN');
-        const roleKey = isAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
-        const ds = getDisplaySettingsFromCache(roleKey);
-        return ds?.ui?.showSidebar !== false;
-    })();
+    // Match layout logic: main sidebar visibility is determined by display settings
+    const hasFacultyPermission = hasFacultyAssignedPermission(instituteDetails?.id);
+    const showSidebarFromDS = cachedDS?.ui?.showSidebar !== false;
+    const showMainSidebar = showSidebarFromDS;
+
+    // For faculty users with selected sub-org: fetch sub-org institute details (suborgId = institute ID of sub-org)
+    const selectedSubOrgId = getSelectedSubOrgId();
+    const { data: subOrgInstituteDetails } = useQuery({
+        ...getSubOrgInstituteQuery(selectedSubOrgId ?? null),
+        enabled: !showMainSidebar && !!hasFacultyPermission && !!selectedSubOrgId,
+    });
+
+    // When sidebar is hidden, set institute logo: from sub-org details API if available, else from main/suborg mapping
+    useEffect(() => {
+        if (!showMainSidebar) {
+            const logoId = subOrgInstituteDetails?.institute_logo_file_id
+                ? subOrgInstituteDetails.institute_logo_file_id
+                : getEffectiveInstituteLogoFileId(
+                    instituteDetails?.institute_logo_file_id ?? undefined
+                );
+            if (logoId && typeof logoId === 'string') {
+                getPublicUrl(logoId).then((url) => {
+                    setInstituteLogo(url || '');
+                });
+            } else {
+                setInstituteLogo('');
+            }
+        }
+    }, [
+        showMainSidebar,
+        subOrgInstituteDetails?.institute_logo_file_id,
+        instituteDetails?.institute_logo_file_id,
+        instituteDetails?.id,
+        getPublicUrl,
+        setInstituteLogo,
+    ]);
+
+    // Effective institute name: from sub-org details API when faculty with selected sub-org, else main institute
+    const effectiveInstituteName = subOrgInstituteDetails?.institute_name
+        ? subOrgInstituteDetails.institute_name
+        : getEffectiveInstituteName(instituteDetails?.institute_name) ??
+        instituteDetails?.institute_name;
+
+    const isPartnershipLinkage = getSelectedSubOrgLinkageType() === 'PARTNERSHIP';
+    const [mainInstituteLogoUrl, setMainInstituteLogoUrl] = useState<string>('');
+
+    // When PARTNERSHIP, resolve main (original) institute logo for "Powered by" line
+    useEffect(() => {
+        if (isPartnershipLinkage && instituteDetails?.institute_logo_file_id) {
+            getPublicUrl(instituteDetails.institute_logo_file_id).then((url) => {
+                setMainInstituteLogoUrl(url || '');
+            });
+        } else {
+            setMainInstituteLogoUrl('');
+        }
+    }, [isPartnershipLinkage, instituteDetails?.institute_logo_file_id, getPublicUrl]);
 
     const {
         playStoreAppLink,
@@ -213,13 +274,24 @@ export function Navbar() {
     return (
         <div
             className={cn(
-                'sticky top-0 z-10 flex items-center justify-between border-b bg-neutral-50',
+                'sticky top-0 z-50 flex items-center justify-between border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60',
                 isCompact ? 'h-12 px-4 py-2' : 'h-14 px-4 py-2 md:h-[72px] md:px-8 md:py-4'
             )}
         >
             <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-4">
+                {/* Mobile back button */}
+                {isMobile && showMobileBackButton && (
+                    <button
+                        onClick={() => window.history.back()}
+                        className="flex items-center justify-center rounded-md p-2 transition-colors hover:bg-neutral-100"
+                        aria-label="Go back"
+                    >
+                        <ArrowLeft className="size-5 text-neutral-600" weight="bold" />
+                    </button>
+                )}
+
                 {/* Mobile hamburger menu */}
-                {isMobile && showSidebar && (
+                {isMobile && showMainSidebar && (
                     <button
                         onClick={() => setOpenMobile(true)}
                         className="flex items-center justify-center rounded-md p-2 transition-colors hover:bg-neutral-100"
@@ -229,21 +301,67 @@ export function Navbar() {
                     </button>
                 )}
 
-                {/* Institute logo when sidebar is hidden */}
-                {!showSidebar && (
-                    <div className="flex shrink-0 items-center gap-2">
-                        {instituteLogo ? (
-                            <img
-                                src={instituteLogo}
-                                alt="logo"
-                                className="size-10 object-contain md:size-20"
-                            />
-                        ) : null}
+                {/* Institute logo and name when sidebar is hidden (e.g. faculty users or display setting) */}
+                {!showMainSidebar && (
+                    <div className="flex min-w-0 shrink flex-col justify-center gap-0.5">
+                        <div className="flex min-w-0 shrink items-center gap-2">
+                            {instituteLogo ? (
+                                <div
+                                    className={cn(
+                                        'flex shrink-0 items-center justify-center overflow-hidden rounded',
+                                        isCompact ? 'h-9 w-9' : 'h-10 w-10 md:h-12 md:w-12'
+                                    )}
+                                >
+                                    <img
+                                        src={instituteLogo}
+                                        alt="logo"
+                                        className="h-full w-full object-contain"
+                                    />
+                                </div>
+                            ) : null}
+                            {effectiveInstituteName ? (
+                                <span
+                                    className={cn(
+                                        'min-w-0 break-words font-semibold text-neutral-800 line-clamp-2',
+                                        isCompact ? 'max-w-[140px] text-sm' : 'max-w-[220px] text-sm md:max-w-[260px] md:text-base'
+                                    )}
+                                    title={effectiveInstituteName as string}
+                                >
+                                    {effectiveInstituteName as string}
+                                </span>
+                            ) : null}
+                        </div>
+                        {isPartnershipLinkage && instituteDetails?.institute_name && (
+                            <div
+                                className={cn(
+                                    'flex items-center gap-1.5 text-neutral-500',
+                                    instituteLogo && (isCompact ? 'ml-9' : 'ml-12')
+                                )}
+                            >
+                                <span className="text-[10px] font-medium text-neutral-500 md:text-xs whitespace-nowrap">
+                                    Powered by
+                                </span>
+                                {mainInstituteLogoUrl ? (
+                                    <div className="flex shrink-0 items-center justify-center overflow-hidden rounded">
+                                        <img
+                                            src={mainInstituteLogoUrl}
+                                            alt={instituteDetails.institute_name}
+                                            className="h-5 w-auto object-contain max-w-[80px]"
+                                            aria-hidden
+                                        />
+                                    </div>
+                                ) : (
+                                    <span className="text-[10px] font-bold text-neutral-700 md:text-xs truncate max-w-[150px]">
+                                        {instituteDetails.institute_name}
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
                 {/* Desktop sidebar trigger */}
-                {!isMobile && showSidebar && (
+                {!isMobile && showMainSidebar && (
                     <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
                         <SidebarSimple className="text-neutral-600" />
                     </SidebarTrigger>
@@ -261,6 +379,8 @@ export function Navbar() {
             </div>
 
             <div className="flex shrink-0 items-center gap-2 text-neutral-600 md:gap-6">
+                {/* AI Credits */}
+                {showAiCredits && aiCredits && !isCreditsError && <AiCreditsPanel />}
                 {/* Apps Menu */}
                 {showAppsIcon && (
                     <DropdownMenu>
@@ -303,100 +423,100 @@ export function Navbar() {
                                 appStoreAppLink ||
                                 windowsAppLink ||
                                 macAppLink) && (
-                                <div>
-                                    {finalInstructorPortalUrl && <Separator className="my-1" />}
-                                    <div className="my-1 px-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                                        Learner Section
+                                    <div>
+                                        {finalInstructorPortalUrl && <Separator className="my-1" />}
+                                        <div className="my-1 px-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                                            Learner Section
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-2 px-2 py-1">
+                                            {finalLearnerPortalUrl && (
+                                                <a
+                                                    href={finalLearnerPortalUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="Learner Portal"
+                                                >
+                                                    <Student
+                                                        className="size-6 text-primary-500"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-center text-[10px] leading-tight text-neutral-600">
+                                                        Portal
+                                                    </span>
+                                                </a>
+                                            )}
+                                            {playStoreAppLink && (
+                                                <a
+                                                    href={playStoreAppLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="Google Play Store"
+                                                >
+                                                    <AndroidLogo
+                                                        className="size-6 text-green-600"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-[10px] text-neutral-600">
+                                                        Android
+                                                    </span>
+                                                </a>
+                                            )}
+                                            {appStoreAppLink && (
+                                                <a
+                                                    href={appStoreAppLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="App Store"
+                                                >
+                                                    <AppleLogo
+                                                        className="size-6 text-black"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-[10px] text-neutral-600">
+                                                        iOS
+                                                    </span>
+                                                </a>
+                                            )}
+                                            {windowsAppLink && (
+                                                <a
+                                                    href={windowsAppLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="Windows App"
+                                                >
+                                                    <WindowsLogo
+                                                        className="size-6 text-blue-600"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-[10px] text-neutral-600">
+                                                        Win
+                                                    </span>
+                                                </a>
+                                            )}
+                                            {macAppLink && (
+                                                <a
+                                                    href={macAppLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="Mac App"
+                                                >
+                                                    <Desktop
+                                                        className="size-6 text-neutral-600"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-[10px] text-neutral-600">
+                                                        Mac
+                                                    </span>
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="grid grid-cols-4 gap-2 px-2 py-1">
-                                        {finalLearnerPortalUrl && (
-                                            <a
-                                                href={finalLearnerPortalUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                title="Learner Portal"
-                                            >
-                                                <Student
-                                                    className="size-6 text-primary-500"
-                                                    weight="fill"
-                                                />
-                                                <span className="text-center text-[10px] leading-tight text-neutral-600">
-                                                    Portal
-                                                </span>
-                                            </a>
-                                        )}
-                                        {playStoreAppLink && (
-                                            <a
-                                                href={playStoreAppLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                title="Google Play Store"
-                                            >
-                                                <AndroidLogo
-                                                    className="size-6 text-green-600"
-                                                    weight="fill"
-                                                />
-                                                <span className="text-[10px] text-neutral-600">
-                                                    Android
-                                                </span>
-                                            </a>
-                                        )}
-                                        {appStoreAppLink && (
-                                            <a
-                                                href={appStoreAppLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                title="App Store"
-                                            >
-                                                <AppleLogo
-                                                    className="size-6 text-black"
-                                                    weight="fill"
-                                                />
-                                                <span className="text-[10px] text-neutral-600">
-                                                    iOS
-                                                </span>
-                                            </a>
-                                        )}
-                                        {windowsAppLink && (
-                                            <a
-                                                href={windowsAppLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                title="Windows App"
-                                            >
-                                                <WindowsLogo
-                                                    className="size-6 text-blue-600"
-                                                    weight="fill"
-                                                />
-                                                <span className="text-[10px] text-neutral-600">
-                                                    Win
-                                                </span>
-                                            </a>
-                                        )}
-                                        {macAppLink && (
-                                            <a
-                                                href={macAppLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                title="Mac App"
-                                            >
-                                                <Desktop
-                                                    className="size-6 text-neutral-600"
-                                                    weight="fill"
-                                                />
-                                                <span className="text-[10px] text-neutral-600">
-                                                    Mac
-                                                </span>
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                                )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
@@ -461,13 +581,12 @@ export function Navbar() {
                                                 </div>
                                                 {!!status && (
                                                     <span
-                                                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                                                            isDelivered
-                                                                ? 'bg-green-100 text-green-700'
-                                                                : isFailed
-                                                                  ? 'bg-red-100 text-red-700'
-                                                                  : 'bg-neutral-100 text-neutral-700'
-                                                        }`}
+                                                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${isDelivered
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : isFailed
+                                                                ? 'bg-red-100 text-red-700'
+                                                                : 'bg-neutral-100 text-neutral-700'
+                                                            }`}
                                                     >
                                                         {status}
                                                     </span>
@@ -552,13 +671,12 @@ export function Navbar() {
                                                             </div>
                                                             {!!status && (
                                                                 <span
-                                                                    className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${
-                                                                        isDelivered
-                                                                            ? 'bg-green-100 text-green-700'
-                                                                            : isFailed
-                                                                              ? 'bg-red-100 text-red-700'
-                                                                              : 'bg-neutral-100 text-neutral-700'
-                                                                    }`}
+                                                                    className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${isDelivered
+                                                                        ? 'bg-green-100 text-green-700'
+                                                                        : isFailed
+                                                                            ? 'bg-red-100 text-red-700'
+                                                                            : 'bg-neutral-100 text-neutral-700'
+                                                                        }`}
                                                                 >
                                                                     {status}
                                                                 </span>
@@ -671,7 +789,7 @@ export function Navbar() {
                                                     {adminDetails.roles?.map((role, idx) => {
                                                         const bgColor =
                                                             roleColors[
-                                                                role.role_name.toUpperCase()
+                                                            role.role_name.toUpperCase()
                                                             ] || '#EDEDED';
                                                         return (
                                                             <Badge

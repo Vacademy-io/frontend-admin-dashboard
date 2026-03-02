@@ -20,7 +20,7 @@ export const CreateOnboardingSidebar: React.FC<OrganizationOnboardingSidebarProp
                 <div
                     key={index}
                     onClick={() => onStepClick(index)}
-                    className={`mx-6 flex items-center justify-between px-6 py-3 ${
+                    className={`flex items-center justify-between px-3 py-1.5 lg:mx-6 lg:px-6 lg:py-3 ${
                         index <= currentStep || completedSteps[index - 1]
                             ? 'cursor-pointer'
                             : 'cursor-not-allowed'
@@ -36,13 +36,17 @@ export const CreateOnboardingSidebar: React.FC<OrganizationOnboardingSidebarProp
                                 } `
                     } focus:outline-none`}
                 >
-                    <div className="flex items-center gap-6">
-                        <span className="text-lg font-semibold">{index + 1}</span>
-                        <span className="font-thin">{step}</span>
+                    <div className="flex items-center gap-2 lg:gap-6">
+                        <span className="text-sm font-semibold lg:text-lg">{index + 1}</span>
+                        <span className="text-xs font-thin lg:text-base">{step}</span>
                     </div>
 
                     {completedSteps[index] && (
-                        <CheckCircle size={24} weight="fill" className="!text-green-500" />
+                        <CheckCircle
+                            size={20}
+                            weight="fill"
+                            className="!text-green-500 lg:size-6"
+                        />
                     )}
                 </div>
             ))}

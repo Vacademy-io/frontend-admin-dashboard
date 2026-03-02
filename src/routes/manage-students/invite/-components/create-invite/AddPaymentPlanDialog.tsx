@@ -1,4 +1,4 @@
-import { savePaymentOption, transformLocalPlanToApiFormat } from '@/services/payment-options';
+import { savePaymentOption, transformLocalPlanToApiFormatArray } from '@/services/payment-options';
 import { toast } from 'sonner';
 import { getInstituteId } from '@/constants/helper';
 import { PaymentPlan } from '@/types/payment';
@@ -39,7 +39,7 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
         setIsSaving(true);
         console.log('requireApproval value in handleSavePaymentPlan:', requireApproval);
         try {
-            const apiPlan = transformLocalPlanToApiFormat(plan);
+            const apiPlans = transformLocalPlanToApiFormatArray(plan);
             const paymentOptionRequest = {
                 id: plan.id, // Use the plan ID directly (either existing or new)
                 name: plan.name,
@@ -48,7 +48,7 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
                 source_id: instituteId ?? '',
                 type: plan.type,
                 require_approval: requireApproval,
-                payment_plans: [apiPlan],
+                payment_plans: apiPlans,
                 payment_option_metadata_json: JSON.stringify({
                     currency: plan.currency,
                     features: plan.features || [],

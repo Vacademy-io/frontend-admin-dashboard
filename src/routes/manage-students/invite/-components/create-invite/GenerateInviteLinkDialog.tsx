@@ -190,7 +190,8 @@ const GenerateInviteLinkDialog = ({
                 paymentsData,
                 referralProgramDetails,
                 instituteDetails?.institute_logo_file_id || '',
-                inviteLinkId
+                inviteLinkId,
+                inviteLinkDetails
             );
 
             if (isEditInviteLink && inviteLinkId) {

@@ -1,3 +1,4 @@
+import { getInstituteId } from '@/constants/helper';
 import { toast } from 'sonner';
 import {
     setAuthorizationCookie,
@@ -17,16 +18,25 @@ import { trackEvent, identifyUser } from '@/lib/amplitude';
 import { getDisplaySettingsFromCache, getDisplaySettings } from '@/services/display-settings';
 import {
     ADMIN_DISPLAY_SETTINGS_KEY,
-    TEACHER_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY, CUSTOM_ROLE_DISPLAY_SETTINGS_KEY,
     type DisplaySettingsData,
 } from '@/types/display-settings';
 import type { QueryClient } from '@tanstack/react-query';
 import { getCachedInstituteBranding } from '@/services/domain-routing';
 import { getCourseSettings } from '@/services/course-settings';
+import {
+    hasFacultyAssignedPermission,
+    fetchUserAccessDetails,
+    processAccessMappings,
+    saveFacultyAccessData,
+} from '@/lib/auth/facultyAccessUtils';
+import type { SubOrgAccess } from '@/types/faculty-access';
 
 export interface LoginFlowResult {
     success: boolean;
     shouldShowInstituteSelection?: boolean;
+    shouldShowSubOrgSelection?: boolean;
+    subOrgs?: SubOrgAccess[];
     redirectUrl?: string;
     error?: string;
     userRoles?: string[];
@@ -37,13 +47,13 @@ export interface LoginFlowResult {
 
 export interface LoginFlowOptions {
     loginMethod:
-        | 'username_password'
-        | 'oauth'
-        | 'email_otp'
-        | 'sso'
-        | 'demo_account'
-        | 'signup'
-        | 'cookie_token';
+    | 'username_password'
+    | 'oauth'
+    | 'email_otp'
+    | 'sso'
+    | 'demo_account'
+    | 'signup'
+    | 'cookie_token';
     accessToken: string;
     refreshToken: string;
     queryClient?: Pick<QueryClient, 'clear'>;
@@ -70,10 +80,11 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             queryClient.clear();
         }
 
-        // Identify user to Amplitude (post token set so cookie is available)
+        // Identify user to Amplitude
+        const { getTokenDecodedData } = await import('@/lib/auth/sessionUtility');
+        const tokenData = getTokenDecodedData(accessToken);
+
         try {
-            const { getTokenDecodedData } = await import('@/lib/auth/sessionUtility');
-            const tokenData = getTokenDecodedData(accessToken);
             const userId = tokenData?.user as string | undefined;
             if (userId) {
                 identifyUser(userId, {
@@ -169,15 +180,81 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             const hasAdminRole = instituteResult.selectedInstitute.roles.includes('ADMIN');
 
             // Set the selected institute
-            setSelectedInstitute(instituteResult.selectedInstitute.id);
+            const instituteId = instituteResult.selectedInstitute.id;
+            setSelectedInstitute(instituteId);
+
+            // Faculty Access Check
+            if (hasFacultyAssignedPermission(instituteId)) {
+                try {
+                    const userId = tokenData?.user as string;
+                    if (userId) {
+                        const accessDetails = await fetchUserAccessDetails(userId, instituteId);
+                        const processed = processAccessMappings(accessDetails.accessMappings);
+
+                        if (processed.subOrgs.length > 1) {
+                            saveFacultyAccessData({
+                                subOrgs: processed.subOrgs,
+                                selectedSubOrgId: null,
+                                globalPackageIds: processed.globalPackageIds,
+                                globalPackageSessionIds: processed.globalPackageSessionIds,
+                                permissions: processed.permissions,
+                            });
+                            return {
+                                success: true,
+                                shouldShowSubOrgSelection: true,
+                                subOrgs: processed.subOrgs,
+                                userRoles,
+                            };
+                        } else if (processed.subOrgs.length === 1 && processed.subOrgs[0]) {
+                            saveFacultyAccessData({
+                                subOrgs: processed.subOrgs,
+                                selectedSubOrgId: processed.subOrgs[0].subOrgId,
+                                globalPackageIds: processed.globalPackageIds,
+                                globalPackageSessionIds: processed.globalPackageSessionIds,
+                                permissions: processed.permissions,
+                            });
+                        } else {
+                            // No sub-orgs found, but might have global filters
+                            saveFacultyAccessData({
+                                subOrgs: processed.subOrgs,
+                                selectedSubOrgId: null,
+                                globalPackageIds: processed.globalPackageIds,
+                                globalPackageSessionIds: processed.globalPackageSessionIds,
+                                permissions: processed.permissions,
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Faculty access initialization failed:', error);
+                    // Continue with normal flow if faculty access check fails
+                }
+            }
 
             // Refresh settings caches for this institute (non-blocking for course settings)
-            void getCourseSettings(true).catch(() => {});
+            void getCourseSettings(true).catch(() => { });
 
             // Determine redirect URL from Display Settings - fetch the correct role settings first
-            const roleKey = hasAdminRole
-                ? ADMIN_DISPLAY_SETTINGS_KEY
-                : TEACHER_DISPLAY_SETTINGS_KEY;
+            const hasFaculty = hasFacultyAssignedPermission(instituteId);
+            let roleKey: string = hasAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+
+            if (!hasAdminRole && hasFaculty) {
+                roleKey = CUSTOM_ROLE_DISPLAY_SETTINGS_KEY;
+                try {
+                    const { getAllRoles } = await import('@/routes/manage-custom-teams/-services/custom-team-services');
+                    const customRoles = await getAllRoles();
+                    const matchedRole = customRoles?.find((cr: any) =>
+                        instituteResult.selectedInstitute?.roles.some(role => role.toUpperCase() === cr.name.toUpperCase())
+                    );
+                    if (matchedRole) {
+                        roleKey = `${CUSTOM_ROLE_DISPLAY_SETTINGS_KEY}_${matchedRole.id}`;
+                    }
+                } catch (err) {
+                    console.error('Failed to map custom role for display settings', err);
+                }
+            }
+
+            // Save the determined role key so other components can access it synchronously
+            localStorage.setItem('ACTIVE_ROLE_DISPLAY_SETTINGS_KEY', roleKey);
 
             // Use cache-first approach for display settings to avoid blocking login
             // First try to use cached settings for immediate redirect
@@ -192,7 +269,7 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
                     }
                 );
                 // Trigger background refresh (non-blocking)
-                void getDisplaySettings(roleKey, true).catch(() => {});
+                void getDisplaySettings(roleKey, true).catch(() => { });
             } else {
                 // No cache available, need to fetch with reduced retry delay
                 const maxRetries = 3;
@@ -244,18 +321,22 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             });
 
             // Prefer afterLoginRoute from domain resolve if available
-            const cached = getCachedInstituteBranding();
+            const cachedBrandingOverride = getCachedInstituteBranding(instituteResult.selectedInstitute.id);
             console.log('🔍 LOGIN DEBUG: Checking domain branding override:', {
-                domainBranding: cached,
-                afterLoginRoute: cached?.afterLoginRoute,
-                willOverride: !!cached?.afterLoginRoute,
+                domainBranding: cachedBrandingOverride,
+                afterLoginRoute: cachedBrandingOverride?.afterLoginRoute,
+                willOverride: !!cachedBrandingOverride?.afterLoginRoute,
             });
-            if (cached?.afterLoginRoute) {
+            if (cachedBrandingOverride?.afterLoginRoute) {
                 console.log('🔍 LOGIN DEBUG: OVERRIDING redirect URL with domain branding:', {
                     originalUrl: redirectUrl,
-                    newUrl: cached.afterLoginRoute,
+                    newUrl: cachedBrandingOverride.afterLoginRoute,
                 });
-                redirectUrl = cached.afterLoginRoute;
+                redirectUrl = cachedBrandingOverride.afterLoginRoute;
+            }
+
+            if (hasFacultyAssignedPermission(instituteId)) {
+                redirectUrl = '/study-library/courses';
             }
 
             return {
@@ -270,10 +351,10 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
 
         // Fallback - navigate to dashboard or afterLoginRoute
         console.log('🔍 LOGIN DEBUG: Using fallback redirect logic (no selected institute)');
-        const cached = getCachedInstituteBranding();
-        const fallbackUrl = cached?.afterLoginRoute || '/dashboard';
+        const fallbackCachedResult = getCachedInstituteBranding(); // Fallback might not have an ID context readily available unless we guess
+        const fallbackUrl = fallbackCachedResult?.afterLoginRoute || '/dashboard';
         console.log('🔍 LOGIN DEBUG: Fallback redirect URL:', {
-            domainAfterLoginRoute: cached?.afterLoginRoute,
+            domainAfterLoginRoute: fallbackCachedResult?.afterLoginRoute,
             finalFallbackUrl: fallbackUrl,
         });
         return {
@@ -317,7 +398,7 @@ export const handleInstituteSelection = async (instituteId: string): Promise<Log
         const userRoles = getUserRoles(getTokenFromCookie(TokenKey.accessToken));
 
         // Check domain-specific role restrictions
-        const cachedBranding = getCachedInstituteBranding();
+        const cachedBranding = getCachedInstituteBranding(instituteId);
         if (cachedBranding?.role === 'ADMIN') {
             // Domain requires ADMIN role - check if user has ADMIN role
             if (!hasAdminRole) {
@@ -342,11 +423,78 @@ export const handleInstituteSelection = async (instituteId: string): Promise<Log
         // Set the selected institute
         setSelectedInstitute(instituteId);
 
+        // Faculty Access Check
+        try {
+            if (hasFacultyAssignedPermission(instituteId)) {
+                const accessToken = getTokenFromCookie(TokenKey.accessToken);
+                const { getTokenDecodedData } = await import('@/lib/auth/sessionUtility');
+                const tData = getTokenDecodedData(accessToken);
+
+                if (tData?.user) {
+                    const accessDetails = await fetchUserAccessDetails(tData.user as string, instituteId);
+                    const processed = processAccessMappings(accessDetails.accessMappings);
+
+                    if (processed.subOrgs.length > 1) {
+                        saveFacultyAccessData({
+                            subOrgs: processed.subOrgs,
+                            selectedSubOrgId: null,
+                            globalPackageIds: processed.globalPackageIds,
+                            globalPackageSessionIds: processed.globalPackageSessionIds,
+                            permissions: processed.permissions,
+                        });
+                        return {
+                            success: true,
+                            shouldShowSubOrgSelection: true,
+                            subOrgs: processed.subOrgs,
+                            userRoles,
+                        };
+                    } else if (processed.subOrgs.length === 1 && processed.subOrgs[0]) {
+                        saveFacultyAccessData({
+                            subOrgs: processed.subOrgs,
+                            selectedSubOrgId: processed.subOrgs[0].subOrgId,
+                            globalPackageIds: processed.globalPackageIds,
+                            globalPackageSessionIds: processed.globalPackageSessionIds,
+                            permissions: processed.permissions,
+                        });
+                    } else {
+                        // No sub-orgs found, but might have global filters
+                        saveFacultyAccessData({
+                            subOrgs: processed.subOrgs,
+                            selectedSubOrgId: null,
+                            globalPackageIds: processed.globalPackageIds,
+                            globalPackageSessionIds: processed.globalPackageSessionIds,
+                            permissions: processed.permissions,
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Faculty access initialization failed in institute selection:', error);
+        }
+
         // Refresh settings caches for this institute (non-blocking for course settings)
-        void getCourseSettings(true).catch(() => {});
+        void getCourseSettings(true).catch(() => { });
 
         // Determine redirect URL from Display Settings - fetch the correct role settings first
-        const roleKey = hasAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        let roleKey: string = hasAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const hasFaculty = hasFacultyAssignedPermission(instituteId);
+
+        if (!hasAdminRole && hasFaculty) {
+            roleKey = CUSTOM_ROLE_DISPLAY_SETTINGS_KEY;
+            try {
+                const { getAllRoles } = await import('@/routes/manage-custom-teams/-services/custom-team-services');
+                const customRoles = await getAllRoles();
+                const matchedRole = customRoles?.find((cr: any) => selectedInstitute?.roles.includes(cr.name));
+                if (matchedRole) {
+                    roleKey = `${CUSTOM_ROLE_DISPLAY_SETTINGS_KEY}_${matchedRole.id}`;
+                }
+            } catch (err) {
+                console.error('Failed to map custom role for display settings', err);
+            }
+        }
+
+        // Save the determined role key so other components can access it synchronously
+        localStorage.setItem('ACTIVE_ROLE_DISPLAY_SETTINGS_KEY', roleKey);
 
         // Use cache-first approach for display settings to avoid blocking
         let ds: DisplaySettingsData | null = getDisplaySettingsFromCache(roleKey);
@@ -360,7 +508,7 @@ export const handleInstituteSelection = async (instituteId: string): Promise<Log
                 }
             );
             // Trigger background refresh (non-blocking)
-            void getDisplaySettings(roleKey, true).catch(() => {});
+            void getDisplaySettings(roleKey, true).catch(() => { });
         } else {
             // No cache available, need to fetch with reduced retry delay
             const maxRetries = 3;
@@ -404,9 +552,13 @@ export const handleInstituteSelection = async (instituteId: string): Promise<Log
         let redirectUrl = ds?.postLoginRedirectRoute || '/dashboard';
 
         // Prefer afterLoginRoute from domain resolve if available
-        const cached = getCachedInstituteBranding();
+        const cached = getCachedInstituteBranding(instituteId);
         if (cached?.afterLoginRoute) {
             redirectUrl = cached.afterLoginRoute;
+        }
+
+        if (hasFacultyAssignedPermission(instituteId)) {
+            redirectUrl = '/study-library/courses';
         }
 
         // Preserve learner tab hint if user also has STUDENT role and route points to dashboard
@@ -445,6 +597,12 @@ export const navigateFromLoginFlow = (result: LoginFlowResult): void => {
     if (result.shouldShowInstituteSelection) {
         // Redirect to institute selection page
         window.location.href = '/login?showInstituteSelection=true';
+        return;
+    }
+
+    if (result.shouldShowSubOrgSelection) {
+        // Redirect to sub-org selection page
+        window.location.href = '/login?showSubOrgSelection=true';
         return;
     }
 

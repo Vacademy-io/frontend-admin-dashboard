@@ -75,10 +75,10 @@ const Step2OrganizationTheme: React.FC<OrganizationOnboardingProps> = ({
     // };
 
     return (
-        <div className="my-6 flex w-3/4 flex-col items-center justify-center gap-4 p-4">
+        <div className="my-6 flex w-full max-w-3xl flex-col items-center justify-center gap-4 p-4">
             <h1 className="mb-4 text-[1.6rem]">Set your organization theme</h1>
 
-            <div className="mb-2 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+            <div className="mb-20 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:mb-2">
                 {presetThemes.map((theme) => {
                     const shades = getThemeShades(theme.code);
                     return (
@@ -111,90 +111,23 @@ const Step2OrganizationTheme: React.FC<OrganizationOnboardingProps> = ({
             {/* //TODO: Implement custom theme */}
 
             {/* <Dialog open={openCustomDialog} onOpenChange={setOpenCustomDialog}>
-                <DialogTrigger asChild>
-                    <button className="mb-8 font-medium text-primary-400 hover:text-primary-500">
-                        Custom Color
-                    </button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Custom Theme</DialogTitle>
-                    </DialogHeader>
-                    <Tabs defaultValue="picker" className="mt-4 w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="picker">Color Picker</TabsTrigger>
-                            <TabsTrigger value="hex">Hex Code</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="picker" className="w-full py-4">
-                            <HexColorPicker
-                                color={customColor}
-                                onChange={(color) => {
-                                    setCustomColor(color);
-                                }}
-                                className="w-full "
-                            />
-                        </TabsContent>
-                        <TabsContent value="hex" className="py-4">
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    value={customColor}
-                                    onChange={(e) => {
-                                        // Validate hex code format
-                                        const hex = e.target.value;
-                                        if (hex.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)) {
-                                            setCustomColor(hex);
-                                        } else if (hex.match(/^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)) {
-                                            setCustomColor(`#${hex}`);
-                                        } else if (hex.startsWith('#') && hex.length <= 7) {
-                                            setCustomColor(hex);
-                                        } else if (hex.length <= 6) {
-                                            setCustomColor(`#${hex}`);
-                                        }
-                                    }}
-                                    placeholder="#RRGGBB"
-                                />
-                                <div
-                                    className="size-10 rounded-md border border-gray-200"
-                                    style={{ backgroundColor: customColor }}
-                                />
-                            </div>
-                        </TabsContent>
-                    </Tabs>
-                    <div className="mt-4">
-                        <h3 className="mb-2 text-sm font-medium">Preview</h3>
-                        <div className="overflow-hidden rounded-lg">
-                            {getCustomColorShades(customColor).map((shade, index) => (
-                                <div
-                                    key={index}
-                                    className="h-8"
-                                    style={{ backgroundColor: shade }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <Button
-                            style={{ color: customColor, border: `1px solid ${customColor}` }}
-                            onClick={handleCustomColorSubmit}
-                        >
-                            Apply
-                        </Button>
-                    </div>
-                </DialogContent>
+                ...
             </Dialog> */}
 
-            <MyButton
-                type="button"
-                scale="large"
-                buttonType="primary"
-                layoutVariant="default"
-                onClick={() => {
-                    handleCompleteCurrentStep();
-                }}
-                className="mt-4"
-            >
-                Continue
-            </MyButton>
+            <div className="fixed bottom-0 right-0 z-10 flex w-full justify-center border-t bg-white p-4 lg:static lg:w-auto lg:border-none lg:bg-transparent lg:p-0">
+                <MyButton
+                    type="button"
+                    scale="large"
+                    buttonType="primary"
+                    layoutVariant="default"
+                    onClick={() => {
+                        handleCompleteCurrentStep();
+                    }}
+                    className="w-full max-w-sm lg:w-auto"
+                >
+                    Continue
+                </MyButton>
+            </div>
         </div>
     );
 };

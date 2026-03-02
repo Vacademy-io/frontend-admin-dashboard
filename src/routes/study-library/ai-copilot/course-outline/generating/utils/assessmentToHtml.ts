@@ -5,21 +5,21 @@
 
 export interface AssessmentQuestion {
     question_number: string;
-    question: { type: "HTML"; content: string };
-    options: Array<{ type: "HTML"; preview_id: string; content: string }>;
+    question: { type: 'HTML'; content: string };
+    options: Array<{ type: 'HTML'; preview_id: string; content: string }>;
     correct_options: string[];
     ans: string;
     exp: string;
-    question_type: "MCQS" | "MCQM" | "ONE_WORD" | "LONG_ANSWER";
+    question_type: 'MCQS' | 'MCQM' | 'ONE_WORD' | 'LONG_ANSWER';
     tags: string[];
-    level: "easy" | "medium" | "hard";
+    level: 'easy' | 'medium' | 'hard';
 }
 
 export interface AssessmentContentData {
     questions: AssessmentQuestion[];
     title: string;
     tags: string[];
-    difficulty: "easy" | "medium" | "hard";
+    difficulty: 'easy' | 'medium' | 'hard';
     is_process_completed: boolean;
     subjects: string[];
     classes: string[];
@@ -35,11 +35,11 @@ export function convertAssessmentToHTML(assessmentData: AssessmentContentData): 
     }
 
     let html = '';
-    
+
     assessmentData.questions.forEach((q, index) => {
         const questionNum = q.question_number || `Question ${index + 1}`;
         html += `<h3>${questionNum}</h3>`;
-        
+
         // Add question content - ensure it's properly formatted HTML
         const questionContent = q.question?.content || '';
         // Remove any existing paragraph tags and wrap in a single paragraph
@@ -47,7 +47,7 @@ export function convertAssessmentToHTML(assessmentData: AssessmentContentData): 
         if (cleanQuestion) {
             html += `<p>${cleanQuestion}</p>`;
         }
-        
+
         // Add options as ordered list
         if (q.options && q.options.length > 0) {
             html += '<ol>';
@@ -65,7 +65,7 @@ export function convertAssessmentToHTML(assessmentData: AssessmentContentData): 
             });
             html += '</ol>';
         }
-        
+
         // Show correct answer(s)
         if (q.correct_options && q.correct_options.length > 0) {
             const correctAnswers = q.correct_options
@@ -74,31 +74,35 @@ export function convertAssessmentToHTML(assessmentData: AssessmentContentData): 
                     return option?.content || optId;
                 })
                 .filter(Boolean)
-                .map(ans => ans.replace(/<\/?p>/g, '').trim()); // Clean answer text
-            
+                .map((ans) => ans.replace(/<\/?p>/g, '').trim()); // Clean answer text
+
             if (correctAnswers.length > 0) {
                 html += `<p><strong style="color: #10b981;">Correct Answer${correctAnswers.length > 1 ? 's' : ''}: ${correctAnswers.join(', ')}</strong></p>`;
             }
         } else if (q.ans) {
             // Fallback to ans field if correct_options is not available
-            const cleanAns = String(q.ans).replace(/<\/?p>/g, '').trim();
+            const cleanAns = String(q.ans)
+                .replace(/<\/?p>/g, '')
+                .trim();
             html += `<p><strong style="color: #10b981;">Correct Answer: ${cleanAns}</strong></p>`;
         }
-        
+
         // Add explanation if available
         if (q.exp) {
-            const cleanExp = String(q.exp).replace(/<\/?p>/g, '').trim();
+            const cleanExp = String(q.exp)
+                .replace(/<\/?p>/g, '')
+                .trim();
             if (cleanExp) {
                 html += `<p><em>Explanation: ${cleanExp}</em></p>`;
             }
         }
-        
+
         // Add separator between questions (except for last one)
         if (index < assessmentData.questions.length - 1) {
             html += '<hr style="margin: 20px 0;" />';
         }
     });
-    
+
     return html;
 }
 
@@ -123,64 +127,112 @@ export function convertAssessmentToJSON(assessmentData: AssessmentContentData): 
             assessmentData.questions = assessmentData.questions.slice(0, 50);
         }
 
-        // Validate and sanitize each question
+        // Validate, sanitize, and flatten questions
+        // We cast to any here because we are flattening the structure from objects to strings
         assessmentData.questions = assessmentData.questions.map((q, index) => {
             try {
+                const sanitizedQ = { ...q } as any;
+
                 // Ensure question structure is valid
-                if (!q.question || typeof q.question !== 'object') {
-                    console.warn(`Question ${index} has invalid question structure, sanitizing`);
-                    q.question = { type: 'HTML', content: 'Invalid question' };
+                if (!sanitizedQ.question) {
+                    console.warn(`Question ${index} has missing question, sanitizing`);
+                    sanitizedQ.question = { type: 'HTML', content: 'Invalid question' };
                 }
 
                 // Ensure options is an array
-                if (!Array.isArray(q.options)) {
+                if (!Array.isArray(sanitizedQ.options)) {
                     console.warn(`Question ${index} has invalid options structure, sanitizing`);
-                    q.options = [];
+                    sanitizedQ.options = [];
                 }
 
                 // Limit options to reasonable number
-                if (q.options.length > 10) {
+                if (sanitizedQ.options.length > 10) {
                     console.warn(`Question ${index} has too many options, limiting to 10`);
-                    q.options = q.options.slice(0, 10);
+                    sanitizedQ.options = sanitizedQ.options.slice(0, 10);
                 }
 
-                // Sanitize option content
-                q.options = q.options.map((opt, optIndex) => {
-                    if (typeof opt === 'string') {
-                        return { type: 'HTML', content: opt, preview_id: `opt_${optIndex}` };
-                    } else if (!opt.content) {
-                        return { ...opt, content: 'Invalid option', preview_id: `opt_${optIndex}` };
-                    }
-                    return { ...opt, preview_id: opt.preview_id || `opt_${optIndex}` };
-                });
+                // 1. Flatten Question Content
+                let questionContent = '';
+                if (typeof sanitizedQ.question === 'object' && sanitizedQ.question) {
+                    const qObj = sanitizedQ.question;
+                    questionContent = qObj.content || qObj.text || '';
+                } else {
+                    questionContent = String(sanitizedQ.question || '');
+                }
 
-                // Ensure correct_options is an array
-                if (!Array.isArray(q.correct_options)) {
-                    q.correct_options = [];
+                // 2. Resolve Correct Answer Index (before flattening options)
+                let correctIndex = 0;
+                if (!Array.isArray(sanitizedQ.correct_options)) {
+                    sanitizedQ.correct_options = [];
                 }
 
                 // Limit correct options
-                if (q.correct_options.length > q.options.length) {
-                    q.correct_options = q.correct_options.slice(0, q.options.length);
+                if (sanitizedQ.correct_options.length > sanitizedQ.options.length) {
+                    sanitizedQ.correct_options = sanitizedQ.correct_options.slice(
+                        0,
+                        sanitizedQ.options.length
+                    );
                 }
 
-                return q;
+                if (sanitizedQ.correct_options && sanitizedQ.correct_options.length > 0) {
+                    const correctId = sanitizedQ.correct_options[0];
+                    const foundIndex = sanitizedQ.options.findIndex((opt: any) => {
+                        if (typeof opt === 'object' && opt) {
+                            return opt.preview_id === correctId || opt.id === correctId;
+                        }
+                        return opt === correctId;
+                    });
+
+                    if (foundIndex !== -1) {
+                        correctIndex = foundIndex;
+                    }
+                }
+
+                // 3. Flatten Options
+                const flattenedOptions = sanitizedQ.options.map((opt: any) => {
+                    if (typeof opt === 'object' && opt) {
+                        return opt.content || opt.text || '';
+                    }
+                    return String(opt || '');
+                });
+
+                // Flatten explanation
+                let explanationText = '';
+                // Check both exp and explanation fields
+                const expObj = sanitizedQ.exp || sanitizedQ.explanation;
+                if (typeof expObj === 'object' && expObj) {
+                    explanationText = expObj.content || expObj.text || '';
+                } else {
+                    explanationText = String(expObj || '');
+                }
+
+                return {
+                    ...sanitizedQ,
+                    question: questionContent,
+                    options: flattenedOptions,
+                    correctAnswerIndex: correctIndex,
+                    question_type: sanitizedQ.question_type || 'MCQS',
+                    tags: sanitizedQ.tags || [],
+                    level: sanitizedQ.level || 'easy',
+                    explanation: explanationText,
+                    exp: explanationText,
+                };
             } catch (error) {
                 console.error(`Failed to sanitize question ${index}:`, error);
                 // Return a minimal valid question
                 return {
                     question_number: `Q${index + 1}`,
-                    question: { type: 'HTML', content: 'Question parsing failed' },
-                    options: [{ type: 'HTML', content: 'Option A', preview_id: 'opt_a' }],
-                    correct_options: ['opt_a'],
+                    question: 'Question parsing failed',
+                    options: ['Option A'],
+                    correctAnswerIndex: 0,
                     ans: 'Option A',
                     exp: 'Question could not be parsed',
                     question_type: 'MCQS',
                     tags: [],
-                    level: 'easy'
+                    level: 'easy',
                 };
             }
-        });
+        }) as any;
 
         // Remove any potentially problematic fields that might cause issues
         const cleanAssessmentData = {
@@ -192,7 +244,7 @@ export function convertAssessmentToJSON(assessmentData: AssessmentContentData): 
             difficulty: assessmentData.difficulty || 'medium',
             subjects: Array.isArray(assessmentData.subjects) ? assessmentData.subjects : [],
             classes: Array.isArray(assessmentData.classes) ? assessmentData.classes : [],
-            is_process_completed: assessmentData.is_process_completed || false
+            is_process_completed: assessmentData.is_process_completed || false,
         };
 
         const jsonString = JSON.stringify(cleanAssessmentData, null, 2);
@@ -209,7 +261,9 @@ export function convertAssessmentToJSON(assessmentData: AssessmentContentData): 
             }
 
             if (cleanAssessmentData.questions.length < originalLength) {
-                console.warn(`Reduced questions from ${originalLength} to ${cleanAssessmentData.questions.length} to fit size limit`);
+                console.warn(
+                    `Reduced questions from ${originalLength} to ${cleanAssessmentData.questions.length} to fit size limit`
+                );
             }
 
             return JSON.stringify(cleanAssessmentData, null, 2);
@@ -219,12 +273,15 @@ export function convertAssessmentToJSON(assessmentData: AssessmentContentData): 
     } catch (error) {
         console.error('Failed to convert assessment to JSON:', error);
         // Return a minimal fallback
-        return JSON.stringify({
-            questions: [],
-            title: 'Assessment',
-            error: 'Failed to parse assessment data',
-            originalError: error instanceof Error ? error.message : 'Unknown error'
-        }, null, 2);
+        return JSON.stringify(
+            {
+                questions: [],
+                title: 'Assessment',
+                error: 'Failed to parse assessment data',
+                originalError: error instanceof Error ? error.message : 'Unknown error',
+            },
+            null,
+            2
+        );
     }
 }
-

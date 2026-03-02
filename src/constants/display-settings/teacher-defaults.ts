@@ -24,7 +24,10 @@ function mapSidebarToTeacherConfig(menu: SidebarItemsType[]): SidebarTabConfig[]
                 item.id !== 'membership-stats' &&
                 item.id !== 'membership-stats' &&
                 item.id !== 'manage-contacts' &&
-                item.id !== 'admissions'
+                item.id !== 'admissions' &&
+                item.id !== 'membership-management' &&
+                item.id !== 'automations' &&
+                item.id !== 'manage-contacts'
                     ? true
                     : false,
             subTabs:
@@ -58,6 +61,7 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
     },
     coursePage: {
         viewInviteLinks: true,
+        viewShortInviteLinks: false,
         viewCourseConfiguration: true,
         viewCourseOverviewItem: true,
         viewContentNumbering: true,
@@ -92,6 +96,7 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
     ui: {
         showSupportButton: true,
         showSidebar: true,
+        showAiCredits: false,
     },
     contentTypes: {
         pdf: true,
@@ -118,12 +123,15 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
         overviewTab: true,
         testTab: true,
         progressTab: true,
+        coursesTab: true,
         notificationTab: false,
         membershipTab: false,
+        paymentHistoryTab: true,
         userTaggingTab: false,
         fileTab: false,
         portalAccessTab: false,
         reportsTab: false,
+        enrollDerollTab: false,
     },
     learnerManagement: {
         allowPortalAccess: true,

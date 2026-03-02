@@ -9,6 +9,7 @@ export interface SidebarTabConfig {
     route?: string; // route for non-collapsible tabs or custom tabs
     order: number; // ordering among tabs
     visible: boolean; // whether the tab is visible for the role
+    locked?: boolean; // whether the tab is locked for the role
     // List of sub-tabs (if any). For non-collapsible tabs this can be empty
     subTabs?: Array<{
         id: string; // e.g., 'batches', 'sessions'
@@ -16,6 +17,7 @@ export interface SidebarTabConfig {
         route: string; // route to navigate when selected
         order: number; // ordering among sub-tabs
         visible: boolean; // whether the sub-tab is visible for the role
+        locked?: boolean; // whether the sub-tab is locked for the role
     }>;
     // Whether this tab was added as a custom tab from settings
     isCustom?: boolean;
@@ -104,12 +106,15 @@ export interface StudentSideViewSettings {
     overviewTab: boolean;
     testTab: boolean;
     progressTab: boolean;
+    coursesTab: boolean;
     notificationTab: boolean;
     membershipTab: boolean;
+    paymentHistoryTab: boolean;
     userTaggingTab: boolean;
     fileTab: boolean;
     portalAccessTab: boolean;
     reportsTab: boolean;
+    enrollDerollTab: boolean;
 }
 
 export interface LearnerManagementSettings {
@@ -152,6 +157,7 @@ export interface DisplaySettingsData {
         showSupportButton: boolean;
         // Controls whether the left sidebar is shown for this role
         showSidebar?: boolean;
+        showAiCredits?: boolean;
     };
 
     // 7) Course content types (slides) visibility
@@ -163,6 +169,7 @@ export interface DisplaySettingsData {
     // 9) Course page level visibility toggles
     coursePage?: {
         viewInviteLinks: boolean;
+        viewShortInviteLinks: boolean;
         viewCourseConfiguration: boolean;
         viewCourseOverviewItem: boolean;
         viewContentNumbering: boolean;
@@ -182,7 +189,18 @@ export interface DisplaySettingsData {
 
     // 13) Learner management permissions for admins/teachers
     learnerManagement?: LearnerManagementSettings;
+
+    // 14) Sidebar Category Configuration
+    sidebarCategories?: Array<{
+        id: 'CRM' | 'LMS' | 'AI';
+        visible: boolean;
+        locked?: boolean; // whether the category is locked
+        default: boolean; // Is this the default category on load?
+        order?: number; // Optional ordering
+    }>;
 }
 
 export const ADMIN_DISPLAY_SETTINGS_KEY = 'ADMIN_DISPLAY_SETTINGS' as const;
 export const TEACHER_DISPLAY_SETTINGS_KEY = 'TEACHER_DISPLAY_SETTINGS' as const;
+export const CUSTOM_ROLE_DISPLAY_SETTINGS_KEY = 'CUSTOM_ROLE_DISPLAY_SETTINGS_KEY' as const;
+

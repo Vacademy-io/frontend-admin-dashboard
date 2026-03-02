@@ -145,6 +145,7 @@ export interface PaymentLogsResponse {
 
 export interface PaymentLogsRequest {
     institute_id: string;
+    user_id?: string;
     start_date_in_utc?: string;
     end_date_in_utc?: string;
     payment_statuses?: string[];
@@ -186,6 +187,8 @@ export interface BatchForSession {
     start_time: string | null;
     status: string;
     is_org_associated?: boolean; // New field to check if batch is org associated
+    is_parent?: boolean;
+    parent_id?: string | null;
     package_dto: {
         id: string;
         package_name: string;

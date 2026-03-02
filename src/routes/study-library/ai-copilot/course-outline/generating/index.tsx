@@ -7,7 +7,13 @@ import { MyButton } from '@/components/design-system/button';
 import { BASE_URL, AI_SERVICE_BASE_URL } from '@/constants/urls';
 
 import { getInstituteId } from '@/constants/helper';
-import { CircularProgress, SortableSessionItem, SortableSlideItem, OutlineGeneratingLoader } from './components';
+import {
+    CircularProgress,
+    SortableSessionItem,
+    SortableSlideItem,
+    OutlineGeneratingLoader,
+    SplitViewLayout,
+} from './components';
 import { useCourseGeneration } from './hooks/useCourseGeneration';
 import { useSlideHandlers } from './hooks/useSlideHandlers';
 import { useSessionHandlers } from './hooks/useSessionHandlers';
@@ -21,7 +27,11 @@ import { generateSlideContent } from './utils/mockSlideContent';
 import { extractSlideTitlesFromSlides } from '../../shared/utils/slides';
 import { isYouTubeUrl, getYouTubeEmbedUrl } from '../../shared/utils/youtube';
 import { SlideGeneration, SlideType, QuizQuestion, SessionProgress } from '../../shared/types';
-import { DEFAULT_QUIZ_QUESTIONS, DEFAULT_SELECTED_ANSWERS, DEFAULT_SOLUTION_CODE } from '../../shared/constants';
+import {
+    DEFAULT_QUIZ_QUESTIONS,
+    DEFAULT_SELECTED_ANSWERS,
+    DEFAULT_SOLUTION_CODE,
+} from '../../shared/constants';
 import {
     RegenerateSlideDialog,
     RegenerateSessionDialog,
@@ -92,7 +102,13 @@ import { YooptaEditorWrapperSafe as YooptaEditorWrapper } from '../../shared/com
 import Editor from '@monaco-editor/react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TagInput } from '@/components/ui/tag-input';
 import {
@@ -119,6 +135,7 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // YouTube and utility functions are now imported from shared/utils
 
@@ -135,6 +152,10 @@ export function RouteComponent() {
     const navigate = useNavigate();
     const { setOpen } = useSidebar();
     const [slides, setSlides] = useState<SlideGeneration[]>([]);
+
+    // Get institute levels
+    const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
+    const instituteLevels = instituteDetails?.levels || [];
 
     // Collapse sidebar on mount
     useEffect(() => {
@@ -153,7 +174,9 @@ export function RouteComponent() {
     const [homeworkAnswerType, setHomeworkAnswerType] = useState<'text' | 'code'>('text');
     const [regenerateSlideDialogOpen, setRegenerateSlideDialogOpen] = useState(false);
     const [regeneratingSlideId, setRegeneratingSlideId] = useState<string | null>(null);
-    const [regeneratingSection, setRegeneratingSection] = useState<'video' | 'code' | undefined>(undefined);
+    const [regeneratingSection, setRegeneratingSection] = useState<'video' | 'code' | undefined>(
+        undefined
+    );
     const [regenerateSlidePrompt, setRegenerateSlidePrompt] = useState('');
     const regenerateSlidePromptTextareaRef = useRef<HTMLTextAreaElement>(null);
     const [regenerateSessionDialogOpen, setRegenerateSessionDialogOpen] = useState(false);
@@ -171,12 +194,14 @@ export function RouteComponent() {
     const [regenerateCustomSessionLength, setRegenerateCustomSessionLength] = useState<string>('');
     const [regenerateIncludeDiagrams, setRegenerateIncludeDiagrams] = useState(false);
     const [regenerateIncludeCodeSnippets, setRegenerateIncludeCodeSnippets] = useState(false);
-    const [regenerateIncludePracticeProblems, setRegenerateIncludePracticeProblems] = useState(false);
+    const [regenerateIncludePracticeProblems, setRegenerateIncludePracticeProblems] =
+        useState(false);
     const [regenerateIncludeQuizzes, setRegenerateIncludeQuizzes] = useState(false);
     const [regenerateIncludeHomework, setRegenerateIncludeHomework] = useState(false);
     const [regenerateIncludeSolutions, setRegenerateIncludeSolutions] = useState(false);
     const [regenerateSessionTopics, setRegenerateSessionTopics] = useState<string[]>([]);
-    const [regenerateSessionNumberOfTopics, setRegenerateSessionNumberOfTopics] = useState<string>('');
+    const [regenerateSessionNumberOfTopics, setRegenerateSessionNumberOfTopics] =
+        useState<string>('');
     const [codeEditorWidth, setCodeEditorWidth] = useState(50); // Percentage width for code editor
     const [generateCourseAssetsDialogOpen, setGenerateCourseAssetsDialogOpen] = useState(false);
     const [backToLibraryDialogOpen, setBackToLibraryDialogOpen] = useState(false);
@@ -209,13 +234,9 @@ export function RouteComponent() {
     const isAdmin = roles.includes('ADMIN');
 
     // Drag and drop sensors
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor)
-    );
+    const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor));
 
     // getSessionProgress and getSessionsWithProgress are now imported from ./utils/sessionUtils
-
 
     // Memoize sessions with progress - ensure it's always an array
     const sessionsWithProgress = useMemo(() => {
@@ -279,8 +300,10 @@ export function RouteComponent() {
                 // Only update if the set actually changed
                 const prevArray = Array.from(prev).sort();
                 const newArray = Array.from(allSessionIds).sort();
-                if (prevArray.length !== newArray.length ||
-                    prevArray.some((id, idx) => id !== newArray[idx])) {
+                if (
+                    prevArray.length !== newArray.length ||
+                    prevArray.some((id, idx) => id !== newArray[idx])
+                ) {
                     return allSessionIds;
                 }
                 return prev; // Return previous value to prevent re-render
@@ -324,7 +347,6 @@ export function RouteComponent() {
         }
     }, [addSlideDialogOpen]);
 
-
     // Check if all sessions are 100% completed
     const allSessionsCompleted = useMemo(() => {
         if (sessionsWithProgress.length === 0) return false;
@@ -340,7 +362,9 @@ export function RouteComponent() {
                     slide.slideType === 'quiz' ||
                     slide.slideType === 'assessment' ||
                     slide.slideType === 'video' ||
-                    slide.slideType === 'ai-video') &&
+                    slide.slideType === 'ai-video' ||
+                    slide.slideType === 'video-code' ||
+                    slide.slideType === 'ai-video-code') &&
                 (slide.status === 'pending' || slide.status === 'generating' || !slide.content);
             return needsGeneration;
         });
@@ -473,7 +497,7 @@ export function RouteComponent() {
                 console.log('Course Depth:', courseConfig.courseDepth);
 
                 // Build user prompt from courseConfig - simple comma-separated format
-                let userPrompt = courseConfig.courseGoal || '';
+                let userPrompt = courseConfig.prompt || courseConfig.courseGoal || '';
 
                 // Build array of additional requirements to append
                 const requirements: string[] = [];
@@ -492,7 +516,8 @@ export function RouteComponent() {
                 }
 
                 // Add course depth options (check both courseDepthOptions and courseDepth for compatibility)
-                const depthOptions = courseConfig.courseDepthOptions || courseConfig.courseDepth || {};
+                const depthOptions =
+                    courseConfig.courseDepthOptions || courseConfig.courseDepth || {};
 
                 if (depthOptions.includeDiagrams) {
                     requirements.push('include diagrams');
@@ -500,7 +525,9 @@ export function RouteComponent() {
                 if (depthOptions.includeCodeSnippets) {
                     requirements.push('include code snippets');
                     if (depthOptions.programmingLanguage) {
-                        requirements.push(`programming language ${depthOptions.programmingLanguage}`);
+                        requirements.push(
+                            `programming language ${depthOptions.programmingLanguage}`
+                        );
                     }
                 }
                 if (depthOptions.includePracticeProblems) {
@@ -511,6 +538,17 @@ export function RouteComponent() {
                 }
                 if (depthOptions.includeAIGeneratedVideo) {
                     requirements.push('include AI generated videos');
+                }
+                if (depthOptions.includeAISlides) {
+                    requirements.push('include AI slides');
+                }
+                if (depthOptions.includeAIStorybook) {
+                    requirements.push('include AI storybook');
+                }
+
+                // Add language requirement
+                if (courseConfig.language && courseConfig.language !== 'English') {
+                    requirements.push(`generate all content in ${courseConfig.language} language`);
                 }
 
                 // Add duration and format info
@@ -537,18 +575,22 @@ export function RouteComponent() {
                 const topicsPerSession = courseConfig.durationFormatStructure?.topicsPerSession;
                 const courseLength = courseConfig.durationFormatStructure?.sessionLength;
                 // Calculate total slides: slides per chapter * number of chapters
-                const totalSlides = numChapters && topicsPerSession
-                    ? parseInt(numChapters) * parseInt(topicsPerSession)
-                    : null;
+                const totalSlides =
+                    numChapters && topicsPerSession
+                        ? parseInt(numChapters) * parseInt(topicsPerSession)
+                        : null;
 
                 // Calculate estimated time: number of chapters * number of slides * 10 seconds
-                const estimatedSeconds = numChapters && topicsPerSession
-                    ? parseInt(numChapters) * parseInt(topicsPerSession) * 10
-                    : 30;
+                const estimatedSeconds =
+                    numChapters && topicsPerSession
+                        ? parseInt(numChapters) * parseInt(topicsPerSession) * 10
+                        : 30;
                 // Set estimated time before starting generation
                 if (estimatedSeconds > 0) {
                     setEstimatedTimeRemaining(estimatedSeconds);
                 }
+
+                const courseLanguage = courseConfig.language || 'English';
 
                 const payload: any = {
                     user_prompt: userPrompt,
@@ -557,8 +599,12 @@ export function RouteComponent() {
                     generation_options: {
                         generate_images: true,
                         image_style: 'professional',
+                        language: courseLanguage,
                     },
                 };
+
+                // Store language for content generation step
+                sessionStorage.setItem('courseLanguage', courseLanguage);
 
                 if (numChapters) {
                     payload.generation_options.num_chapters = parseInt(numChapters);
@@ -604,7 +650,9 @@ export function RouteComponent() {
                     console.error('Status:', response.status);
                     console.error('Status Text:', response.statusText);
                     console.error('Error Body:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorText}`);
+                    throw new Error(
+                        `HTTP ${response.status}: ${response.statusText}. ${errorText}`
+                    );
                 }
 
                 const reader = response.body?.getReader();
@@ -650,16 +698,21 @@ export function RouteComponent() {
                                     // Validate response structure
                                     if (!jsonData.tree || !Array.isArray(jsonData.tree)) {
                                         console.error('Invalid API response structure:', jsonData);
-                                        throw new Error('Invalid response structure: missing or invalid tree');
+                                        throw new Error(
+                                            'Invalid response structure: missing or invalid tree'
+                                        );
                                     }
 
                                     // Store course metadata (with fallback for missing fields)
                                     const metadata = {
                                         ...jsonData.courseMetadata,
                                         // Fallback for mediaImageUrl if not provided by API
-                                        mediaImageUrl: jsonData.courseMetadata?.mediaImageUrl ||
+                                        mediaImageUrl:
+                                            jsonData.courseMetadata?.mediaImageUrl ||
                                             jsonData.courseMetadata?.bannerImageUrl ||
-                                            jsonData.courseMetadata?.previewImageUrl
+                                            jsonData.courseMetadata?.previewImageUrl,
+                                        // Include level from courseConfig (skillLevel is the levelId)
+                                        level: courseConfig.learnerProfile?.skillLevel || '',
                                     };
                                     setCourseMetadata(metadata);
                                     console.log('Course Metadata Set:', metadata);
@@ -667,11 +720,17 @@ export function RouteComponent() {
                                     // Store todos for later use in content generation
                                     if (jsonData.todos && Array.isArray(jsonData.todos)) {
                                         setOutlineTodos(jsonData.todos);
-                                        console.log('Stored todos for content generation:', jsonData.todos.length);
+                                        console.log(
+                                            'Stored todos for content generation:',
+                                            jsonData.todos.length
+                                        );
                                     }
 
                                     // Transform API response to slides format
-                                    const generatedSlides = transformApiResponseToSlides(jsonData, courseConfig);
+                                    const generatedSlides = transformApiResponseToSlides(
+                                        jsonData,
+                                        courseConfig
+                                    );
                                     console.log('Generated Slides Count:', generatedSlides.length);
 
                                     if (generatedSlides.length === 0) {
@@ -681,7 +740,11 @@ export function RouteComponent() {
                                     setSlides(generatedSlides);
 
                                     // Pre-expand all sessions
-                                    const allSessionIds = new Set(generatedSlides.map((slide: SlideGeneration) => slide.sessionId));
+                                    const allSessionIds = new Set(
+                                        generatedSlides.map(
+                                            (slide: SlideGeneration) => slide.sessionId
+                                        )
+                                    );
                                     setExpandedSessions(allSessionIds);
 
                                     // Stop countdown and hide loader immediately when data arrives
@@ -693,7 +756,9 @@ export function RouteComponent() {
                                     console.error('Error:', e);
                                     console.error('Raw data:', data);
                                     setIsGenerating(false);
-                                    alert(`Failed to process course data: ${e instanceof Error ? e.message : `Unknown error`}`);
+                                    alert(
+                                        `Failed to process course data: ${e instanceof Error ? e.message : `Unknown error`}`
+                                    );
                                 }
                             }
                         }
@@ -708,7 +773,9 @@ export function RouteComponent() {
                 }
                 setSlides([]);
                 setIsGenerating(false);
-                alert(`Failed to generate course outline: ${error instanceof Error ? error.message : `Unknown error`}. Check console for details.`);
+                alert(
+                    `Failed to generate course outline: ${error instanceof Error ? error.message : `Unknown error`}. Check console for details.`
+                );
             }
         };
 
@@ -716,7 +783,10 @@ export function RouteComponent() {
     }, []); // Empty dependency array ensures this only runs once on mount
 
     // Transform API response to slides format using tree for hierarchy and todos for content
-    const transformApiResponseToSlides = (apiResponse: any, courseConfig: any): SlideGeneration[] => {
+    const transformApiResponseToSlides = (
+        apiResponse: any,
+        courseConfig: any
+    ): SlideGeneration[] => {
         const slides: SlideGeneration[] = [];
         const tree = apiResponse.tree;
         const todos = apiResponse.todos;
@@ -810,7 +880,9 @@ export function RouteComponent() {
                     slideType = 'quiz';
                 }
 
-                console.log(`Creating slide for todo: ${todo.title}, type: ${todo.type}, slideType: ${slideType}`);
+                console.log(
+                    `Creating slide for todo: ${todo.title}, type: ${todo.type}, slideType: ${slideType}`
+                );
 
                 slides.push({
                     id: `${sessionId}-slide-${todoIndex + 1}`,
@@ -820,7 +892,9 @@ export function RouteComponent() {
                     slideType,
                     status: 'pending', // Set to pending initially for content generation
                     progress: 0,
-                    content: todo.prompt || `<h2>${todo.title || todo.name}</h2><p>No prompt available</p>`, // Show the prompt in content
+                    content:
+                        todo.prompt ||
+                        `<h2>${todo.title || todo.name}</h2><p>No prompt available</p>`, // Show the prompt in content
                     topicIndex: todoIndex,
                     prompt: todo.prompt || `Content for ${todo.title || todo.name}`, // Keep prompt in prompt field too
                 });
@@ -835,12 +909,14 @@ export function RouteComponent() {
     const documentHasImage = (content?: string): boolean => {
         if (!content) return false;
         // Check for img tags or mermaid diagrams (which are converted to images)
-        return content.includes('<img') ||
+        return (
+            content.includes('<img') ||
             content.includes('mermaid.ink') ||
             content.includes('graph') ||
             content.includes('flowchart') ||
             content.includes('sequenceDiagram') ||
-            content.includes('classDiagram');
+            content.includes('classDiagram')
+        );
     };
 
     const handleRegenerate = (slideId: string, section?: 'video' | 'code') => {
@@ -871,7 +947,7 @@ export function RouteComponent() {
                         ...slide,
                         status: 'generating',
                         progress: 0,
-                        regenerationCount: currentCount + 1
+                        regenerationCount: currentCount + 1,
                     };
                 }
                 return slide;
@@ -888,7 +964,9 @@ export function RouteComponent() {
                 clearInterval(progressInterval);
                 setSlides((prev) =>
                     prev.map((slide) =>
-                        slide.id === regeneratingSlideId ? { ...slide, status: 'completed', progress: 100 } : slide
+                        slide.id === regeneratingSlideId
+                            ? { ...slide, status: 'completed', progress: 100 }
+                            : slide
                     )
                 );
                 setRegenerateSlidePrompt('');
@@ -896,7 +974,9 @@ export function RouteComponent() {
             } else {
                 setSlides((prev) =>
                     prev.map((slide) =>
-                        slide.id === regeneratingSlideId ? { ...slide, progress: Math.round(progress) } : slide
+                        slide.id === regeneratingSlideId
+                            ? { ...slide, progress: Math.round(progress) }
+                            : slide
                     )
                 );
             }
@@ -913,7 +993,7 @@ export function RouteComponent() {
         const slideTitles = extractSlideTitlesFromSlides(session.slides);
 
         // Pre-fill prompt with a default based on chapter data
-        const defaultPrompt = `Regenerate the chapter "${session.sessionTitle}"${slideTitles.length > 0 ? ` with the following slides: ${slideTitles.join(", ")}.` : `.`}`;
+        const defaultPrompt = `Regenerate the chapter "${session.sessionTitle}"${slideTitles.length > 0 ? ` with the following slides: ${slideTitles.join(', ')}.` : `.`}`;
         setRegenerateSessionPrompt(defaultPrompt);
 
         // Default chapter length (we don't have duration info in SessionProgress)
@@ -921,16 +1001,17 @@ export function RouteComponent() {
         setRegenerateCustomSessionLength('');
 
         // Pre-fill session components based on slide types
-        const hasQuiz = session.slides.some(s => s.slideType === 'quiz');
-        const hasHomework = session.slides.some(s => s.slideType === 'homework');
-        const hasSolution = session.slides.some(s => s.slideType === 'solution');
+        const hasQuiz = session.slides.some((s) => s.slideType === 'quiz');
+        const hasHomework = session.slides.some((s) => s.slideType === 'homework');
+        const hasSolution = session.slides.some((s) => s.slideType === 'solution');
 
         // Check for code-related slides
-        const hasCodeSlides = session.slides.some(s =>
-            s.slideType === 'code-editor' ||
-            s.slideType === 'video-code-editor' ||
-            s.slideType === 'jupyter' ||
-            s.slideType === 'video-jupyter'
+        const hasCodeSlides = session.slides.some(
+            (s) =>
+                s.slideType === 'code-editor' ||
+                s.slideType === 'video-code-editor' ||
+                s.slideType === 'jupyter' ||
+                s.slideType === 'video-jupyter'
         );
 
         setRegenerateIncludeDiagrams(false); // Not directly detectable from slides
@@ -991,7 +1072,13 @@ export function RouteComponent() {
                 setSlides((prev) =>
                     prev.map((slide) => {
                         if (slide.sessionId === regeneratingSessionId) {
-                            if (completedCount >= prev.filter((s) => s.sessionId === regeneratingSessionId).indexOf(slide) + 1) {
+                            if (
+                                completedCount >=
+                                prev
+                                    .filter((s) => s.sessionId === regeneratingSessionId)
+                                    .indexOf(slide) +
+                                1
+                            ) {
                                 return { ...slide, status: 'completed', progress: 100 };
                             } else {
                                 return { ...slide, status: 'generating', progress };
@@ -1054,7 +1141,7 @@ export function RouteComponent() {
         setSlides((prev) => {
             // Remove placeholder slides from this session when adding a real slide
             const withoutPlaceholders = prev.filter(
-                s => !(s.sessionId === addingSlideToSessionId && s.slideTitle === '_placeholder_')
+                (s) => !(s.sessionId === addingSlideToSessionId && s.slideTitle === '_placeholder_')
             );
             return [...withoutPlaceholders, newSlide];
         });
@@ -1069,7 +1156,9 @@ export function RouteComponent() {
                 clearInterval(progressInterval);
                 setSlides((prev) =>
                     prev.map((slide) =>
-                        slide.id === newSlideId ? { ...slide, status: 'completed', progress: 100 } : slide
+                        slide.id === newSlideId
+                            ? { ...slide, status: 'completed', progress: 100 }
+                            : slide
                     )
                 );
                 setAddSlidePrompt('');
@@ -1078,7 +1167,9 @@ export function RouteComponent() {
             } else {
                 setSlides((prev) =>
                     prev.map((slide) =>
-                        slide.id === newSlideId ? { ...slide, progress: Math.round(progress) } : slide
+                        slide.id === newSlideId
+                            ? { ...slide, progress: Math.round(progress) }
+                            : slide
                     )
                 );
             }
@@ -1122,7 +1213,7 @@ export function RouteComponent() {
         setAddSessionName('');
 
         // Expand the new session so user can add pages
-        setExpandedSessions(prev => new Set([...prev, newSessionId]));
+        setExpandedSessions((prev) => new Set([...prev, newSessionId]));
     };
 
     const handleView = (slideId: string) => {
@@ -1145,7 +1236,12 @@ export function RouteComponent() {
 </ul>
 <p>These objectives are designed to guide your learning journey and help you achieve mastery of the subject matter.</p>`);
                 }
-            } else if (slide.slideType === 'topic' || slide.slideType === 'video-code-editor' || slide.slideType === 'video-jupyter' || slide.slideType === 'video-scratch') {
+            } else if (
+                slide.slideType === 'topic' ||
+                slide.slideType === 'video-code-editor' ||
+                slide.slideType === 'video-jupyter' ||
+                slide.slideType === 'video-scratch'
+            ) {
                 setCodeContent(slide.content || '// Your code here\nconsole.log("Hello, World!");');
             } else if (
                 slide.slideType === 'code-editor' ||
@@ -1156,7 +1252,9 @@ export function RouteComponent() {
                 if (slide.slideType === 'solution') {
                     setCodeContent(slide.content || DEFAULT_SOLUTION_CODE);
                 } else {
-                    setCodeContent(slide.content || '// Your code here\nconsole.log("Hello, World!");');
+                    setCodeContent(
+                        slide.content || '// Your code here\nconsole.log("Hello, World!");'
+                    );
                 }
             } else if (slide.slideType === 'homework' || slide.slideType === 'assignment') {
                 setHomeworkQuestion('What is the main concept covered in this session?');
@@ -1204,7 +1302,12 @@ export function RouteComponent() {
                     let contentToSave = '';
                     if (slide.slideType === 'objectives' || slide.slideType === 'doc') {
                         contentToSave = documentContent;
-                    } else if (slide.slideType === 'topic' || slide.slideType === 'video-code-editor' || slide.slideType === 'video-jupyter' || slide.slideType === 'video-scratch') {
+                    } else if (
+                        slide.slideType === 'topic' ||
+                        slide.slideType === 'video-code-editor' ||
+                        slide.slideType === 'video-jupyter' ||
+                        slide.slideType === 'video-scratch'
+                    ) {
                         contentToSave = codeContent;
                     } else if (
                         slide.slideType === 'code-editor' ||
@@ -1316,69 +1419,69 @@ export function RouteComponent() {
     const getSlideIcon = (type: SlideType) => {
         switch (type) {
             case 'objectives':
-                return <FileText className="h-4 w-4 text-blue-600" />;
+                return <FileText className="size-4 text-blue-600" />;
             case 'topic':
                 return (
                     <div className="flex items-center gap-1">
-                        <Video className="h-4 w-4 text-red-600" />
-                        <Code className="h-4 w-4 text-green-600" />
+                        <Video className="size-4 text-red-600" />
+                        <Code className="size-4 text-green-600" />
                     </div>
                 );
             case 'quiz':
             case 'assessment':
-                return <FileQuestion className="h-4 w-4 text-purple-600" />;
+                return <FileQuestion className="size-4 text-purple-600" />;
             case 'homework':
             case 'assignment':
-                return <ClipboardList className="h-4 w-4 text-orange-600" />;
+                return <ClipboardList className="size-4 text-orange-600" />;
             case 'solution':
-                return <FileCode className="h-4 w-4 text-indigo-600" />;
+                return <FileCode className="size-4 text-indigo-600" />;
             case 'doc':
-                return <FileText className="h-4 w-4 text-blue-600" />;
+                return <FileText className="size-4 text-blue-600" />;
             case 'pdf':
-                return <File className="h-4 w-4 text-red-600" />;
+                return <File className="size-4 text-red-600" />;
             case 'video':
-                return <Video className="h-4 w-4 text-red-600" />;
+                return <Video className="size-4 text-red-600" />;
             case 'ai-video':
-                return <Video className="h-4 w-4 text-purple-600" />;
+                return <Video className="size-4 text-purple-600" />;
             case 'video-code':
                 return (
                     <div className="flex items-center gap-1">
-                        <Video className="h-4 w-4 text-red-600" />
-                        <Code className="h-4 w-4 text-green-600" />
+                        <Video className="size-4 text-red-600" />
+                        <Code className="size-4 text-green-600" />
                     </div>
                 );
             case 'ai-video-code':
                 return (
                     <div className="flex items-center gap-1">
-                        <Video className="h-4 w-4 text-purple-600" />
-                        <Code className="h-4 w-4 text-green-600" />
+                        <Video className="size-4 text-purple-600" />
+                        <Code className="size-4 text-green-600" />
                     </div>
                 );
             case 'jupyter':
-                return <Notebook className="h-4 w-4 text-orange-600" />;
+                return <Notebook className="size-4 text-orange-600" />;
             case 'code-editor':
-                return <Code className="h-4 w-4 text-green-600" />;
+                return <Code className="size-4 text-green-600" />;
             case 'scratch':
-                return <Puzzle className="h-4 w-4 text-purple-600" />;
+                return <Puzzle className="size-4 text-purple-600" />;
             case 'video-jupyter':
                 return (
                     <div className="flex items-center gap-1">
-                        <Video className="h-4 w-4 text-red-600" />
-                        <Notebook className="h-4 w-4 text-orange-600" />
+                        <Video className="size-4 text-red-600" />
+                        <Notebook className="size-4 text-orange-600" />
                     </div>
                 );
             case 'video-code-editor':
                 return (
                     <div className="flex items-center gap-1">
-                        <Video className="h-4 w-4 text-red-600" />
-                        <Code className="h-4 w-4 text-green-600" />
+                        <Video className="size-4 text-red-600" />
+                        <Code className="size-4 text-green-600" />
                     </div>
                 );
             case 'video-scratch':
                 return (
                     <div className="flex items-center gap-1">
-                        <Video className="h-4 w-4 text-red-600" />
-                        <Puzzle className="h-4 w-4 text-purple-600" />
+                        <Video className="size-4 text-red-600" />
+                        <Puzzle className="size-4 text-purple-600" />
                     </div>
                 );
             default:
@@ -1400,7 +1503,7 @@ export function RouteComponent() {
         const courseData = {
             sessions: sessionsWithProgress,
             slides: slides,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         };
         // Get existing drafts or initialize empty array
         const existingDrafts = JSON.parse(localStorage.getItem('courseDrafts') || '[]');
@@ -1435,14 +1538,72 @@ export function RouteComponent() {
         );
     }
 
+    // Split view - show when generating content or content is generated
+    if (isGeneratingContent || isContentGenerated) {
+        return (
+            <LayoutContainer>
+                <Helmet>
+                    <title>
+                        {isGeneratingContent ? 'Generating Content...' : 'Edit Course Content'}
+                    </title>
+                    <meta
+                        name="description"
+                        content="Review and edit your AI-generated course content."
+                    />
+                </Helmet>
+                <SplitViewLayout
+                    sessionsWithProgress={sessionsWithProgress}
+                    slides={slides}
+                    courseMetadata={courseMetadata}
+                    isGeneratingContent={isGeneratingContent}
+                    isContentGenerated={isContentGenerated}
+                    contentGenerationProgress={contentGenerationProgress}
+                    isCreatingCourse={isCreatingCourse}
+                    isTeacher={isTeacher}
+                    isAdmin={isAdmin}
+                    onBack={handleBack}
+                    onSlideContentChange={handleSlideContentEdit}
+                    onSlideSave={(slideId) => {
+                        // Content is auto-saved via onSlideContentChange
+                        console.log('Slide saved:', slideId);
+                    }}
+                    onMetadataSave={(metadata) => {
+                        setCourseMetadata((prev: any) => ({ ...prev, ...metadata }));
+                    }}
+                    onCreateCourse={handleCreateCourse}
+                    onGenerateContent={() => setGenerateCourseAssetsDialogOpen(true)}
+                />
+                {/* Keep dialogs available */}
+                <GenerateCourseAssetsDialog
+                    open={generateCourseAssetsDialogOpen}
+                    onOpenChange={setGenerateCourseAssetsDialogOpen}
+                    onConfirm={
+                        isContentGenerated
+                            ? () => handleCreateCourse('ACTIVE')
+                            : handleConfirmGenerateCourseAssets
+                    }
+                />
+                <BackToLibraryDialog
+                    open={backToLibraryDialogOpen}
+                    onOpenChange={setBackToLibraryDialogOpen}
+                    onDiscard={handleDiscardCourse}
+                    onSaveToDrafts={handleSaveToDrafts}
+                />
+            </LayoutContainer>
+        );
+    }
+
     return (
         <LayoutContainer>
             <Helmet>
                 <title>Review Course Outline</title>
-                <meta name="description" content="Review and refine your AI-generated course outline." />
+                <meta
+                    name="description"
+                    content="Review and refine your AI-generated course outline."
+                />
             </Helmet>
             <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-purple-50">
-                <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-[1600px] px-3 py-4 sm:p-6 lg:px-8">
                     {/* Header */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
@@ -1450,63 +1611,59 @@ export function RouteComponent() {
                         transition={{ duration: 0.5 }}
                         className="mb-6"
                     >
-                        <div className="mb-4 flex items-center justify-between">
+                        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <button
                                 onClick={handleBack}
-                                className="flex items-center gap-2 text-sm font-medium text-neutral-600 transition-colors hover:text-indigo-600"
+                                className="flex items-center gap-2 self-start text-sm font-medium text-neutral-600 transition-colors hover:text-indigo-600"
                             >
-                                <ArrowLeft className="h-4 w-4" />
-                                Back to Create Course
+                                <ArrowLeft className="size-4" />
+                                <span className="hidden sm:inline">Back to Create Course</span>
+                                <span className="sm:hidden">Back</span>
                             </button>
 
                             {/* Action Buttons - Top Right */}
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                                 {isGeneratingContent ? (
                                     <MyButton
                                         buttonType="primary"
                                         disabled
                                         className="min-w-[140px]"
                                     >
-                                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                        <Loader2 className="mr-1 size-4 animate-spin" />
                                         Generating...
                                     </MyButton>
                                 ) : isContentGenerated ? (
-                                    <>
-                                        <MyButton
-                                            buttonType="secondary"
-                                            onClick={() => handleCreateCourse('DRAFT')}
-                                            disabled={isCreatingCourse}
-                                            className="min-w-[130px] border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-                                        >
-                                            {isCreatingCourse ? (
-                                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                            ) : (
-                                                <FileText className="h-4 w-4 mr-1" />
-                                            )}
-                                            Save as Draft
-                                        </MyButton>
-                                        <MyButton
-                                            buttonType="primary"
-                                            onClick={() => {
-                                                setGenerateCourseAssetsDialogOpen(true);
-                                            }}
-                                            disabled={isCreatingCourse}
-                                            className="min-w-[150px]"
-                                        >
+                                    <MyButton
+                                        buttonType="primary"
+                                        onClick={() =>
+                                            isAdmin
+                                                ? setGenerateCourseAssetsDialogOpen(true)
+                                                : handleCreateCourse('DRAFT')
+                                        }
+                                        disabled={isCreatingCourse}
+                                        className="min-w-[180px]"
+                                    >
+                                        {isCreatingCourse ? (
+                                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                        ) : (
                                             <CheckCircle className="h-4 w-4 mr-1" />
-                                            {isTeacher ? 'Submit for Approval' : 'Create Course'}
-                                        </MyButton>
-                                    </>
+                                        )}
+                                        {isAdmin ? 'Create Course' : 'Create Draft Course'}
+                                    </MyButton>
                                 ) : (
                                     <MyButton
                                         buttonType="primary"
                                         onClick={() => {
                                             setGenerateCourseAssetsDialogOpen(true);
                                         }}
-                                        disabled={isGeneratingContent || isCreatingCourse || (!hasSlidesToGenerate && !allSessionsCompleted)}
+                                        disabled={
+                                            isGeneratingContent ||
+                                            isCreatingCourse ||
+                                            (!hasSlidesToGenerate && !allSessionsCompleted)
+                                        }
                                         className="min-w-[180px]"
                                     >
-                                        <Sparkles className="h-4 w-4 mr-1" />
+                                        <Sparkles className="mr-1 size-4" />
                                         Generate Page Content
                                     </MyButton>
                                 )}
@@ -1514,27 +1671,29 @@ export function RouteComponent() {
                         </div>
 
                         <div>
-                            <h1 className="mb-2 text-3xl font-semibold text-neutral-900">
+                            <h1 className="mb-2 text-xl font-semibold text-neutral-900 sm:text-2xl lg:text-3xl">
                                 Step 1: Review Your Course Outline
                             </h1>
-                            <p className="text-base text-gray-600">
-                                Review the course outline, topics, and objectives generated for your course. Once everything looks right, click Generate to begin creating your course materials.
+                            <p className="text-sm text-gray-600 sm:text-base">
+                                Review the course outline, topics, and objectives generated for your
+                                course. Once everything looks right, click Generate to begin
+                                creating your course materials.
                             </p>
                         </div>
                     </motion.div>
 
                     {/* Two Column Layout - Sessions List & Metadata */}
-                    <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
+                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_400px]">
                         {/* Left Column - Sessions List */}
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.5, delay: 0.1 }}
-                            className="rounded-xl bg-white p-6 shadow-md min-w-0 overflow-hidden"
+                            className="min-w-0 overflow-hidden rounded-xl bg-white p-3 shadow-md sm:p-6"
                         >
-                            <div className="mb-4 flex items-center justify-between">
-                                <h2 className="flex items-center gap-2 text-2xl font-semibold text-neutral-900">
-                                    <Layers className="h-6 w-6 text-indigo-600" />
+                            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <h2 className="flex items-center gap-2 text-lg font-semibold text-neutral-900 sm:text-2xl">
+                                    <Layers className="size-5 text-indigo-600 sm:size-6" />
                                     {isContentGenerated ? 'Course Content' : 'Course Outline'}
                                 </h2>
                                 <div className="flex gap-2">
@@ -1545,12 +1704,12 @@ export function RouteComponent() {
                                     >
                                         {isAllExpanded ? (
                                             <>
-                                                <ChevronsUp className="h-3 w-3" />
+                                                <ChevronsUp className="size-3" />
                                                 Collapse All
                                             </>
                                         ) : (
                                             <>
-                                                <ChevronsDown className="h-3 w-3" />
+                                                <ChevronsDown className="size-3" />
                                                 Expand All
                                             </>
                                         )}
@@ -1564,18 +1723,29 @@ export function RouteComponent() {
                                 onDragEnd={handleSessionDragEnd}
                             >
                                 <SortableContext
-                                    items={Array.isArray(sessionsWithProgress) && sessionsWithProgress.length > 0 ? sessionsWithProgress.map((s) => s.sessionId) : []}
+                                    items={
+                                        Array.isArray(sessionsWithProgress) &&
+                                            sessionsWithProgress.length > 0
+                                            ? sessionsWithProgress.map((s) => s.sessionId)
+                                            : []
+                                    }
                                     strategy={verticalListSortingStrategy}
                                 >
-                                    {!Array.isArray(sessionsWithProgress) || sessionsWithProgress.length === 0 ? (
-                                        <div className="text-center py-8 text-neutral-500">
-                                            <span>No sessions available. Please try refreshing the page.</span>
+                                    {!Array.isArray(sessionsWithProgress) ||
+                                        sessionsWithProgress.length === 0 ? (
+                                        <div className="py-8 text-center text-neutral-500">
+                                            <span>
+                                                No sessions available. Please try refreshing the
+                                                page.
+                                            </span>
                                         </div>
                                     ) : (
                                         <Accordion
                                             type="multiple"
                                             value={Array.from(expandedSessions)}
-                                            onValueChange={(value) => setExpandedSessions(new Set(value))}
+                                            onValueChange={(value) =>
+                                                setExpandedSessions(new Set(value))
+                                            }
                                             className="w-full"
                                         >
                                             {sessionsWithProgress.map((session, sessionIndex) => (
@@ -1594,40 +1764,73 @@ export function RouteComponent() {
                                                     setEditSessionTitle={setEditSessionTitle}
                                                 >
                                                     <AccordionContent className="pb-4 pt-0">
-                                                        <div className="ml-11">
+                                                        <div className="ml-4 sm:ml-11">
                                                             <DndContext
                                                                 sensors={sensors}
                                                                 collisionDetection={closestCenter}
-                                                                onDragEnd={(event) => handleSlideDragEnd(event, session.sessionId)}
+                                                                onDragEnd={(event) =>
+                                                                    handleSlideDragEnd(
+                                                                        event,
+                                                                        session.sessionId
+                                                                    )
+                                                                }
                                                             >
                                                                 <SortableContext
-                                                                    items={session.slides.filter(s => s.slideTitle !== '_placeholder_').map((s) => s.id)}
-                                                                    strategy={verticalListSortingStrategy}
+                                                                    items={session.slides
+                                                                        .filter(
+                                                                            (s) =>
+                                                                                s.slideTitle !==
+                                                                                '_placeholder_'
+                                                                        )
+                                                                        .map((s) => s.id)}
+                                                                    strategy={
+                                                                        verticalListSortingStrategy
+                                                                    }
                                                                 >
                                                                     <div className="space-y-2">
                                                                         {session.slides
-                                                                            .filter(slide => slide.slideTitle !== '_placeholder_')
+                                                                            .filter(
+                                                                                (slide) =>
+                                                                                    slide.slideTitle !==
+                                                                                    '_placeholder_'
+                                                                            )
                                                                             .map((slide) => (
                                                                                 <SortableSlideItem
                                                                                     key={slide.id}
                                                                                     slide={slide}
-                                                                                    onEdit={handleSlideEdit}
-                                                                                    onDelete={handleDelete}
-                                                                                    getSlideIcon={getSlideIcon}
-                                                                                    onRegenerate={handleRegenerate}
-                                                                                    onContentEdit={handleSlideContentEdit}
-                                                                                    isOutlineMode={!isContentGenerated}
+                                                                                    onEdit={
+                                                                                        handleSlideEdit
+                                                                                    }
+                                                                                    onDelete={
+                                                                                        handleDelete
+                                                                                    }
+                                                                                    getSlideIcon={
+                                                                                        getSlideIcon
+                                                                                    }
+                                                                                    onRegenerate={
+                                                                                        handleRegenerate
+                                                                                    }
+                                                                                    onContentEdit={
+                                                                                        handleSlideContentEdit
+                                                                                    }
+                                                                                    isOutlineMode={
+                                                                                        !isContentGenerated
+                                                                                    }
                                                                                 />
                                                                             ))}
                                                                         {/* Add Page Button */}
                                                                         <button
                                                                             className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-600 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                                                                             onClick={() => {
-                                                                                setAddingSlideToSessionId(session.sessionId);
-                                                                                setAddSlideDialogOpen(true);
+                                                                                setAddingSlideToSessionId(
+                                                                                    session.sessionId
+                                                                                );
+                                                                                setAddSlideDialogOpen(
+                                                                                    true
+                                                                                );
                                                                             }}
                                                                         >
-                                                                            <Plus className="h-4 w-4" />
+                                                                            <Plus className="size-4" />
                                                                             Add Page
                                                                         </button>
                                                                     </div>
@@ -1647,7 +1850,7 @@ export function RouteComponent() {
                                 onClick={handleAddSession}
                                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-600 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <Plus className="h-4 w-4" />
+                                <Plus className="size-4" />
                                 Add Chapter
                             </button>
                         </motion.div>
@@ -1663,15 +1866,22 @@ export function RouteComponent() {
                             {courseMetadata?.course_name && (
                                 <div className="rounded-xl bg-white p-4 shadow-md">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-base font-bold text-neutral-900">Course name</label>
+                                        <label className="text-base font-bold text-neutral-900">
+                                            Course name
+                                        </label>
                                         <div className="flex gap-2">
                                             {editingMetadataField !== 'course_name' && (
                                                 <button
-                                                    onClick={() => handleEditMetadataField('course_name', courseMetadata.course_name)}
+                                                    onClick={() =>
+                                                        handleEditMetadataField(
+                                                            'course_name',
+                                                            courseMetadata.course_name
+                                                        )
+                                                    }
                                                     className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
                                                     title="Edit"
                                                 >
-                                                    <Pencil className="h-3 w-3" />
+                                                    <Pencil className="size-3" />
                                                 </button>
                                             )}
                                         </div>
@@ -1680,14 +1890,20 @@ export function RouteComponent() {
                                         <div className="space-y-2">
                                             <Input
                                                 value={metadataEditValues.course_name || ''}
-                                                onChange={(e) => setMetadataEditValues({ course_name: e.target.value })}
+                                                onChange={(e) =>
+                                                    setMetadataEditValues({
+                                                        course_name: e.target.value,
+                                                    })
+                                                }
                                                 className="text-sm"
                                             />
                                             <div className="flex gap-2">
                                                 <MyButton
                                                     buttonType="primary"
                                                     scale="small"
-                                                    onClick={() => handleSaveMetadataEdit('course_name')}
+                                                    onClick={() =>
+                                                        handleSaveMetadataEdit('course_name')
+                                                    }
                                                 >
                                                     Save
                                                 </MyButton>
@@ -1712,23 +1928,38 @@ export function RouteComponent() {
                             {courseMetadata?.about_the_course_html && (
                                 <div className="rounded-xl bg-white p-4 shadow-md">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-base font-bold text-neutral-900">Description</label>
+                                        <label className="text-base font-bold text-neutral-900">
+                                            Description
+                                        </label>
                                         <div className="flex gap-2">
                                             {editingMetadataField !== 'description' && (
                                                 <button
                                                     onClick={() => {
                                                         // Extract first paragraph or 2-3 sentences from about_the_course_html
-                                                        const tempDiv = document.createElement('div');
-                                                        tempDiv.innerHTML = courseMetadata.about_the_course_html;
-                                                        const textContent = tempDiv.textContent || tempDiv.innerText || '';
-                                                        const sentences = textContent.match(/[^.!?]+[.!?]+/g) || [];
-                                                        const shortDescription = sentences.slice(0, 3).join(' ');
-                                                        handleEditMetadataField('description', courseMetadata.description || shortDescription);
+                                                        const tempDiv =
+                                                            document.createElement('div');
+                                                        tempDiv.innerHTML =
+                                                            courseMetadata.about_the_course_html;
+                                                        const textContent =
+                                                            tempDiv.textContent ||
+                                                            tempDiv.innerText ||
+                                                            '';
+                                                        const sentences =
+                                                            textContent.match(/[^.!?]+[.!?]+/g) ||
+                                                            [];
+                                                        const shortDescription = sentences
+                                                            .slice(0, 3)
+                                                            .join(' ');
+                                                        handleEditMetadataField(
+                                                            'description',
+                                                            courseMetadata.description ||
+                                                            shortDescription
+                                                        );
                                                     }}
                                                     className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
                                                     title="Edit"
                                                 >
-                                                    <Pencil className="h-3 w-3" />
+                                                    <Pencil className="size-3" />
                                                 </button>
                                             )}
                                         </div>
@@ -1737,14 +1968,20 @@ export function RouteComponent() {
                                         <div className="space-y-2">
                                             <Textarea
                                                 value={metadataEditValues.description || ''}
-                                                onChange={(e) => setMetadataEditValues({ description: e.target.value })}
+                                                onChange={(e) =>
+                                                    setMetadataEditValues({
+                                                        description: e.target.value,
+                                                    })
+                                                }
                                                 className="min-h-[80px] text-sm"
                                             />
                                             <div className="flex gap-2">
                                                 <MyButton
                                                     buttonType="primary"
                                                     scale="small"
-                                                    onClick={() => handleSaveMetadataEdit('description')}
+                                                    onClick={() =>
+                                                        handleSaveMetadataEdit('description')
+                                                    }
                                                 >
                                                     Save
                                                 </MyButton>
@@ -1766,9 +2003,12 @@ export function RouteComponent() {
                                                 }
                                                 // Otherwise extract first paragraph or 2-3 sentences from about_the_course_html
                                                 const tempDiv = document.createElement('div');
-                                                tempDiv.innerHTML = courseMetadata.about_the_course_html;
-                                                const textContent = tempDiv.textContent || tempDiv.innerText || '';
-                                                const sentences = textContent.match(/[^.!?]+[.!?]+/g) || [];
+                                                tempDiv.innerHTML =
+                                                    courseMetadata.about_the_course_html;
+                                                const textContent =
+                                                    tempDiv.textContent || tempDiv.innerText || '';
+                                                const sentences =
+                                                    textContent.match(/[^.!?]+[.!?]+/g) || [];
                                                 return sentences.slice(0, 3).join(' ');
                                             })()}
                                         </p>
@@ -1780,22 +2020,39 @@ export function RouteComponent() {
                             {courseMetadata && (
                                 <div className="rounded-xl bg-white p-4 shadow-md">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-base font-bold text-neutral-900">Level</label>
+                                        <label className="text-base font-bold text-neutral-900">
+                                            Level
+                                        </label>
                                     </div>
                                     <Select
-                                        value={courseMetadata.level || 'Beginner'}
+                                        value={courseMetadata.level || ''}
                                         onValueChange={(value) => {
-                                            setCourseMetadata((prev: any) => ({ ...prev, level: value }));
+                                            setCourseMetadata((prev: any) => ({
+                                                ...prev,
+                                                level: value,
+                                            }));
                                         }}
                                     >
                                         <SelectTrigger className="w-full text-sm">
                                             <SelectValue placeholder="Select level" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="Beginner">Beginner</SelectItem>
-                                            <SelectItem value="Basic">Basic</SelectItem>
-                                            <SelectItem value="Intermediate">Intermediate</SelectItem>
-                                            <SelectItem value="Advanced">Advanced</SelectItem>
+                                            {instituteLevels.length > 0 ? (
+                                                instituteLevels.map((level: any) => (
+                                                    <SelectItem key={level.id} value={level.id}>
+                                                        {level.level_name}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <SelectItem value="Beginner">Beginner</SelectItem>
+                                                    <SelectItem value="Basic">Basic</SelectItem>
+                                                    <SelectItem value="Intermediate">
+                                                        Intermediate
+                                                    </SelectItem>
+                                                    <SelectItem value="Advanced">Advanced</SelectItem>
+                                                </>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -1805,15 +2062,22 @@ export function RouteComponent() {
                             {courseMetadata?.tags && courseMetadata.tags.length > 0 && (
                                 <div className="rounded-xl bg-white p-4 shadow-md">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-base font-bold text-neutral-900">Course tags</label>
+                                        <label className="text-base font-bold text-neutral-900">
+                                            Course tags
+                                        </label>
                                         <div className="flex gap-2">
                                             {editingMetadataField !== 'tags' && (
                                                 <button
-                                                    onClick={() => handleEditMetadataField('tags', courseMetadata.tags.join(', '))}
+                                                    onClick={() =>
+                                                        handleEditMetadataField(
+                                                            'tags',
+                                                            courseMetadata.tags.join(', ')
+                                                        )
+                                                    }
                                                     className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
                                                     title="Edit"
                                                 >
-                                                    <Pencil className="h-3 w-3" />
+                                                    <Pencil className="size-3" />
                                                 </button>
                                             )}
                                         </div>
@@ -1822,7 +2086,9 @@ export function RouteComponent() {
                                         <div className="space-y-2">
                                             <Textarea
                                                 value={metadataEditValues.tags || ''}
-                                                onChange={(e) => setMetadataEditValues({ tags: e.target.value })}
+                                                onChange={(e) =>
+                                                    setMetadataEditValues({ tags: e.target.value })
+                                                }
                                                 placeholder="Enter tags separated by commas"
                                                 className="min-h-[60px] text-sm"
                                             />
@@ -1831,8 +2097,14 @@ export function RouteComponent() {
                                                     buttonType="primary"
                                                     scale="small"
                                                     onClick={() => {
-                                                        const tags = metadataEditValues.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t);
-                                                        setCourseMetadata((prev: any) => ({ ...prev, tags }));
+                                                        const tags = metadataEditValues.tags
+                                                            .split(',')
+                                                            .map((t: string) => t.trim())
+                                                            .filter((t: string) => t);
+                                                        setCourseMetadata((prev: any) => ({
+                                                            ...prev,
+                                                            tags,
+                                                        }));
                                                         handleSaveMetadataEdit('tags');
                                                     }}
                                                 >
@@ -1849,15 +2121,17 @@ export function RouteComponent() {
                                         </div>
                                     ) : (
                                         <div className="flex flex-wrap gap-2">
-                                            {courseMetadata.tags.map((tag: string, index: number) => (
-                                                <span
-                                                    key={index}
-                                                    className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700"
-                                                >
-                                                    <Tag className="h-3 w-3" />
-                                                    {tag}
-                                                </span>
-                                            ))}
+                                            {courseMetadata.tags.map(
+                                                (tag: string, index: number) => (
+                                                    <span
+                                                        key={index}
+                                                        className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700"
+                                                    >
+                                                        <Tag className="size-3" />
+                                                        {tag}
+                                                    </span>
+                                                )
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -1878,25 +2152,28 @@ export function RouteComponent() {
                                 <div className="space-y-2">
                                     {courseMetadata?.previewImageUrl ? (
                                         <div className="relative">
-                                            <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
+                                            <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
                                                 <img
                                                     src={courseMetadata.previewImageUrl}
                                                     alt="Course preview"
-                                                    className="w-full h-full object-cover"
+                                                    className="size-full object-cover"
                                                 />
                                             </div>
                                             <button
                                                 onClick={() => {
-                                                    setCourseMetadata((prev: any) => ({ ...prev, previewImageUrl: null }));
+                                                    setCourseMetadata((prev: any) => ({
+                                                        ...prev,
+                                                        previewImageUrl: null,
+                                                    }));
                                                 }}
                                                 className="absolute right-2 top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
                                                 title="Remove image"
                                             >
-                                                <X className="h-3 w-3" />
+                                                <X className="size-3" />
                                             </button>
                                             <div className="mt-2">
                                                 <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50">
-                                                    <Upload className="h-3 w-3" />
+                                                    <Upload className="size-3" />
                                                     <input
                                                         type="file"
                                                         accept="image/*"
@@ -1904,8 +2181,12 @@ export function RouteComponent() {
                                                         onChange={(e) => {
                                                             const file = e.target.files?.[0];
                                                             if (file) {
-                                                                const url = URL.createObjectURL(file);
-                                                                setCourseMetadata((prev: any) => ({ ...prev, previewImageUrl: url }));
+                                                                const url =
+                                                                    URL.createObjectURL(file);
+                                                                setCourseMetadata((prev: any) => ({
+                                                                    ...prev,
+                                                                    previewImageUrl: url,
+                                                                }));
                                                             }
                                                         }}
                                                     />
@@ -1923,11 +2204,14 @@ export function RouteComponent() {
                                                     const file = e.target.files?.[0];
                                                     if (file) {
                                                         const url = URL.createObjectURL(file);
-                                                        setCourseMetadata((prev: any) => ({ ...prev, previewImageUrl: url }));
+                                                        setCourseMetadata((prev: any) => ({
+                                                            ...prev,
+                                                            previewImageUrl: url,
+                                                        }));
                                                     }
                                                 }}
                                             />
-                                            <ImageIcon className="mb-2 h-8 w-8 text-neutral-400" />
+                                            <ImageIcon className="mb-2 size-8 text-neutral-400" />
                                             <span className="text-sm font-medium text-neutral-600">
                                                 Click to upload preview image
                                             </span>
@@ -1954,25 +2238,28 @@ export function RouteComponent() {
                                 <div className="space-y-2">
                                     {courseMetadata?.bannerImageUrl ? (
                                         <div className="relative">
-                                            <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
+                                            <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
                                                 <img
                                                     src={courseMetadata.bannerImageUrl}
                                                     alt="Course banner"
-                                                    className="w-full h-full object-cover"
+                                                    className="size-full object-cover"
                                                 />
                                             </div>
                                             <button
                                                 onClick={() => {
-                                                    setCourseMetadata((prev: any) => ({ ...prev, bannerImageUrl: null }));
+                                                    setCourseMetadata((prev: any) => ({
+                                                        ...prev,
+                                                        bannerImageUrl: null,
+                                                    }));
                                                 }}
                                                 className="absolute right-2 top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
                                                 title="Remove image"
                                             >
-                                                <X className="h-3 w-3" />
+                                                <X className="size-3" />
                                             </button>
                                             <div className="mt-2">
                                                 <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50">
-                                                    <Upload className="h-3 w-3" />
+                                                    <Upload className="size-3" />
                                                     <input
                                                         type="file"
                                                         accept="image/*"
@@ -1980,8 +2267,12 @@ export function RouteComponent() {
                                                         onChange={(e) => {
                                                             const file = e.target.files?.[0];
                                                             if (file) {
-                                                                const url = URL.createObjectURL(file);
-                                                                setCourseMetadata((prev: any) => ({ ...prev, bannerImageUrl: url }));
+                                                                const url =
+                                                                    URL.createObjectURL(file);
+                                                                setCourseMetadata((prev: any) => ({
+                                                                    ...prev,
+                                                                    bannerImageUrl: url,
+                                                                }));
                                                             }
                                                         }}
                                                     />
@@ -1999,11 +2290,14 @@ export function RouteComponent() {
                                                     const file = e.target.files?.[0];
                                                     if (file) {
                                                         const url = URL.createObjectURL(file);
-                                                        setCourseMetadata((prev: any) => ({ ...prev, bannerImageUrl: url }));
+                                                        setCourseMetadata((prev: any) => ({
+                                                            ...prev,
+                                                            bannerImageUrl: url,
+                                                        }));
                                                     }
                                                 }}
                                             />
-                                            <ImageIcon className="mb-2 h-8 w-8 text-neutral-400" />
+                                            <ImageIcon className="mb-2 size-8 text-neutral-400" />
                                             <span className="text-sm font-medium text-neutral-600">
                                                 Click to upload banner image
                                             </span>
@@ -2019,39 +2313,55 @@ export function RouteComponent() {
                             <div className="rounded-xl bg-white p-4 shadow-md">
                                 <div className="mb-3 flex items-center justify-between">
                                     <div>
-                                        <label className="text-base font-bold text-neutral-900">Course Media</label>
+                                        <label className="text-base font-bold text-neutral-900">
+                                            Course Media
+                                        </label>
                                         <p className="mt-1 text-xs text-neutral-500">
                                             Featured image or video for course page
-                                            {!courseMetadata?.courseMedia && (courseMetadata?.mediaImageUrl || courseMetadata?.bannerImageUrl || courseMetadata?.previewImageUrl) && ' - Using fallback image'}
+                                            {!courseMetadata?.courseMedia &&
+                                                (courseMetadata?.mediaImageUrl ||
+                                                    courseMetadata?.bannerImageUrl ||
+                                                    courseMetadata?.previewImageUrl) &&
+                                                ' - Using fallback image'}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    {(courseMetadata?.courseMedia || courseMetadata?.mediaImageUrl || courseMetadata?.bannerImageUrl || courseMetadata?.previewImageUrl) ? (
+                                    {courseMetadata?.courseMedia ||
+                                        courseMetadata?.mediaImageUrl ||
+                                        courseMetadata?.bannerImageUrl ||
+                                        courseMetadata?.previewImageUrl ? (
                                         <div className="relative">
-                                            {courseMetadata?.courseMedia && courseMetadata.courseMediaType === 'youtube' ? (
-                                                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
+                                            {courseMetadata?.courseMedia &&
+                                                courseMetadata.courseMediaType === 'youtube' ? (
+                                                <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
                                                     <iframe
                                                         src={courseMetadata.courseMedia}
-                                                        className="w-full h-full rounded-lg"
+                                                        className="size-full rounded-lg"
                                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                         allowFullScreen
                                                     />
                                                 </div>
-                                            ) : courseMetadata?.courseMedia && courseMetadata.courseMediaType === 'video' ? (
-                                                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
+                                            ) : courseMetadata?.courseMedia &&
+                                                courseMetadata.courseMediaType === 'video' ? (
+                                                <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
                                                     <video
                                                         src={courseMetadata.courseMedia}
-                                                        className="w-full h-full object-cover"
+                                                        className="size-full object-cover"
                                                         controls
                                                     />
                                                 </div>
                                             ) : (
-                                                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
+                                                <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
                                                     <img
-                                                        src={courseMetadata?.courseMedia || courseMetadata?.mediaImageUrl || courseMetadata?.bannerImageUrl || courseMetadata?.previewImageUrl}
+                                                        src={
+                                                            courseMetadata?.courseMedia ||
+                                                            courseMetadata?.mediaImageUrl ||
+                                                            courseMetadata?.bannerImageUrl ||
+                                                            courseMetadata?.previewImageUrl
+                                                        }
                                                         alt="Course media"
-                                                        className="w-full h-full object-cover"
+                                                        className="size-full object-cover"
                                                     />
                                                 </div>
                                             )}
@@ -2066,11 +2376,11 @@ export function RouteComponent() {
                                                 className="absolute right-2 top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
                                                 title="Remove media"
                                             >
-                                                <X className="h-3 w-3" />
+                                                <X className="size-3" />
                                             </button>
                                             <div className="mt-2 flex gap-2">
                                                 <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50">
-                                                    <Upload className="h-3 w-3" />
+                                                    <Upload className="size-3" />
                                                     <input
                                                         type="file"
                                                         accept="image/*,video/*"
@@ -2078,8 +2388,13 @@ export function RouteComponent() {
                                                         onChange={(e) => {
                                                             const file = e.target.files?.[0];
                                                             if (file) {
-                                                                const url = URL.createObjectURL(file);
-                                                                const type = file.type.startsWith('video/') ? 'video' : 'image';
+                                                                const url =
+                                                                    URL.createObjectURL(file);
+                                                                const type = file.type.startsWith(
+                                                                    'video/'
+                                                                )
+                                                                    ? 'video'
+                                                                    : 'image';
                                                                 setCourseMetadata((prev: any) => ({
                                                                     ...prev,
                                                                     courseMedia: url,
@@ -2094,7 +2409,7 @@ export function RouteComponent() {
                                                     onClick={() => setMediaEditMode('youtube')}
                                                     className="flex items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
                                                 >
-                                                    <Video className="h-3 w-3" />
+                                                    <Video className="size-3" />
                                                     YouTube Link
                                                 </button>
                                             </div>
@@ -2108,15 +2423,22 @@ export function RouteComponent() {
                                                         className="text-sm"
                                                         onKeyDown={(e) => {
                                                             if (e.key === 'Enter') {
-                                                                const url = (e.target as HTMLInputElement).value;
+                                                                const url = (
+                                                                    e.target as HTMLInputElement
+                                                                ).value;
                                                                 if (isYouTubeUrl(url)) {
-                                                                    const embedUrl = getYouTubeEmbedUrl(url);
+                                                                    const embedUrl =
+                                                                        getYouTubeEmbedUrl(url);
                                                                     if (embedUrl) {
-                                                                        setCourseMetadata((prev: any) => ({
-                                                                            ...prev,
-                                                                            courseMedia: embedUrl,
-                                                                            courseMediaType: 'youtube',
-                                                                        }));
+                                                                        setCourseMetadata(
+                                                                            (prev: any) => ({
+                                                                                ...prev,
+                                                                                courseMedia:
+                                                                                    embedUrl,
+                                                                                courseMediaType:
+                                                                                    'youtube',
+                                                                            })
+                                                                        );
                                                                         setMediaEditMode(null);
                                                                     }
                                                                 }
@@ -2129,17 +2451,28 @@ export function RouteComponent() {
                                                             buttonType="primary"
                                                             scale="small"
                                                             onClick={(e) => {
-                                                                const input = (e.target as HTMLElement).closest('div')?.querySelector('input') as HTMLInputElement;
+                                                                const input = (
+                                                                    e.target as HTMLElement
+                                                                )
+                                                                    .closest('div')
+                                                                    ?.querySelector(
+                                                                        'input'
+                                                                    ) as HTMLInputElement;
                                                                 if (input) {
                                                                     const url = input.value;
                                                                     if (isYouTubeUrl(url)) {
-                                                                        const embedUrl = getYouTubeEmbedUrl(url);
+                                                                        const embedUrl =
+                                                                            getYouTubeEmbedUrl(url);
                                                                         if (embedUrl) {
-                                                                            setCourseMetadata((prev: any) => ({
-                                                                                ...prev,
-                                                                                courseMedia: embedUrl,
-                                                                                courseMediaType: 'youtube',
-                                                                            }));
+                                                                            setCourseMetadata(
+                                                                                (prev: any) => ({
+                                                                                    ...prev,
+                                                                                    courseMedia:
+                                                                                        embedUrl,
+                                                                                    courseMediaType:
+                                                                                        'youtube',
+                                                                                })
+                                                                            );
                                                                             setMediaEditMode(null);
                                                                         }
                                                                     }
@@ -2167,24 +2500,32 @@ export function RouteComponent() {
                                                             onChange={(e) => {
                                                                 const file = e.target.files?.[0];
                                                                 if (file) {
-                                                                    const url = URL.createObjectURL(file);
-                                                                    const type = file.type.startsWith('video/') ? 'video' : 'image';
-                                                                    setCourseMetadata((prev: any) => ({
-                                                                        ...prev,
-                                                                        courseMedia: url,
-                                                                        courseMediaType: type,
-                                                                    }));
+                                                                    const url =
+                                                                        URL.createObjectURL(file);
+                                                                    const type =
+                                                                        file.type.startsWith(
+                                                                            'video/'
+                                                                        )
+                                                                            ? 'video'
+                                                                            : 'image';
+                                                                    setCourseMetadata(
+                                                                        (prev: any) => ({
+                                                                            ...prev,
+                                                                            courseMedia: url,
+                                                                            courseMediaType: type,
+                                                                        })
+                                                                    );
                                                                 }
                                                             }}
                                                         />
-                                                        <ImageIcon className="h-4 w-4" />
+                                                        <ImageIcon className="size-4" />
                                                         Upload Image or Video
                                                     </label>
                                                     <button
                                                         onClick={() => setMediaEditMode('youtube')}
                                                         className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
                                                     >
-                                                        <Video className="h-4 w-4" />
+                                                        <Video className="size-4" />
                                                         Add YouTube Link
                                                     </button>
                                                 </>
@@ -2198,15 +2539,22 @@ export function RouteComponent() {
                             {courseMetadata?.why_learn_html && (
                                 <div className="rounded-xl bg-white p-4 shadow-md">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-base font-bold text-neutral-900">What learners will gain</label>
+                                        <label className="text-base font-bold text-neutral-900">
+                                            What learners will gain
+                                        </label>
                                         <div className="flex gap-2">
                                             {editingMetadataField !== 'why_learn_html' && (
                                                 <button
-                                                    onClick={() => handleEditMetadataField('why_learn_html', courseMetadata.why_learn_html)}
+                                                    onClick={() =>
+                                                        handleEditMetadataField(
+                                                            'why_learn_html',
+                                                            courseMetadata.why_learn_html
+                                                        )
+                                                    }
                                                     className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
                                                     title="Edit"
                                                 >
-                                                    <Pencil className="h-3 w-3" />
+                                                    <Pencil className="size-3" />
                                                 </button>
                                             )}
                                         </div>
@@ -2215,14 +2563,20 @@ export function RouteComponent() {
                                         <div className="space-y-2">
                                             <Textarea
                                                 value={metadataEditValues.why_learn_html || ''}
-                                                onChange={(e) => setMetadataEditValues({ why_learn_html: e.target.value })}
+                                                onChange={(e) =>
+                                                    setMetadataEditValues({
+                                                        why_learn_html: e.target.value,
+                                                    })
+                                                }
                                                 className="min-h-[80px] text-sm"
                                             />
                                             <div className="flex gap-2">
                                                 <MyButton
                                                     buttonType="primary"
                                                     scale="small"
-                                                    onClick={() => handleSaveMetadataEdit('why_learn_html')}
+                                                    onClick={() =>
+                                                        handleSaveMetadataEdit('why_learn_html')
+                                                    }
                                                 >
                                                     Save
                                                 </MyButton>
@@ -2237,8 +2591,10 @@ export function RouteComponent() {
                                         </div>
                                     ) : (
                                         <div
-                                            className="text-sm text-neutral-700 prose prose-sm max-w-none"
-                                            dangerouslySetInnerHTML={{ __html: courseMetadata.why_learn_html }}
+                                            className="prose prose-sm max-w-none text-sm text-neutral-700"
+                                            dangerouslySetInnerHTML={{
+                                                __html: courseMetadata.why_learn_html,
+                                            }}
                                         />
                                     )}
                                 </div>
@@ -2248,15 +2604,22 @@ export function RouteComponent() {
                             {courseMetadata?.who_should_learn_html && (
                                 <div className="rounded-xl bg-white p-4 shadow-md">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-base font-bold text-neutral-900">Who Should Join</label>
+                                        <label className="text-base font-bold text-neutral-900">
+                                            Who Should Join
+                                        </label>
                                         <div className="flex gap-2">
                                             {editingMetadataField !== 'who_should_learn_html' && (
                                                 <button
-                                                    onClick={() => handleEditMetadataField('who_should_learn_html', courseMetadata.who_should_learn_html)}
+                                                    onClick={() =>
+                                                        handleEditMetadataField(
+                                                            'who_should_learn_html',
+                                                            courseMetadata.who_should_learn_html
+                                                        )
+                                                    }
                                                     className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
                                                     title="Edit"
                                                 >
-                                                    <Pencil className="h-3 w-3" />
+                                                    <Pencil className="size-3" />
                                                 </button>
                                             )}
                                         </div>
@@ -2264,15 +2627,25 @@ export function RouteComponent() {
                                     {editingMetadataField === 'who_should_learn_html' ? (
                                         <div className="space-y-2">
                                             <Textarea
-                                                value={metadataEditValues.who_should_learn_html || ''}
-                                                onChange={(e) => setMetadataEditValues({ who_should_learn_html: e.target.value })}
+                                                value={
+                                                    metadataEditValues.who_should_learn_html || ''
+                                                }
+                                                onChange={(e) =>
+                                                    setMetadataEditValues({
+                                                        who_should_learn_html: e.target.value,
+                                                    })
+                                                }
                                                 className="min-h-[80px] text-sm"
                                             />
                                             <div className="flex gap-2">
                                                 <MyButton
                                                     buttonType="primary"
                                                     scale="small"
-                                                    onClick={() => handleSaveMetadataEdit('who_should_learn_html')}
+                                                    onClick={() =>
+                                                        handleSaveMetadataEdit(
+                                                            'who_should_learn_html'
+                                                        )
+                                                    }
                                                 >
                                                     Save
                                                 </MyButton>
@@ -2287,8 +2660,10 @@ export function RouteComponent() {
                                         </div>
                                     ) : (
                                         <div
-                                            className="text-sm text-neutral-700 prose prose-sm max-w-none"
-                                            dangerouslySetInnerHTML={{ __html: courseMetadata.who_should_learn_html }}
+                                            className="prose prose-sm max-w-none text-sm text-neutral-700"
+                                            dangerouslySetInnerHTML={{
+                                                __html: courseMetadata.who_should_learn_html,
+                                            }}
                                         />
                                     )}
                                 </div>
@@ -2298,15 +2673,22 @@ export function RouteComponent() {
                             {courseMetadata?.about_the_course_html && (
                                 <div className="rounded-xl bg-white p-4 shadow-md">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-base font-bold text-neutral-900">About the Course</label>
+                                        <label className="text-base font-bold text-neutral-900">
+                                            About the Course
+                                        </label>
                                         <div className="flex gap-2">
                                             {editingMetadataField !== 'about_the_course_html' && (
                                                 <button
-                                                    onClick={() => handleEditMetadataField('about_the_course_html', courseMetadata.about_the_course_html)}
+                                                    onClick={() =>
+                                                        handleEditMetadataField(
+                                                            'about_the_course_html',
+                                                            courseMetadata.about_the_course_html
+                                                        )
+                                                    }
                                                     className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
                                                     title="Edit"
                                                 >
-                                                    <Pencil className="h-3 w-3" />
+                                                    <Pencil className="size-3" />
                                                 </button>
                                             )}
                                         </div>
@@ -2314,15 +2696,25 @@ export function RouteComponent() {
                                     {editingMetadataField === 'about_the_course_html' ? (
                                         <div className="space-y-2">
                                             <Textarea
-                                                value={metadataEditValues.about_the_course_html || ''}
-                                                onChange={(e) => setMetadataEditValues({ about_the_course_html: e.target.value })}
+                                                value={
+                                                    metadataEditValues.about_the_course_html || ''
+                                                }
+                                                onChange={(e) =>
+                                                    setMetadataEditValues({
+                                                        about_the_course_html: e.target.value,
+                                                    })
+                                                }
                                                 className="min-h-[80px] text-sm"
                                             />
                                             <div className="flex gap-2">
                                                 <MyButton
                                                     buttonType="primary"
                                                     scale="small"
-                                                    onClick={() => handleSaveMetadataEdit('about_the_course_html')}
+                                                    onClick={() =>
+                                                        handleSaveMetadataEdit(
+                                                            'about_the_course_html'
+                                                        )
+                                                    }
                                                 >
                                                     Save
                                                 </MyButton>
@@ -2337,9 +2729,9 @@ export function RouteComponent() {
                                         </div>
                                     ) : (
                                         <div
-                                            className="text-sm text-neutral-700 prose prose-sm max-w-none"
+                                            className="prose prose-sm max-w-none text-sm text-neutral-700"
                                             dangerouslySetInnerHTML={{
-                                                __html: courseMetadata.about_the_course_html
+                                                __html: courseMetadata.about_the_course_html,
                                             }}
                                         />
                                     )}
@@ -2360,25 +2752,26 @@ export function RouteComponent() {
                             }
                         }}
                     >
-                        <DialogContent className="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col p-0">
+                        <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-[95vw] flex-col p-0 sm:w-[80vw] sm:max-w-[80vw]">
                             {viewingSlide && (
                                 <>
-                                    <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
+                                    <DialogHeader className="shrink-0 border-b px-6 pb-4 pt-6">
                                         <DialogTitle>{viewingSlide.slideTitle}</DialogTitle>
                                     </DialogHeader>
 
-                                    <div className="flex-1 overflow-y-auto px-6 py-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                    <div className="flex-1 overflow-y-auto px-6 py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                                         {/* Document Slide */}
-                                        {(viewingSlide.slideType === 'objectives' || viewingSlide.slideType === 'doc') && (
-                                            <div>
-                                                <YooptaEditorWrapper
-                                                    value={documentContent}
-                                                    onChange={setDocumentContent}
-                                                    placeholder="Enter document content..."
-                                                    minHeight={500}
-                                                />
-                                            </div>
-                                        )}
+                                        {(viewingSlide.slideType === 'objectives' ||
+                                            viewingSlide.slideType === 'doc') && (
+                                                <div>
+                                                    <YooptaEditorWrapper
+                                                        value={documentContent}
+                                                        onChange={setDocumentContent}
+                                                        placeholder="Enter document content..."
+                                                        minHeight={500}
+                                                    />
+                                                </div>
+                                            )}
 
                                         {/* Video + Code Slide */}
                                         {(viewingSlide.slideType === 'topic' ||
@@ -2387,18 +2780,18 @@ export function RouteComponent() {
                                             viewingSlide.slideType === 'video-scratch') && (
                                                 <div
                                                     ref={resizeContainerRef}
-                                                    className="flex gap-0 h-[600px] relative"
+                                                    className="relative flex h-[600px] gap-0"
                                                 >
                                                     {/* Code Editor Section */}
                                                     <div
-                                                        className="border rounded-l-lg overflow-hidden flex-shrink-0 flex flex-col"
+                                                        className="flex shrink-0 flex-col overflow-hidden rounded-l-lg border"
                                                         style={{ width: `${codeEditorWidth}%` }}
                                                     >
                                                         {/* Code Editor Header */}
-                                                        <div className="bg-white px-4 py-3 border-b flex items-center justify-between gap-4">
+                                                        <div className="flex items-center justify-between gap-4 border-b bg-white px-4 py-3">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-                                                                    <Code className="h-4 w-4" />
+                                                                    <Code className="size-4" />
                                                                     <span>Code Editor</span>
                                                                 </div>
                                                                 <span
@@ -2407,42 +2800,53 @@ export function RouteComponent() {
                                                                         : 'bg-neutral-200 text-neutral-600'
                                                                         }`}
                                                                 >
-                                                                    {isEditMode ? 'Edit Mode' : 'View Mode'}
+                                                                    {isEditMode
+                                                                        ? 'Edit Mode'
+                                                                        : 'View Mode'}
                                                                 </span>
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <button
                                                                     onClick={handleRunCode}
-                                                                    className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium transition-colors"
+                                                                    className="flex items-center gap-2 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
                                                                 >
-                                                                    <Play className="h-4 w-4" />
+                                                                    <Play className="size-4" />
                                                                     Run
                                                                 </button>
                                                                 <DropdownMenu>
                                                                     <DropdownMenuTrigger asChild>
-                                                                        <button className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-neutral-50 border border-neutral-300 rounded text-sm font-medium transition-colors">
-                                                                            <Settings className="h-4 w-4" />
+                                                                        <button className="flex items-center gap-2 rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-50">
+                                                                            <Settings className="size-4" />
                                                                             Settings
-                                                                            <ChevronDown className="h-3 w-3" />
+                                                                            <ChevronDown className="size-3" />
                                                                         </button>
                                                                     </DropdownMenuTrigger>
-                                                                    <DropdownMenuContent className="w-56 bg-white" align="end">
+                                                                    <DropdownMenuContent
+                                                                        className="w-56 bg-white"
+                                                                        align="end"
+                                                                    >
                                                                         {/* View/Edit Mode */}
                                                                         <DropdownMenuCheckboxItem
                                                                             checked={isEditMode}
-                                                                            onCheckedChange={(checked) => setIsEditMode(!!checked)}
+                                                                            onCheckedChange={(
+                                                                                checked
+                                                                            ) =>
+                                                                                setIsEditMode(!!checked)
+                                                                            }
                                                                             className="flex items-center justify-between"
                                                                         >
                                                                             <div className="flex items-center gap-2">
-                                                                                <Eye className="h-4 w-4" />
-                                                                                <span>View/Edit Mode</span>
+                                                                                <Eye className="size-4" />
+                                                                                <span>
+                                                                                    View/Edit Mode
+                                                                                </span>
                                                                             </div>
                                                                             {isEditMode && (
                                                                                 <div className="flex items-center gap-1">
                                                                                     <div className="flex h-5 w-9 items-center rounded-full bg-emerald-500 px-1">
-                                                                                        <div className="h-3.5 w-3.5 rounded-full bg-white shadow-sm" />
+                                                                                        <div className="size-3.5 rounded-full bg-white shadow-sm" />
                                                                                     </div>
-                                                                                    <Pencil className="h-3 w-3 text-neutral-600" />
+                                                                                    <Pencil className="size-3 text-neutral-600" />
                                                                                 </div>
                                                                             )}
                                                                         </DropdownMenuCheckboxItem>
@@ -2451,11 +2855,19 @@ export function RouteComponent() {
 
                                                                         {/* Switch Theme */}
                                                                         <DropdownMenuItem
-                                                                            onClick={() => setIsDarkTheme((prev) => !prev)}
+                                                                            onClick={() =>
+                                                                                setIsDarkTheme(
+                                                                                    (prev) => !prev
+                                                                                )
+                                                                            }
                                                                             className="flex items-center gap-2"
                                                                         >
-                                                                            <Sun className="h-4 w-4" />
-                                                                            <span>{isDarkTheme ? 'Switch to Light Theme' : 'Switch to Dark Theme'}</span>
+                                                                            <Sun className="size-4" />
+                                                                            <span>
+                                                                                {isDarkTheme
+                                                                                    ? 'Switch to Light Theme'
+                                                                                    : 'Switch to Dark Theme'}
+                                                                            </span>
                                                                         </DropdownMenuItem>
 
                                                                         <DropdownMenuSeparator />
@@ -2465,7 +2877,7 @@ export function RouteComponent() {
                                                                             onClick={handleCopyCode}
                                                                             className="flex items-center gap-2"
                                                                         >
-                                                                            <Copy className="h-4 w-4" />
+                                                                            <Copy className="size-4" />
                                                                             <span>Copy Code</span>
                                                                         </DropdownMenuItem>
 
@@ -2474,7 +2886,7 @@ export function RouteComponent() {
                                                                             onClick={handleDownloadCode}
                                                                             className="flex items-center gap-2"
                                                                         >
-                                                                            <Download className="h-4 w-4" />
+                                                                            <Download className="size-4" />
                                                                             <span>Download Code</span>
                                                                         </DropdownMenuItem>
                                                                     </DropdownMenuContent>
@@ -2485,7 +2897,9 @@ export function RouteComponent() {
                                                             height="calc(100% - 60px)"
                                                             language="javascript"
                                                             value={codeContent}
-                                                            onChange={(value) => setCodeContent(value || '')}
+                                                            onChange={(value) =>
+                                                                setCodeContent(value || '')
+                                                            }
                                                             theme={isDarkTheme ? 'vs-dark' : 'light'}
                                                             options={{
                                                                 minimap: { enabled: false },
@@ -2500,25 +2914,33 @@ export function RouteComponent() {
 
                                                     {/* Resize Divider */}
                                                     <div
-                                                        className="w-1 bg-neutral-300 hover:bg-indigo-500 cursor-col-resize flex-shrink-0 transition-colors relative group"
+                                                        className="group relative w-1 shrink-0 cursor-col-resize bg-neutral-300 transition-colors hover:bg-indigo-500"
                                                         onMouseDown={handleResizeStart}
-                                                        style={{ cursor: isResizing ? 'col-resize' : 'col-resize' }}
+                                                        style={{
+                                                            cursor: isResizing
+                                                                ? 'col-resize'
+                                                                : 'col-resize',
+                                                        }}
                                                     >
-                                                        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 flex items-center justify-center">
-                                                            <div className="w-1 h-12 bg-neutral-400 group-hover:bg-indigo-500 rounded-full transition-colors" />
+                                                        <div className="absolute inset-y-0 left-1/2 flex w-8 -translate-x-1/2 items-center justify-center">
+                                                            <div className="h-12 w-1 rounded-full bg-neutral-400 transition-colors group-hover:bg-indigo-500" />
                                                         </div>
                                                     </div>
 
                                                     {/* Video Section */}
                                                     <div
-                                                        className="border rounded-r-lg overflow-hidden bg-black flex-shrink-0 flex items-center justify-center"
+                                                        className="flex shrink-0 items-center justify-center overflow-hidden rounded-r-lg border bg-black"
                                                         style={{ width: `${100 - codeEditorWidth}%` }}
                                                     >
-                                                        <div className="w-full h-full flex items-center justify-center bg-black">
-                                                            <div className="text-white text-center px-6">
-                                                                <Video className="h-16 w-16 mx-auto mb-2 opacity-50" />
-                                                                <p className="text-sm opacity-75">Video Player</p>
-                                                                <p className="text-xs mt-2 opacity-50">Video will be displayed here</p>
+                                                        <div className="flex size-full items-center justify-center bg-black">
+                                                            <div className="px-6 text-center text-white">
+                                                                <Video className="mx-auto mb-2 size-16 opacity-50" />
+                                                                <p className="text-sm opacity-75">
+                                                                    Video Player
+                                                                </p>
+                                                                <p className="mt-2 text-xs opacity-50">
+                                                                    Video will be displayed here
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2530,161 +2952,204 @@ export function RouteComponent() {
                                             <div className="space-y-6">
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex-1">
-                                                        <Label className="text-base font-semibold">Question:</Label>
+                                                        <Label className="text-base font-semibold">
+                                                            Question:
+                                                        </Label>
                                                         <p className="mt-2 text-neutral-700">
-                                                            {currentQuizQuestion?.question ?? 'No question available'}
+                                                            {currentQuizQuestion?.question ??
+                                                                'No question available'}
                                                         </p>
                                                     </div>
                                                     <div className="flex items-center gap-3">
                                                         <button
-                                                            onClick={() => handleQuizNavigation('prev')}
-                                                            disabled={currentQuizQuestionIndex === 0}
-                                                            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                                            onClick={() =>
+                                                                handleQuizNavigation('prev')
+                                                            }
+                                                            disabled={
+                                                                currentQuizQuestionIndex === 0
+                                                            }
+                                                            className="flex size-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
                                                             aria-label="Previous question"
                                                         >
-                                                            <ChevronLeft className="h-4 w-4" />
+                                                            <ChevronLeft className="size-4" />
                                                         </button>
                                                         <span className="text-sm font-medium text-neutral-600">
-                                                            {currentQuizQuestionIndex + 1}/{quizQuestions.length}
+                                                            {currentQuizQuestionIndex + 1}/
+                                                            {quizQuestions.length}
                                                         </span>
                                                         <button
-                                                            onClick={() => handleQuizNavigation('next')}
+                                                            onClick={() =>
+                                                                handleQuizNavigation('next')
+                                                            }
                                                             disabled={
                                                                 quizQuestions.length === 0 ||
-                                                                currentQuizQuestionIndex === quizQuestions.length - 1
+                                                                currentQuizQuestionIndex ===
+                                                                quizQuestions.length - 1
                                                             }
-                                                            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                                            className="flex size-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
                                                             aria-label="Next question"
                                                         >
-                                                            <ChevronRight className="h-4 w-4" />
+                                                            <ChevronRight className="size-4" />
                                                         </button>
                                                     </div>
                                                 </div>
 
                                                 {quizQuestions.length > 0 && currentQuizQuestion ? (
                                                     <RadioGroup
-                                                        value={selectedQuizAnswers[currentQuizQuestionIndex] ?? ''}
+                                                        value={
+                                                            selectedQuizAnswers[
+                                                            currentQuizQuestionIndex
+                                                            ] ?? ''
+                                                        }
                                                         onValueChange={handleQuizAnswerChange}
                                                         className="space-y-3"
                                                     >
-                                                        {currentQuizQuestion.options.map((option, optionIndex) => {
-                                                            const value = optionIndex.toString();
-                                                            const selected = selectedQuizAnswers[currentQuizQuestionIndex] === value;
-                                                            const isCorrect =
-                                                                currentQuizQuestion.correctAnswerIndex?.toString() === value;
-                                                            const highlightClass = selected
-                                                                ? isCorrect
-                                                                    ? 'border-emerald-300 bg-emerald-50'
-                                                                    : 'border-indigo-300 bg-indigo-50'
-                                                                : 'border-neutral-200 hover:border-emerald-200 hover:bg-emerald-50/40';
+                                                        {currentQuizQuestion.options.map(
+                                                            (option, optionIndex) => {
+                                                                const value =
+                                                                    optionIndex.toString();
+                                                                const selected =
+                                                                    selectedQuizAnswers[
+                                                                    currentQuizQuestionIndex
+                                                                    ] === value;
+                                                                const isCorrect =
+                                                                    currentQuizQuestion.correctAnswerIndex?.toString() ===
+                                                                    value;
+                                                                const highlightClass = selected
+                                                                    ? isCorrect
+                                                                        ? 'border-emerald-300 bg-emerald-50'
+                                                                        : 'border-indigo-300 bg-indigo-50'
+                                                                    : 'border-neutral-200 hover:border-emerald-200 hover:bg-emerald-50/40';
 
-                                                            return (
-                                                                <div
-                                                                    key={value}
-                                                                    className={`flex items-center space-x-2 rounded-lg border p-3 transition-colors ${highlightClass}`}
-                                                                >
-                                                                    <RadioGroupItem
-                                                                        value={value}
-                                                                        id={`quiz-${currentQuizQuestionIndex}-${optionIndex}`}
-                                                                    />
-                                                                    <Label
-                                                                        htmlFor={`quiz-${currentQuizQuestionIndex}-${optionIndex}`}
-                                                                        className="flex-1 cursor-pointer"
+                                                                return (
+                                                                    <div
+                                                                        key={value}
+                                                                        className={`flex items-center space-x-2 rounded-lg border p-3 transition-colors ${highlightClass}`}
                                                                     >
-                                                                        {option}
-                                                                    </Label>
-                                                                    {selected && isCorrect && <CheckCircle className="h-5 w-5 text-emerald-500" />}
-                                                                </div>
-                                                            );
-                                                        })}
+                                                                        <RadioGroupItem
+                                                                            value={value}
+                                                                            id={`quiz-${currentQuizQuestionIndex}-${optionIndex}`}
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor={`quiz-${currentQuizQuestionIndex}-${optionIndex}`}
+                                                                            className="flex-1 cursor-pointer"
+                                                                        >
+                                                                            {option}
+                                                                        </Label>
+                                                                        {selected && isCorrect && (
+                                                                            <CheckCircle className="size-5 text-emerald-500" />
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            }
+                                                        )}
                                                     </RadioGroup>
                                                 ) : (
-                                                    <p className="text-sm text-neutral-500">No questions available for this quiz yet.</p>
+                                                    <p className="text-sm text-neutral-500">
+                                                        No questions available for this quiz yet.
+                                                    </p>
                                                 )}
                                             </div>
                                         )}
 
                                         {/* Homework/Assignment Slide */}
-                                        {(viewingSlide.slideType === 'homework' || viewingSlide.slideType === 'assignment') && (
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <Label className="text-base font-semibold">Question:</Label>
-                                                    <Textarea
-                                                        value={homeworkQuestion}
-                                                        onChange={(e) => setHomeworkQuestion(e.target.value)}
-                                                        placeholder="Enter assignment question..."
-                                                        className="mt-2 min-h-[100px]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-4 mb-2">
-                                                        <Label className="text-base font-semibold">Answer:</Label>
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => setHomeworkAnswerType('text')}
-                                                                className={`px-3 py-1 text-sm rounded ${homeworkAnswerType === 'text'
-                                                                    ? 'bg-indigo-600 text-white'
-                                                                    : 'bg-neutral-100 text-neutral-700'
-                                                                    }`}
-                                                            >
-                                                                Text
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setHomeworkAnswerType('code')}
-                                                                className={`px-3 py-1 text-sm rounded ${homeworkAnswerType === 'code'
-                                                                    ? 'bg-indigo-600 text-white'
-                                                                    : 'bg-neutral-100 text-neutral-700'
-                                                                    }`}
-                                                            >
-                                                                Code Editor
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    {homeworkAnswerType === 'text' ? (
-                                                        <YooptaEditorWrapper
-                                                            value={homeworkAnswer}
-                                                            onChange={setHomeworkAnswer}
-                                                            placeholder="Enter your answer..."
-                                                            minHeight={300}
+                                        {(viewingSlide.slideType === 'homework' ||
+                                            viewingSlide.slideType === 'assignment') && (
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <Label className="text-base font-semibold">
+                                                            Question:
+                                                        </Label>
+                                                        <Textarea
+                                                            value={homeworkQuestion}
+                                                            onChange={(e) =>
+                                                                setHomeworkQuestion(e.target.value)
+                                                            }
+                                                            placeholder="Enter assignment question..."
+                                                            className="mt-2 min-h-[100px]"
                                                         />
-                                                    ) : (
-                                                        <div className="border rounded-lg overflow-hidden">
-                                                            <Editor
-                                                                height="300px"
-                                                                language="javascript"
-                                                                value={homeworkAnswer}
-                                                                onChange={(value) => setHomeworkAnswer(value || '')}
-                                                                theme="light"
-                                                                options={{
-                                                                    minimap: { enabled: false },
-                                                                    fontSize: 14,
-                                                                    lineNumbers: 'on',
-                                                                    scrollBeyondLastLine: false,
-                                                                    automaticLayout: true,
-                                                                }}
-                                                            />
+                                                    </div>
+                                                    <div>
+                                                        <div className="mb-2 flex items-center gap-4">
+                                                            <Label className="text-base font-semibold">
+                                                                Answer:
+                                                            </Label>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setHomeworkAnswerType('text')
+                                                                    }
+                                                                    className={`rounded px-3 py-1 text-sm ${homeworkAnswerType === 'text'
+                                                                        ? 'bg-indigo-600 text-white'
+                                                                        : 'bg-neutral-100 text-neutral-700'
+                                                                        }`}
+                                                                >
+                                                                    Text
+                                                                </button>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setHomeworkAnswerType('code')
+                                                                    }
+                                                                    className={`rounded px-3 py-1 text-sm ${homeworkAnswerType === 'code'
+                                                                        ? 'bg-indigo-600 text-white'
+                                                                        : 'bg-neutral-100 text-neutral-700'
+                                                                        }`}
+                                                                >
+                                                                    Code Editor
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    )}
+                                                        {homeworkAnswerType === 'text' ? (
+                                                            <YooptaEditorWrapper
+                                                                value={homeworkAnswer}
+                                                                onChange={setHomeworkAnswer}
+                                                                placeholder="Enter your answer..."
+                                                                minHeight={300}
+                                                            />
+                                                        ) : (
+                                                            <div className="overflow-hidden rounded-lg border">
+                                                                <Editor
+                                                                    height="300px"
+                                                                    language="javascript"
+                                                                    value={homeworkAnswer}
+                                                                    onChange={(value) =>
+                                                                        setHomeworkAnswer(value || '')
+                                                                    }
+                                                                    theme="light"
+                                                                    options={{
+                                                                        minimap: { enabled: false },
+                                                                        fontSize: 14,
+                                                                        lineNumbers: 'on',
+                                                                        scrollBeyondLastLine: false,
+                                                                        automaticLayout: true,
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
 
                                         {/* Code Editor Slide */}
                                         {(viewingSlide.slideType === 'code-editor' ||
                                             viewingSlide.slideType === 'jupyter' ||
                                             viewingSlide.slideType === 'scratch' ||
                                             viewingSlide.slideType === 'solution') && (
-                                                <div className="border rounded-lg overflow-hidden">
-                                                    <div className="bg-neutral-100 px-4 py-2 border-b">
+                                                <div className="overflow-hidden rounded-lg border">
+                                                    <div className="border-b bg-neutral-100 px-4 py-2">
                                                         <span className="text-sm font-medium">
-                                                            {viewingSlide.slideType === 'solution' ? 'Solution Code' : 'Code Editor'}
+                                                            {viewingSlide.slideType === 'solution'
+                                                                ? 'Solution Code'
+                                                                : 'Code Editor'}
                                                         </span>
                                                     </div>
                                                     <Editor
                                                         height="500px"
                                                         language="javascript"
                                                         value={codeContent}
-                                                        onChange={(value) => setCodeContent(value || '')}
+                                                        onChange={(value) =>
+                                                            setCodeContent(value || '')
+                                                        }
                                                         theme="light"
                                                         options={{
                                                             minimap: { enabled: false },
@@ -2699,7 +3164,7 @@ export function RouteComponent() {
                                     </div>
 
                                     {/* Fixed Footer */}
-                                    <div className="px-6 py-4 flex-shrink-0 border-t flex justify-end">
+                                    <div className="flex shrink-0 justify-end border-t px-6 py-4">
                                         <MyButton
                                             buttonType="primary"
                                             onClick={() => {
@@ -2739,21 +3204,34 @@ export function RouteComponent() {
                             if (!open) {
                                 setRegeneratingSessionId(null);
                             } else if (regeneratingSessionId) {
-                                const session = sessionsWithProgress.find((s) => s.sessionId === regeneratingSessionId);
+                                const session = sessionsWithProgress.find(
+                                    (s) => s.sessionId === regeneratingSessionId
+                                );
                                 if (session) {
-                                    const slideTitles = extractSlideTitlesFromSlides(session.slides);
-                                    const defaultPrompt = `Regenerate the chapter "${session.sessionTitle}"${slideTitles.length > 0 ? ` with the following slides: ${slideTitles.join(", ")}.` : `.`}`;
+                                    const slideTitles = extractSlideTitlesFromSlides(
+                                        session.slides
+                                    );
+                                    const defaultPrompt = `Regenerate the chapter "${session.sessionTitle}"${slideTitles.length > 0 ? ` with the following slides: ${slideTitles.join(', ')}.` : `.`}`;
                                     setRegenerateSessionPrompt(defaultPrompt);
                                     setRegenerateSessionTopics(slideTitles);
-                                    setRegenerateSessionNumberOfTopics(slideTitles.length.toString());
-                                    const hasQuiz = session.slides.some(s => s.slideType === 'quiz');
-                                    const hasHomework = session.slides.some(s => s.slideType === 'homework');
-                                    const hasSolution = session.slides.some(s => s.slideType === 'solution');
-                                    const hasCodeSlides = session.slides.some(s =>
-                                        s.slideType === 'code-editor' ||
-                                        s.slideType === 'video-code-editor' ||
-                                        s.slideType === 'jupyter' ||
-                                        s.slideType === 'video-jupyter'
+                                    setRegenerateSessionNumberOfTopics(
+                                        slideTitles.length.toString()
+                                    );
+                                    const hasQuiz = session.slides.some(
+                                        (s) => s.slideType === 'quiz'
+                                    );
+                                    const hasHomework = session.slides.some(
+                                        (s) => s.slideType === 'homework'
+                                    );
+                                    const hasSolution = session.slides.some(
+                                        (s) => s.slideType === 'solution'
+                                    );
+                                    const hasCodeSlides = session.slides.some(
+                                        (s) =>
+                                            s.slideType === 'code-editor' ||
+                                            s.slideType === 'video-code-editor' ||
+                                            s.slideType === 'jupyter' ||
+                                            s.slideType === 'video-jupyter'
                                     );
                                     setRegenerateIncludeCodeSnippets(hasCodeSlides);
                                     setRegenerateIncludeQuizzes(hasQuiz);
@@ -2828,7 +3306,11 @@ export function RouteComponent() {
                     <GenerateCourseAssetsDialog
                         open={generateCourseAssetsDialogOpen}
                         onOpenChange={setGenerateCourseAssetsDialogOpen}
-                        onConfirm={isContentGenerated ? () => handleCreateCourse('ACTIVE') : handleConfirmGenerateCourseAssets}
+                        onConfirm={
+                            isContentGenerated
+                                ? () => handleCreateCourse('ACTIVE')
+                                : handleConfirmGenerateCourseAssets
+                        }
                     />
 
                     <BackToLibraryDialog
@@ -2840,5 +3322,5 @@ export function RouteComponent() {
                 </div>
             </div>
         </LayoutContainer>
-    )
+    );
 }

@@ -90,13 +90,13 @@ export const enum SettingsTabs {
     Referral = 'referral',
     Course = 'course',
     Notification = 'notification',
-    AdminDisplay = 'adminDisplay',
-    TeacherDisplay = 'teacherDisplay',
+    RoleDisplay = 'roleDisplay',
     StudentDisplay = 'studentDisplay',
     CustomFields = 'customFields',
     Certificates = 'certificates',
     Templates = 'templates',
     AiSettings = 'aiSettings',
+    FeeManagement = 'feeManagement',
     SchoolSettings = 'schoolSettings',
 }
 

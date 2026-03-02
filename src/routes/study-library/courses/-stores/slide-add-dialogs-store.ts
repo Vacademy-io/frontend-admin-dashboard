@@ -10,6 +10,8 @@ interface DialogState {
     isAssignmentDialogOpen: boolean;
     isQuizDialogOpen: boolean;
     isAudioDialogOpen: boolean;
+    isPptDialogOpen: boolean;
+    isScormDialogOpen: boolean;
 
     // Dialog actions
     openPdfDialog: () => void;
@@ -44,6 +46,14 @@ interface DialogState {
     closeAudioDialog: () => void;
     toggleAudioDialog: () => void;
 
+    openPptDialog: () => void;
+    closePptDialog: () => void;
+    togglePptDialog: () => void;
+
+    openScormDialog: () => void;
+    closeScormDialog: () => void;
+    toggleScormDialog: () => void;
+
     resetDialogs: () => void;
 }
 
@@ -56,6 +66,8 @@ export const useDialogStore = create<DialogState>((set) => ({
     isAssignmentDialogOpen: false,
     isQuizDialogOpen: false,
     isAudioDialogOpen: false,
+    isPptDialogOpen: false,
+    isScormDialogOpen: false,
 
     // PDF Dialog actions
     openPdfDialog: () => set({ isPdfDialogOpen: true }),
@@ -101,6 +113,16 @@ export const useDialogStore = create<DialogState>((set) => ({
     closeAudioDialog: () => set({ isAudioDialogOpen: false }),
     toggleAudioDialog: () => set((state) => ({ isAudioDialogOpen: !state.isAudioDialogOpen })),
 
+    // PPT Dialog actions
+    openPptDialog: () => set({ isPptDialogOpen: true }),
+    closePptDialog: () => set({ isPptDialogOpen: false }),
+    togglePptDialog: () => set((state) => ({ isPptDialogOpen: !state.isPptDialogOpen })),
+
+    // SCORM Dialog actions
+    openScormDialog: () => set({ isScormDialogOpen: true }),
+    closeScormDialog: () => set({ isScormDialogOpen: false }),
+    toggleScormDialog: () => set((state) => ({ isScormDialogOpen: !state.isScormDialogOpen })),
+
     // Reset all dialogs
     resetDialogs: () =>
         set({
@@ -112,5 +134,7 @@ export const useDialogStore = create<DialogState>((set) => ({
             isAssignmentDialogOpen: false,
             isQuizDialogOpen: false,
             isAudioDialogOpen: false,
+            isPptDialogOpen: false,
+            isScormDialogOpen: false,
         }),
 }));

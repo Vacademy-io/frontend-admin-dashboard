@@ -18,6 +18,7 @@ interface EnrollManuallyButtonProps {
     initialValues?: StudentTable;
     forceOpen?: boolean;
     onClose?: () => void;
+    startStep?: number;
 }
 
 export const EnrollManuallyButton = ({
@@ -25,18 +26,25 @@ export const EnrollManuallyButton = ({
     initialValues,
     forceOpen,
     onClose,
+    startStep = 1,
 }: EnrollManuallyButtonProps) => {
     const [openDialog, setOpenDialog] = useState(!!forceOpen);
-    const { resetForm } = useFormStore();
+    const { resetForm, setStep } = useFormStore();
     const currentStep = useFormStore((state) => state.currentStep);
     const [nextButtonDisable, setNextButtonDisable] = useState(true);
 
     const handleNextButtonDisable = (value: boolean) => setNextButtonDisable(value);
 
-    const step1FormSubmitRef = useRef(() => {});
-    const step2FormSubmitRef = useRef(() => {});
-    const step3FormSubmitRef = useRef(() => {});
-    const step4FormSubmitRef = useRef(() => {});
+    useEffect(() => {
+        if (openDialog && startStep > 1) {
+            setStep(startStep);
+        }
+    }, [openDialog, startStep, setStep]);
+
+    const step1FormSubmitRef = useRef(() => { });
+    const step2FormSubmitRef = useRef(() => { });
+    const step3FormSubmitRef = useRef(() => { });
+    const step4FormSubmitRef = useRef(() => { });
     const step5FormSubmitRef = useRef<() => Promise<void>>(async () => { });
 
     const submitFn1 = (fn: () => void) => (step1FormSubmitRef.current = fn);

@@ -1,3 +1,6 @@
+import { getActiveRoleDisplaySettingsKey } from '@/lib/auth/instituteUtils';
+import { getInstituteId } from '@/constants/helper';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
 'use client';
 
 import { MyButton } from '@/components/design-system/button';
@@ -14,13 +17,16 @@ import {
     Code,
     BookOpen,
     MusicNotes,
+    Package,
 } from '@phosphor-icons/react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { AddVideoDialog } from './add-video-dialog';
 import { AddVideoFileDialog } from './add-video-file-dialog';
 import { AddDocDialog } from './add-doc-dialog';
 import { AddPdfDialog } from './add-pdf-dialog';
+import { AddPptDialog } from './add-ppt-dialog';
 import { AddAudioDialog } from './add-audio-dialog';
+import { AddScormDialog } from './add-scorm-dialog';
 import { useRouter } from '@tanstack/react-router';
 import {
     useSlidesMutations,
@@ -43,7 +49,7 @@ import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 import { useEffect, useMemo, useState } from 'react';
 import {
     ADMIN_DISPLAY_SETTINGS_KEY,
-    TEACHER_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY, CUSTOM_ROLE_DISPLAY_SETTINGS_KEY,
     type DisplaySettingsData,
 } from '@/types/display-settings';
 import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
@@ -65,7 +71,8 @@ export const ChapterSidebarAddButton = () => {
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         const roles = getUserRoles(accessToken);
         const isAdmin = roles.includes('ADMIN');
-        const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const hasFaculty = hasFacultyAssignedPermission(getInstituteId());
+    const roleKey = getActiveRoleDisplaySettingsKey();
         const cached = getDisplaySettingsFromCache(roleKey);
         if (cached) {
             setRoleDisplay(cached);
@@ -106,6 +113,8 @@ export const ChapterSidebarAddButton = () => {
         isVideoFileDialogOpen,
         isQuestionDialogOpen,
         isAudioDialogOpen,
+        isPptDialogOpen,
+        isScormDialogOpen,
 
         openPdfDialog,
         closePdfDialog,
@@ -119,6 +128,10 @@ export const ChapterSidebarAddButton = () => {
         closeQuestionDialog,
         openAudioDialog,
         closeAudioDialog,
+        openPptDialog,
+        closePptDialog,
+        openScormDialog,
+        closeScormDialog,
     } = useDialogStore();
 
     // Function to reorder slides after adding a new one at the top
@@ -165,6 +178,12 @@ export const ChapterSidebarAddButton = () => {
                 value: 'pdf',
                 icon: <FilePdf className="size-4 text-red-500" />,
                 description: 'Upload PDF files',
+            },
+            {
+                label: 'PPT Presentation',
+                value: 'ppt',
+                icon: <PresentationChart className="size-4 text-orange-500" />,
+                description: 'Upload PPT/PPTX files (converted to PDF)',
             },
             {
                 label: 'Document',
@@ -250,6 +269,12 @@ export const ChapterSidebarAddButton = () => {
                 icon: <Code className="size-4 text-green-500" />,
                 description: 'Interactive code environment',
             },
+            {
+                label: 'SCORM Package',
+                value: 'scorm',
+                icon: <Package className="size-4 text-teal-500" />,
+                description: 'Import SCORM 1.2/2004 modules',
+            },
         ],
         []
     );
@@ -284,6 +309,8 @@ export const ChapterSidebarAddButton = () => {
                     return ct.codeEditor !== false;
                 case 'audio':
                     return true; // Audio slides are enabled by default
+                case 'scorm':
+                    return true; // SCORM slides are enabled by default
                 // presentation treated as a document-type control
                 case 'presentation':
                     return ct.document !== false;
@@ -331,6 +358,9 @@ export const ChapterSidebarAddButton = () => {
             }
             case 'pdf':
                 openPdfDialog();
+                break;
+            case 'ppt':
+                openPptDialog();
                 break;
             case 'upload-doc':
                 openDocUploadDialog();
@@ -631,6 +661,10 @@ export const ChapterSidebarAddButton = () => {
             case 'audio':
                 openAudioDialog();
                 break;
+
+            case 'scorm':
+                openScormDialog();
+                break;
         }
     };
 
@@ -780,6 +814,30 @@ export const ChapterSidebarAddButton = () => {
             >
                 <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddAudioDialog openState={(open) => !open && closeAudioDialog()} />
+                </div>
+            </MyDialog>
+
+            <MyDialog
+                trigger={<></>}
+                heading="Upload PPT Presentation"
+                dialogWidth="min-w-[400px] w-auto"
+                open={isPptDialogOpen}
+                onOpenChange={closePptDialog}
+            >
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
+                    <AddPptDialog openState={(open) => !open && closePptDialog()} />
+                </div>
+            </MyDialog>
+
+            <MyDialog
+                trigger={<></>}
+                heading="Import SCORM Package"
+                dialogWidth="min-w-[400px] w-auto"
+                open={isScormDialogOpen}
+                onOpenChange={closeScormDialog}
+            >
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
+                    <AddScormDialog openState={(open) => !open && closeScormDialog()} />
                 </div>
             </MyDialog>
         </div>

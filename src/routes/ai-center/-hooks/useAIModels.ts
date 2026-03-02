@@ -1,43 +1,39 @@
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import { GET_AVAILABLE_AI_MODELS } from '@/constants/urls';
-import { AIModelsResponse, getModelDisplayInfo, ModelInfo } from '../-types/ai-models';
+import { useAIModelsList } from '@/hooks/useAiModels';
+import { ModelInfo } from '../-types/ai-models';
 
 /**
  * Custom hook to fetch and manage available AI models
+ * Adapts the new v2 API response to the local component needs
  */
 export const useAIModels = () => {
-    const { data, isLoading, isError, error, refetch } = useQuery<AIModelsResponse>({
-        queryKey: ['GET_AVAILABLE_AI_MODELS'],
-        queryFn: async () => {
-            const response = await axios.get(GET_AVAILABLE_AI_MODELS);
-            return response.data;
-        },
-        staleTime: 5 * 60 * 1000, // Cache for 5 minutes as per best practices
-        gcTime: 10 * 60 * 1000,
-        retry: 2,
-    });
+    const { data, isLoading, isError, error, refetch } = useAIModelsList();
 
     // Transform available models to include display info
     const availableModels: ModelInfo[] =
-        data?.availableModels?.map((modelId) => ({
-            ...getModelDisplayInfo(modelId),
-            isDefault: modelId === data.defaultModel,
+        data?.models?.map((model) => ({
+            id: model.model_id,
+            name: model.name,
+            description: model.description || `${model.provider} Model`,
+            isDefault: model.is_default,
         })) || [];
 
     // Get default model info
-    const defaultModel = data?.defaultModel
+    const defaultModelData = data?.models?.find((m) => m.is_default);
+
+    const defaultModel = defaultModelData
         ? {
-            ...getModelDisplayInfo(data.defaultModel),
-            isDefault: true,
-        }
+              id: defaultModelData.model_id,
+              name: defaultModelData.name,
+              description: defaultModelData.description || 'Default Model',
+              isDefault: true,
+          }
         : null;
 
     return {
         availableModels,
         defaultModel,
-        defaultModelId: data?.defaultModel || null,
-        fallbackModels: data?.fallbackModels || [],
+        defaultModelId: defaultModel?.id || null,
+        fallbackModels: [], // New API doesn't explicitly return fallback list in list endpoint, can be omitted or adapted
         isLoading,
         isError,
         error,

@@ -5,14 +5,14 @@ import CourseSettings from '../-components/Course/CourseSettings';
 import TabSettings from '../-components/Tab/TabSettings';
 import NamingSettings from '../-components/NamingSettings';
 import NotificationSettings from '../-components/Notification/NotificationSettings';
-import AdminDisplaySettings from '../-components/RoleDisplay/AdminDisplaySettings';
-import TeacherDisplaySettings from '../-components/RoleDisplay/TeacherDisplaySettings';
+import RoleDisplaySettingsMain from '../-components/RoleDisplay/RoleDisplaySettingsMain';
 import StudentDisplaySettings from '@/routes/settings/-components/RoleDisplay/StudentDisplaySettings';
 import CustomFieldsSettings from '@/components/settings/CustomFieldsSettings';
 import CertificatesSettings from '../-components/Certificates/CertificatesSettings';
 import { TemplateSettings } from '@/components/templates';
 import AiSettings from '../-components/AiSettings';
 import SchoolSettings from '../-components/School/SchoolSettings';
+import FeeManagementMain from '../fee-management/-components/FeeManagementMain';
 
 export const getAvailableSettingsTabs = () => {
     return [
@@ -22,14 +22,9 @@ export const getAvailableSettingsTabs = () => {
             component: TabSettings,
         },
         {
-            tab: SettingsTabs.AdminDisplay,
-            value: 'Admin Display',
-            component: AdminDisplaySettings,
-        },
-        {
-            tab: SettingsTabs.TeacherDisplay,
-            value: 'Teacher Display',
-            component: TeacherDisplaySettings,
+            tab: SettingsTabs.RoleDisplay,
+            value: 'Display Settings',
+            component: RoleDisplaySettingsMain,
         },
         {
             tab: SettingsTabs.StudentDisplay,
@@ -85,6 +80,11 @@ export const getAvailableSettingsTabs = () => {
             tab: SettingsTabs.SchoolSettings,
             value: 'School Settings',
             component: SchoolSettings,
+        },
+        {
+            tab: SettingsTabs.FeeManagement,
+            value: 'Fee Management',
+            component: FeeManagementMain,
         },
     ];
 };

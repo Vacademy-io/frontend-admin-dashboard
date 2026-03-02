@@ -211,6 +211,7 @@ export const AddPdfDialog = ({
                         acceptedFileTypes={['application/pdf']}
                         isUploading={isUploading}
                         error={error}
+                        disableClick={false}
                         className={`
               flex flex-col items-center rounded-xl border-2 border-dashed px-6 py-8
               transition-all duration-300 ease-in-out

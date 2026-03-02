@@ -6,7 +6,7 @@ import {
     AgentEvent,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     AgentMessage,
-    AgentRespondRequest
+    AgentRespondRequest,
 } from '../types/agent';
 import { AGENT_CHAT, AGENT_STREAM, AGENT_RESPOND } from '@/constants/urls';
 
@@ -33,12 +33,12 @@ export function useAgent(instituteId: string) {
             eventSourceRef.current.close();
             eventSourceRef.current = null;
         }
-        setState(prev => ({ ...prev, isStreaming: false }));
+        setState((prev) => ({ ...prev, isStreaming: false }));
     }, []);
 
     // Handle incoming agent events
     const handleAgentEvent = useCallback((event: AgentEvent) => {
-        setState(prev => {
+        setState((prev) => {
             const newMessages = [...prev.messages];
 
             switch (event.eventType) {
@@ -64,7 +64,9 @@ export function useAgent(instituteId: string) {
                 case 'TOOL_RESULT':
                     // Update the last tool call with result
                     // eslint-disable-next-line no-case-declarations
-                    const lastToolIdx = newMessages.findLastIndex(m => m.eventType === 'TOOL_CALL');
+                    const lastToolIdx = newMessages.findLastIndex(
+                        (m) => m.eventType === 'TOOL_CALL'
+                    );
                     if (lastToolIdx >= 0) {
                         const toolMsg = newMessages[lastToolIdx];
                         if (toolMsg && toolMsg.toolCall) {
@@ -102,14 +104,14 @@ export function useAgent(instituteId: string) {
                         ...prev,
                         messages: newMessages,
                         status: 'awaiting_input',
-                        isStreaming: false
+                        isStreaming: false,
                     };
 
                 case 'COMPLETE':
                     return {
                         ...prev,
                         status: 'complete',
-                        isStreaming: false
+                        isStreaming: false,
                     };
 
                 case 'ERROR':
@@ -117,7 +119,7 @@ export function useAgent(instituteId: string) {
                         ...prev,
                         status: 'error',
                         error: event.error || 'An error occurred',
-                        isStreaming: false
+                        isStreaming: false,
                     };
 
                 case 'TIMEOUT':
@@ -125,7 +127,7 @@ export function useAgent(instituteId: string) {
                         ...prev,
                         status: 'error',
                         error: 'Session timed out',
-                        isStreaming: false
+                        isStreaming: false,
                     };
 
                 default:
@@ -135,159 +137,168 @@ export function useAgent(instituteId: string) {
     }, []);
 
     // Subscribe to SSE stream
-    const subscribeToStream = useCallback((sessionId: string) => {
-        closeConnection();
-
-        const url = AGENT_STREAM(sessionId);
-        const eventSource = new EventSource(url);
-        eventSourceRef.current = eventSource;
-
-        setState(prev => ({ ...prev, isStreaming: true }));
-
-        // Handle different event types
-        const eventTypes = ['THINKING', 'TOOL_CALL', 'TOOL_RESULT', 'MESSAGE', 'AWAITING_INPUT', 'COMPLETE', 'ERROR', 'TIMEOUT'];
-
-        eventTypes.forEach(eventType => {
-            eventSource.addEventListener(eventType, (event: MessageEvent) => {
-                try {
-                    const data: AgentEvent = JSON.parse(event.data);
-                    handleAgentEvent(data);
-                } catch (e) {
-                    console.error('Failed to parse SSE event:', e);
-                }
-            });
-        });
-
-        eventSource.onerror = (error) => {
-            console.error('SSE Error:', error);
-            setState(prev => ({
-                ...prev,
-                status: 'error',
-                error: 'Connection lost. Please try again.',
-                isStreaming: false
-            }));
+    const subscribeToStream = useCallback(
+        (sessionId: string) => {
             closeConnection();
-        };
-    }, [closeConnection, handleAgentEvent]);
+
+            const url = AGENT_STREAM(sessionId);
+            const eventSource = new EventSource(url);
+            eventSourceRef.current = eventSource;
+
+            setState((prev) => ({ ...prev, isStreaming: true }));
+
+            // Handle different event types
+            const eventTypes = [
+                'THINKING',
+                'TOOL_CALL',
+                'TOOL_RESULT',
+                'MESSAGE',
+                'AWAITING_INPUT',
+                'COMPLETE',
+                'ERROR',
+                'TIMEOUT',
+            ];
+
+            eventTypes.forEach((eventType) => {
+                eventSource.addEventListener(eventType, (event: MessageEvent) => {
+                    try {
+                        const data: AgentEvent = JSON.parse(event.data);
+                        handleAgentEvent(data);
+                    } catch (e) {
+                        console.error('Failed to parse SSE event:', e);
+                    }
+                });
+            });
+
+            eventSource.onerror = (error) => {
+                console.error('SSE Error:', error);
+                setState((prev) => ({
+                    ...prev,
+                    status: 'error',
+                    error: 'Connection lost. Please try again.',
+                    isStreaming: false,
+                }));
+                closeConnection();
+            };
+        },
+        [closeConnection, handleAgentEvent]
+    );
 
     // Start a new chat
-    const sendMessage = useCallback(async (
-        message: string,
-        model: string = 'anthropic/claude-3.5-sonnet',
-        context?: AgentChatRequest['context']
-    ) => {
-        try {
-            setState(prev => ({
-                ...prev,
-                status: 'connecting',
-                error: null,
-                messages: [
-                    ...prev.messages,
-                    {
-                        id: `user-${Date.now()}`,
-                        role: 'user',
-                        content: message,
-                        timestamp: new Date(),
-                    },
-                ],
-            }));
+    const sendMessage = useCallback(
+        async (message: string, model?: string, context?: AgentChatRequest['context']) => {
+            try {
+                setState((prev) => ({
+                    ...prev,
+                    status: 'connecting',
+                    error: null,
+                    messages: [
+                        ...prev.messages,
+                        {
+                            id: `user-${Date.now()}`,
+                            role: 'user',
+                            content: message,
+                            timestamp: new Date(),
+                        },
+                    ],
+                }));
 
-            const request: AgentChatRequest = {
-                sessionId: state.sessionId || undefined,
-                instituteId,
-                message,
-                model,
-                context,
-            };
+                const request: AgentChatRequest = {
+                    sessionId: state.sessionId || undefined,
+                    instituteId,
+                    message,
+                    model: model || undefined,
+                    context,
+                };
 
-            const response = await fetch(AGENT_CHAT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authTokenRef.current}`,
-                },
-                body: JSON.stringify(request),
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data: AgentChatResponse = await response.json();
-
-            if (data.status === 'ERROR') {
-                throw new Error(data.message);
-            }
-
-            setState(prev => ({
-                ...prev,
-                sessionId: data.sessionId,
-                status: 'processing',
-            }));
-
-            // Subscribe to SSE stream
-            subscribeToStream(data.sessionId);
-
-        } catch (error) {
-            setState(prev => ({
-                ...prev,
-                status: 'error',
-                error: error instanceof Error ? error.message : 'Failed to send message',
-            }));
-        }
-    }, [instituteId, state.sessionId, subscribeToStream]);
-
-    // Respond to agent confirmation
-    const respond = useCallback(async (response: string, optionId?: string) => {
-        if (!state.sessionId) {
-            console.error('No active session');
-            return;
-        }
-
-        try {
-            setState(prev => ({
-                ...prev,
-                status: 'processing',
-                messages: [
-                    ...prev.messages,
-                    {
-                        id: `user-${Date.now()}`,
-                        role: 'user',
-                        content: response,
-                        timestamp: new Date(),
-                    },
-                ],
-            }));
-
-            const request: AgentRespondRequest = { response, optionId };
-
-            const apiResponse = await fetch(
-                AGENT_RESPOND(state.sessionId),
-                {
+                const response = await fetch(AGENT_CHAT, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authTokenRef.current}`,
+                        Authorization: `Bearer ${authTokenRef.current}`,
                     },
                     body: JSON.stringify(request),
-                }
-            );
+                });
 
-            if (!apiResponse.ok) {
-                throw new Error(`HTTP error! status: ${apiResponse.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data: AgentChatResponse = await response.json();
+
+                if (data.status === 'ERROR') {
+                    throw new Error(data.message);
+                }
+
+                setState((prev) => ({
+                    ...prev,
+                    sessionId: data.sessionId,
+                    status: 'processing',
+                }));
+
+                // Subscribe to SSE stream
+                subscribeToStream(data.sessionId);
+            } catch (error) {
+                setState((prev) => ({
+                    ...prev,
+                    status: 'error',
+                    error: error instanceof Error ? error.message : 'Failed to send message',
+                }));
+            }
+        },
+        [instituteId, state.sessionId, subscribeToStream]
+    );
+
+    // Respond to agent confirmation
+    const respond = useCallback(
+        async (response: string, optionId?: string) => {
+            if (!state.sessionId) {
+                console.error('No active session');
+                return;
             }
 
-            // Re-subscribe to SSE stream
-            subscribeToStream(state.sessionId);
+            try {
+                setState((prev) => ({
+                    ...prev,
+                    status: 'processing',
+                    messages: [
+                        ...prev.messages,
+                        {
+                            id: `user-${Date.now()}`,
+                            role: 'user',
+                            content: response,
+                            timestamp: new Date(),
+                        },
+                    ],
+                }));
 
-        } catch (error) {
-            setState(prev => ({
-                ...prev,
-                status: 'error',
-                error: error instanceof Error ? error.message : 'Failed to respond',
-            }));
-        }
-    }, [state.sessionId, subscribeToStream]);
+                const request: AgentRespondRequest = { response, optionId };
+
+                const apiResponse = await fetch(AGENT_RESPOND(state.sessionId), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${authTokenRef.current}`,
+                    },
+                    body: JSON.stringify(request),
+                });
+
+                if (!apiResponse.ok) {
+                    throw new Error(`HTTP error! status: ${apiResponse.status}`);
+                }
+
+                // Re-subscribe to SSE stream
+                subscribeToStream(state.sessionId);
+            } catch (error) {
+                setState((prev) => ({
+                    ...prev,
+                    status: 'error',
+                    error: error instanceof Error ? error.message : 'Failed to respond',
+                }));
+            }
+        },
+        [state.sessionId, subscribeToStream]
+    );
 
     // Reset the agent state
     const reset = useCallback(() => {
