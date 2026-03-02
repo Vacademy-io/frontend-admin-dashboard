@@ -173,6 +173,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/admissions/enquiries',
                 subItemId: 'enquiry',
             },
+            {
+                subItem: 'Application',
+                subItemLink: '/admissions/application',
+                subItemId: 'application',
+            },
         ],
     },
     {
