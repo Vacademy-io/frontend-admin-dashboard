@@ -240,7 +240,7 @@ export function SessionCalendarView({ schedules }: SessionCalendarViewProps) {
                             const sessions = getSessionsForDate(selectedDate);
                             const defaultLink = sessions[0]?.default_class_link;
                             const defaultClassName = sessions[0]?.defaultClassName;
-                            const learnerButton = sessions[0]?.learner_button_config;
+                            const learnerButton = sessions[0]?.learner_button_config;  
 
                             if (defaultLink || learnerButton) {
                                 return (
