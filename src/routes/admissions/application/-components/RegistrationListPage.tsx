@@ -32,6 +32,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CopySimple } from 'phosphor-react';
+import { toast } from 'sonner';
 
 export function RegistrationListPage() {
     const { setNavHeading } = useNavHeadingStore();
@@ -150,7 +151,7 @@ export function RegistrationListPage() {
 
     const handleFetchEnquiry = async () => {
         if (!enquiryTrackingId.trim() && !enquiryPhone.trim()) {
-            alert('Please enter either enquiry tracking ID or phone number');
+            toast.warning('Please enter either enquiry tracking ID or phone number');
             return;
         }
 
@@ -162,7 +163,7 @@ export function RegistrationListPage() {
 
             // Check if already applied
             if (enquiryData.already_applied) {
-                alert('This enquiry has already been converted to an application.');
+                toast.warning('This enquiry has already been converted to an application.');
                 setIsLoadingEnquiry(false);
                 return;
             }
@@ -176,7 +177,7 @@ export function RegistrationListPage() {
             }
         } catch (error) {
             console.error('Error fetching enquiry:', error);
-            alert('Failed to fetch enquiry details. Please check the tracking ID.');
+            toast.error('Failed to fetch enquiry details. Please check the tracking ID.');
             setIsLoadingEnquiry(false);
         }
     };
@@ -216,7 +217,7 @@ export function RegistrationListPage() {
     return (
         <div className="flex h-full flex-col">
             <Helmet>
-                <title>Registrations - Admissions</title>
+                <title>Applications - Admissions</title>
             </Helmet>
 
             <div className="mb-6 flex items-center justify-between">
@@ -271,7 +272,7 @@ export function RegistrationListPage() {
                         disabled={!selectedSessionId}
                     >
                         <Plus className="mr-2 size-4" />
-                        Add New
+                        New Application
                     </MyButton>
                 </div>
             </div>
@@ -707,6 +708,7 @@ export function RegistrationListPage() {
                                             <MyButton
                                                 onClick={() => {
                                                     navigator.clipboard.writeText(paymentLink);
+                                                    toast.success('Payment link copied to clipboard!');
                                                 }}
                                             >
                                                 <CopySimple className="size-4" />

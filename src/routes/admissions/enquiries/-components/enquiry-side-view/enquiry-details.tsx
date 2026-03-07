@@ -3,6 +3,8 @@ import { handleFetchEnquiryDetails } from '../../-services/get-enquiry-details';
 import { useEnquirySidebar } from '../../-context/selected-enquiry-sidebar-context';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { format } from 'date-fns';
+import { TimelinePanel } from './timeline-panel';
+import { toast } from 'sonner';
 
 const InfoRow = ({ label, value }: { label: string; value: string | null | undefined }) => (
     <div className="flex flex-col gap-0.5 border-b border-neutral-100 py-2 last:border-0">
@@ -93,7 +95,10 @@ export const EnquiryDetails = () => {
                             </p>
                         </div>
                         <button
-                            onClick={() => navigator.clipboard.writeText(data.tracking_id!)}
+                            onClick={() => {
+                                navigator.clipboard.writeText(data.tracking_id!);
+                                toast.success('Tracking ID copied!');
+                            }}
                             className="flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-medium text-neutral-500 shadow-sm transition hover:border-primary-300 hover:text-primary-600"
                         >
                             <svg
@@ -171,6 +176,11 @@ export const EnquiryDetails = () => {
                     <InfoRow label="Class / Level" value={data.campaign.level_name} />
                     <InfoRow label="Session" value={data.campaign.package_session_name} />
                 </SectionCard>
+            )}
+
+            {/* Activity & Notes Timeline */}
+            {data.enquiry_id && (
+                <TimelinePanel entityType="ENQUIRY" entityId={data.enquiry_id} />
             )}
 
             {/* Application Status */}

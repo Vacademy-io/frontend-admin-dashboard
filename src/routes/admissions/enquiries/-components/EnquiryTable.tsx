@@ -78,7 +78,6 @@ export const EnquiryTable = ({
     useEffect(() => {
         setPage(0);
         setSelectedRows(new Set());
-        console.log('🔄 [EnquiryTable] Enquiry or filters changed, resetting page and selection');
     }, [
         enquiryId,
         statusFilter,
@@ -504,7 +503,7 @@ export const EnquiryTable = ({
                     buttonType="secondary"
                     onClick={() => navigate({ to: `/admissions/new-enquiry/${enquiryId}` })}
                 >
-                    Add Response
+                    Add New Enquiry Response
                 </MyButton>
             </div>
         );
@@ -532,7 +531,7 @@ export const EnquiryTable = ({
                         onClick={() => navigate({ to: `/admissions/new-enquiry/${enquiryId}` })}
                     >
                         <UserPlus className="mr-2 size-4" />
-                        Add Response
+                        Add New Enquiry Response
                     </Button>
                     <Button
                         variant="outline"
