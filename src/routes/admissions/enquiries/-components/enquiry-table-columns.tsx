@@ -62,7 +62,8 @@ export const generateDynamicColumns = (
     selectedRows?: Set<string>,
     onRowSelectionChange?: (id: string, selected: boolean) => void,
     onSelectAll?: (selected: boolean) => void,
-    onViewDetails?: (enquiryId: string) => void
+    onViewDetails?: (enquiryId: string) => void,
+    onActivityLog?: (enquiryId: string) => void
 ): ColumnDef<EnquiryTableRow>[] => {
     const columns: ColumnDef<EnquiryTableRow>[] = [];
 
@@ -369,16 +370,10 @@ export const generateDynamicColumns = (
                         View Details
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                        onClick={() => onViewDetails?.(row.original.id)}
+                        onClick={() => onActivityLog?.(row.original.id)}
                         className="cursor-pointer"
                     >
-                        Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => toast.info('Delete functionality will be available soon.')}
-                        className="cursor-pointer text-red-600"
-                    >
-                        Delete
+                        Activity Log
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

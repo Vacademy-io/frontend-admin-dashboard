@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     handleFetchTimelineEvents,
@@ -10,40 +10,109 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import {
+    NotePencil,
+    ArrowsClockwise,
+    User,
+    ClipboardText,
+    ArrowRight,
+    Phone,
+    EnvelopeSimple,
+    CurrencyCircleDollar,
+    Buildings,
+    PushPin,
+} from '@phosphor-icons/react';
 
 // ─── Action Type Icons & Colors ──────────────────────────────────────────────
 
-const ACTION_CONFIG: Record<string, { icon: string; color: string; bgColor: string }> = {
-    NOTE_ADDED: { icon: '📝', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-    STATUS_CHANGE: { icon: '🔄', color: 'text-amber-600', bgColor: 'bg-amber-100' },
-    COUNSELOR_ASSIGNED: { icon: '👤', color: 'text-purple-600', bgColor: 'bg-purple-100' },
-    APPLICATION_SUBMITTED: { icon: '📋', color: 'text-green-600', bgColor: 'bg-green-100' },
-    APPLICATION_TRANSITIONED: { icon: '➡️', color: 'text-indigo-600', bgColor: 'bg-indigo-100' },
-    PHONE_CALL: { icon: '📞', color: 'text-teal-600', bgColor: 'bg-teal-100' },
-    EMAIL_SENT: { icon: '✉️', color: 'text-sky-600', bgColor: 'bg-sky-100' },
-    PAYMENT_SUCCESS: { icon: '💰', color: 'text-emerald-600', bgColor: 'bg-emerald-100' },
-    CAMPUS_VISIT: { icon: '🏫', color: 'text-orange-600', bgColor: 'bg-orange-100' },
-    DEFAULT: { icon: '📌', color: 'text-neutral-600', bgColor: 'bg-neutral-100' },
+const ACTION_CONFIG: Record<string, { icon: ReactNode; color: string; bgColor: string }> = {
+    NOTE_ADDED: {
+        icon: <NotePencil weight="fill" className="size-4" />,
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-100',
+    },
+    STATUS_CHANGE: {
+        icon: <ArrowsClockwise weight="fill" className="size-4" />,
+        color: 'text-amber-600',
+        bgColor: 'bg-amber-100',
+    },
+    COUNSELOR_ASSIGNED: {
+        icon: <User weight="fill" className="size-4" />,
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-100',
+    },
+    APPLICATION_SUBMITTED: {
+        icon: <ClipboardText weight="fill" className="size-4" />,
+        color: 'text-green-600',
+        bgColor: 'bg-green-100',
+    },
+    APPLICATION_TRANSITIONED: {
+        icon: <ArrowRight weight="bold" className="size-4" />,
+        color: 'text-indigo-600',
+        bgColor: 'bg-indigo-100',
+    },
+    PHONE_CALL: {
+        icon: <Phone weight="fill" className="size-4" />,
+        color: 'text-teal-600',
+        bgColor: 'bg-teal-100',
+    },
+    EMAIL_SENT: {
+        icon: <EnvelopeSimple weight="fill" className="size-4" />,
+        color: 'text-sky-600',
+        bgColor: 'bg-sky-100',
+    },
+    PAYMENT_SUCCESS: {
+        icon: <CurrencyCircleDollar weight="fill" className="size-4" />,
+        color: 'text-emerald-600',
+        bgColor: 'bg-emerald-100',
+    },
+    CAMPUS_VISIT: {
+        icon: <Buildings weight="fill" className="size-4" />,
+        color: 'text-orange-600',
+        bgColor: 'bg-orange-100',
+    },
+    DEFAULT: {
+        icon: <PushPin weight="fill" className="size-4" />,
+        color: 'text-neutral-600',
+        bgColor: 'bg-neutral-100',
+    },
 };
 
-const DEFAULT_CONFIG = { icon: '📌', color: 'text-neutral-600', bgColor: 'bg-neutral-100' };
+const DEFAULT_CONFIG = {
+    icon: <PushPin weight="fill" className="size-4" />,
+    color: 'text-neutral-600',
+    bgColor: 'bg-neutral-100',
+};
 
-const getActionConfig = (actionType: string): { icon: string; color: string; bgColor: string } =>
+const getActionConfig = (actionType: string): { icon: ReactNode; color: string; bgColor: string } =>
     ACTION_CONFIG[actionType] ?? DEFAULT_CONFIG;
 
 // ─── Note Action Types ───────────────────────────────────────────────────────
 
 const NOTE_ACTION_TYPES = [
-    { value: 'NOTE_ADDED', label: '📝 Note' },
-    { value: 'PHONE_CALL', label: '📞 Phone Call' },
-    { value: 'EMAIL_SENT', label: '✉️ Email Sent' },
-    { value: 'CAMPUS_VISIT', label: '🏫 Campus Visit' },
+    { value: 'NOTE_ADDED', label: 'Note', icon: <NotePencil weight="fill" className="size-3.5" /> },
+    {
+        value: 'PHONE_CALL',
+        label: 'Phone Call',
+        icon: <Phone weight="fill" className="size-3.5" />,
+    },
+    {
+        value: 'EMAIL_SENT',
+        label: 'Email Sent',
+        icon: <EnvelopeSimple weight="fill" className="size-3.5" />,
+    },
+    {
+        value: 'CAMPUS_VISIT',
+        label: 'Campus Visit',
+        icon: <Buildings weight="fill" className="size-3.5" />,
+    },
 ];
 
 // ─── Timeline Event Item ─────────────────────────────────────────────────────
 
 const TimelineEventItem = ({ event }: { event: TimelineEvent }) => {
     const config = getActionConfig(event.action_type);
+    const [isTextExpanded, setIsTextExpanded] = useState(false);
 
     const formatTime = (dateStr: string) => {
         try {
@@ -56,30 +125,42 @@ const TimelineEventItem = ({ event }: { event: TimelineEvent }) => {
     return (
         <div className="group relative flex gap-3 pb-6 last:pb-0">
             {/* Vertical line connector */}
-            <div className="absolute left-[17px] top-[36px] -bottom-0 w-px bg-neutral-200 group-last:hidden" />
+            <div className="absolute -bottom-0 left-[17px] top-[36px] w-px bg-neutral-200 group-last:hidden" />
 
             {/* Icon circle */}
             <div
-                className={`z-10 flex size-9 shrink-0 items-center justify-center rounded-full text-sm ${config.bgColor}`}
+                className={`z-10 flex size-9 shrink-0 items-center justify-center rounded-full text-sm ${config.bgColor} ${config.color}`}
             >
                 {config.icon}
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-sm font-medium text-neutral-800 leading-tight">
+                    <h4 className="text-sm font-medium leading-tight text-neutral-800">
                         {event.title}
                     </h4>
-                    <span className="shrink-0 text-[10px] font-medium text-neutral-400 tabular-nums">
+                    <span className="shrink-0 text-[10px] font-medium tabular-nums text-neutral-400">
                         {formatTime(event.created_at)}
                     </span>
                 </div>
 
                 {event.description && (
-                    <p className="mt-1 text-sm text-neutral-600 leading-relaxed whitespace-pre-wrap">
-                        {event.description}
-                    </p>
+                    <div className="mt-1">
+                        <p className="whitespace-pre-wrap break-all text-sm leading-relaxed text-neutral-600 sm:break-normal">
+                            {isTextExpanded || event.description.length <= 100
+                                ? event.description
+                                : `${event.description.slice(0, 100).trim()}...`}
+                        </p>
+                        {event.description.length > 100 && (
+                            <button
+                                onClick={() => setIsTextExpanded(!isTextExpanded)}
+                                className="mt-1 text-xs font-medium text-primary-600 transition-colors hover:text-primary-700 hover:underline"
+                            >
+                                {isTextExpanded ? 'View less' : 'View more'}
+                            </button>
+                        )}
+                    </div>
                 )}
 
                 {/* Actor info */}
@@ -95,7 +176,7 @@ const TimelineEventItem = ({ event }: { event: TimelineEvent }) => {
                         {Object.entries(event.metadata).map(([key, value]) => (
                             <span
                                 key={key}
-                                className="inline-flex items-center gap-1 rounded-md bg-neutral-50 border border-neutral-100 px-2 py-0.5 text-[10px] text-neutral-500"
+                                className="inline-flex items-center gap-1 rounded-md border border-neutral-100 bg-neutral-50 px-2 py-0.5 text-[10px] text-neutral-500"
                             >
                                 <span className="font-medium text-neutral-600">
                                     {key.replace(/_/g, ' ')}:
@@ -144,15 +225,13 @@ const AddNoteForm = ({ entityType, entityId }: AddNoteFormProps) => {
             return;
         }
 
-        const actionLabel =
-            NOTE_ACTION_TYPES.find((t) => t.value === actionType)?.label?.replace(/^.\s/, '') ||
-            'Note';
+        const actionLabel = NOTE_ACTION_TYPES.find((t) => t.value === actionType)?.label || 'Note';
 
         const payload: CreateTimelineEventPayload = {
             type: entityType,
             type_id: entityId,
             action_type: actionType,
-            title: `${actionLabel} Added`,
+            title: `${actionLabel}`,
             description: noteText.trim(),
         };
 
@@ -165,7 +244,13 @@ const AddNoteForm = ({ entityType, entityId }: AddNoteFormProps) => {
                 onClick={() => setIsExpanded(true)}
                 className="flex w-full items-center gap-2 rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50/50 px-4 py-3 text-sm text-neutral-500 transition-all duration-200 hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600"
             >
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg
+                    className="size-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
                 Add a note or log activity…
@@ -181,13 +266,14 @@ const AddNoteForm = ({ entityType, entityId }: AddNoteFormProps) => {
                     <button
                         key={type.value}
                         onClick={() => setActionType(type.value)}
-                        className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all
+                        className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all
                             ${
                                 actionType === type.value
                                     ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-300'
                                     : 'bg-neutral-50 text-neutral-500 hover:bg-neutral-100'
                             }`}
                     >
+                        {type.icon}
                         {type.label}
                     </button>
                 ))}
@@ -246,12 +332,11 @@ interface TimelinePanelProps {
 
 export const TimelinePanel = ({ entityType, entityId }: TimelinePanelProps) => {
     const [page, setPage] = useState(0);
-    const pageSize = 20;
+    const pageSize = 5;
 
     const { data, isLoading, error } = useQuery(
         handleFetchTimelineEvents(entityType, entityId, page, pageSize)
     );
-
     return (
         <div className="flex flex-col gap-4">
             {/* Section Header */}
@@ -328,7 +413,7 @@ export const TimelinePanel = ({ entityType, entityId }: TimelinePanelProps) => {
             {/* Empty State */}
             {data && data.content.length === 0 && (
                 <div className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50/50 py-8 text-center">
-                    <span className="text-2xl">📋</span>
+                    <ClipboardText weight="fill" className="size-8 text-neutral-400" />
                     <p className="text-sm font-medium text-neutral-500">No activity yet</p>
                     <p className="text-xs text-neutral-400">
                         Notes, status changes, and other events will appear here
