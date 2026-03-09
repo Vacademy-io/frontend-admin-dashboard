@@ -21,6 +21,7 @@ import { FilterChips } from '@/components/design-system/chips';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { toast } from 'sonner';
 import { CreateEnquiryDialog } from './-components/create-enquiry-dialog/CreateEnquiryDialog';
 import { SelectedEnquirySidebarProvider } from './-context/selected-enquiry-sidebar-context';
 import { EnquirySidebar } from './-components/enquiry-side-view/enquiry-sidebar';
@@ -138,9 +139,14 @@ function EnquiryPage() {
             instituteDetails?.learner_portal_base_url,
             true
         );
-        navigator.clipboard.writeText(shareableLink).catch((error) => {
-            console.error('Unable to copy enquiry link', error);
-        });
+        navigator.clipboard.writeText(shareableLink)
+            .then(() => {
+                toast.success('Enquiry link copied to clipboard!');
+            })
+            .catch((error) => {
+                console.error('Unable to copy enquiry link', error);
+                toast.error('Failed to copy link');
+            });
     };
 
     const handleCreateSuccess = () => {
@@ -226,6 +232,8 @@ function EnquiryPage() {
                         scale="small"
                         onClick={handleCopy}
                         className="h-8"
+                        title="Copy enquiry link to clipboard"
+                        aria-label="Copy enquiry link to clipboard"
                     >
                         <Copy />
                     </MyButton>
@@ -291,7 +299,7 @@ function EnquiryPage() {
                 {/* Package Session Filter */}
                 {packageSessionOptions.length > 0 && (
                     <FilterChips
-                        label="Package Session"
+                        label="Class"
                         filterList={packageSessionOptions}
                         selectedFilters={packageSessionFilters}
                         handleSelect={(option) => {
@@ -314,7 +322,7 @@ function EnquiryPage() {
                 <div className="ml-auto flex items-center gap-2">
                     <Input
                         type="text"
-                        placeholder="Search..."
+                        placeholder="Search by name or mobile..."
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         onKeyDown={(e) => {

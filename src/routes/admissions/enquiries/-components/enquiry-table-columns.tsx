@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CustomFieldSetupItem } from '@/routes/audience-manager/list/-services/get-custom-field-setup';
 import { CounsellorNameCell } from './CounsellorNameCell';
+import { toast } from 'sonner';
 
 // Helper function to generate key from name
 const generateKeyFromName = (name: string): string =>
@@ -367,8 +368,18 @@ export const generateDynamicColumns = (
                     >
                         View Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => onViewDetails?.(row.original.id)}
+                        className="cursor-pointer"
+                    >
+                        Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => toast.info('Delete functionality will be available soon.')}
+                        className="cursor-pointer text-red-600"
+                    >
+                        Delete
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         ),

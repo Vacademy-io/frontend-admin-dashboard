@@ -12,7 +12,7 @@ function mapSidebarToConfig(menu: SidebarItemsType[]): SidebarTabConfig[] {
         label: item.title,
         route: item.to,
         order: index + 1,
-        visible: true,
+        visible: item.id !== 'admissions' && item.id !== 'fee-management',
         subTabs:
             item.subItems?.map((sub, subIndex) => ({
                 id: sub.subItemId || sub.subItem || `${item.id}-${subIndex + 1}`,
