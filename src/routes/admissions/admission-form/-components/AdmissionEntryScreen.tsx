@@ -25,6 +25,8 @@ export interface StudentSearchResult {
     sourceId?: string;
     destinationPackageSessionId?: string;
     parentGender?: 'father' | 'mother';
+    enquiryId?: string | null;
+    applicationId?: string | null;
 }
 
 interface Props {
@@ -160,7 +162,7 @@ export default function AdmissionEntryScreen({ onStartAdmission }: Props) {
 
     const handleNewAdmission = () => {
         setShowAdmissionTypeModal(false);
-        onStartAdmission(null, selectedSessionId);
+        onStartAdmission({ id: '', studentName: '', mobile: '', classVal: '', dob: '', address: '', gender: '', enquiryId: null, applicationId: null }, selectedSessionId);
     };
 
     const handleFromEnquiryOption = () => {
@@ -200,6 +202,8 @@ export default function AdmissionEntryScreen({ onStartAdmission }: Props) {
                 sourceType: 'ENQUIRY',
                 sourceId: enquiryData.enquiry_id || '',
                 destinationPackageSessionId: '',
+                enquiryId: enquiryData.enquiry_id || null,
+                applicationId: null,
             };
 
             setShowEnquiryModal(false);
@@ -276,6 +280,8 @@ export default function AdmissionEntryScreen({ onStartAdmission }: Props) {
                 sourceType: 'APPLICATION',
                 sourceId: item.admission_id || item.application_id || '',
                 destinationPackageSessionId: item.destination_package_session_id || '',
+                enquiryId: null,
+                applicationId: item.admission_id || item.application_id || null,
             };
 
             setShowApplicationModal(false);
@@ -353,6 +359,9 @@ export default function AdmissionEntryScreen({ onStartAdmission }: Props) {
         const sourceType = fromSource === 'From Enquiry' ? 'ENQUIRY' : 'APPLICATION';
         const sourceId = item.admission_id || item.enquiry_id || item.application_id || item.id || '';
 
+        const isEnquiry = sourceType === 'ENQUIRY' || item.status === 'ENQUIRY';
+        const isApplication = sourceType === 'APPLICATION' || item.status === 'APPLICATION';
+
         onStartAdmission({
             id: sourceId,
             studentName: item.student_name || '',
@@ -368,6 +377,8 @@ export default function AdmissionEntryScreen({ onStartAdmission }: Props) {
             sourceType,
             sourceId,
             destinationPackageSessionId: item.destination_package_session_id || '',
+            enquiryId: isEnquiry ? (item.enquiry_id || item.admission_id || null) : null,
+            applicationId: isApplication ? (item.application_id || item.admission_id || null) : null,
         }, selectedSessionId);
     };
 

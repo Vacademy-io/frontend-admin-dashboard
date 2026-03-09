@@ -17,6 +17,8 @@ export interface AdmissionFormData {
     destinationPackageSessionId: string;
     source: string;
     sourceId: string;
+    enquiryId: string | null;
+    applicationId: string | null;
 
     // Step 1
     studentFirstName: string;
@@ -114,7 +116,7 @@ export default function AdmissionFormWizard() {
     }, [instituteDetails, selectedSessionId]);
 
     const [formData, setFormData] = useState<AdmissionFormData>({
-        sessionId: '', destinationPackageSessionId: '', source: '', sourceId: '',
+        sessionId: '', destinationPackageSessionId: '', source: '', sourceId: '', enquiryId: null, applicationId: null,
 
         studentFirstName: '', studentMiddleName: '', studentLastName: '',
         gender: '', applicationNumber: '', studentClass: '', section: '',
@@ -199,6 +201,8 @@ export default function AdmissionFormWizard() {
                 sourceId: data.sourceId || '',
                 destinationPackageSessionId: data.destinationPackageSessionId || '',
                 sessionId: sessionId || '',
+                enquiryId: data.enquiryId ?? null,
+                applicationId: data.applicationId ?? null,
             }));
         } else if (sessionId) {
             setFormData(prev => ({ ...prev, sessionId }));
@@ -226,6 +230,8 @@ export default function AdmissionFormWizard() {
                 source_id: formData.sourceId || instituteId,
                 session_id: sessionId || '',
                 destination_package_session_id: formData.destinationPackageSessionId || '',
+                enquiry_id: formData.enquiryId || null,
+                application_id: formData.applicationId || null,
                 first_name: formData.studentFirstName || '',
                 last_name: formData.studentLastName || '',
                 gender: formData.gender ? formData.gender.toUpperCase() : '',
@@ -309,7 +315,6 @@ export default function AdmissionFormWizard() {
                     </button>
                     Admission Form
                 </h1>
-                <p className="text-sm text-gray-500 pl-8">Admission ID: <span className="font-semibold text-primary">{admissionId}</span></p>
             </div>
 
             {/* Stepper Tabs */}
