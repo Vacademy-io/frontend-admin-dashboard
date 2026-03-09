@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CustomFieldSetupItem } from '@/routes/audience-manager/list/-services/get-custom-field-setup';
 import { CounsellorNameCell } from './CounsellorNameCell';
+import { toast } from 'sonner';
 
 // Helper function to generate key from name
 const generateKeyFromName = (name: string): string =>
@@ -60,7 +61,9 @@ export const generateDynamicColumns = (
     fieldLookup?: Map<string, CustomFieldSetupItem>,
     selectedRows?: Set<string>,
     onRowSelectionChange?: (id: string, selected: boolean) => void,
-    onSelectAll?: (selected: boolean) => void
+    onSelectAll?: (selected: boolean) => void,
+    onViewDetails?: (enquiryId: string) => void,
+    onActivityLog?: (enquiryId: string) => void
 ): ColumnDef<EnquiryTableRow>[] => {
     const columns: ColumnDef<EnquiryTableRow>[] = [];
 
@@ -360,9 +363,18 @@ export const generateDynamicColumns = (
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View Details</DropdownMenuItem>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => onViewDetails?.(row.original.id)}
+                        className="cursor-pointer"
+                    >
+                        View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => onActivityLog?.(row.original.id)}
+                        className="cursor-pointer"
+                    >
+                        Activity Log
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         ),

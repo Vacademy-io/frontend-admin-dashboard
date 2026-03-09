@@ -19,8 +19,11 @@ import createCampaignLink from '@/routes/audience-manager/list/-utils/createCamp
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { FilterChips } from '@/components/design-system/chips';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
+import { toast } from 'sonner';
 import { CreateEnquiryDialog } from './-components/create-enquiry-dialog/CreateEnquiryDialog';
-
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 export const Route = createFileRoute('/admissions/enquiries/')({
     component: RouteComponent,
 });
@@ -40,6 +43,10 @@ const ENQUIRY_STATUSES = [
     { id: 'CONTACTED', label: 'Contacted' },
     { id: 'NOT_ELIGIBLE', label: 'Not Eligible' },
     { id: 'QUALIFIED', label: 'Qualified' },
+    { id: 'FOLLOW_UP', label: 'Follow up' },
+    { id: 'CLOSED', label: 'Closed' },
+    { id: 'CONVERTED', label: 'Converted' },
+    { id: 'ADMITTED', label: 'Admitted' },
 ];
 
 const SOURCE_TYPES = [
@@ -106,6 +113,9 @@ function EnquiryPage() {
     const [packageSessionFilters, setPackageSessionFilters] = useState<
         { id: string; label: string }[]
     >([]);
+    const [searchInput, setSearchInput] = useState('');
+    const [searchFilter, setSearchFilter] = useState('');
+    const { setNavHeading } = useNavHeadingStore();
 
     // Fetch all enquiries (campaigns)
     const { data: enquiriesData, refetch: refetchEnquiries } = useSuspenseQuery(
@@ -116,7 +126,11 @@ function EnquiryPage() {
         })
     );
 
-    const enquiries = enquiriesData?.content || [];
+    const enquiries = useMemo(() => enquiriesData?.content || [], [enquiriesData?.content]);
+
+    useEffect(() => {
+        setNavHeading('Enquiries');
+    }, [setNavHeading]);
 
     // Auto-select first enquiry by default
     useEffect(() => {
@@ -132,9 +146,15 @@ function EnquiryPage() {
             instituteDetails?.learner_portal_base_url,
             true
         );
-        navigator.clipboard.writeText(shareableLink).catch((error) => {
-            console.error('Unable to copy enquiry link', error);
-        });
+        navigator.clipboard
+            .writeText(shareableLink)
+            .then(() => {
+                toast.success('Enquiry link copied to clipboard!');
+            })
+            .catch((error) => {
+                console.error('Unable to copy enquiry link', error);
+                toast.error('Failed to copy link');
+            });
     };
 
     const handleCreateSuccess = () => {
@@ -176,20 +196,23 @@ function EnquiryPage() {
         statusFilters.length > 0 ||
         sourceFilters.length > 0 ||
         dateRangeFilters.length > 0 ||
-        packageSessionFilters.length > 0;
+        packageSessionFilters.length > 0 ||
+        searchFilter.length > 0;
 
     const clearAllFilters = () => {
         setStatusFilters([]);
         setSourceFilters([]);
         setDateRangeFilters([]);
         setPackageSessionFilters([]);
+        setSearchInput('');
+        setSearchFilter('');
     };
 
     return (
         <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold">Enquiries</h1>
+                <h1 className="text-2xl font-bold">Enquiries</h1>
                 <div className="flex items-center gap-4">
                     <Select value={selectedEnquiryId} onValueChange={setSelectedEnquiryId}>
                         <SelectTrigger className="w-[280px]">
@@ -209,15 +232,19 @@ function EnquiryPage() {
                         onClick={() => setIsCreateDialogOpen(true)}
                         className="h-8"
                     >
-                        <Plus className="mr-1 h-4 w-4" />
-                        Create Enquiry
+                        <Plus className="mr-1 size-4" />
+                        New Enquiry Form
                     </MyButton>
                     <MyButton
                         buttonType="secondary"
                         scale="small"
                         onClick={handleCopy}
                         className="h-8"
+                        title="Copy enquiry link to clipboard"
+                        aria-label="Copy enquiry link to clipboard"
                     >
+                        {' '}
+                        Copy Form Link
                         <Copy />
                     </MyButton>
                 </div>
@@ -282,7 +309,7 @@ function EnquiryPage() {
                 {/* Package Session Filter */}
                 {packageSessionOptions.length > 0 && (
                     <FilterChips
-                        label="Package Session"
+                        label="Class"
                         filterList={packageSessionOptions}
                         selectedFilters={packageSessionFilters}
                         handleSelect={(option) => {
@@ -300,6 +327,30 @@ function EnquiryPage() {
                         clearFilters={false}
                     />
                 )}
+
+                {/* Search Bar */}
+                <div className="ml-auto flex items-center gap-2">
+                    <Input
+                        type="text"
+                        placeholder="Search by name or mobile..."
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                setSearchFilter(searchInput);
+                            }
+                        }}
+                        className="h-8 bg-white text-xs md:w-[250px]"
+                    />
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 px-3"
+                        onClick={() => setSearchFilter(searchInput)}
+                    >
+                        <Search className="h-4 w-4" />
+                    </Button>
+                </div>
 
                 {hasActiveFilters && (
                     <MyButton
@@ -324,6 +375,7 @@ function EnquiryPage() {
                     sourceFilter={sourceFilter}
                     packageSessionFilter={packageSessionFilter}
                     dateRangeFilter={dateRange}
+                    searchFilter={searchFilter}
                 />
             )}
 

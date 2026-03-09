@@ -371,6 +371,7 @@ export const LIVE_SESSION_GET_SESSION_BY_SCHEDULE_ID = `${BASE_URL}/admin-core-s
 // export const GET_SESSION_BY_SESSION_ID = `http://localhost:8072/admin-core-service/get-sessions/by-session-id`;
 export const GET_SESSION_BY_SESSION_ID = `${BASE_URL}/admin-core-service/get-sessions/by-session-id`;
 export const LIVE_SESSION_REPORT_BY_SESSION_ID = `${BASE_URL}/admin-core-service/live-session-report/by-session-id`;
+export const CREATE_PROVIDER_MEETING = `${BASE_URL}/admin-core-service/live-sessions/provider/meeting/create`;
 
 // export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
 export const GET_FACULTY_BY_INSTITUTE_CREATORS_ONLY = `${BASE_URL}/admin-core-service/open/institute/v1/faculty/by-institute/only-creator`;
@@ -433,7 +434,7 @@ export const LIVE_SESSION_ALL_ATTENDANCE = `${BASE_URL}/admin-core-service/live-
 export const REFERRAL_API_BASE = `${BASE_URL}/admin-core-service/v1/referral-option`;
 export const REFERRAL_UPDATE = (referralOptionId: string) =>
     `${BASE_URL}/admin-core-service/v1/referral-option/${referralOptionId}`;
-export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-option/referral-option`;
+export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-option`;
 
 export const GET_INSITITUTE_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/get`;
 export const UPDATE_CUSTOM_FIELD_SETTINGS = `${BASE_URL}/admin-core-service/institute/v1/custom-field/create-or-update`;
@@ -540,6 +541,8 @@ export const GET_CATALOGUE_BY_TAG = (instituteId: string, tagName: string) =>
     `${CATALOGUE_BASE_URL}/institute/get/by-tag?instituteId=${instituteId}&tagName=${encodeURIComponent(tagName)}`;
 
 export const LINK_COUNSELLOR = `${BASE_URL}/admin-core-service/enquiry/link-counselor`;
+export const GET_ENQUIRY_DETAILS = `${BASE_URL}/admin-core-service/enquiry/v1/admin/details`;
+export const UPDATE_ENQUIRY_STATUS = `${BASE_URL}/admin-core-service/enquiry/v1/admin/update-status`;
 // Booking System URLs
 export const BOOKING_BASE = `${BASE_URL}/admin-core-service/booking/v1`;
 
@@ -575,6 +578,11 @@ export const ROLES_BASE = `${BASE_URL}/auth-service/v1/institute`;
 // Role Display Settings
 export const GET_ALL_SETTINGS = `${BASE_URL}/admin-core-service/institute/v1/setting/get-all`;
 export const SAVE_GENERIC_SETTING = `${BASE_URL}/admin-core-service/institute/v1/setting/generic/save`;
+
+// White-Label Setup URLs
+export const WHITE_LABEL_SETUP = `${BASE_URL}/admin-core-service/institute/white-label/v1/setup`;
+export const WHITE_LABEL_STATUS = (instituteId: string) =>
+    `${BASE_URL}/admin-core-service/institute/white-label/v1/status?instituteId=${instituteId}`;
 
 // Application Stage
 export const ADD_APPLICATION_STAGE = `${BASE_URL}/admin-core-service/v1/application/stage`;

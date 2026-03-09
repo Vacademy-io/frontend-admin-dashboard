@@ -88,7 +88,7 @@ export interface AdmissionFormData {
 
 const STEPS = [
     { id: 1, title: 'Student Details' },
-    { id: 2, title: 'Previous School & Other Details' },
+    { id: 2, title: 'Previous School & Personal Details' },
     { id: 3, title: 'Student Parent Details' },
     { id: 4, title: 'Address Details' },
     { id: 5, title: 'Finish' },
@@ -99,6 +99,8 @@ export default function AdmissionFormWizard() {
     const [wizardStarted, setWizardStarted] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
     const [admissionId, setAdmissionId] = useState('');
+    const { instituteDetails } = useInstituteDetailsStore();
+    const instituteId = instituteDetails?.id || '';
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedSessionId, setSelectedSessionId] = useState('');
 
@@ -211,6 +213,11 @@ export default function AdmissionFormWizard() {
     };
 
     const handleSubmitAdmission = async () => {
+        if (!instituteId) {
+            toast.error('Institute details not available. Please try again.');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const instituteId = instituteDetails?.id || '';
@@ -291,9 +298,11 @@ export default function AdmissionFormWizard() {
                 setCurrentStep(1);
             } else {
                 toast.error('Failed to submit admission form. Please try again.');
+                toast.error('Failed to submit admission form. Please try again.');
             }
         } catch (error) {
             console.error('Error submitting form:', error);
+            toast.error('An error occurred. Please check your network and try again.');
             toast.error('An error occurred. Please check your network and try again.');
         } finally {
             setIsSubmitting(false);

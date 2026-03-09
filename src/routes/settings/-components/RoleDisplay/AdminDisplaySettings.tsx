@@ -49,6 +49,8 @@ const STUDENT_SIDE_VIEW_DEFAULTS: StudentSideViewSettings = {
     portalAccessTab: false,
     reportsTab: false,
     enrollDerollTab: false,
+    enquiryTab: false,
+    applicationTab: false,
 };
 
 const STUDENT_SIDE_VIEW_OPTIONS: Array<{
@@ -102,6 +104,16 @@ const STUDENT_SIDE_VIEW_OPTIONS: Array<{
         key: 'enrollDerollTab',
         label: 'Enroll/Deroll Tab',
         defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.enrollDerollTab,
+    },
+    {
+        key: 'enquiryTab',
+        label: 'Enquiry Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.enquiryTab,
+    },
+    {
+        key: 'applicationTab',
+        label: 'Application Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.applicationTab,
     },
 ];
 
@@ -664,7 +676,8 @@ export default function AdminDisplaySettings() {
                                                     courseDetails: {
                                                         tabs,
                                                         defaultTab:
-                                                            prev.courseDetails?.defaultTab || 'OUTLINE',
+                                                            prev.courseDetails?.defaultTab ||
+                                                            'OUTLINE',
                                                     },
                                                 };
                                             })

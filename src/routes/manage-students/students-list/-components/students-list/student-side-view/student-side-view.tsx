@@ -20,6 +20,8 @@ import { StudentSubOrg } from './student-sub-org/student-sub-org';
 import { StudentReports } from './student-reports/student-reports';
 import { StudentEnrollDeroll } from './student-enroll-deroll/student-enroll-deroll';
 import { StudentPaymentHistory } from './student-payment-history/student-payment-history';
+import { StudentEnquiry } from './student-enquiry/student-enquiry';
+import { StudentApplication } from './student-application/student-application';
 import { getPublicUrl } from '@/services/upload_file';
 import { ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
@@ -30,12 +32,7 @@ import {
     getDisplaySettingsWithFallback,
     getDisplaySettingsFromCache,
 } from '@/services/display-settings';
-import {
-    ADMIN_DISPLAY_SETTINGS_KEY,
-    TEACHER_DISPLAY_SETTINGS_KEY, CUSTOM_ROLE_DISPLAY_SETTINGS_KEY,
-    type StudentSideViewSettings,
-} from '@/types/display-settings';
-import { Badge } from 'lucide-react';
+import { type StudentSideViewSettings } from '@/types/display-settings';
 
 export const StudentSidebar = ({
     selectedTab,
@@ -43,12 +40,18 @@ export const StudentSidebar = ({
     isStudentList,
     isSubmissionTab,
     isEnrollRequestStudentList,
+    enquiryId,
+    applicantId,
+    className,
 }: {
     selectedTab?: string;
     examType?: string;
     isStudentList?: boolean;
     isSubmissionTab?: boolean;
     isEnrollRequestStudentList?: boolean;
+    enquiryId?: string;
+    applicantId?: string;
+    className?: string;
 }) => {
     const { state } = useSidebar();
     const [category, setCategory] = useState('overview');
@@ -77,7 +80,7 @@ export const StudentSidebar = ({
         const fetchTabSettings = async () => {
             const isAdmin = isUserAdmin();
             const hasFaculty = hasFacultyAssignedPermission(getInstituteId());
-    const roleKey = getActiveRoleDisplaySettingsKey();
+            const roleKey = getActiveRoleDisplaySettingsKey();
 
             // Try cache first
             const cachedSettings = getDisplaySettingsFromCache(roleKey);
@@ -113,12 +116,24 @@ export const StudentSidebar = ({
                     setCategory('reports');
                 } else if (settings.enrollDerollTab) {
                     setCategory('enrollDeroll');
+                } else if (settings.enquiryTab) {
+                    setCategory('enquiry');
                 }
             }
         };
 
         fetchTabSettings();
     }, []);
+
+    // Default to enquiry tab when an enquiryId is passed in (e.g. from /enquiries route)
+    // or application tab when applicantId is passed in (e.g. from /application route)
+    useEffect(() => {
+        if (applicantId && tabSettings?.applicationTab) {
+            setCategory('application');
+        } else if (enquiryId && tabSettings?.enquiryTab) {
+            setCategory('enquiry');
+        }
+    }, [applicantId, enquiryId, tabSettings]);
 
     useEffect(() => {
         const fetchImageUrl = async () => {
@@ -152,7 +167,7 @@ export const StudentSidebar = ({
     }, [category]);
 
     return (
-        <Sidebar side="right">
+        <Sidebar side="right" className={className}>
             <SidebarContent
                 className={`sidebar-content flex flex-col border-l border-neutral-200 bg-white text-neutral-700`}
             >
@@ -180,28 +195,28 @@ export const StudentSidebar = ({
                         {/* Sub Organization and Roles Badges */}
                         {(selectedStudent?.sub_org_name ||
                             selectedStudent?.comma_separated_org_roles) && (
-                                <div className="mb-4 flex flex-wrap items-center gap-2">
-                                    {selectedStudent?.sub_org_name && (
-                                        <div className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">
-                                            <span>{selectedStudent.sub_org_name}</span>
-                                        </div>
-                                    )}
-                                    {selectedStudent?.comma_separated_org_roles && (
-                                        <>
-                                            {selectedStudent.comma_separated_org_roles
-                                                .split(',')
-                                                .map((role, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium capitalize text-amber-700 shadow-sm"
-                                                    >
-                                                        {role.trim().toLowerCase().replace(/_/g, ' ')}
-                                                    </div>
-                                                ))}
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                            <div className="mb-4 flex flex-wrap items-center gap-2">
+                                {selectedStudent?.sub_org_name && (
+                                    <div className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">
+                                        <span>{selectedStudent.sub_org_name}</span>
+                                    </div>
+                                )}
+                                {selectedStudent?.comma_separated_org_roles && (
+                                    <>
+                                        {selectedStudent.comma_separated_org_roles
+                                            .split(',')
+                                            .map((role, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium capitalize text-amber-700 shadow-sm"
+                                                >
+                                                    {role.trim().toLowerCase().replace(/_/g, ' ')}
+                                                </div>
+                                            ))}
+                                    </>
+                                )}
+                            </div>
+                        )}
 
                         {/* Enhanced tab navigation with modern design */}
                         {!isEnrollRequestStudentList && tabSettings && (
@@ -218,7 +233,7 @@ export const StudentSidebar = ({
                                                 category === 'overview'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('overview')}
                                         >
                                             <span className="relative">
@@ -237,7 +252,7 @@ export const StudentSidebar = ({
                                                 category === 'courses'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('courses')}
                                         >
                                             <span className="relative">
@@ -260,7 +275,7 @@ export const StudentSidebar = ({
                                                 category === 'learningProgress'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('learningProgress')}
                                         >
                                             <span className="relative">
@@ -279,7 +294,7 @@ export const StudentSidebar = ({
                                                 category === 'testRecord'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('testRecord')}
                                         >
                                             <span className="relative">
@@ -298,7 +313,7 @@ export const StudentSidebar = ({
                                                 category === 'notifications'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('notifications')}
                                         >
                                             <span className="relative">
@@ -317,7 +332,7 @@ export const StudentSidebar = ({
                                                 category === 'membership'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('membership')}
                                         >
                                             <span className="relative">
@@ -331,12 +346,14 @@ export const StudentSidebar = ({
 
                                     {tabSettings.paymentHistoryTab && (
                                         <button
-                                            ref={category === 'paymentHistory' ? activeTabRef : null}
+                                            ref={
+                                                category === 'paymentHistory' ? activeTabRef : null
+                                            }
                                             className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
                                                 category === 'paymentHistory'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('paymentHistory')}
                                         >
                                             <span className="relative">
@@ -355,7 +372,7 @@ export const StudentSidebar = ({
                                                 category === 'userTagging'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('userTagging')}
                                         >
                                             <span className="relative">
@@ -374,7 +391,7 @@ export const StudentSidebar = ({
                                                 category === 'files'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('files')}
                                         >
                                             <span className="relative">
@@ -393,7 +410,7 @@ export const StudentSidebar = ({
                                                 category === 'portalAccess'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('portalAccess')}
                                         >
                                             <span className="relative">
@@ -412,7 +429,7 @@ export const StudentSidebar = ({
                                                 category === 'reports'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('reports')}
                                         >
                                             <span className="relative">
@@ -427,15 +444,54 @@ export const StudentSidebar = ({
                                     {tabSettings.enrollDerollTab && (
                                         <button
                                             ref={category === 'enrollDeroll' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'enrollDeroll'
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'enrollDeroll'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('enrollDeroll')}
                                         >
                                             <span className="relative">
                                                 Enroll/Deroll
                                                 {category === 'enrollDeroll' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {tabSettings.enquiryTab && (
+                                        <button
+                                            ref={category === 'enquiry' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'enquiry'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('enquiry')}
+                                        >
+                                            <span className="relative">
+                                                Enquiry
+                                                {category === 'enquiry' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {tabSettings.applicationTab && (
+                                        <button
+                                            ref={category === 'application' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'application'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('application')}
+                                        >
+                                            <span className="relative">
+                                                Application
+                                                {category === 'application' && (
                                                     <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
                                                 )}
                                             </span>
@@ -449,7 +505,7 @@ export const StudentSidebar = ({
                                                 category === 'subOrg'
                                                     ? 'bg-white text-primary-500 shadow-lg'
                                                     : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            }`}
                                             onClick={() => setCategory('subOrg')}
                                         >
                                             <span className="relative">
@@ -579,6 +635,14 @@ export const StudentSidebar = ({
                         {category === 'enrollDeroll' &&
                             tabSettings?.enrollDerollTab &&
                             !isEnrollRequestStudentList && <StudentEnrollDeroll />}
+                        {category === 'enquiry' &&
+                            tabSettings?.enquiryTab &&
+                            !isEnrollRequestStudentList && <StudentEnquiry enquiryId={enquiryId} />}
+                        {category === 'application' &&
+                            tabSettings?.applicationTab &&
+                            !isEnrollRequestStudentList && (
+                                <StudentApplication applicantId={applicantId} />
+                            )}
                     </ErrorBoundary>
                 </div>
             </SidebarContent>
