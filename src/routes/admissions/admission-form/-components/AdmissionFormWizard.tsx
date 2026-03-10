@@ -103,9 +103,6 @@ export default function AdmissionFormWizard() {
     const instituteId = instituteDetails?.id || '';
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedSessionId, setSelectedSessionId] = useState('');
-
-    const { instituteDetails } = useInstituteDetailsStore();
-
     const packageSessionOptions = useMemo(() => {
         if (!instituteDetails?.batches_for_sessions) return [];
         return instituteDetails.batches_for_sessions
