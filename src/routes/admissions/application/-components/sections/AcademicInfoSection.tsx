@@ -231,27 +231,29 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                         <Select
                             value={formData.applyingForClass || ''}
                             onValueChange={(value) => {
-                                updateFormData({ applyingForClass: value });
-                                // Also update applyingForClass for backward compatibility
-                                const selected = packageSessions.find((ps) => ps.id === value);
-                                if (selected) {
-                                    updateFormData({ applyingForClass: selected.levelName });
-                                }
+                                const selected = packageSessions.find(
+                                    (ps) => ps.levelName.toLowerCase() === value.toLowerCase()
+                                );
+                                updateFormData({
+                                    applyingForClass: value,
+                                    selectedLevelId: selected ? selected.id : undefined,
+                                });
                             }}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select class/package" />
+                                <SelectValue placeholder="Select class" />
                             </SelectTrigger>
                             <SelectContent>
-                                {packageSessions.map((session) => (
-                                    <SelectItem key={session.id} value={session.id}>
-                                        {session.name}
+                                <SelectItem value="Kindergarten">Kindergarten</SelectItem>
+                                {Array.from({ length: 12 }, (_, i) => i + 1).map((cls) => (
+                                    <SelectItem key={cls} value={`Class ${cls}`}>
+                                        Class {cls}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                         <p className="mt-1 text-xs text-neutral-500">
-                            Select the package and level for admission
+                            Select the class or grade for admission
                         </p>
                     </div>
                     <div>
