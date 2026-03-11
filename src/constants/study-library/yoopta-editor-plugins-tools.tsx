@@ -24,6 +24,39 @@ import { MultiLangCodePlugin } from '@/routes/study-library/courses/course-detai
 import { JupyterNotebookPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/jupyter-notebook';
 import { ScratchPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/scratch-editor';
 import { MermaidPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/mermaid-editor';
+import { MathPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/math-editor';
+import { AudioPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/audio-player';
+import { TimelinePlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/timeline-editor';
+import { QuizBlockPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/quiz-block-editor';
+import { ColumnsPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/columns-editor';
+import { TableOfContentsPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/table-of-contents';
+import { FlashcardPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/flashcard-editor';
+import { FillBlanksPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/fill-blanks-editor';
+import { TabsPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/tabs-editor';
+
+/** Extract userId from JWT token */
+function getUserIdFromToken(): string {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    return data?.sub || 'unknown-user';
+}
+
+/** Get image natural dimensions (returns 0x0 on failure) */
+function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+    return new Promise((resolve) => {
+        const url = URL.createObjectURL(file);
+        const img = new window.Image();
+        img.onload = () => {
+            resolve({ width: img.naturalWidth, height: img.naturalHeight });
+            URL.revokeObjectURL(url);
+        };
+        img.onerror = () => {
+            resolve({ width: 0, height: 0 });
+            URL.revokeObjectURL(url);
+        };
+        img.src = url;
+    });
+}
 
 export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -46,18 +79,16 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
         options: {
             async onUpload(file) {
                 try {
-                    // Use the underlying functions directly instead of the hook
                     const accessToken = getTokenFromCookie(TokenKey.accessToken);
                     const data = getTokenDecodedData(accessToken);
                     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
-                    const fileId = await UploadFileInS3(
-                        file,
-                        () => {}, // setIsUploading
-                        'your-user-id',
-                        INSTITUTE_ID,
-                        'STUDENTS',
-                        true // publicUrl
-                    );
+                    const userId = getUserIdFromToken();
+
+                    // Get actual image dimensions and upload in parallel
+                    const [dimensions, fileId] = await Promise.all([
+                        getImageDimensions(file),
+                        UploadFileInS3(file, () => {}, userId, INSTITUTE_ID, 'STUDENTS', true),
+                    ]);
 
                     if (!fileId) {
                         throw new Error('File upload failed');
@@ -72,10 +103,7 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
                     return {
                         src: publicUrl,
                         alt: file.name,
-                        sizes: {
-                            width: 0, // Replace with actual dimensions if needed
-                            height: 0,
-                        },
+                        sizes: dimensions,
                     };
                 } catch (error) {
                     console.error('Upload failed:', error);
@@ -88,17 +116,17 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
         options: {
             async onUpload(file) {
                 try {
-                    // Use the underlying functions directly instead of the hook
                     const accessToken = getTokenFromCookie(TokenKey.accessToken);
                     const data = getTokenDecodedData(accessToken);
                     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+                    const userId = getUserIdFromToken();
                     const fileId = await UploadFileInS3(
                         file,
-                        () => {}, // setIsUploading
-                        'your-user-id',
+                        () => {},
+                        userId,
                         INSTITUTE_ID,
                         'STUDENTS',
-                        true // publicUrl
+                        true
                     );
 
                     if (!fileId) {
@@ -114,10 +142,7 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
                     return {
                         src: publicUrl,
                         alt: file.name,
-                        sizes: {
-                            width: 0, // Replace with actual dimensions if needed
-                            height: 0,
-                        },
+                        sizes: { width: 0, height: 0 },
                     };
                 } catch (error) {
                     console.error('Upload failed:', error);
@@ -132,13 +157,14 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
                 const accessToken = getTokenFromCookie(TokenKey.accessToken);
                 const data = getTokenDecodedData(accessToken);
                 const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+                const userId = getUserIdFromToken();
                 const fileId = await UploadFileInS3(
                     file,
-                    () => {}, // setIsUploading
-                    'your-user-id',
+                    () => {},
+                    userId,
                     INSTITUTE_ID,
                     'STUDENTS',
-                    true // publicUrl
+                    true
                 );
 
                 if (!fileId) {
@@ -163,6 +189,15 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
     MultiLangCodePlugin,
     JupyterNotebookPlugin,
     ScratchPlugin,
+    MathPlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
+    AudioPlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
+    TimelinePlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
+    QuizBlockPlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
+    ColumnsPlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
+    TableOfContentsPlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
+    FlashcardPlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
+    FillBlanksPlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
+    TabsPlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
 ];
 
 export const TOOLS = {
