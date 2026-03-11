@@ -588,3 +588,7 @@ export const WHITE_LABEL_STATUS = (instituteId: string) =>
 export const ADD_APPLICATION_STAGE = `${BASE_URL}/admin-core-service/v1/application/stage`;
 
 export const GET_APPLICATION_STAGES = `${BASE_URL}/admin-core-service/v1/application/stages`;
+
+// Fee Management - CPO Options
+export const GET_CPO_OPTIONS = (packageSessionId: string) =>
+    `${BASE_URL}/admin-core-service/v1/fee-management/package-session/${packageSessionId}/cpo-options`;
