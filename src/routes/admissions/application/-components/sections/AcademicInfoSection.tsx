@@ -22,7 +22,7 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
     const [packageSessions, setPackageSessions] = React.useState<
         Array<{
             id: string;
-            name: string;
+            name: string; // Format: "packageName - levelName"
             levelName: string;
         }>
     >([]);
@@ -229,14 +229,14 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                             Class / Grade Applying For <span className="text-red-500">*</span>
                         </Label>
                         <Select
-                            value={formData.selectedLevelId || ''}
+                            value={formData.selectedPackageSessionId || ''}
                             onValueChange={(value) => {
                                 const selected = packageSessions.find(
                                     (ps) => ps.id === value
                                 );
                                 updateFormData({
                                     applyingForClass: selected ? selected.levelName : '',
-                                    selectedLevelId: value,
+                                    selectedPackageSessionId: value,
                                 });
                             }}
                         >
@@ -246,7 +246,7 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                             <SelectContent>
                                 {packageSessions.map((session) => (
                                     <SelectItem key={session.id} value={session.id}>
-                                        {session.levelName}
+                                        {session.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
