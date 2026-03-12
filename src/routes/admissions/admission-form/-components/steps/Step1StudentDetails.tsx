@@ -89,39 +89,11 @@ export default function Step1StudentDetails({ formData, handleChange, packageSes
                     className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow"
                 >
                     <option value="">Select Class</option>
-                    {[
-                        'Nursery',
-                        'LKG',
-                        'UKG',
-                        ...Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`),
-                    ].map((cls) => {
-                        const match = packageSessionOptions.find((opt) => {
-                            const levelPart = opt.label.split(' - ')[1] || opt.label;
-                            return levelPart.toLowerCase() === cls.toLowerCase();
-                        });
-                        return (
-                            <option key={cls} value={match ? match.id : cls}>
-                                {cls}
-                            </option>
-                        );
-                    })}
-                    {/* Catch-all for other levels that might be in the options but not the standard list */}
-                    {packageSessionOptions
-                        .filter((opt) => {
-                            const levelPart = opt.label.split(' - ')[1] || opt.label;
-                            const standardClasses = [
-                                'Nursery',
-                                'LKG',
-                                'UKG',
-                                ...Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`),
-                            ];
-                            return !standardClasses.some((cls) => cls.toLowerCase() === levelPart.toLowerCase());
-                        })
-                        .map((opt) => (
-                            <option key={opt.id} value={opt.id}>
-                                {opt.label}
-                            </option>
-                        ))}
+                    {packageSessionOptions.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                            {opt.label}
+                        </option>
+                    ))}
                 </select>
             </div>
 

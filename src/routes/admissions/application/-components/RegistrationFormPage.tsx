@@ -468,7 +468,7 @@ export function RegistrationFormPage() {
                 enquiry_id: enquiryId || null,
                 institute_id: instituteId,
                 session_id: sessionId,
-                destination_package_session_id: formData?.selectedLevelId || formData?.applyingForClass || '',
+                destination_package_session_id: formData?.selectedLevelId || '',
                 source: 'INSTITUTE',
                 source_id: instituteId,
                 form_data: {

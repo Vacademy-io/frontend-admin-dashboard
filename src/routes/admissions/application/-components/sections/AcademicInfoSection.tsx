@@ -229,14 +229,14 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                             Class / Grade Applying For <span className="text-red-500">*</span>
                         </Label>
                         <Select
-                            value={formData.applyingForClass || ''}
+                            value={formData.selectedLevelId || ''}
                             onValueChange={(value) => {
                                 const selected = packageSessions.find(
-                                    (ps) => ps.levelName.toLowerCase() === value.toLowerCase()
+                                    (ps) => ps.id === value
                                 );
                                 updateFormData({
-                                    applyingForClass: value,
-                                    selectedLevelId: selected ? selected.id : undefined,
+                                    applyingForClass: selected ? selected.levelName : '',
+                                    selectedLevelId: value,
                                 });
                             }}
                         >
@@ -244,10 +244,9 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                                 <SelectValue placeholder="Select class" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Kindergarten">Kindergarten</SelectItem>
-                                {Array.from({ length: 12 }, (_, i) => i + 1).map((cls) => (
-                                    <SelectItem key={cls} value={`Class ${cls}`}>
-                                        Class {cls}
+                                {packageSessions.map((session) => (
+                                    <SelectItem key={session.id} value={session.id}>
+                                        {session.levelName}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
