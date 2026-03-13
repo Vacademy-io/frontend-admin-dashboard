@@ -78,6 +78,8 @@ export interface ApplicantListFilters {
     package_session_ids?: string[];
     overall_statuses?: string[];
     search?: string;
+    name?: string;
+    student_name?: string;
 }
 
 export interface PackageSession {
