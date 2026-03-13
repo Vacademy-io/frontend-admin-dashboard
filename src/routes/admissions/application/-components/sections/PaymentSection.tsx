@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Registration } from '../../../-types/registration-types';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import type {
@@ -8,14 +7,8 @@ import type {
     PaymentLinkMethod,
 } from '../../../-services/applicant-services';
 import { initiateManualPayment, generatePaymentLink } from '../../../-services/applicant-services';
-import {
-    CardholderIcon,
-    GlobeIcon,
-    LinkSimple,
-    Copy,
-    ShareNetwork,
-    ArrowSquareOut,
-} from '@phosphor-icons/react';
+import { CardholderIcon, GlobeIcon, ArrowSquareOut } from '@phosphor-icons/react';
+import { QRCodeSVG } from 'qrcode.react';
 import { getPublicUrl, UploadFileInS3 } from '@/services/upload_file';
 import { MyButton } from '@/components/design-system/button';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -37,14 +30,11 @@ type PaymentMethod = 'ONLINE' | 'CASH' | 'UPI' | 'CARD' | 'CHEQUE' | 'SEND_LINK'
 export const PaymentSection: React.FC<SectionProps> = ({
     formData,
     updateFormData,
-    paymentLink,
     applicantId,
     paymentOptionDetails,
 }) => {
     const isPaid = formData.feeStatus === 'PAID';
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | ''>('');
-    const [sendEmailAddress, setSendEmailAddress] = useState('');
-    const [isSendingLink, setIsSendingLink] = useState(false);
     const [qrImageUrl, setQrImageUrl] = useState<string>('');
     const [showQrOverlay, setShowQrOverlay] = useState(false);
     const [generatedParentLink, setGeneratedParentLink] = useState<string>('');
@@ -76,11 +66,22 @@ export const PaymentSection: React.FC<SectionProps> = ({
     const currencySymbol = registrationFeeCurrency === 'INR' ? '₹' : registrationFeeCurrency;
     const paymentOptionId = paymentOptionDetails?.id ?? '';
 
-    /**
-     * Generate a payment link for parents based on selected payment method
-     * - ONLINE: Opens payment gateway
-     * - UPI: Shows QR code for scanning and screenshot upload
-     */
+    const buildUpiDeepLink = () => {
+        const upiVpa = paymentOptionDetails?.upiVpa;
+        if (!upiVpa) return '';
+
+        const params = new URLSearchParams();
+        params.set('pa', upiVpa);
+        if (paymentOptionDetails?.upiPayeeName) params.set('pn', paymentOptionDetails.upiPayeeName);
+        if (registrationFee) params.set('am', registrationFee.toFixed(2));
+        params.set('cu', registrationFeeCurrency);
+        params.set('tn', `${registrationFeeName} payment`);
+
+        return `upi://pay?${params.toString()}`;
+    };
+
+    const generatedUpiDeepLink = buildUpiDeepLink();
+
     const handleGenerateParentLink = (method: PaymentLinkMethod) => {
         if (!applicantId) {
             toast.error('Please submit the application first to generate a payment link.');
@@ -106,45 +107,12 @@ export const PaymentSection: React.FC<SectionProps> = ({
         );
     };
 
-    const handleCopyGeneratedLink = () => {
-        if (generatedParentLink) {
-            navigator.clipboard.writeText(generatedParentLink);
-            toast.success('Link copied to clipboard!');
-        }
-    };
-
-    const handleShareLink = async () => {
-        if (!generatedParentLink) return;
-
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'Payment Link',
-                    text: `Please complete the payment of ${currencySymbol}${registrationFee} using this link:`,
-                    url: generatedParentLink,
-                });
-            } catch (err) {
-                // User cancelled or share failed, fallback to copy
-                handleCopyGeneratedLink();
-            }
-        } else {
-            handleCopyGeneratedLink();
-        }
-    };
-
     const handleGenerateUpiDeepLink = () => {
-        const upiVpa = paymentOptionDetails?.upiVpa;
-        if (!upiVpa) {
+        const deepLink = generatedUpiDeepLink;
+        if (!deepLink) {
             toast.error('UPI ID not configured for this payment stage.');
             return;
         }
-        const params = new URLSearchParams();
-        params.set('pa', upiVpa);
-        if (paymentOptionDetails?.upiPayeeName) params.set('pn', paymentOptionDetails.upiPayeeName);
-        if (registrationFee) params.set('am', registrationFee.toFixed(2));
-        params.set('cu', registrationFeeCurrency);
-        params.set('tn', `${registrationFeeName} payment`);
-        const deepLink = `upi://pay?${params.toString()}`;
         setGeneratedParentLink(deepLink);
         navigator.clipboard.writeText(deepLink);
         toast.success('UPI deep link copied! Send to parent to open in any UPI app.');
@@ -213,31 +181,6 @@ export const PaymentSection: React.FC<SectionProps> = ({
         } finally {
             setIsSubmitting(false);
         }
-    };
-
-    const handleCopyLink = () => {
-        if (paymentLink) {
-            navigator.clipboard.writeText(paymentLink);
-            toast.success('Payment link copied to clipboard!');
-        } else {
-            toast.error('Payment link is not available yet.');
-        }
-    };
-
-    const handleSendLinkToEmail = async () => {
-        if (!sendEmailAddress.trim()) {
-            toast.warning('Please enter an email address');
-            return;
-        }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sendEmailAddress)) {
-            toast.warning('Please enter a valid email address');
-            return;
-        }
-        setIsSendingLink(true);
-        setTimeout(() => {
-            toast.success(`Payment link sent to ${sendEmailAddress}`);
-            setIsSendingLink(false);
-        }, 1500);
     };
 
     const selectMethod = (method: PaymentMethod) => {
@@ -457,7 +400,7 @@ export const PaymentSection: React.FC<SectionProps> = ({
                                             <img
                                                 src={proofPreviewUrl}
                                                 alt="Proof"
-                                                className="h-16 w-16 rounded object-cover"
+                                                className="size-16 rounded object-cover"
                                             />
                                             {isUploadingProof && (
                                                 <span className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
@@ -555,28 +498,49 @@ export const PaymentSection: React.FC<SectionProps> = ({
                                         <img
                                             src={qrImageUrl}
                                             alt="Payment QR Code"
-                                            className="h-full w-full object-contain p-1"
+                                            className="size-full object-contain p-1"
                                         />
                                         <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-xs font-medium text-white opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100">
-                                            🔍 Enlarge
+                                            Open
                                         </span>
                                     </button>
                                 ) : (
-                                    <div className="flex size-36 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-purple-300 bg-white">
-                                        <span className="block text-3xl">📱</span>
-                                        <p className="mt-1 text-[10px] font-medium text-purple-500">
-                                            QR Code
-                                        </p>
-                                        <p className="text-[10px] text-purple-400">
-                                            Not configured
-                                        </p>
+                                    <div className="flex size-36 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-purple-300 bg-white px-2 text-center">
+                                        {paymentOptionDetails?.upiVpa ? (
+                                            <>
+                                                {generatedUpiDeepLink && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowQrOverlay(true)}
+                                                        className="mt-1 rounded-md border border-purple-100 bg-white p-1 transition hover:border-purple-300"
+                                                        title="Open large QR"
+                                                    >
+                                                        <QRCodeSVG
+                                                            value={generatedUpiDeepLink}
+                                                            size={88}
+                                                            level="M"
+                                                            includeMargin
+                                                        />
+                                                    </button>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <p className="mt-1 text-[10px] font-medium text-purple-500">
+                                                    QR Code
+                                                </p>
+                                                <p className="text-[10px] text-purple-400">
+                                                    Not configured
+                                                </p>
+                                            </>
+                                        )}
                                     </div>
                                 )}
                                 <div className="flex-1 space-y-3">
                                     {/* Proof upload */}
                                     <div>
                                         <label className="mb-1 block text-xs font-semibold text-neutral-600">
-                                            Payment Screenshot{' '}
+                                            Payment Image{' '}
                                             <span className="text-neutral-400">(optional)</span>
                                         </label>
                                         <input
@@ -594,7 +558,7 @@ export const PaymentSection: React.FC<SectionProps> = ({
                                                 <img
                                                     src={proofPreviewUrl}
                                                     alt="Proof"
-                                                    className="h-16 w-16 rounded object-cover"
+                                                    className="size-16 rounded object-cover"
                                                 />
                                                 {isUploadingProof && (
                                                     <span className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
@@ -618,15 +582,14 @@ export const PaymentSection: React.FC<SectionProps> = ({
                                                 onClick={() => proofInputRef.current?.click()}
                                                 className="flex items-center gap-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-500 transition hover:border-neutral-400 hover:bg-neutral-100"
                                             >
-                                                📎 Upload payment screenshot
+                                                Upload image
                                             </button>
                                         )}
                                     </div>
 
-                                    {/* Transaction ID + Generate */}
                                     <div>
                                         <label className="mb-1 block text-xs font-semibold text-neutral-600">
-                                            UPI Transaction ID{' '}
+                                            Transaction ID
                                             <span className="text-red-500">*</span>
                                         </label>
                                         <div className="flex gap-2">
@@ -673,7 +636,7 @@ export const PaymentSection: React.FC<SectionProps> = ({
                     <div className="mb-4 flex items-center gap-3">
                         <div>
                             <h4 className="text-sm font-semibold">
-                                Generate Payment Link for Parent
+                                Generate Payment Link for Payment
                             </h4>
                             <p className="text-xs text-muted-foreground">
                                 Share a link with parents to complete payment on their device
@@ -706,6 +669,24 @@ export const PaymentSection: React.FC<SectionProps> = ({
                             UPI App Link
                         </button>
                     </div>
+
+                    {generatedParentLink && (
+                        <div className="mt-5 rounded-xl border border-primary-200 bg-primary-50/40 p-4">
+                            <p className="flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-primary-700">
+                                Scan QR to open payment link
+                            </p>
+                            <div className="mt-3 flex flex-col items-center justify-center gap-3 sm:flex-row sm:items-start sm:gap-4">
+                                <div className="rounded-lg border border-primary-100 bg-white p-2">
+                                    <QRCodeSVG
+                                        value={generatedParentLink}
+                                        size={156}
+                                        level="M"
+                                        includeMargin
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -722,6 +703,21 @@ export const PaymentSection: React.FC<SectionProps> = ({
                             alt="Payment QR Code"
                             className="mx-auto max-h-96 max-w-96 rounded-lg object-contain"
                         />
+                    )}
+                    {!qrImageUrl && generatedUpiDeepLink && (
+                        <div className="mx-auto w-fit rounded-lg border border-purple-100 bg-white p-2">
+                            <QRCodeSVG
+                                value={generatedUpiDeepLink}
+                                size={256}
+                                level="M"
+                                includeMargin
+                            />
+                        </div>
+                    )}
+                    {!qrImageUrl && paymentOptionDetails?.upiVpa && (
+                        <p className="mt-3 text-center text-xs font-medium text-neutral-600">
+                            UPI ID: {paymentOptionDetails.upiVpa}
+                        </p>
                     )}
                     <p className="mt-3 text-center text-xs text-neutral-400">
                         Click outside or press Escape to close
