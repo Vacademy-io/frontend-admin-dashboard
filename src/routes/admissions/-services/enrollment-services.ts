@@ -4,6 +4,23 @@ import { GET_DEFAULT_PAYMENT_OPTION, SCHOOL_ENROLL } from '@/constants/urls';
 export interface SchoolEnrollPayload {
     user: {
         id: string;
+        username?: string;
+        email?: string;
+        full_name?: string;
+        address_line?: string;
+        city?: string;
+        region?: string;
+        pin_code?: string;
+        mobile_number?: string;
+        date_of_birth?: string;
+        gender?: string;
+        password?: string;
+        profile_pic_file_id?: string;
+        roles?: string[];
+        last_login_time?: string;
+        is_parent?: boolean;
+        linked_parent_id?: string;
+        root_user?: boolean;
     };
     institute_id: string;
     package_session_id: string;

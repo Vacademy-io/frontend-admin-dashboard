@@ -17,6 +17,18 @@ interface AdmissionSubmitResult {
     tracking_id?: string;
     parent_user_id?: string;
     child_user_id?: string;
+    parent?: {
+        id?: string;
+        full_name?: string;
+        email?: string;
+        phone?: string;
+    };
+    child?: {
+        id?: string;
+        full_name?: string;
+        email?: string;
+        phone?: string;
+    };
     workflow_type?: string;
     overall_status?: string;
     current_stage_id?: string;
