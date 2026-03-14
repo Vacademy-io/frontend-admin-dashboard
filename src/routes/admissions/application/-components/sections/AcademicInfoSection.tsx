@@ -232,11 +232,6 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                             value={formData.applyingForClass || ''}
                             onValueChange={(value) => {
                                 updateFormData({ applyingForClass: value });
-                                // Also update applyingForClass for backward compatibility
-                                const selected = packageSessions.find((ps) => ps.id === value);
-                                if (selected) {
-                                    updateFormData({ applyingForClass: selected.levelName });
-                                }
                             }}
                         >
                             <SelectTrigger>

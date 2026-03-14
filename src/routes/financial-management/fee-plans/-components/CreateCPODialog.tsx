@@ -1,15 +1,27 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import type { CreateCPOPayload } from '../-types/cpo-types';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 // ─── Types for the form ─────────────────────────────────────────────────────────
 
-interface InstallmentForm {
+export interface InstallmentForm {
     id: number;
     amount: number | string;
+    startDate?: string;
     dueDate: string;
+    endDate?: string;
 }
 
-interface FeeTypeForm {
+export interface FeeTypeForm {
     id: number;
     name: string;
     code: string;
@@ -23,7 +35,7 @@ interface FeeTypeForm {
     installments: InstallmentForm[];
 }
 
-interface CPOForm {
+export interface CPOForm {
     name: string;
     status: string;
     packageSessionId: string;
@@ -45,19 +57,145 @@ const INSTALLMENT_PRESETS = [
     { label: 'Custom', count: null },
 ];
 
-const MONTHS = [
-    'April', 'May', 'June', 'July', 'August', 'September',
-    'October', 'November', 'December', 'January', 'February', 'March',
+const FEE_TYPE_PRESETS = [
+    {
+        label: 'Tuition Fee',
+        name: 'Tuition Fee',
+        code: 'TUITION_FEE',
+        description: 'Regular tuition charges for the academic year',
+        hasInstallment: true,
+        isRefundable: false,
+        hasPenalty: true,
+        penaltyPercentage: 5,
+        noOfInstallments: 4,
+    },
+    {
+        label: 'Exam Fee',
+        name: 'Exam Fee',
+        code: 'EXAM_FEE',
+        description: 'Examination and assessment charges',
+        hasInstallment: false,
+        isRefundable: false,
+        hasPenalty: false,
+        penaltyPercentage: '',
+        noOfInstallments: 1,
+    },
+    {
+        label: 'Library Fee',
+        name: 'Library Fee',
+        code: 'LIBRARY_FEE',
+        description: 'Library access and resource charges',
+        hasInstallment: false,
+        isRefundable: false,
+        hasPenalty: false,
+        penaltyPercentage: '',
+        noOfInstallments: 1,
+    },
+    {
+        label: 'Transport Fee',
+        name: 'Transport Fee',
+        code: 'TRANSPORT_FEE',
+        description: 'School transportation charges',
+        hasInstallment: true,
+        isRefundable: false,
+        hasPenalty: false,
+        penaltyPercentage: '',
+        noOfInstallments: 12,
+    },
+    {
+        label: 'Hostel Fee',
+        name: 'Hostel Fee',
+        code: 'HOSTEL_FEE',
+        description: 'Hostel accommodation charges',
+        hasInstallment: true,
+        isRefundable: true,
+        hasPenalty: false,
+        penaltyPercentage: '',
+        noOfInstallments: 2,
+    },
+    {
+        label: 'Lab Fee',
+        name: 'Lab Fee',
+        code: 'LAB_FEE',
+        description: 'Laboratory usage and material charges',
+        hasInstallment: false,
+        isRefundable: false,
+        hasPenalty: false,
+        penaltyPercentage: '',
+        noOfInstallments: 1,
+    },
 ];
 
+// ─── Payload builder ────────────────────────────────────────────────────────────
+
+export function buildCreateCPOPayload(form: CPOForm): CreateCPOPayload {
+    return {
+        id: null,
+        name: form.name,
+        institute_id: '',
+        default_payment_option_id: null,
+        status: form.status,
+        created_by: null,
+        approved_by: null,
+        fee_types: form.feeTypes.map((ft) => ({
+            id: null,
+            name: ft.name,
+            code: ft.code || ft.name.toUpperCase().replace(/\s+/g, '_'),
+            description: ft.description,
+            status: 'ACTIVE',
+            assigned_fee_value: {
+                id: null,
+                amount: parseFloat(ft.amount as string) || 0,
+                no_of_installments: ft.hasInstallment ? ft.installments.length : 1,
+                has_installment: ft.hasInstallment,
+                is_refundable: ft.isRefundable,
+                has_penalty: ft.hasPenalty,
+                penalty_percentage: ft.hasPenalty
+                    ? parseFloat(ft.penaltyPercentage as string) || 0
+                    : null,
+                status: 'ACTIVE',
+                installments: ft.hasInstallment
+                    ? ft.installments.map((inst, idx) => ({
+                          id: null,
+                          installment_number: idx + 1,
+                          amount: parseFloat(inst.amount as string) || 0,
+                          status: 'PENDING',
+                          start_date: inst.startDate || null,
+                          end_date: inst.endDate || inst.dueDate || null,
+                          due_date: inst.dueDate || null,
+                      }))
+                    : [],
+                original_amount: parseFloat(ft.amount as string) || 0,
+                discount_type: null,
+                discount_value: 0,
+            },
+        })),
+        package_session_links: [
+            {
+                enroll_invite_id: null,
+                package_session_id: form.packageSessionId,
+            },
+        ],
+    };
+}
+
 function generateInstallments(count: number, totalAmount: number): InstallmentForm[] {
+    const today = new Date();
     const perInstallment = totalAmount ? Math.floor(totalAmount / count) : 0;
     const remainder = totalAmount ? totalAmount - perInstallment * count : 0;
-    return Array.from({ length: count }, (_, i) => ({
-        id: i + 1,
-        amount: i === 0 ? perInstallment + remainder : perInstallment,
-        dueDate: '',
-    }));
+    return Array.from({ length: count }, (_, i) => {
+        const startDay = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const dueDay = new Date(today.getFullYear(), today.getMonth() + i, 10);
+        const startDate = startDay.toISOString().split('T')[0];
+        const dueDate = dueDay.toISOString().split('T')[0];
+        return {
+            id: i + 1,
+            amount: i === 0 ? perInstallment + remainder : perInstallment,
+            startDate,
+            dueDate,
+            endDate: dueDate,
+        };
+    });
 }
 
 function createEmptyFeeType(id: number): FeeTypeForm {
@@ -82,15 +220,14 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
     return (
         <div
             onClick={() => onChange(!value)}
-            className="relative cursor-pointer flex-shrink-0"
+            className="relative flex-shrink-0 cursor-pointer"
             style={{ width: 38, height: 20 }}
         >
             <div
-                className="rounded-full transition-colors"
+                className={`rounded-full transition-colors ${value ? 'bg-primary-500' : 'bg-gray-300'}`}
                 style={{
                     width: 38,
                     height: 20,
-                    background: value ? '#6366f1' : '#d1d5db',
                 }}
             />
             <div
@@ -127,13 +264,16 @@ function FeeTypeEditor({
     };
 
     const handlePreset = (count: number | null) => {
-        if (count) {
+        if (count !== null) {
             const total = parseFloat(feeType.amount as string) || 0;
             onChange({
                 ...feeType,
                 noOfInstallments: count,
                 installments: generateInstallments(count, total),
             });
+        } else {
+            // Custom — just reveal the number input without regenerating installments
+            update('noOfInstallments', '');
         }
     };
 
@@ -154,19 +294,49 @@ function FeeTypeEditor({
     const handleAmountChange = (val: string) => {
         const total = parseFloat(val) || 0;
         const count = feeType.installments.length || 1;
+        const perInstallment = total ? Math.floor(total / count) : 0;
+        const remainder = total ? total - perInstallment * count : 0;
         onChange({
             ...feeType,
             amount: val,
-            installments: generateInstallments(count, total),
+            // Preserve existing dates — only redistribute amounts
+            installments: feeType.installments.map((inst, i) => ({
+                ...inst,
+                amount: i === 0 ? perInstallment + remainder : perInstallment,
+            })),
         });
     };
 
     const updateInstallment = (id: number, field: string, value: any) => {
         onChange({
             ...feeType,
-            installments: feeType.installments.map((inst) =>
-                inst.id === id ? { ...inst, [field]: value } : inst
-            ),
+            installments: feeType.installments.map((inst) => {
+                if (inst.id !== id) return inst;
+                const updated = { ...inst, [field]: value };
+                // Keep endDate in sync with dueDate unless user has already diverged them
+                if (field === 'dueDate' && inst.endDate === inst.dueDate) {
+                    updated.endDate = value;
+                }
+                return updated;
+            }),
+        });
+    };
+
+    const applyPreset = (preset: any) => {
+        if (!preset.name) return; // Custom — leave blank for manual entry
+        const count = preset.noOfInstallments ?? 1;
+        const currentAmount = parseFloat(feeType.amount as string) || 0;
+        onChange({
+            ...feeType,
+            name: preset.name,
+            code: preset.code ?? '',
+            description: preset.description ?? '',
+            hasInstallment: preset.hasInstallment ?? false,
+            isRefundable: preset.isRefundable ?? false,
+            hasPenalty: preset.hasPenalty ?? false,
+            penaltyPercentage: preset.penaltyPercentage ?? '',
+            noOfInstallments: count,
+            installments: generateInstallments(count, currentAmount),
         });
     };
 
@@ -178,18 +348,18 @@ function FeeTypeEditor({
     const diff = totalAmount - installmentTotal;
 
     return (
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-gray-200">
             {/* Fee Type Header */}
             <div
-                className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                className="flex cursor-pointer items-center justify-between bg-gray-50 px-4 py-3 transition-colors hover:bg-gray-100"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-500">
                         {index + 1}
                     </div>
                     <div>
-                        <div className="font-semibold text-sm text-gray-900">
+                        <div className="text-sm font-semibold text-gray-900">
                             {feeType.name || `Fee Type ${index + 1}`}
                         </div>
                         {feeType.amount && (
@@ -208,87 +378,119 @@ function FeeTypeEditor({
                                 e.stopPropagation();
                                 onRemove();
                             }}
-                            className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50 transition cursor-pointer"
+                            className="cursor-pointer rounded px-2 py-1 text-xs font-medium text-red-500 transition hover:bg-red-50 hover:text-red-700"
                         >
                             Remove
                         </button>
                     )}
                     <svg
-                        className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                        className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                     >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 9l-7 7-7-7"
+                        />
                     </svg>
                 </div>
             </div>
 
             {/* Fee Type Form */}
             {isExpanded && (
-                <div className="p-4 flex flex-col gap-4">
+                <div className="flex flex-col gap-4 p-4">
+                    {/* Quick Presets */}
+                    <div>
+                        <div className="flex flex-wrap gap-1.5">
+                            {FEE_TYPE_PRESETS.map((preset) => (
+                                <button
+                                    key={preset.label}
+                                    type="button"
+                                    onClick={() => applyPreset(preset)}
+                                    className="cursor-pointer rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 transition hover:border-primary-400 hover:bg-primary-100 hover:text-primary-500"
+                                >
+                                    {preset.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Name & Description */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                                 Fee Name <span className="text-red-500">*</span>
-                            </label>
-                            <input
+                            </Label>
+                            <Input
                                 placeholder="e.g. Tuition Fee"
                                 value={feeType.name}
                                 onChange={(e) => update('name', e.target.value)}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500 transition"
+                                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-primary-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                                 Description
-                            </label>
-                            <input
+                            </Label>
+                            <Input
                                 placeholder="Brief description"
                                 value={feeType.description}
                                 onChange={(e) => update('description', e.target.value)}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500 transition"
+                                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-primary-500"
                             />
                         </div>
                     </div>
 
                     {/* Amount */}
                     <div>
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                        <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                             Total Amount (₹) <span className="text-red-500">*</span>
-                        </label>
-                        <input
+                        </Label>
+                        <Input
                             type="number"
                             placeholder="e.g. 50000"
                             value={feeType.amount}
                             onChange={(e) => handleAmountChange(e.target.value)}
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500 transition font-semibold"
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold outline-none transition focus:border-primary-500"
                         />
                     </div>
 
                     {/* Toggles Row */}
-                    <div className="flex items-center gap-6 flex-wrap">
+                    <div className="flex flex-wrap items-center gap-6">
                         <div className="flex items-center gap-2">
-                            <Toggle value={feeType.hasInstallment} onChange={(v) => update('hasInstallment', v)} />
-                            <span className="text-sm text-gray-700 font-medium">Has Installments</span>
+                            <Toggle
+                                value={feeType.hasInstallment}
+                                onChange={(v) => update('hasInstallment', v)}
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                                Has Installments
+                            </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Toggle value={feeType.isRefundable} onChange={(v) => update('isRefundable', v)} />
-                            <span className="text-sm text-gray-700 font-medium">Refundable</span>
+                            <Toggle
+                                value={feeType.isRefundable}
+                                onChange={(v) => update('isRefundable', v)}
+                            />
+                            <span className="text-sm font-medium text-gray-700">Refundable</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Toggle value={feeType.hasPenalty} onChange={(v) => update('hasPenalty', v)} />
-                            <span className="text-sm text-gray-700 font-medium">Late Penalty</span>
+                            <Toggle
+                                value={feeType.hasPenalty}
+                                onChange={(v) => update('hasPenalty', v)}
+                            />
+                            <span className="text-sm font-medium text-gray-700">Late Penalty</span>
                         </div>
                         {feeType.hasPenalty && (
                             <div className="flex items-center gap-1">
-                                <input
+                                <Input
                                     type="number"
                                     placeholder="%"
                                     value={feeType.penaltyPercentage}
                                     onChange={(e) => update('penaltyPercentage', e.target.value)}
-                                    className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-sm outline-none focus:border-indigo-500 transition"
+                                    className="w-16 rounded-lg border border-gray-200 px-2 py-1 text-sm outline-none transition focus:border-primary-500"
                                 />
                                 <span className="text-xs text-gray-500">%</span>
                             </div>
@@ -300,10 +502,10 @@ function FeeTypeEditor({
                         <div className="flex flex-col gap-3">
                             {/* Frequency Presets */}
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                                <Label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                                     Payment Frequency
-                                </label>
-                                <div className="flex gap-2 flex-wrap">
+                                </Label>
+                                <div className="flex flex-wrap gap-2">
                                     {INSTALLMENT_PRESETS.map((preset) => {
                                         const isActive =
                                             preset.count !== null &&
@@ -313,15 +515,17 @@ function FeeTypeEditor({
                                                 key={preset.label}
                                                 type="button"
                                                 onClick={() => handlePreset(preset.count)}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                                                className={`cursor-pointer rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
                                                     isActive
-                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                                        ? 'border-primary-500 bg-primary-100 text-primary-500'
                                                         : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                                                 }`}
                                             >
                                                 {preset.label}
                                                 {preset.count && (
-                                                    <span className="ml-1 opacity-60">({preset.count}x)</span>
+                                                    <span className="ml-1 opacity-60">
+                                                        ({preset.count}x)
+                                                    </span>
                                                 )}
                                             </button>
                                         );
@@ -329,26 +533,28 @@ function FeeTypeEditor({
                                 </div>
                                 {/* Custom count input */}
                                 {![1, 2, 4, 12].includes(Number(feeType.noOfInstallments)) && (
-                                    <input
+                                    <Input
                                         type="number"
                                         min={1}
                                         max={60}
                                         placeholder="Number of installments"
                                         value={feeType.noOfInstallments}
-                                        onChange={(e) => handleInstallmentCountChange(e.target.value)}
-                                        className="mt-2 w-48 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500 transition"
+                                        onChange={(e) =>
+                                            handleInstallmentCountChange(e.target.value)
+                                        }
+                                        className="mt-2 w-48 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-primary-500"
                                     />
                                 )}
                             </div>
 
                             {/* Installment Table */}
-                            <div className="border border-gray-200 rounded-lg overflow-hidden">
+                            <div className="overflow-hidden rounded-lg border border-gray-200">
                                 {diff !== 0 && totalAmount > 0 && (
                                     <div
                                         className={`px-3 py-2 text-xs font-medium ${
                                             diff > 0
-                                                ? 'bg-amber-50 text-amber-700 border-b border-amber-100'
-                                                : 'bg-red-50 text-red-700 border-b border-red-100'
+                                                ? 'border-b border-amber-100 bg-amber-50 text-amber-700'
+                                                : 'border-b border-red-100 bg-red-50 text-red-700'
                                         }`}
                                     >
                                         {diff > 0
@@ -358,14 +564,20 @@ function FeeTypeEditor({
                                 )}
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="bg-gray-50 border-b border-gray-100">
-                                            <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase">
+                                        <tr className="border-b border-gray-100 bg-gray-50">
+                                            <th className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">
                                                 #
                                             </th>
-                                            <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase">
+                                            <th className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">
                                                 Amount (₹)
                                             </th>
-                                            <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase">
+                                            <th className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">
+                                                Start Date
+                                            </th>
+                                            <th className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">
+                                                End Date
+                                            </th>
+                                            <th className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">
                                                 Due Date
                                             </th>
                                         </tr>
@@ -373,27 +585,64 @@ function FeeTypeEditor({
                                     <tbody>
                                         {feeType.installments.map((inst, idx) => (
                                             <tr key={inst.id} className="border-b border-gray-50">
-                                                <td className="py-2 px-3 text-gray-400 font-medium w-10">
+                                                <td className="w-10 px-3 py-2 font-medium text-gray-400">
                                                     {idx + 1}
                                                 </td>
-                                                <td className="py-2 px-3">
-                                                    <input
+                                                <td className="px-3 py-2">
+                                                    <Input
                                                         type="number"
                                                         value={inst.amount}
                                                         onChange={(e) =>
-                                                            updateInstallment(inst.id, 'amount', e.target.value)
+                                                            updateInstallment(
+                                                                inst.id,
+                                                                'amount',
+                                                                e.target.value
+                                                            )
                                                         }
-                                                        className="w-28 border border-gray-200 rounded-md px-2 py-1 text-sm outline-none focus:border-indigo-500"
+                                                        className="w-28 rounded-md border border-gray-200 px-2 py-1 text-sm outline-none focus:border-primary-500"
                                                     />
                                                 </td>
-                                                <td className="py-2 px-3">
-                                                    <input
+                                                <td className="px-3 py-2">
+                                                    <Input
+                                                        type="date"
+                                                        value={inst.startDate ?? ''}
+                                                        onChange={(e) =>
+                                                            updateInstallment(
+                                                                inst.id,
+                                                                'startDate',
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        className="rounded-md border border-gray-200 px-2 py-1 text-sm outline-none focus:border-primary-500"
+                                                    />
+                                                </td>
+
+                                                <td className="px-3 py-2">
+                                                    <Input
+                                                        type="date"
+                                                        value={inst.endDate ?? ''}
+                                                        onChange={(e) =>
+                                                            updateInstallment(
+                                                                inst.id,
+                                                                'endDate',
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        className="rounded-md border border-gray-200 px-2 py-1 text-sm outline-none focus:border-primary-500"
+                                                    />
+                                                </td>
+                                                <td className="px-3 py-2">
+                                                    <Input
                                                         type="date"
                                                         value={inst.dueDate}
                                                         onChange={(e) =>
-                                                            updateInstallment(inst.id, 'dueDate', e.target.value)
+                                                            updateInstallment(
+                                                                inst.id,
+                                                                'dueDate',
+                                                                e.target.value
+                                                            )
                                                         }
-                                                        className="border border-gray-200 rounded-md px-2 py-1 text-sm outline-none focus:border-indigo-500"
+                                                        className="rounded-md border border-gray-200 px-2 py-1 text-sm outline-none focus:border-primary-500"
                                                     />
                                                 </td>
                                             </tr>
@@ -401,9 +650,11 @@ function FeeTypeEditor({
                                     </tbody>
                                     <tfoot>
                                         <tr className="bg-gray-50">
-                                            <td className="py-2 px-3 font-bold text-gray-700">Total</td>
+                                            <td className="px-3 py-2 font-bold text-gray-700">
+                                                Total
+                                            </td>
                                             <td
-                                                className={`py-2 px-3 font-bold ${
+                                                className={`px-3 py-2 font-bold ${
                                                     installmentTotal === totalAmount
                                                         ? 'text-green-600'
                                                         : 'text-gray-800'
@@ -411,6 +662,8 @@ function FeeTypeEditor({
                                             >
                                                 ₹{installmentTotal.toLocaleString('en-IN')}
                                             </td>
+                                            <td />
+                                            <td />
                                             <td />
                                         </tr>
                                     </tfoot>
@@ -430,17 +683,27 @@ export default function CreateCPODialog({
     onSave,
     onClose,
     batchOptions,
+    defaultPackageSessionId,
+    isSaving = false,
 }: {
     onSave: (data: CPOForm) => void;
     onClose: () => void;
     batchOptions: BatchOption[];
+    defaultPackageSessionId?: string;
+    isSaving?: boolean;
 }) {
     const [form, setForm] = useState<CPOForm>({
         name: '',
         status: 'ACTIVE',
-        packageSessionId: '',
+        packageSessionId: defaultPackageSessionId ?? '',
         feeTypes: [createEmptyFeeType(1)],
     });
+
+    useEffect(() => {
+        if (!form.packageSessionId && batchOptions.length > 0) {
+            setForm((prev) => ({ ...prev, packageSessionId: batchOptions[0].id }));
+        }
+    }, [batchOptions, form.packageSessionId]);
 
     const addFeeType = () => {
         const nextId = Math.max(...form.feeTypes.map((f) => f.id), 0) + 1;
@@ -468,146 +731,170 @@ export default function CreateCPODialog({
         form.packageSessionId !== '' &&
         form.name.trim() !== '' &&
         form.feeTypes.length > 0 &&
-        form.feeTypes.every(
-            (ft) =>
-                ft.name.trim() !== '' &&
-                parseFloat(ft.amount as string) > 0
-        );
+        form.feeTypes.every((ft) => ft.name.trim() !== '' && parseFloat(ft.amount as string) > 0);
 
     const totalPackageAmount = form.feeTypes.reduce(
         (sum, ft) => sum + (parseFloat(ft.amount as string) || 0),
         0
     );
 
+    const uniqueInstallmentCount = (() => {
+        const uniqueDates = new Set<string>();
+        form.feeTypes.forEach((ft, ftIdx) => {
+            if (ft.hasInstallment) {
+                ft.installments.forEach((inst) => {
+                    uniqueDates.add(inst.dueDate || `_empty_${ftIdx}_${inst.id}`);
+                });
+            } else {
+                uniqueDates.add(`_lump_${ft.id}`);
+            }
+        });
+        return uniqueDates.size;
+    })();
+
     return (
         <div
-            className="fixed inset-0 flex items-center justify-center z-[1000]"
+            className="fixed inset-0 z-[1000] flex items-center justify-center"
             style={{
                 background: 'rgba(15,23,42,0.55)',
                 backdropFilter: 'blur(4px)',
                 fontFamily: "'DM Sans', sans-serif",
             }}
         >
-            <div className="bg-white rounded-2xl w-[min(860px,96vw)] max-h-[92vh] overflow-y-auto shadow-2xl">
+            <div className="max-h-[92vh] w-[min(860px,96vw)] overflow-y-auto rounded-2xl bg-white shadow-2xl">
                 {/* Header */}
-                <div className="px-6 pt-6 pb-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+                <div className="sticky top-0 z-10 border-b border-gray-100 bg-white px-6 pb-4 pt-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <div className="text-xs font-semibold text-indigo-600 uppercase tracking-widest mb-1">
-                                Create Package
+                            <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-primary-500">
+                                Create Plan
                             </div>
-                            <h2 className="text-xl font-extrabold text-gray-900">
-                                New Fee Package (CPO)
-                            </h2>
+                            <h2 className="text-xl font-extrabold text-gray-900">New Fee Plan</h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="w-9 h-9 flex items-center justify-center bg-gray-100 rounded-lg hover:bg-gray-200 transition cursor-pointer text-gray-500"
+                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition hover:bg-gray-200"
                         >
                             ✕
                         </button>
                     </div>
                 </div>
 
+                {/* Summary Bar */}
+                {form.feeTypes.length > 0 && (
+                    <div className="mx-4 flex items-center gap-6 rounded-xl border border-primary-100 bg-primary-100 px-4 py-3">
+                        <div className="flex items-center gap-x-2">
+                            <div className="text-sm font-bold uppercase tracking-wider text-primary-500">
+                                Fee Types
+                            </div>
+                            <div className="text-lg font-extrabold text-primary-500">
+                                {form.feeTypes.length}
+                            </div>
+                        </div>
+                        <div className="h-8 w-px bg-primary-200" />
+                        <div className="flex items-center gap-x-2">
+                            <div className="text-sm font-bold uppercase tracking-wider text-primary-500">
+                                Total Amount
+                            </div>
+                            <div className="text-lg font-extrabold text-primary-500">
+                                ₹{totalPackageAmount.toLocaleString('en-IN')}
+                            </div>
+                        </div>
+                        <div className="h-8 w-px bg-primary-200" />
+                        <div className="flex items-center gap-x-2">
+                            <div className="text-sm font-bold uppercase tracking-wider text-primary-500">
+                                Payment Dates
+                            </div>
+                            <div className="text-lg font-extrabold text-primary-500">
+                                {uniqueInstallmentCount}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Body */}
-                <div className="px-6 py-5 flex flex-col gap-5">
+                <div className="flex flex-col gap-5 px-6 py-5">
                     {/* Class / Batch Selector */}
                     <div>
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                        <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                             Select Class / Batch <span className="text-red-500">*</span>
-                        </label>
-                        <select
+                        </Label>
+                        <Select
                             value={form.packageSessionId}
-                            onChange={(e) =>
-                                setForm((prev) => ({ ...prev, packageSessionId: e.target.value }))
+                            onValueChange={(value) =>
+                                setForm((prev) => ({ ...prev, packageSessionId: value }))
                             }
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition cursor-pointer bg-white"
                         >
-                            <option value="">-- Select a class --</option>
-                            {batchOptions.map((opt) => (
-                                <option key={opt.id} value={opt.id}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
+                            <SelectTrigger className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-primary-500 focus:ring-1 focus:ring-primary-200">
+                                <SelectValue placeholder="Select a class" />
+                            </SelectTrigger>
+                            <SelectContent className="z-[1200]">
+                                {batchOptions.map((opt) => (
+                                    <SelectItem key={opt.id} value={opt.id}>
+                                        {opt.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {/* Package Name & Status */}
                     <div className="grid grid-cols-[1fr_200px] gap-4">
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                                 Package Name <span className="text-red-500">*</span>
-                            </label>
-                            <input
+                            </Label>
+                            <Input
                                 placeholder="e.g. 2026 Elite Fee Plan"
                                 value={form.name}
-                                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition"
+                                onChange={(e) =>
+                                    setForm((prev) => ({ ...prev, name: e.target.value }))
+                                }
+                                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-primary-500 focus:ring-1 focus:ring-primary-200"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                                 Status
-                            </label>
-                            <select
+                            </Label>
+                            <Select
                                 value={form.status}
-                                onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-indigo-500 transition cursor-pointer bg-white"
+                                onValueChange={(value) =>
+                                    setForm((prev) => ({ ...prev, status: value }))
+                                }
                             >
-                                <option value="ACTIVE">Active</option>
-                                <option value="DRAFT">Draft</option>
-                            </select>
+                                <SelectTrigger className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-primary-500">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="z-[1200]">
+                                    <SelectItem value="ACTIVE">Active</SelectItem>
+                                    <SelectItem value="DRAFT">Draft</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
-                    {/* Summary Bar */}
-                    {form.feeTypes.length > 0 && (
-                        <div className="flex items-center gap-6 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl px-4 py-3">
-                            <div>
-                                <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">
-                                    Fee Types
-                                </div>
-                                <div className="text-lg font-extrabold text-indigo-800">
-                                    {form.feeTypes.length}
-                                </div>
-                            </div>
-                            <div className="w-px h-8 bg-indigo-200" />
-                            <div>
-                                <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">
-                                    Total Amount
-                                </div>
-                                <div className="text-lg font-extrabold text-indigo-800">
-                                    ₹{totalPackageAmount.toLocaleString('en-IN')}
-                                </div>
-                            </div>
-                            <div className="w-px h-8 bg-indigo-200" />
-                            <div>
-                                <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">
-                                    Total Installments
-                                </div>
-                                <div className="text-lg font-extrabold text-indigo-800">
-                                    {form.feeTypes.reduce(
-                                        (sum, ft) => sum + (ft.hasInstallment ? ft.installments.length : 1),
-                                        0
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     {/* Fee Types Section */}
                     <div>
-                        <div className="flex items-center justify-between mb-3">
-                            <label className="text-sm font-bold text-gray-800">
-                                Fee Types
-                            </label>
+                        <div className="mb-3 flex items-center justify-between">
+                            <Label className="text-sm font-bold text-gray-800">Fee Types</Label>
                             <button
                                 type="button"
                                 onClick={addFeeType}
-                                className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition cursor-pointer"
+                                className="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-primary-500 transition hover:bg-primary-100 hover:text-primary-500"
                             >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                                <svg
+                                    className="h-3.5 w-3.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M12 4v16m8-8H4"
+                                    />
                                 </svg>
                                 Add Fee Type
                             </button>
@@ -629,23 +916,23 @@ export default function CreateCPODialog({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between sticky bottom-0 bg-white">
+                <div className="sticky bottom-0 flex items-center justify-between border-t border-gray-100 bg-white px-6 py-4">
                     <button
                         onClick={onClose}
-                        className="px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition cursor-pointer"
+                        className="cursor-pointer rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={() => onSave(form)}
-                        disabled={!isValid}
-                        className={`px-6 py-2.5 rounded-lg text-sm font-bold text-white transition cursor-pointer ${
-                            isValid
-                                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 shadow-md'
-                                : 'bg-gray-300 cursor-not-allowed'
+                        disabled={!isValid || isSaving}
+                        className={`cursor-pointer rounded-lg px-6 py-2.5 text-sm font-bold text-white transition ${
+                            isValid && !isSaving
+                                ? 'bg-gradient-to-r from-primary-400 to-primary-500 shadow-md hover:opacity-90'
+                                : 'cursor-not-allowed bg-gray-300'
                         }`}
                     >
-                        Save Package
+                        {isSaving ? 'Saving...' : 'Save Package'}
                     </button>
                 </div>
             </div>
