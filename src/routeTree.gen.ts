@@ -67,7 +67,9 @@ import { Route as ManageInstituteBatchesIndexRouteImport } from "./routes/manage
 import { Route as LoginForgotPasswordIndexRouteImport } from "./routes/login/forgot-password/index"
 import { Route as LoginKeyIndexRouteImport } from "./routes/login/$key/index"
 import { Route as HomeworkCreationAssessmentListIndexRouteImport } from "./routes/homework-creation/assessment-list/index"
+import { Route as FinancialManagementManageFinancesIndexRouteImport } from "./routes/financial-management/manage-finances/index"
 import { Route as FinancialManagementFeePlansIndexRouteImport } from "./routes/financial-management/fee-plans/index"
+import { Route as FinancialManagementCollectionDashboardIndexRouteImport } from "./routes/financial-management/collection-dashboard/index"
 import { Route as EvaluatorAiStudentsIndexRouteImport } from "./routes/evaluator-ai/students/index"
 import { Route as EvaluatorAiEvaluationIndexRouteImport } from "./routes/evaluator-ai/evaluation/index"
 import { Route as EvaluatorAiAssessmentIndexRouteImport } from "./routes/evaluator-ai/assessment/index"
@@ -583,6 +585,16 @@ const HomeworkCreationAssessmentListIndexRoute =
       (d) => d.Route,
     ),
   )
+const FinancialManagementManageFinancesIndexRoute =
+  FinancialManagementManageFinancesIndexRouteImport.update({
+    id: "/financial-management/manage-finances/",
+    path: "/financial-management/manage-finances/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/financial-management/manage-finances/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const FinancialManagementFeePlansIndexRoute =
   FinancialManagementFeePlansIndexRouteImport.update({
     id: "/financial-management/fee-plans/",
@@ -590,6 +602,16 @@ const FinancialManagementFeePlansIndexRoute =
     getParentRoute: () => rootRouteImport,
   } as any).lazy(() =>
     import("./routes/financial-management/fee-plans/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
+const FinancialManagementCollectionDashboardIndexRoute =
+  FinancialManagementCollectionDashboardIndexRouteImport.update({
+    id: "/financial-management/collection-dashboard/",
+    path: "/financial-management/collection-dashboard/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/financial-management/collection-dashboard/index.lazy").then(
       (d) => d.Route,
     ),
   )
@@ -1244,7 +1266,9 @@ export interface FileRoutesByFullPath {
   "/evaluator-ai/assessment/": typeof EvaluatorAiAssessmentIndexRoute
   "/evaluator-ai/evaluation/": typeof EvaluatorAiEvaluationIndexRoute
   "/evaluator-ai/students/": typeof EvaluatorAiStudentsIndexRoute
+  "/financial-management/collection-dashboard/": typeof FinancialManagementCollectionDashboardIndexRoute
   "/financial-management/fee-plans/": typeof FinancialManagementFeePlansIndexRoute
+  "/financial-management/manage-finances/": typeof FinancialManagementManageFinancesIndexRoute
   "/homework-creation/assessment-list/": typeof HomeworkCreationAssessmentListIndexRoute
   "/login/$key/": typeof LoginKeyIndexRoute
   "/login/forgot-password/": typeof LoginForgotPasswordIndexRoute
@@ -1377,7 +1401,9 @@ export interface FileRoutesByTo {
   "/evaluator-ai/assessment": typeof EvaluatorAiAssessmentIndexRoute
   "/evaluator-ai/evaluation": typeof EvaluatorAiEvaluationIndexRoute
   "/evaluator-ai/students": typeof EvaluatorAiStudentsIndexRoute
+  "/financial-management/collection-dashboard": typeof FinancialManagementCollectionDashboardIndexRoute
   "/financial-management/fee-plans": typeof FinancialManagementFeePlansIndexRoute
+  "/financial-management/manage-finances": typeof FinancialManagementManageFinancesIndexRoute
   "/homework-creation/assessment-list": typeof HomeworkCreationAssessmentListIndexRoute
   "/login/$key": typeof LoginKeyIndexRoute
   "/login/forgot-password": typeof LoginForgotPasswordIndexRoute
@@ -1512,7 +1538,9 @@ export interface FileRoutesById {
   "/evaluator-ai/assessment/": typeof EvaluatorAiAssessmentIndexRoute
   "/evaluator-ai/evaluation/": typeof EvaluatorAiEvaluationIndexRoute
   "/evaluator-ai/students/": typeof EvaluatorAiStudentsIndexRoute
+  "/financial-management/collection-dashboard/": typeof FinancialManagementCollectionDashboardIndexRoute
   "/financial-management/fee-plans/": typeof FinancialManagementFeePlansIndexRoute
+  "/financial-management/manage-finances/": typeof FinancialManagementManageFinancesIndexRoute
   "/homework-creation/assessment-list/": typeof HomeworkCreationAssessmentListIndexRoute
   "/login/$key/": typeof LoginKeyIndexRoute
   "/login/forgot-password/": typeof LoginForgotPasswordIndexRoute
@@ -1648,7 +1676,9 @@ export interface FileRouteTypes {
     | "/evaluator-ai/assessment/"
     | "/evaluator-ai/evaluation/"
     | "/evaluator-ai/students/"
+    | "/financial-management/collection-dashboard/"
     | "/financial-management/fee-plans/"
+    | "/financial-management/manage-finances/"
     | "/homework-creation/assessment-list/"
     | "/login/$key/"
     | "/login/forgot-password/"
@@ -1781,7 +1811,9 @@ export interface FileRouteTypes {
     | "/evaluator-ai/assessment"
     | "/evaluator-ai/evaluation"
     | "/evaluator-ai/students"
+    | "/financial-management/collection-dashboard"
     | "/financial-management/fee-plans"
+    | "/financial-management/manage-finances"
     | "/homework-creation/assessment-list"
     | "/login/$key"
     | "/login/forgot-password"
@@ -1915,7 +1947,9 @@ export interface FileRouteTypes {
     | "/evaluator-ai/assessment/"
     | "/evaluator-ai/evaluation/"
     | "/evaluator-ai/students/"
+    | "/financial-management/collection-dashboard/"
     | "/financial-management/fee-plans/"
+    | "/financial-management/manage-finances/"
     | "/homework-creation/assessment-list/"
     | "/login/$key/"
     | "/login/forgot-password/"
@@ -2049,7 +2083,9 @@ export interface RootRouteChildren {
   EvaluatorAiAssessmentIndexRoute: typeof EvaluatorAiAssessmentIndexRoute
   EvaluatorAiEvaluationIndexRoute: typeof EvaluatorAiEvaluationIndexRoute
   EvaluatorAiStudentsIndexRoute: typeof EvaluatorAiStudentsIndexRoute
+  FinancialManagementCollectionDashboardIndexRoute: typeof FinancialManagementCollectionDashboardIndexRoute
   FinancialManagementFeePlansIndexRoute: typeof FinancialManagementFeePlansIndexRoute
+  FinancialManagementManageFinancesIndexRoute: typeof FinancialManagementManageFinancesIndexRoute
   HomeworkCreationAssessmentListIndexRoute: typeof HomeworkCreationAssessmentListIndexRoute
   LoginKeyIndexRoute: typeof LoginKeyIndexRoute
   LoginForgotPasswordIndexRoute: typeof LoginForgotPasswordIndexRoute
@@ -2548,11 +2584,25 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof HomeworkCreationAssessmentListIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/financial-management/manage-finances/": {
+      id: "/financial-management/manage-finances/"
+      path: "/financial-management/manage-finances"
+      fullPath: "/financial-management/manage-finances/"
+      preLoaderRoute: typeof FinancialManagementManageFinancesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/financial-management/fee-plans/": {
       id: "/financial-management/fee-plans/"
       path: "/financial-management/fee-plans"
       fullPath: "/financial-management/fee-plans/"
       preLoaderRoute: typeof FinancialManagementFeePlansIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/financial-management/collection-dashboard/": {
+      id: "/financial-management/collection-dashboard/"
+      path: "/financial-management/collection-dashboard"
+      fullPath: "/financial-management/collection-dashboard/"
+      preLoaderRoute: typeof FinancialManagementCollectionDashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluator-ai/students/": {
@@ -3126,7 +3176,11 @@ const rootRouteChildren: RootRouteChildren = {
   EvaluatorAiAssessmentIndexRoute: EvaluatorAiAssessmentIndexRoute,
   EvaluatorAiEvaluationIndexRoute: EvaluatorAiEvaluationIndexRoute,
   EvaluatorAiStudentsIndexRoute: EvaluatorAiStudentsIndexRoute,
+  FinancialManagementCollectionDashboardIndexRoute:
+    FinancialManagementCollectionDashboardIndexRoute,
   FinancialManagementFeePlansIndexRoute: FinancialManagementFeePlansIndexRoute,
+  FinancialManagementManageFinancesIndexRoute:
+    FinancialManagementManageFinancesIndexRoute,
   HomeworkCreationAssessmentListIndexRoute:
     HomeworkCreationAssessmentListIndexRoute,
   LoginKeyIndexRoute: LoginKeyIndexRoute,
