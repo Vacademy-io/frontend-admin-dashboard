@@ -88,6 +88,7 @@ import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center
 import { Route as AiCenterAiToolsIndexRouteImport } from "./routes/ai-center/ai-tools/index"
 import { Route as AdmissionsNewEnquiryIndexRouteImport } from "./routes/admissions/new-enquiry/index"
 import { Route as AdmissionsEnquiriesIndexRouteImport } from "./routes/admissions/enquiries/index"
+import { Route as AdmissionsDashboardIndexRouteImport } from "./routes/admissions/dashboard/index"
 import { Route as AdmissionsApplicationIndexRouteImport } from "./routes/admissions/application/index"
 import { Route as AdmissionsAdmissionFormIndexRouteImport } from "./routes/admissions/admission-form/index"
 import { Route as AdminPackageManagementBulkCreateIndexRouteImport } from "./routes/admin-package-management/bulk-create/index"
@@ -755,6 +756,14 @@ const AdmissionsEnquiriesIndexRoute =
     path: "/admissions/enquiries/",
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdmissionsDashboardIndexRoute =
+  AdmissionsDashboardIndexRouteImport.update({
+    id: "/admissions/dashboard/",
+    path: "/admissions/dashboard/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admissions/dashboard/index.lazy").then((d) => d.Route),
+  )
 const AdmissionsApplicationIndexRoute =
   AdmissionsApplicationIndexRouteImport.update({
     id: "/admissions/application/",
@@ -1214,6 +1223,7 @@ export interface FileRoutesByFullPath {
   "/admin-package-management/bulk-create/": typeof AdminPackageManagementBulkCreateIndexRoute
   "/admissions/admission-form/": typeof AdmissionsAdmissionFormIndexRoute
   "/admissions/application/": typeof AdmissionsApplicationIndexRoute
+  "/admissions/dashboard/": typeof AdmissionsDashboardIndexRoute
   "/admissions/enquiries/": typeof AdmissionsEnquiriesIndexRoute
   "/admissions/new-enquiry/": typeof AdmissionsNewEnquiryIndexRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
@@ -1346,6 +1356,7 @@ export interface FileRoutesByTo {
   "/admin-package-management/bulk-create": typeof AdminPackageManagementBulkCreateIndexRoute
   "/admissions/admission-form": typeof AdmissionsAdmissionFormIndexRoute
   "/admissions/application": typeof AdmissionsApplicationIndexRoute
+  "/admissions/dashboard": typeof AdmissionsDashboardIndexRoute
   "/admissions/enquiries": typeof AdmissionsEnquiriesIndexRoute
   "/admissions/new-enquiry": typeof AdmissionsNewEnquiryIndexRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
@@ -1480,6 +1491,7 @@ export interface FileRoutesById {
   "/admin-package-management/bulk-create/": typeof AdminPackageManagementBulkCreateIndexRoute
   "/admissions/admission-form/": typeof AdmissionsAdmissionFormIndexRoute
   "/admissions/application/": typeof AdmissionsApplicationIndexRoute
+  "/admissions/dashboard/": typeof AdmissionsDashboardIndexRoute
   "/admissions/enquiries/": typeof AdmissionsEnquiriesIndexRoute
   "/admissions/new-enquiry/": typeof AdmissionsNewEnquiryIndexRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
@@ -1615,6 +1627,7 @@ export interface FileRouteTypes {
     | "/admin-package-management/bulk-create/"
     | "/admissions/admission-form/"
     | "/admissions/application/"
+    | "/admissions/dashboard/"
     | "/admissions/enquiries/"
     | "/admissions/new-enquiry/"
     | "/ai-center/ai-tools/"
@@ -1747,6 +1760,7 @@ export interface FileRouteTypes {
     | "/admin-package-management/bulk-create"
     | "/admissions/admission-form"
     | "/admissions/application"
+    | "/admissions/dashboard"
     | "/admissions/enquiries"
     | "/admissions/new-enquiry"
     | "/ai-center/ai-tools"
@@ -1880,6 +1894,7 @@ export interface FileRouteTypes {
     | "/admin-package-management/bulk-create/"
     | "/admissions/admission-form/"
     | "/admissions/application/"
+    | "/admissions/dashboard/"
     | "/admissions/enquiries/"
     | "/admissions/new-enquiry/"
     | "/ai-center/ai-tools/"
@@ -2013,6 +2028,7 @@ export interface RootRouteChildren {
   AdminPackageManagementBulkCreateIndexRoute: typeof AdminPackageManagementBulkCreateIndexRoute
   AdmissionsAdmissionFormIndexRoute: typeof AdmissionsAdmissionFormIndexRoute
   AdmissionsApplicationIndexRoute: typeof AdmissionsApplicationIndexRoute
+  AdmissionsDashboardIndexRoute: typeof AdmissionsDashboardIndexRoute
   AdmissionsEnquiriesIndexRoute: typeof AdmissionsEnquiriesIndexRoute
   AdmissionsNewEnquiryIndexRoute: typeof AdmissionsNewEnquiryIndexRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
@@ -2679,6 +2695,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AdmissionsEnquiriesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/admissions/dashboard/": {
+      id: "/admissions/dashboard/"
+      path: "/admissions/dashboard"
+      fullPath: "/admissions/dashboard/"
+      preLoaderRoute: typeof AdmissionsDashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/admissions/application/": {
       id: "/admissions/application/"
       path: "/admissions/application"
@@ -3080,6 +3103,7 @@ const rootRouteChildren: RootRouteChildren = {
     AdminPackageManagementBulkCreateIndexRoute,
   AdmissionsAdmissionFormIndexRoute: AdmissionsAdmissionFormIndexRoute,
   AdmissionsApplicationIndexRoute: AdmissionsApplicationIndexRoute,
+  AdmissionsDashboardIndexRoute: AdmissionsDashboardIndexRoute,
   AdmissionsEnquiriesIndexRoute: AdmissionsEnquiriesIndexRoute,
   AdmissionsNewEnquiryIndexRoute: AdmissionsNewEnquiryIndexRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,

@@ -588,3 +588,7 @@ export const WHITE_LABEL_STATUS = (instituteId: string) =>
 export const ADD_APPLICATION_STAGE = `${BASE_URL}/admin-core-service/v1/application/stage`;
 
 export const GET_APPLICATION_STAGES = `${BASE_URL}/admin-core-service/v1/application/stages`;
+
+// Admission Dashboard
+export const GET_PIPELINE_METRICS = `${BASE_URL}/admin-core-service/v1/admission/dashboard/pipeline-metrics`;
+export const GET_PIPELINE_USERS = `${BASE_URL}/admin-core-service/v1/admission/dashboard/pipeline-users`;
