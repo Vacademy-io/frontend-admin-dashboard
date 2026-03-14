@@ -224,7 +224,7 @@ export default function Step5AFeeAssignment({
                 </div>
                 <div className="flex gap-3">
                     <MyButton
-                        onClick={() => navigate({ to: '/admissions/admission-form/' })}
+                        onClick={() => navigate({ to: '/admissions/admission-form' })}
                         className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100"
                     >
                         Go to admission form
