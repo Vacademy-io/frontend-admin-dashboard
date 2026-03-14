@@ -304,6 +304,66 @@ export const SlideMaterial = ({
     };
 
     const setEditorContent = () => {
+        // Ensure plugins and blocks are registered on the editor BEFORE
+        // calling html.deserialize.  On a fresh page load the YooptaEditor
+        // component hasn't mounted yet so editor.plugins / editor.blocks are
+        // still empty — the deserializer would silently drop every block.
+        if (!editor.plugins || Object.keys(editor.plugins).length === 0) {
+            const pluginDefs = plugins.map((p: any) =>
+                typeof p.getPlugin === 'object' ? p.getPlugin : p,
+            );
+
+            // Build plugins map  (type → full plugin config)
+            const pluginsMap: Record<string, any> = {};
+            const inlineElements: Record<string, any> = {};
+            pluginDefs.forEach((p: any) => {
+                if (!p?.type) return;
+                if (p.elements) {
+                    Object.keys(p.elements).forEach((key: string) => {
+                        const el = p.elements[key];
+                        const nt = el?.props?.nodeType;
+                        if (nt === 'inline' || nt === 'inlineVoid') {
+                            inlineElements[key] = { ...el, rootPlugin: p.type };
+                        }
+                    });
+                }
+                pluginsMap[p.type] = p;
+            });
+            // Merge inline elements into every plugin (mirrors YooptaEditor init)
+            pluginDefs.forEach((p: any) => {
+                if (p?.elements) {
+                    pluginsMap[p.type] = {
+                        ...p,
+                        elements: { ...p.elements, ...inlineElements },
+                    };
+                }
+            });
+            (editor as any).plugins = pluginsMap;
+
+            // Build blocks map  (type → { type, elements (sans render), … })
+            const blocksMap: Record<string, any> = {};
+            pluginDefs.forEach((p: any) => {
+                if (!p?.type || !p.elements) return;
+                const rootKey = Object.keys(p.elements)[0];
+                const rootEl = rootKey ? p.elements[rootKey] : undefined;
+                const nodeType = rootEl?.props?.nodeType;
+                if (nodeType === 'inline' || nodeType === 'inlineVoid') return;
+
+                const elements: Record<string, any> = {};
+                Object.keys(p.elements).forEach((key: string) => {
+                    const { render: _render, ...rest } = p.elements[key] || {};
+                    elements[key] = rest;
+                });
+                blocksMap[p.type] = {
+                    type: p.type,
+                    elements,
+                    hasCustomEditor: !!p.customEditor,
+                    options: p.options || {},
+                };
+            });
+            (editor as any).blocks = blocksMap;
+        }
+
         const docData =
             activeItem?.status == 'PUBLISHED'
                 ? activeItem.document_slide?.published_data || null
@@ -353,14 +413,16 @@ export const SlideMaterial = ({
                 const wrapper = document.createElement('div');
                 wrapper.innerHTML = contentForDeserialization;
 
-                // Keep unwrapping single-child divs (but stop if div has mermaid class)
+                // Keep unwrapping single-child divs (but stop if div has
+                // mermaid class or data-yoopta-type — those are content blocks)
                 let current: Element = wrapper;
                 while (current.children.length === 1) {
                     const firstChild = current.children[0];
                     if (
                         firstChild &&
                         firstChild.tagName === 'DIV' &&
-                        !firstChild.classList.contains('mermaid')
+                        !firstChild.classList.contains('mermaid') &&
+                        !firstChild.hasAttribute('data-yoopta-type')
                     ) {
                         current = firstChild;
                     } else {
@@ -370,6 +432,7 @@ export const SlideMaterial = ({
 
                 // Get the final inner content
                 contentForDeserialization = current.innerHTML.trim();
+
             }
         } catch (e) {
             console.error('Error parsing HTML for Yoopta:', e);
@@ -554,6 +617,7 @@ export const SlideMaterial = ({
             return '';
         }
         const formattedHtmlString = formatHTMLString(htmlString);
+
         return formattedHtmlString;
     };
 

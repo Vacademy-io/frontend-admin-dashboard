@@ -22,7 +22,7 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
     const [packageSessions, setPackageSessions] = React.useState<
         Array<{
             id: string;
-            name: string;
+            name: string; // Format: "packageName - levelName"
             levelName: string;
         }>
     >([]);
@@ -229,13 +229,13 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                             Class / Grade Applying For <span className="text-red-500">*</span>
                         </Label>
                         <Select
-                            value={formData.applyingForClass || ''}
+                            value={formData.selectedPackageSessionId || ''}
                             onValueChange={(value) => {
                                 updateFormData({ applyingForClass: value });
                             }}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select class/package" />
+                                <SelectValue placeholder="Select class" />
                             </SelectTrigger>
                             <SelectContent>
                                 {packageSessions.map((session) => (
@@ -246,7 +246,7 @@ export const AcademicInfoSection: React.FC<SectionProps> = ({ formData, updateFo
                             </SelectContent>
                         </Select>
                         <p className="mt-1 text-xs text-neutral-500">
-                            Select the package and level for admission
+                            Select the class or grade for admission
                         </p>
                     </div>
                     <div>
