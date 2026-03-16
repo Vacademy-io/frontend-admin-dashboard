@@ -230,13 +230,13 @@ function RegistrationListPageInner({
     };
 
     return (
-        <div className="flex h-full flex-col">
+        <div className="flex h-full w-full min-w-0 flex-1 flex-col">
             <Helmet>
                 <title>Applications - Admissions</title>
             </Helmet>
 
-            <div className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                     <div className="relative">
                         <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                         <input
@@ -263,7 +263,7 @@ function RegistrationListPageInner({
                     />
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <Select
                         value={selectedSessionId}
                         onValueChange={setSelectedSessionId}
@@ -292,7 +292,7 @@ function RegistrationListPageInner({
                 </div>
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
+            <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm">
                 {isLoading ? (
                     <div className="flex items-center justify-center p-12">
                         <div className="text-neutral-500">Loading applications...</div>
