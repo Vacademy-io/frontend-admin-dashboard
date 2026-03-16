@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet';
 import { MyButton } from '@/components/design-system/button';
 import { MagnifyingGlass, Plus, CaretRight, X, FileText, UserPlus } from '@phosphor-icons/react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useNavigate } from '@tanstack/react-router';
 import {
     Select,
     SelectContent,
@@ -80,6 +81,7 @@ function RegistrationListPageInner({
 }) {
     const { setSelectedStudent } = useStudentSidebar();
     const { setNavHeading } = useNavHeadingStore();
+    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const { getAllSessions, instituteDetails } = useInstituteDetailsStore();
@@ -176,9 +178,9 @@ function RegistrationListPageInner({
     const handleNewApplication = () => {
         setShowRegistrationTypeModal(false);
         if (selectedSessionId) {
-            window.location.href = `/admissions/application/new?sessionId=${selectedSessionId}`;
+            navigate({ to: `/admissions/application/new?sessionId=${selectedSessionId}` });
         } else {
-            window.location.href = '/admissions/application/new';
+            navigate({ to: '/admissions/application/new' });
         }
     };
 
@@ -208,10 +210,11 @@ function RegistrationListPageInner({
 
             // Navigate to registration form with enquiry data
             const encodedData = encodeURIComponent(JSON.stringify(enquiryData));
+            console.log('Encoded data:', encodedData);
             if (selectedSessionId) {
-                window.location.href = `/admissions/application/new?sessionId=${selectedSessionId}&enquiryData=${encodedData}`;
+                navigate({ to: `/admissions/application/new?sessionId=${selectedSessionId}&enquiryData=${encodedData}` });
             } else {
-                window.location.href = `/admissions/application/new?enquiryData=${encodedData}`;
+                navigate({ to: `/admissions/application/new?enquiryData=${encodedData}` });
             }
         } catch (error) {
             console.error('Error fetching enquiry:', error);
