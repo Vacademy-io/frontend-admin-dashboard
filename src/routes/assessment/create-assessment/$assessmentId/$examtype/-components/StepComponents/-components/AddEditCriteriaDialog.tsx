@@ -158,7 +158,7 @@ export const AddEditCriteriaDialog = ({
 
     const updateManualCriteria = (index: number, field: keyof CriteriaItem, value: any) => {
         const updated = [...manualCriteria];
-        updated[index] = { ...updated[index], [field]: value };
+        updated[index] = { ...updated[index], [field]: value } as CriteriaItem;
         setManualCriteria(updated);
     };
 

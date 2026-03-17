@@ -9,25 +9,21 @@ export interface ModelInfo {
 
 // Display name mappings for AI models
 export const MODEL_DISPLAY_NAMES: Record<string, { name: string; description: string }> = {
-    'google/gemini-2.5-flash': {
-        name: 'Gemini 2.5 Flash',
-        description: 'Fast and balanced (Recommended)',
+    'anthropic/claude-opus-4.5': {
+        name: 'Claude Opus 4.5',
+        description: 'Anthropic',
     },
-    'openai/gpt-4o-mini': {
-        name: 'GPT-4o Mini',
-        description: 'Complex reasoning',
+    'google/gemini-3-pro-preview': {
+        name: 'Gemini 3 Pro Preview',
+        description: 'Google',
     },
-    'anthropic/claude-3-haiku': {
-        name: 'Claude 3 Haiku',
-        description: 'Creative and nuanced',
+    'google/gemini-3.1-pro-preview': {
+        name: 'Gemini 3.1 Pro Preview',
+        description: 'Google',
     },
-    'google/gemini-2.0-flash-exp': {
-        name: 'Gemini 2.0 Flash',
-        description: 'Experimental, fast',
-    },
-    'mistralai/devstral-2512:free': {
-        name: 'DevStral 2512',
-        description: 'Fast and balanced (Recommended)',
+    'openai/gpt-5.4': {
+        name: 'GPT-5.4',
+        description: 'OpenAI',
     },
 };
 

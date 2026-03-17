@@ -213,9 +213,9 @@ const QuestionsTable = ({
 
         const updated = [...localAdaptiveMarking];
         updated[selectedQuestionIndex] = {
-            ...updated[selectedQuestionIndex],
+            ...updated[selectedQuestionIndex]!,
             evaluation_criteria_json: criteria ? JSON.stringify(criteria) : null,
-        };
+        } as Question;
         setLocalAdaptiveMarking(updated);
         setCriteriaDialogOpen(false);
     };
@@ -320,8 +320,8 @@ const QuestionsTable = ({
                     }}
                     existingCriteria={
                         selectedQuestion.evaluation_criteria_json
-                            ? parseCriteria(selectedQuestion.evaluation_criteria_json)
-                            : null
+                            ? (parseCriteria(selectedQuestion.evaluation_criteria_json) ?? undefined)
+                            : undefined
                     }
                     open={criteriaDialogOpen}
                     onSave={handleSaveCriteria}

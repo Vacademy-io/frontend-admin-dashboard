@@ -142,25 +142,25 @@ export const Step2SectionInfo = ({
                     continue;
                 }
 
-                if (question.questionMark === '0') {
+                if (question?.questionMark === '0') {
                     toast.info(`Question ${i + 1} has 0 marks, skipping`);
                     continue;
                 }
 
                 // Generate AI criteria
                 const criteriaJson = await generateAICriteria({
-                    question_text: question.questionName || '',
-                    question_type: question.questionType || '',
+                    question_text: question?.questionName || '',
+                    question_type: question?.questionType || '',
                     subject: '', // Can be enhanced to get from parent form
-                    max_marks: question.questionMark || 0,
+                    max_marks: Number(question?.questionMark) || 0,
                 });
 
                 // Update the question with generated criteria
                 (
-                    updatedSections[index].adaptive_marking_for_each_question[i] as any
+                    updatedSections[index]!.adaptive_marking_for_each_question[i] as any
                 ).evaluation_criteria_json = stringifyCriteria(criteriaJson);
                 (
-                    updatedSections[index].adaptive_marking_for_each_question[i] as any
+                    updatedSections[index]!.adaptive_marking_for_each_question[i] as any
                 ).criteria_source = 'ai';
 
                 successCount++;
@@ -168,7 +168,7 @@ export const Step2SectionInfo = ({
                 // Small delay to avoid overwhelming the API
                 await new Promise((resolve) => setTimeout(resolve, 500));
             } catch (error) {
-                toast.error(`Failed to generate criteria for question ${i + 1}:`, error);
+                toast.error(`Failed to generate criteria for question ${i + 1}: ${error instanceof Error ? error.message : String(error)}`);
                 failCount++;
             }
         }
@@ -708,7 +708,7 @@ export const Step2SectionInfo = ({
 
                 {/* Evaluation Criteria Section */}
                 {examtype !== 'SURVEY' &&
-                    allSections[index]?.adaptive_marking_for_each_question?.length > 0 && (
+                    (allSections[index]?.adaptive_marking_for_each_question?.length ?? 0) > 0 && (
                         <div className="flex flex-col gap-4">
                             <h3 className="font-thin">Evaluation Criteria</h3>
                             <div className="flex items-center gap-3">
@@ -1392,7 +1392,7 @@ export const Step2SectionInfo = ({
                                 selectedQuestionIndex
                             ]?.questionMark || 0
                         ),
-                        subject: getValues('testCreation.subject'),
+                        subject: String(getValues('testCreation.subject' as any) ?? ''),
                     }}
                     existingCriteria={
                         allSections[index]?.adaptive_marking_for_each_question[
@@ -1402,7 +1402,7 @@ export const Step2SectionInfo = ({
                                   allSections[index]?.adaptive_marking_for_each_question[
                                       selectedQuestionIndex
                                   ]?.evaluation_criteria_json!
-                              )
+                              ) ?? undefined
                             : undefined
                     }
                     open={criteriaDialogOpen}
@@ -1412,10 +1412,10 @@ export const Step2SectionInfo = ({
                             ...allSections[index]!.adaptive_marking_for_each_question,
                         ];
                         updatedQuestions[selectedQuestionIndex] = {
-                            ...updatedQuestions[selectedQuestionIndex],
+                            ...updatedQuestions[selectedQuestionIndex]!,
                             evaluation_criteria_json: stringifyCriteria(criteria),
                             criteria_source: source,
-                        };
+                        } as any;
                         setValue(
                             `section.${index}.adaptive_marking_for_each_question`,
                             updatedQuestions

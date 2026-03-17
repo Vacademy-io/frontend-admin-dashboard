@@ -159,7 +159,7 @@ const StudentEvaluateWithAIComponent = ({
     const { assessmentId } = Route.useParams();
     const instituteId = getInstituteId();
     const navigate = useNavigate();
-    const [selectedModel, setSelectedModel] = useState<string>('mistralai/devstral-2512:free');
+    const [selectedModel, setSelectedModel] = useState<string>('google/gemini-3.1-pro-preview');
 
     // Trigger AI evaluation mutation
     const triggerEvaluationMutation = useMutation({
@@ -379,7 +379,7 @@ const StudentAttemptDropdown = ({ student }: { student: AssessmentRevaluateStude
     const isManualEvaluation = evaluationType === 'MANUAL';
 
     // Get evaluation_status from student data
-    const evaluationStatus = student.evaluation_status;
+    const evaluationStatus = student?.evaluation_status;
     const isEvaluationPending = evaluationStatus === 'PENDING';
 
     return (

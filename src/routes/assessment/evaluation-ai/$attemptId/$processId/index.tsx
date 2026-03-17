@@ -665,7 +665,7 @@ function QuestionCard({ question, isExpanded, onToggle, questionDetails }: Quest
                                     </thead>
                                     <tbody className="divide-y divide-neutral-200">
                                         {question.evaluation_details_json.criteria_breakdown.map(
-                                            (criteria, index) => (
+                                            (criteria: any, index: number) => (
                                                 <tr key={index} className="hover:bg-neutral-50">
                                                     <td className="p-3 text-sm font-medium text-neutral-900">
                                                         {criteria.criteria_name}
