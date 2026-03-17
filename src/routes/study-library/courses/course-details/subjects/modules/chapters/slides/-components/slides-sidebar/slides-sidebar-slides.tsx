@@ -8,6 +8,7 @@ import {
     PlayCircle,
     ClipboardText,
 } from '@phosphor-icons/react';
+import { Video, Sparkles } from 'lucide-react';
 import { ReactNode, useEffect, useMemo } from 'react';
 import {
     Slide,
@@ -17,7 +18,16 @@ import {
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useRouter } from '@tanstack/react-router';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { BookOpen, CheckCircle, Code, File, GameController, Question } from '@phosphor-icons/react';
+import {
+    BookOpen,
+    CheckCircle,
+    Code,
+    File,
+    GameController,
+    MusicNotes,
+    Package,
+    Question,
+} from '@phosphor-icons/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLearnerViewStore } from '../../-stores/learner-view-store';
 
@@ -27,31 +37,47 @@ interface FormValues {
 
 // Function to get the display text for slide type
 const getSlideTypeDisplay = (slide: Slide): string => {
+    const sourceType = slide.source_type ?? '';
+    // For HTML_VIDEO slides (AI Video, AI Slides, AI Storybook), show "AI Content"
+    if (sourceType === 'HTML_VIDEO') {
+        return 'AI Content';
+    }
+
     // For DOCUMENT slides with specific sub-types (not DOC), show just the sub-type
     if (
-        slide.source_type === 'DOCUMENT' &&
+        sourceType === 'DOCUMENT' &&
         slide.document_slide?.type &&
         slide.document_slide.type !== 'DOC'
     ) {
-        return slide.document_slide.type.toLowerCase().replace('_', ' ');
+        return (slide.document_slide.type ?? '').toLowerCase().replace('_', ' ');
     }
 
     // For VIDEO slides with embedded_type, show the embedded_type
-    if (slide.source_type === 'VIDEO' && slide.video_slide?.embedded_type) {
-        return `${slide.source_type.toLowerCase().replace('_', ' ')} - ${slide.video_slide.embedded_type.toLowerCase().replace('_', ' ')}`;
+    if (sourceType === 'VIDEO' && slide.video_slide?.embedded_type) {
+        const embedded = slide.video_slide.embedded_type ?? '';
+        return `${sourceType.toLowerCase().replace('_', ' ')} - ${embedded.toLowerCase().replace('_', ' ')}`;
+    }
+
+    // For SCORM slides
+    if (sourceType === 'SCORM') {
+        return 'SCORM';
     }
 
     // For all other cases, show the main source_type
-    return slide.source_type.toLowerCase().replace('_', ' ');
+    return sourceType ? sourceType.toLowerCase().replace('_', ' ') : 'Slide';
 };
 
 export const getIcon = (
     source_type: string,
     document_slide_type: string | undefined,
-    size?: string
+    size?: string,
+    slide?: any // Optional slide object to check for html_video_slide
 ): ReactNode => {
     const sizeClass = `size-${size ? size : '5'}`;
     const iconClass = `${sizeClass} transition-all duration-200 ease-in-out group-hover:scale-105`;
+
+    // Check if it's HTML_VIDEO by source_type or by html_video_slide property
+    const isHtmlVideo = source_type === 'HTML_VIDEO' || (slide && (slide as any).html_video_slide);
 
     if (source_type === 'ASSIGNMENT') {
         return <File className={`${iconClass} text-blue-500`} />;
@@ -61,12 +87,27 @@ export const getIcon = (
         return <ClipboardText className={`${iconClass} text-orange-500`} />;
     }
 
+    // HTML_VIDEO icon (blue video + sparkle)
+    if (isHtmlVideo) {
+        const sparkleSize = size === '4' ? 'h-3 w-3' : size === '6' ? 'h-4 w-4' : 'h-3.5 w-3.5';
+        return (
+            <div className="relative inline-block">
+                <Video className={`${iconClass} text-blue-500`} />
+                <Sparkles className={`absolute -right-0.5 -top-0.5 ${sparkleSize} text-blue-400`} />
+            </div>
+        );
+    }
+
     const type =
         source_type === 'QUESTION'
             ? 'QUESTION'
             : source_type === 'VIDEO'
               ? 'VIDEO'
-              : source_type === 'DOCUMENT' && document_slide_type;
+              : source_type === 'AUDIO'
+                ? 'AUDIO'
+                : source_type === 'SCORM'
+                  ? 'SCORM'
+                  : source_type === 'DOCUMENT' && document_slide_type;
 
     switch (type) {
         case 'PDF':
@@ -86,6 +127,10 @@ export const getIcon = (
             return <Code className={`${iconClass} text-green-500`} />;
         case 'PRESENTATION':
             return <FileDoc className={`${iconClass} text-orange-500`} />;
+        case 'AUDIO':
+            return <MusicNotes className={`${iconClass} text-indigo-500`} />;
+        case 'SCORM':
+            return <Package className={`${iconClass} text-teal-500`} />;
         default:
             return <></>;
     }
@@ -107,9 +152,13 @@ const SlideItem = ({
         return (
             (slide.source_type === 'DOCUMENT' && slide.document_slide?.title) ||
             (slide.source_type === 'VIDEO' && slide.video_slide?.title) ||
+            (slide.source_type === 'HTML_VIDEO' &&
+                ((slide as any).html_video_slide?.title || slide.title)) ||
             (slide.source_type === 'QUESTION' && slide?.title) ||
             (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
             (slide.source_type === 'QUIZ' && slide.title) || // Always use slide.title for QUIZ
+            (slide.source_type === 'AUDIO' && slide?.title) ||
+            (slide.source_type === 'SCORM' && slide?.title) ||
             'Untitled'
         );
     };
@@ -166,7 +215,7 @@ const SlideItem = ({
                             slide.status === 'DELETED'
                                 ? 'cursor-not-allowed border-red-200 bg-red-50/30 text-red-600 opacity-50'
                                 : isActive
-                                  ? 'text-primary-600 border-primary-300 bg-primary-50/80 shadow-md shadow-primary-100/50'
+                                  ? 'border-primary-300 bg-primary-50/80 text-primary-600 shadow-md shadow-primary-100/50'
                                   : 'hover:bg-primary-25 border-neutral-100 bg-white/60 text-neutral-600 hover:border-primary-200 hover:text-primary-500 hover:shadow-sm'
                         }
                         ${slide.status !== 'DELETED' ? 'group-hover:shadow-md' : ''}
@@ -186,7 +235,7 @@ const SlideItem = ({
                                                 ? 'bg-red-200 text-red-600'
                                                 : isActive
                                                   ? 'bg-primary-500 text-white shadow-sm'
-                                                  : 'group-hover:text-primary-600 bg-neutral-100 text-neutral-500 group-hover:bg-primary-100'
+                                                  : 'bg-neutral-100 text-neutral-500 group-hover:bg-primary-100 group-hover:text-primary-600'
                                         }
                                     `}
                                     >
@@ -198,7 +247,8 @@ const SlideItem = ({
                                         {getIcon(
                                             slide.source_type,
                                             slide.document_slide?.type,
-                                            '4'
+                                            '4',
+                                            slide
                                         )}
                                     </div>
 
@@ -223,8 +273,8 @@ const SlideItem = ({
                                 <div className="space-y-1">
                                     <p className="font-medium">{getSlideTitle()}</p>
                                     <p className="text-xs capitalize text-neutral-500">
-                                        {slide.source_type.toLowerCase().replace('_', ' ')} •{' '}
-                                        {slide.status.toLowerCase()}
+                                        {(slide.source_type ?? '').toLowerCase().replace('_', ' ')} •{' '}
+                                        {(slide.status ?? '').toLowerCase()}
                                     </p>
                                 </div>
                             </TooltipContent>
@@ -254,12 +304,13 @@ const SlideItem = ({
 export const ChapterSidebarSlides = ({
     handleSlideOrderChange,
 }: {
-    handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
+    handleSlideOrderChange: (slideOrderPayloadType: slideOrderPayloadType) => void;
 }) => {
     const { setItems, activeItem, setActiveItem, items } = useContentStore();
     const { isLearnerView } = useLearnerViewStore();
     const router = useRouter();
-    const { chapterId, slideId } = router.state.location.search;
+    const searchParams = router.state.location.search;
+    const { chapterId, slideId, courseId, levelId, moduleId, subjectId, sessionId } = searchParams;
 
     const { slides, isLoading, refetch } = useSlidesQuery(chapterId || '');
 
@@ -275,7 +326,22 @@ export const ChapterSidebarSlides = ({
     }, []);
 
     const handleSlideClick = async (slide: Slide) => {
-        // Now set the new active item
+        // Update URL with new slideId
+        router.navigate({
+            to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+            search: {
+                courseId: courseId || '',
+                levelId: levelId || '',
+                subjectId: subjectId || '',
+                moduleId: moduleId || '',
+                chapterId: chapterId || '',
+                slideId: slide.id, // ✅ Update slideId in URL
+                sessionId: sessionId || '',
+            },
+            replace: true, // Replace history entry instead of pushing new one
+        });
+
+        // Set the new active item
         setActiveItem(slide);
     };
 

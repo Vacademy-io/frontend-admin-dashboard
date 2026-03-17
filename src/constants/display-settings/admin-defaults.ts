@@ -12,7 +12,7 @@ function mapSidebarToConfig(menu: SidebarItemsType[]): SidebarTabConfig[] {
         label: item.title,
         route: item.to,
         order: index + 1,
-        visible: true,
+        visible: item.id !== 'admissions' && item.id !== 'fee-management',
         subTabs:
             item.subItems?.map((sub, subIndex) => ({
                 id: sub.subItemId || sub.subItem || `${item.id}-${subIndex + 1}`,
@@ -49,6 +49,7 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
     },
     coursePage: {
         viewInviteLinks: true,
+        viewShortInviteLinks: false,
         viewCourseConfiguration: true,
         viewCourseOverviewItem: true,
         viewContentNumbering: true,
@@ -83,6 +84,7 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
     ui: {
         showSupportButton: true,
         showSidebar: true,
+        showAiCredits: true,
     },
     contentTypes: {
         pdf: true,
@@ -109,12 +111,17 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
         overviewTab: true,
         testTab: true,
         progressTab: true,
+        coursesTab: true,
         notificationTab: false,
         membershipTab: false,
+        paymentHistoryTab: true,
         userTaggingTab: false,
         fileTab: false,
         portalAccessTab: false,
         reportsTab: false,
+        enrollDerollTab: false,
+        enquiryTab: false,
+        applicationTab: false,
     },
     learnerManagement: {
         allowPortalAccess: true,

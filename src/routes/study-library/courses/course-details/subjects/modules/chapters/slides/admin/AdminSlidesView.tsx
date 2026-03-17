@@ -1,6 +1,7 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { ChapterSidebarAddButton } from '../-components/slides-sidebar/slides-sidebar-add-button';
 import { ChapterSidebarSlides } from '../-components/slides-sidebar/slides-sidebar-slides';
+import { ChapterNavigator } from '../-components/chapter-navigator';
 import '../slides-sidebar-scrollbar.css';
 // import { studyLibrarySteps } from '@/constants/intro/steps';
 // import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
@@ -29,7 +30,11 @@ import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingS
 import { useLearnerViewStore } from '../-stores/learner-view-store';
 import { Eye, UserGear } from '@phosphor-icons/react';
 
-const SlideMaterial = React.lazy(() => import('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material').then(module => ({ default: module.SlideMaterial })));
+const SlideMaterial = React.lazy(() =>
+    import(
+        '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material'
+    ).then((module) => ({ default: module.SlideMaterial }))
+);
 
 interface AdminSlidesViewProps {
     courseId: string;
@@ -151,7 +156,7 @@ export function AdminSlidesView({
                         `}
                     >
                         {isLearnerView ? (
-                            <Eye className="text-primary-600 size-2.5" />
+                            <Eye className="size-2.5 text-primary-600" />
                         ) : (
                             <UserGear className="size-2.5 text-neutral-600" />
                         )}
@@ -201,7 +206,7 @@ export function AdminSlidesView({
                                     onClick={handleSubjectRoute}
                                     className="group flex cursor-pointer items-center"
                                 >
-                                    <span className="group-hover:text-primary-600 truncate text-sm font-medium text-neutral-600 transition-colors duration-200">
+                                    <span className="truncate text-sm font-medium text-neutral-600 transition-colors duration-200 group-hover:text-primary-600">
                                         {subjectName}
                                     </span>
                                 </div>
@@ -226,7 +231,7 @@ export function AdminSlidesView({
                                     onClick={handleModuleRoute}
                                     className="group flex cursor-pointer items-center"
                                 >
-                                    <span className="group-hover:text-primary-600 truncate text-sm font-medium text-neutral-600 transition-colors duration-200">
+                                    <span className="truncate text-sm font-medium text-neutral-600 transition-colors duration-200 group-hover:text-primary-600">
                                         {moduleName}
                                     </span>
                                 </div>
@@ -247,7 +252,7 @@ export function AdminSlidesView({
                         if (!isChapterDefault) {
                             breadcrumbItems.push(
                                 <div key="chapter" className="flex items-center">
-                                    <span className="text-primary-700 truncate rounded-md bg-primary-100/50 px-2 py-1 text-sm font-semibold">
+                                    <span className="truncate rounded-md bg-primary-100/50 px-2 py-1 text-sm font-semibold text-primary-700">
                                         {chapterName}
                                     </span>
                                 </div>
@@ -262,6 +267,18 @@ export function AdminSlidesView({
                             </div>
                         );
                     })()}
+                </div>
+
+                {/* Chapter Navigator */}
+                <div className="w-full border-b border-primary-100 bg-white/50 p-2">
+                    <ChapterNavigator
+                        currentChapterId={chapterId}
+                        currentModuleId={moduleId}
+                        courseId={courseId}
+                        levelId={levelId}
+                        subjectId={subjectId}
+                        sessionId={sessionId}
+                    />
                 </div>
 
                 <div className={`flex w-full flex-1 flex-col gap-4 px-3 pb-3 pt-4`}>
@@ -284,6 +301,12 @@ export function AdminSlidesView({
             handleModuleRoute,
             handleSlideOrderChange,
             isLearnerView,
+            chapterId,
+            moduleId,
+            courseId,
+            levelId,
+            subjectId,
+            sessionId,
         ]
     );
 
@@ -305,10 +328,12 @@ export function AdminSlidesView({
                 internalSidebarComponent={SidebarComponent}
                 hasInternalSidebarComponent={true}
             >
-                <InitStudyLibraryProvider>
+                <InitStudyLibraryProvider courseId={courseId}>
                     <ModulesWithChaptersProvider>
                         <SidebarProvider defaultOpen={false}>
-                            <Suspense fallback={<div className="h-full w-full animate-pulse bg-gray-100" />}>
+                            <Suspense
+                                fallback={<div className="size-full animate-pulse bg-gray-100" />}
+                            >
                                 <SlideMaterial
                                     setGetCurrentEditorHTMLContent={(fn) =>
                                         (getCurrentEditorHTMLContentRef.current = fn)
@@ -316,7 +341,7 @@ export function AdminSlidesView({
                                     setSaveDraft={(fn) => (saveDraftRef.current = fn)}
                                     isLearnerView={isLearnerView}
                                     hidePublishButtons={false}
-                                // No customSaveFunction - use default admin behavior
+                                    // No customSaveFunction - use default admin behavior
                                 />
                             </Suspense>
                         </SidebarProvider>

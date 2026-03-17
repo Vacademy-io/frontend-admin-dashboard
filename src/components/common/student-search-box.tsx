@@ -15,33 +15,43 @@ export const StudentSearchBox = ({
     placeholder,
 }: StudentSearchBoxProps) => {
     const { isCompact } = useCompactMode();
+
     return (
-        <div className="relative">
-            <MyInput
-                inputType="text"
-                input={searchInput}
-                onChangeFunction={onSearchChange}
-                inputPlaceholder={placeholder || "Search by name, enroll..."}
-                className={cn("px-9", isCompact ? "h-8 text-xs placeholder:text-xs" : "")}
-            />
-            <MagnifyingGlass className={cn("absolute left-3 top-1/4 text-neutral-600", isCompact ? "size-3.5" : "size-[18px]")} />
-            <KeyReturn
-                weight="fill"
-                className={`absolute right-3 top-1/4 size-[18px] cursor-pointer text-primary-500 ${(searchInput.length || (searchFilter.length && !searchInput.length)) &&
-                    searchFilter != searchInput
-                    ? 'visible'
-                    : 'hidden'
-                    }`}
-                onClick={onSearchEnter}
-            />
-            <XCircle
-                className={cn(
-                    "absolute right-3 top-1/4 cursor-pointer text-neutral-400",
-                    isCompact ? "size-3.5" : "size-[18px]",
-                    searchInput == searchFilter && searchInput != '' ? 'visible' : 'hidden'
-                )}
-                onClick={onClearSearch}
-            />
+        <div className="relative flex flex-col gap-2">
+            <div className="relative w-full">
+                <MyInput
+                    inputType="text"
+                    input={searchInput}
+                    onChangeFunction={onSearchChange}
+                    inputPlaceholder={placeholder || "Search by name, enroll..."}
+                    className={cn("px-9 w-full", isCompact ? "h-8 text-xs placeholder:text-xs" : "")}
+                />
+                <MagnifyingGlass className={cn("absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600", isCompact ? "size-3.5" : "size-[18px]")} />
+
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <KeyReturn
+                        weight="fill"
+                        className={cn(
+                            "cursor-pointer text-primary-500 transition-opacity duration-200",
+                            isCompact ? "size-3.5" : "size-[18px]",
+                            (searchInput.length || (searchFilter.length && !searchInput.length)) && searchFilter != searchInput
+                                ? 'opacity-100 visible'
+                                : 'opacity-0 invisible'
+                        )}
+                        onClick={onSearchEnter}
+                    />
+                    <XCircle
+                        className={cn(
+                            "cursor-pointer text-neutral-400 transition-opacity duration-200",
+                            isCompact ? "size-3.5" : "size-[18px]",
+                            searchInput == searchFilter && searchInput != ''
+                                ? 'opacity-100 visible'
+                                : 'opacity-0 invisible'
+                        )}
+                        onClick={onClearSearch}
+                    />
+                </div>
+            </div>
         </div>
     );
 };

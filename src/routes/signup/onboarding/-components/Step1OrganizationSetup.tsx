@@ -13,8 +13,7 @@ import { PencilSimpleLine } from '@phosphor-icons/react';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { UploadFileInS3Public } from '../../-services/signup-services';
 import useOrganizationStore from '../-zustand-store/step1OrganizationZustand';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 
 const organizationSetupSchema = z.object({
     profilePictureUrl: z.string(),
@@ -31,9 +30,7 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+    const INSTITUTE_ID = getCurrentInstituteId();
     console.log(currentStep, completedSteps);
     const { formData, setFormData } = useOrganizationStore();
     const [isUploading, setIsUploading] = useState(false);
@@ -79,14 +76,14 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
     return (
         <FormProvider {...form}>
             <form>
-                <div className="flex flex-col items-center justify-center gap-8">
-                    <h1 className="text-[1.6rem]">Share your organization details</h1>
+                <div className="flex flex-col items-center justify-center gap-4 lg:gap-8">
+                    <h1 className="text-xl lg:text-[1.6rem]">Share your organization details</h1>
                     <div className="relative">
                         {form.getValues('profilePictureUrl') ? (
                             <img
                                 src={form.getValues('profilePictureUrl')}
                                 alt="logo"
-                                className="size-52 rounded-full"
+                                className="size-32 rounded-full lg:size-52"
                             />
                         ) : (
                             <div className="rounded-full object-cover">
@@ -116,7 +113,7 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
                         control={form.control}
                         name="instituteName"
                         render={({ field: { onChange, value, ...field } }) => (
-                            <FormItem>
+                            <FormItem className="w-full max-w-sm">
                                 <FormControl>
                                     <MyInput
                                         inputType="text"
@@ -128,24 +125,26 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
                                         size="large"
                                         label="Institute Name"
                                         {...field}
-                                        className="w-96"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
                         )}
                     />
-                    <SelectField
-                        label="Institute Type"
-                        name="instituteType"
-                        options={InstituteType.map((option, index) => ({
-                            value: option,
-                            label: option,
-                            _id: index,
-                        }))}
-                        control={form.control}
-                        className="w-full"
-                        required
-                    />
+                    <div className="w-full max-w-sm">
+                        <SelectField
+                            label="Institute Type"
+                            name="instituteType"
+                            options={InstituteType.map((option, index) => ({
+                                value: option,
+                                label: option,
+                                _id: index,
+                            }))}
+                            control={form.control}
+                            className="w-full"
+                            required
+                        />
+                    </div>
                     <MyButton
                         type="button"
                         scale="large"

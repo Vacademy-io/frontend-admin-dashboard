@@ -25,6 +25,15 @@ export interface LiveSession {
     registration_form_link_for_public_sessions: string;
     allow_rewind?: boolean | null;
     timezone?: string;
+    default_class_link?: string | null;
+    default_class_name?: string | null;
+    learner_button_config?: {
+        text: string;
+        url: string;
+        background_color: string;
+        text_color: string;
+        visible: boolean;
+    } | null;
 }
 
 export interface SessionsByDate {
@@ -87,7 +96,15 @@ export interface Schedule {
     allow_play_pause: boolean | null;
     thumbnail_file_id: string | null;
     background_score_file_id: string | null;
+    cover_file_id: string | null;
     session_streaming_service_type: string | null;
+    bbb_config?: {
+        record?: boolean;
+        auto_start_recording?: boolean;
+        mute_on_start?: boolean;
+        webcams_only_for_moderator?: boolean;
+        guest_policy?: string;
+    } | null;
     schedule_id: string | null;
     meeting_date: string | null;
     timezone?: string;
@@ -98,9 +115,31 @@ export interface Schedule {
         duration: string;
         link: string;
         id: string;
+        meetingDate?: string;
         thumbnailFileId: string;
         countAttendanceDaily: boolean;
+        dailyAttendance?: boolean;
+        default_class_link?: string | null;
+        default_class_name?: string | null;
+        learner_button_config?: {
+            text: string;
+            url: string;
+            background_color: string;
+            text_color: string;
+            visible: boolean;
+        } | null;
+        providerRecordingsJson?: string | null;
     }>;
+}
+
+export interface MeetingRecording {
+    recordingId: string;
+    downloadUrl?: string;
+    playbackUrl?: string;
+    durationSeconds: number;
+    startTime?: string;
+    providerMeetingId?: string;
+    fileId?: string;
 }
 
 export interface NotificationAction {
@@ -315,7 +354,7 @@ export interface SessionSearchRequest {
     institute_id: string;
     page?: number;
     size?: number;
-    sort_by?: 'meetingDate' | 'startTime' | 'title' | 'createdAt';
+    sort_by?: 'meetingDate' | 'startTime' | 'title' | 'createdAt' | 'updatedAt';
     sort_direction?: 'ASC' | 'DESC';
     statuses?: string[];
     session_ids?: string[];
@@ -331,6 +370,7 @@ export interface SessionSearchRequest {
     timezones?: string[];
     schedule_ids?: string[];
     streaming_service_types?: string[];
+    time_status?: 'UPCOMING' | 'PAST' | 'LIVE' | null;
 }
 
 export interface SessionSearchResponseItem {
@@ -350,6 +390,15 @@ export interface SessionSearchResponseItem {
     meeting_link: string;
     registration_form_link_for_public_sessions: string | null;
     timezone: string;
+    default_class_link?: string | null;
+    default_class_name?: string | null;
+    learner_button_config?: {
+        text: string;
+        url: string;
+        background_color: string;
+        text_color: string;
+        visible: boolean;
+    } | null;
 }
 
 export interface PaginationMetadata {

@@ -52,6 +52,10 @@ import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toZonedTime, format as formatTZ } from 'date-fns-tz';
 import { TIMEZONE_OPTIONS, STREAMING_OPTIONS, WAITING_ROOM_OPTIONS } from '../-constants/options';
+import { DefaultClassLinkInput } from './DefaultClassLinkInput';
+import { LearnerButtonConfigInput } from './LearnerButtonConfigInput';
+import { ScrollArea } from '@radix-ui/react-scroll-area';
+import { LiveClassLinkField } from './LiveClassLinkField';
 
 export default function ScheduleStep1() {
     // Hooks and State
@@ -85,6 +89,21 @@ export default function ScheduleStep1() {
         sessionIndex: number;
     } | null>(null);
     const [selectedDaysToCopy, setSelectedDaysToCopy] = useState<number[]>([]);
+    // State for copy default link dialog
+    const [isCopyDefaultLinkDialogOpen, setIsCopyDefaultLinkDialogOpen] = useState(false);
+    const [copySourceDefaultLink, setCopySourceDefaultLink] = useState<{
+        dayIndex: number;
+    } | null>(null);
+    const [selectedDaysToCopyDefaultLink, setSelectedDaysToCopyDefaultLink] = useState<number[]>([]);
+
+    // State for link update confirmation
+    const [isLinkUpdateDialogOpen, setIsLinkUpdateDialogOpen] = useState(false);
+    const [pendingSubmitData, setPendingSubmitData] = useState<z.infer<typeof sessionFormSchema> | null>(null);
+    const [changedDayLabel, setChangedDayLabel] = useState<string>('');
+    // State to store recurrence scope selected via Apply button (used when Next is clicked)
+    const [pendingRecurrenceScope, setPendingRecurrenceScope] = useState<
+        'ONLY_THIS' | 'ALL_FUTURE' | 'CURRENT_DAY_ALL_SESSIONS' | 'ALL_FUTURE_ALL_SESSIONS' | null
+    >(null);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -137,6 +156,9 @@ export default function ScheduleStep1() {
             recurringSchedule: WEEK_DAYS.map((day) => ({
                 day: day.label,
                 isSelect: false,
+                default_class_link: null, // Day-level default link
+                default_class_name: null, // Day-level default class name
+                learner_button_config: null, // Day-level custom button
                 sessions: [
                     {
                         startTime: '00:00',
@@ -284,115 +306,85 @@ export default function ScheduleStep1() {
         setIsLoadingEditData(true);
 
         const schedule = sessionDetails.schedule;
-
-        // Update form values with session data
-        form.setValue('id', schedule.session_id);
-        form.setValue('title', schedule.title || '');
-        form.setValue('subject', schedule.subject || 'none');
-        form.setValue('description', schedule.description_html || '');
-
-        // Set timezone from the session - THIS IS THE CRITICAL PART
         const savedTimezone = schedule.timezone || 'Asia/Kolkata';
 
-        // Force a complete form reset with the new timezone to ensure it sticks
-        const currentFormValues = form.getValues();
-        form.reset({
-            ...currentFormValues,
-            timeZone: savedTimezone,
-        });
+        // --- Compute ALL form values BEFORE resetting the form ---
 
-        // Set the original session start time
-        // IMPORTANT: ALWAYS preserve original datetime for BOTH one-time AND recurring sessions
-        // - For ONE-TIME sessions: Preserves user's scheduled date/time
-        // - For RECURRING sessions: Preserves the start date (individual weekday times are separate)
+        // Compute startTime
+        let computedStartTime: string;
         if (schedule.start_time) {
-            // Check if start_time is already in full datetime format (e.g., "2025-10-25T23:07:00")
             if (schedule.start_time.includes('T')) {
-                // Already in datetime format - use directly
                 try {
                     const testDate = new Date(schedule.start_time);
                     if (!isNaN(testDate.getTime())) {
-                        form.setValue('startTime', schedule.start_time);
+                        // Normalize to datetime-local format (YYYY-MM-DDTHH:mm)
+                        const normalized = schedule.start_time.substring(0, 16);
+                        computedStartTime = normalized;
                     } else {
-                        console.warn(
-                            'Invalid datetime format, keeping as-is:',
-                            schedule.start_time
-                        );
-                        form.setValue('startTime', schedule.start_time);
+                        computedStartTime = schedule.start_time;
                     }
-                } catch (error) {
-                    console.error('Error parsing start time:', error);
-                    form.setValue('startTime', schedule.start_time);
+                } catch {
+                    computedStartTime = schedule.start_time;
                 }
             } else if (schedule.meeting_date) {
-                // start_time is just time portion, combine with meeting_date
-                try {
-                    const originalDateTime = `${schedule.meeting_date}T${schedule.start_time}`;
-                    const testDate = new Date(originalDateTime);
-                    if (!isNaN(testDate.getTime())) {
-                        form.setValue('startTime', originalDateTime);
-                    } else {
-                        console.warn('Invalid datetime format, keeping as-is:', originalDateTime);
-                        form.setValue('startTime', originalDateTime);
-                    }
-                } catch (error) {
-                    console.error('Error parsing start time:', error);
-                    const originalDateTime = `${schedule.meeting_date}T${schedule.start_time}`;
-                    form.setValue('startTime', originalDateTime);
-                }
+                computedStartTime = `${schedule.meeting_date}T${schedule.start_time}`;
             } else {
-                // Has start_time (time only) but no meeting_date - use today's date
-                try {
-                    const today = format(new Date(), 'yyyy-MM-dd');
-                    const dateTime = `${today}T${schedule.start_time}`;
-                    form.setValue('startTime', dateTime);
-                } catch (error) {
-                    console.warn('Could not parse time, using as-is:', schedule.start_time);
-                    form.setValue('startTime', schedule.start_time);
-                }
+                const today = format(new Date(), 'yyyy-MM-dd');
+                computedStartTime = `${today}T${schedule.start_time}`;
             }
         } else {
-            // No datetime data available at all - only then use current time
-            console.warn('No start time data in session details, using current time');
-            const currentTime = getCurrentTimeInTimezone(savedTimezone);
-            form.setValue('startTime', currentTime);
+            computedStartTime = getCurrentTimeInTimezone(savedTimezone);
         }
 
-        form.setValue('defaultLink', schedule.default_meet_link || '');
-        form.setValue('sessionPlatform', schedule.link_type || StreamingPlatform.OTHER);
-        form.setValue(
-            'streamingType',
-            schedule.session_streaming_service_type || SessionPlatform.EMBED_IN_APP
-        );
-        // Default to LIVE session type if not specified in the API response
-        form.setValue('sessionType', SessionType.LIVE);
-
-        // Calculate and set duration
+        // Compute duration
+        let computedDurationHours = '0';
+        let computedDurationMinutes = '30';
         if (schedule.start_time && schedule.last_entry_time) {
             const start = new Date(schedule.start_time);
             const end = new Date(schedule.last_entry_time);
             if (end > start) {
                 const durationMs = end.getTime() - start.getTime();
-                const hours = Math.floor(durationMs / 3600000);
-                const minutes = Math.floor((durationMs % 3600000) / 60000);
-                form.setValue('durationHours', String(hours));
-                form.setValue('durationMinutes', String(minutes));
+                computedDurationHours = String(Math.floor(durationMs / 3600000));
+                computedDurationMinutes = String(Math.floor((durationMs % 3600000) / 60000));
             }
         }
 
-        // Handle recurring sessions
-        if (schedule.recurrence_type === 'weekly') {
-            form.setValue('meetingType', RecurringType.WEEKLY);
-            form.setValue('endDate', schedule.session_end_date);
+        // Compute meeting type, endDate, and recurring schedule
+        let computedMeetingType = RecurringType.ONCE;
+        let computedEndDate: string | undefined = undefined;
+        const getDefaultValuesResult = getDefaultValues();
+        let computedRecurringSchedule: typeof getDefaultValuesResult.recurringSchedule =
+            getDefaultValuesResult.recurringSchedule;
 
-            const transformedSchedules = WEEK_DAYS.map((day) => {
-                // Find ALL matching schedules for this day
+        if (schedule.recurrence_type === 'weekly') {
+            computedMeetingType = RecurringType.WEEKLY;
+
+            // Parse session_end_date to YYYY-MM-DD format for <input type="date">
+            const rawEndDate = schedule.session_end_date;
+            if (rawEndDate) {
+                try {
+                    const parsedDate = new Date(rawEndDate);
+                    if (!isNaN(parsedDate.getTime())) {
+                        computedEndDate = format(parsedDate, 'yyyy-MM-dd');
+                    } else if (rawEndDate.includes('T')) {
+                        computedEndDate = rawEndDate.split('T')[0] || rawEndDate;
+                    } else {
+                        computedEndDate = rawEndDate;
+                    }
+                } catch {
+                    if (rawEndDate.includes('T')) {
+                        computedEndDate = rawEndDate.split('T')[0] || rawEndDate;
+                    } else {
+                        computedEndDate = rawEndDate;
+                    }
+                }
+            }
+
+            computedRecurringSchedule = WEEK_DAYS.map((day) => {
                 const allMatchingSchedules = schedule.added_schedules.filter(
                     (scheduleItem) => scheduleItem.day.toLowerCase() === day.label.toLowerCase()
                 );
 
-                // Group by startTime - the API returns multiple entries for each week occurrence
-                // We display ONE UI field but keep ALL IDs so updates apply to all occurrences
                 const sessionsByTime = new Map<
                     string,
                     Array<(typeof schedule.added_schedules)[0]>
@@ -405,34 +397,52 @@ export default function ScheduleStep1() {
                 });
 
                 const matchingSchedules = Array.from(sessionsByTime.entries())
-                    .sort((a, b) => a[0].localeCompare(b[0])) // Sort by time
-                    .map(([startTime, sessions]) => {
-                        // Take the first session's data for display
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .map(([, sessions]) => {
                         const firstSession = sessions[0];
-                        // Store ALL IDs as a comma-separated string
                         const allIds = sessions.map((s) => s.id).join(',');
                         return {
                             ...firstSession,
-                            id: allIds, // Store all IDs together
+                            id: allIds,
                         };
                     });
 
                 return {
-                    day: day.label,
+                    day: day.label as typeof day.label,
                     isSelect: matchingSchedules.length > 0,
+                    default_class_link:
+                        matchingSchedules.length > 0
+                            ? (matchingSchedules[0] as any)?.default_class_link ??
+                            (matchingSchedules[0] as any)?.defaultClassLink ??
+                            null
+                            : null,
+                    default_class_name:
+                        matchingSchedules.length > 0
+                            ? (matchingSchedules[0] as any)?.default_class_name ??
+                            (matchingSchedules[0] as any)?.defaultClassName ??
+                            null
+                            : null,
+                    learner_button_config:
+                        matchingSchedules.length > 0
+                            ? (matchingSchedules[0] as any)?.learner_button_config ??
+                            (matchingSchedules[0] as any)?.learnerButtonConfig ??
+                            null
+                            : null,
                     sessions:
                         matchingSchedules.length > 0
                             ? matchingSchedules.map((matchingSchedule) => {
                                 const duration = parseInt(matchingSchedule.duration || '0') || 0;
                                 return {
                                     id: matchingSchedule.id,
-                                    startTime: matchingSchedule.startTime,
+                                    startTime: matchingSchedule.startTime || '00:00',
                                     durationHours: String(Math.floor(duration / 60)),
                                     durationMinutes: String(duration % 60),
                                     link: matchingSchedule.link || '',
                                     thumbnailFileId: matchingSchedule.thumbnailFileId || '',
                                     countAttendanceDaily:
-                                        matchingSchedule.countAttendanceDaily || false,
+                                        matchingSchedule.countAttendanceDaily ??
+                                        (matchingSchedule as any).dailyAttendance ??
+                                        false,
                                 };
                             })
                             : [
@@ -447,22 +457,53 @@ export default function ScheduleStep1() {
                             ],
                 };
             });
-            form.setValue('recurringSchedule', transformedSchedules);
         }
 
-        // Handle waiting room settings (check for null/undefined, not falsy, since 0 is a valid value)
+        // Compute waiting room settings
+        let computedEnableWaitingRoom = false;
+        let computedOpenWaitingRoomBefore = '15';
         if (schedule.waiting_room_time !== null && schedule.waiting_room_time !== undefined) {
-            // Enable waiting room if value is greater than 0
-            const waitingRoomEnabled = schedule.waiting_room_time > 0;
-            form.setValue('enableWaitingRoom', waitingRoomEnabled);
-            form.setValue('openWaitingRoomBefore', String(schedule.waiting_room_time));
-        } else {
-            form.setValue('enableWaitingRoom', false);
+            computedEnableWaitingRoom = schedule.waiting_room_time > 0;
+            computedOpenWaitingRoomBefore = String(schedule.waiting_room_time);
         }
 
-        // Set playback settings (handle null values)
-        form.setValue('allowRewind', schedule.allow_rewind ?? false);
-        form.setValue('allowPause', schedule.allow_play_pause ?? false);
+        // Compute learner button config
+        const topLevelLearnerButtonConfig =
+            (schedule as any)?.learner_button_config ??
+            (schedule as any)?.learnerButtonConfig ??
+            null;
+
+        // --- Single form.reset with ALL computed values ---
+        // This prevents intermediate states where meetingType/endDate/recurringSchedule
+        // are at defaults while other fields are already set
+        form.reset({
+            id: schedule.session_id,
+            title: schedule.title || '',
+            subject: schedule.subject || 'none',
+            description: schedule.description_html || '',
+            timeZone: savedTimezone,
+            startTime: computedStartTime,
+            durationHours: computedDurationHours,
+            durationMinutes: computedDurationMinutes,
+            meetingType: computedMeetingType,
+            endDate: computedEndDate,
+            recurringSchedule: computedRecurringSchedule,
+            defaultLink: schedule.default_meet_link || '',
+            sessionPlatform: schedule.link_type || StreamingPlatform.OTHER,
+            streamingType: schedule.session_streaming_service_type || SessionPlatform.EMBED_IN_APP,
+            sessionType: SessionType.LIVE,
+            enableWaitingRoom: computedEnableWaitingRoom,
+            openWaitingRoomBefore: computedOpenWaitingRoomBefore,
+            allowRewind: schedule.allow_rewind ?? false,
+            allowPause: schedule.allow_play_pause ?? false,
+            events: '1',
+            learner_button_config: topLevelLearnerButtonConfig,
+            bbbRecord: schedule.bbb_config?.record ?? true,
+            bbbAutoStartRecording: schedule.bbb_config?.auto_start_recording ?? false,
+            bbbMuteOnStart: schedule.bbb_config?.mute_on_start ?? true,
+            bbbWebcamsOnlyForModerator: schedule.bbb_config?.webcams_only_for_moderator ?? false,
+            bbbGuestPolicy: (schedule.bbb_config?.guest_policy as 'ALWAYS_ACCEPT' | 'ASK_MODERATOR' | 'ALWAYS_DENY') ?? 'ALWAYS_ACCEPT',
+        });
 
         // Set existing file IDs for display
         if (schedule.thumbnail_file_id) {
@@ -542,12 +583,14 @@ export default function ScheduleStep1() {
 
     const isMeetPlatform = sessionPlatformWatch === StreamingPlatform.MEET;
     const isZoomPlatform = sessionPlatformWatch === StreamingPlatform.ZOOM;
+    const isZohoPlatform = sessionPlatformWatch === StreamingPlatform.ZOHO;
+    const isBbbPlatform = sessionPlatformWatch === StreamingPlatform.BBB;
 
     // Disabled options logic based on current platform selection
     const disabledLiveClassOptions = useMemo(() => {
-        if (isMeetPlatform) return [SessionType.PRE_RECORDED];
+        if (isMeetPlatform || isZohoPlatform || isBbbPlatform) return [SessionType.PRE_RECORDED];
         return [];
-    }, [isMeetPlatform]);
+    }, [isMeetPlatform, isZohoPlatform, isBbbPlatform]);
 
     const sessionTypeWatch = useWatch({ control, name: 'sessionType' });
 
@@ -588,18 +631,22 @@ export default function ScheduleStep1() {
         [defaultLinkWatch, detectedEnumPlatform]
     );
 
-    // When Google Meet is selected, enforce Live session type and Redirect streaming type
+    // When Google Meet, Zoho, or BBB is selected, enforce Live session type
     useEffect(() => {
-        if (isMeetPlatform) {
+        if (isMeetPlatform || isZohoPlatform || isBbbPlatform) {
             // Enforce only if not already selected to avoid unnecessary re-renders
             if (form.getValues('sessionType') !== SessionType.LIVE) {
                 form.setValue('sessionType', SessionType.LIVE);
             }
-            if (form.getValues('streamingType') !== SessionPlatform.REDIRECT_TO_OTHER_PLATFORM) {
+            if (isMeetPlatform && form.getValues('streamingType') !== SessionPlatform.REDIRECT_TO_OTHER_PLATFORM) {
                 form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
             }
+            // BBB uses embed in app (iframe)
+            if (isBbbPlatform && form.getValues('streamingType') !== SessionPlatform.EMBED_IN_APP) {
+                form.setValue('streamingType', SessionPlatform.EMBED_IN_APP);
+            }
         }
-    }, [isMeetPlatform]);
+    }, [isMeetPlatform, isZohoPlatform, isBbbPlatform]);
     const meetingType = useWatch({ control, name: 'meetingType' });
 
     // Auth and Institute Data
@@ -697,102 +744,186 @@ export default function ScheduleStep1() {
         return sessionThumbnails.get(key) || null;
     };
 
-    const onSubmit = async (data: z.infer<typeof sessionFormSchema>) => {
-        if (isSubmitting) return; // Prevent multiple submissions
+    const checkForLinkChanges = (
+        newData: z.infer<typeof sessionFormSchema>,
+        oldData: z.infer<typeof sessionFormSchema> | null
+    ): string | false => {
+        if (!isEdit || !oldData) return false;
 
-        setIsSubmitting(true);
+        // Check top level default link
+        if (newData.defaultLink !== oldData.defaultLink) return 'all days';
 
-        // Preserve existing file IDs from sessionDetails if in edit mode and no new files uploaded
-        // If user removed existing file (existingXId is null), don't use the old file
-        let musicFileId: string | undefined = existingMusicId || undefined;
-        let thumbnailFileId: string | undefined = existingThumbnailId || undefined;
-
-        try {
-            // Override with new uploads if files are selected
-            if (selectedMusicFile) {
-                try {
-                    musicFileId = await UploadFileInS3(selectedMusicFile, () => { }, 'your-user-id');
-                } catch (error) {
-                    console.error('Error uploading music file:', error);
-                    toast.error('Failed to upload background music. Please try again.');
-                    setIsSubmitting(false);
-                    return;
+        // Map old sessions for easy lookup
+        const oldSessionsMap = new Map<string, any>();
+        if (oldData.recurringSchedule) {
+            oldData.recurringSchedule.forEach((d) => {
+                if (d.isSelect) {
+                    d.sessions.forEach((s) => {
+                        if (s.id) oldSessionsMap.set(s.id, { ...s, day: d.day });
+                    });
                 }
-            }
-            if (selectedFile) {
-                try {
-                    thumbnailFileId = await UploadFileInS3(selectedFile, () => { }, 'your-user-id');
-                } catch (error) {
-                    console.error('Error uploading thumbnail:', error);
-                    toast.error('Failed to upload thumbnail image. Please try again.');
-                    setIsSubmitting(false);
-                    return;
-                }
-            }
-        } catch (error) {
-            console.error('Error uploading files:', error);
-            toast.error('Failed to upload files. Please try again.');
-            setIsSubmitting(false);
-            return;
+            });
         }
 
-        // Upload session thumbnails and update form data
-        const updatedData = { ...data };
-        if (updatedData.recurringSchedule) {
-            for (let dayIndex = 0; dayIndex < updatedData.recurringSchedule.length; dayIndex++) {
-                const day = updatedData.recurringSchedule[dayIndex];
-                if (day?.sessions) {
-                    for (let sessionIndex = 0; sessionIndex < day.sessions.length; sessionIndex++) {
-                        const sessionThumbnail = getSessionThumbnail(dayIndex, sessionIndex);
-                        if (sessionThumbnail) {
-                            try {
-                                const sessionThumbnailId = await UploadFileInS3(
-                                    sessionThumbnail,
-                                    () => { },
-                                    'your-user-id'
-                                );
-                                if (
-                                    updatedData.recurringSchedule?.[dayIndex]?.sessions?.[
-                                    sessionIndex
-                                    ]
-                                ) {
-                                    updatedData.recurringSchedule[dayIndex]!.sessions![
-                                        sessionIndex
-                                    ]!.thumbnailFileId = sessionThumbnailId;
-                                }
-                            } catch (error) {
-                                console.error(
-                                    `Error uploading thumbnail for ${day.day} session ${sessionIndex + 1
-                                    }:`,
-                                    error
-                                );
-                                toast.error(
-                                    `Failed to upload thumbnail for ${day.day} session ${sessionIndex + 1
-                                    }`
-                                );
-                                setIsSubmitting(false);
-                                return;
-                            }
+        // Check recurring schedule
+        if (newData.recurringSchedule) {
+            for (const day of newData.recurringSchedule) {
+                if (!day.isSelect) continue;
+
+                // Check day default link
+                const oldDay = oldData.recurringSchedule?.find((d) => d.day === day.day);
+                if (
+                    oldDay &&
+                    oldDay.isSelect &&
+                    oldDay.default_class_link !== day.default_class_link
+                ) {
+                    return day.day;
+                }
+
+                for (const session of day.sessions) {
+                    // Check if existing session (has ID) has changed link
+                    if (session.id && oldSessionsMap.has(session.id)) {
+                        const oldSession = oldSessionsMap.get(session.id);
+                        if (oldSession.link !== session.link) {
+                            return day.day;
                         }
                     }
                 }
             }
         }
 
-        // Transform function will handle added/updated/deleted schedules
-        // by comparing form data (updatedData) with original schedules
-        // We pass empty array for originalSchedules - the session IDs in the form data
-        // will be used by the backend to determine updates vs additions
-        const body = transformFormToDTOStep1(
-            updatedData,
-            INSTITUTE_ID,
-            [], // Empty array - session IDs in form data are sufficient for backend
-            musicFileId,
-            thumbnailFileId,
-            instituteDetails?.institute_logo_file_id
-        );
+        return false;
+    };
 
+    /** Uploads the core session files (background music + cover thumbnail).
+     *  Returns the resulting file IDs, or null if an upload fails. */
+    const uploadCoreFiles = async (): Promise<{
+        musicFileId: string | undefined;
+        thumbnailFileId: string | undefined;
+    } | null> => {
+        let musicFileId = existingMusicId || undefined;
+        let thumbnailFileId = existingThumbnailId || undefined;
+
+        if (selectedMusicFile) {
+            try {
+                musicFileId = await UploadFileInS3(selectedMusicFile, () => { }, 'your-user-id');
+            } catch (error) {
+                console.error('Error uploading music file:', error);
+                toast.error('Failed to upload background music. Please try again.');
+                return null;
+            }
+        }
+        if (selectedFile) {
+            try {
+                thumbnailFileId = await UploadFileInS3(selectedFile, () => { }, 'your-user-id');
+            } catch (error) {
+                console.error('Error uploading thumbnail:', error);
+                toast.error('Failed to upload thumbnail image. Please try again.');
+                return null;
+            }
+        }
+        return { musicFileId, thumbnailFileId };
+    };
+
+    /** Merges the latest live form state into the submitted data so that
+     *  dynamically added sessions (via form.setValue) are never lost. */
+    const buildMergedFormData = (
+        data: z.infer<typeof sessionFormSchema>
+    ): z.infer<typeof sessionFormSchema> => {
+        const updatedData = { ...data };
+        // CRITICAL FIX: React Hook Form's handleSubmit resolver may not always
+        // include newly-added sessions in its output. Reading from form.getValues()
+        // guarantees all dynamic sessions are captured.
+        const latestRecurringSchedule = form.getValues('recurringSchedule');
+        if (latestRecurringSchedule) {
+            updatedData.recurringSchedule = latestRecurringSchedule.map((latestDay, dayIdx) => {
+                const resolvedDay = data.recurringSchedule?.[dayIdx];
+                if (resolvedDay) {
+                    return { ...resolvedDay, sessions: latestDay.sessions };
+                }
+                return latestDay;
+            });
+        }
+        return updatedData;
+    };
+
+    /** Uploads per-session thumbnails for all recurring schedule sessions in-place.
+     *  Returns false (and shows a toast) if any upload fails. */
+    const uploadRecurringSessionThumbnails = async (
+        updatedData: z.infer<typeof sessionFormSchema>
+    ): Promise<boolean> => {
+        if (!updatedData.recurringSchedule) return true;
+
+        for (let dayIndex = 0; dayIndex < updatedData.recurringSchedule.length; dayIndex++) {
+            const day = updatedData.recurringSchedule[dayIndex];
+            if (!day?.sessions) continue;
+
+            for (let sessionIndex = 0; sessionIndex < day.sessions.length; sessionIndex++) {
+                const sessionThumbnail = getSessionThumbnail(dayIndex, sessionIndex);
+                if (!sessionThumbnail) continue;
+
+                try {
+                    const sessionThumbnailId = await UploadFileInS3(
+                        sessionThumbnail,
+                        () => { },
+                        'your-user-id'
+                    );
+                    const target =
+                        updatedData.recurringSchedule?.[dayIndex]?.sessions?.[sessionIndex];
+                    if (target) {
+                        updatedData.recurringSchedule[dayIndex]!.sessions![
+                            sessionIndex
+                        ]!.thumbnailFileId = sessionThumbnailId;
+                    }
+                } catch (error) {
+                    console.error(
+                        `Error uploading thumbnail for ${day.day} session ${sessionIndex + 1}:`,
+                        error
+                    );
+                    toast.error(
+                        `Failed to upload thumbnail for ${day.day} session ${sessionIndex + 1}`
+                    );
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+
+    const executeSubmission = async (
+        data: z.infer<typeof sessionFormSchema>,
+        updateRecurrenceScope: 'ONLY_THIS' | 'ALL_FUTURE' | 'CURRENT_DAY_ALL_SESSIONS' | 'ALL_FUTURE_ALL_SESSIONS' | null = null
+    ) => {
+        if (isSubmitting) return; // Prevent multiple submissions
+
+        setIsSubmitting(true);
         try {
+            const uploadedFiles = await uploadCoreFiles();
+            if (!uploadedFiles) {
+                setIsSubmitting(false);
+                return;
+            }
+
+            const updatedData = buildMergedFormData(data);
+
+            const thumbnailsUploaded = await uploadRecurringSessionThumbnails(updatedData);
+            if (!thumbnailsUploaded) {
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Session IDs already in the form data are sufficient for the backend
+            // to determine updates vs new additions — pass an empty originalSchedules array.
+            const body = transformFormToDTOStep1(
+                updatedData,
+                INSTITUTE_ID,
+                [],
+                uploadedFiles.musicFileId,
+                uploadedFiles.thumbnailFileId,
+                instituteDetails?.institute_logo_file_id,
+                updateRecurrenceScope
+            );
+
             const response = await createLiveSessionStep1(body);
             setSessionId(response.id);
             setStep1Data(data);
@@ -805,16 +936,285 @@ export default function ScheduleStep1() {
         }
     };
 
-    const onError = (errors: FieldErrors<typeof sessionFormSchema>) => {
-        console.log('Validation errors:', errors);
-        // Show toast for each field with a red error icon
-        Object.values(errors).forEach((error) => {
-            if (error?.message) {
-                toast.error(error.message, {
-                    icon: <XCircle size={20} className="text-red-500" />,
-                });
+    const executeCopySession = () => {
+        if (!copySourceSession || selectedDaysToCopy.length === 0) return;
+
+        const { dayIndex: sourceDayIndex, sessionIndex: sourceSessionIndex } = copySourceSession;
+        const recurringSchedule = form.getValues('recurringSchedule');
+        const sourceSession = recurringSchedule?.[sourceDayIndex]?.sessions?.[sourceSessionIndex];
+
+        if (!sourceSession) return;
+
+        selectedDaysToCopy.forEach((targetDayIndex) => {
+            const targetDay = recurringSchedule[targetDayIndex];
+            if (!targetDay) return;
+
+            const sessionData = {
+                startTime: sourceSession.startTime,
+                durationHours: sourceSession.durationHours,
+                durationMinutes: sourceSession.durationMinutes,
+                link: sourceSession.link,
+                countAttendanceDaily: sourceSession.countAttendanceDaily,
+                thumbnailFileId: sourceSession.thumbnailFileId,
+            };
+
+            const currentSessions = [...(targetDay.sessions || [])];
+
+            if (currentSessions[sourceSessionIndex]) {
+                currentSessions[sourceSessionIndex] = {
+                    ...currentSessions[sourceSessionIndex],
+                    ...sessionData,
+                };
+            } else {
+                currentSessions.push(sessionData);
+            }
+
+            form.setValue(`recurringSchedule.${targetDayIndex}.sessions`, currentSessions, {
+                shouldDirty: true,
+            });
+
+            // Explicitly set individual field paths for any newly added session
+            // to ensure React Hook Form properly registers them for handleSubmit
+            const lastIdx = currentSessions.length - 1;
+            const lastSession = currentSessions[lastIdx];
+            if (lastSession && !lastSession.id) {
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.sessions.${lastIdx}.startTime`,
+                    lastSession.startTime || '',
+                    { shouldDirty: true }
+                );
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.sessions.${lastIdx}.durationHours`,
+                    lastSession.durationHours || '0',
+                    { shouldDirty: true }
+                );
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.sessions.${lastIdx}.durationMinutes`,
+                    lastSession.durationMinutes || '30',
+                    { shouldDirty: true }
+                );
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.sessions.${lastIdx}.link`,
+                    lastSession.link || '',
+                    { shouldDirty: true }
+                );
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.sessions.${lastIdx}.countAttendanceDaily`,
+                    lastSession.countAttendanceDaily || false,
+                    { shouldDirty: true }
+                );
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.sessions.${lastIdx}.thumbnailFileId`,
+                    lastSession.thumbnailFileId || '',
+                    { shouldDirty: true }
+                );
+            }
+
+            if (!targetDay.isSelect) {
+                form.setValue(`recurringSchedule.${targetDayIndex}.isSelect`, true);
             }
         });
+
+        toast.success('Session copied successfully');
+        setCopySourceSession(null);
+        setSelectedDaysToCopy([]);
+    };
+
+    const executeCopyDefaultLink = () => {
+        if (!copySourceDefaultLink || selectedDaysToCopyDefaultLink.length === 0) return;
+
+        const { dayIndex: sourceDayIndex } = copySourceDefaultLink;
+        const recurringSchedule = form.getValues('recurringSchedule');
+        const sourceDay = recurringSchedule?.[sourceDayIndex];
+
+        if (!sourceDay) return;
+
+        selectedDaysToCopyDefaultLink.forEach((targetDayIndex) => {
+            const targetDay = recurringSchedule[targetDayIndex];
+            if (!targetDay) return;
+
+            form.setValue(
+                `recurringSchedule.${targetDayIndex}.default_class_link`,
+                sourceDay.default_class_link,
+                { shouldDirty: true, shouldTouch: true, shouldValidate: true }
+            );
+            form.setValue(
+                `recurringSchedule.${targetDayIndex}.default_class_name`,
+                sourceDay.default_class_name,
+                { shouldDirty: true, shouldTouch: true, shouldValidate: true }
+            );
+
+            if (!targetDay.isSelect) {
+                form.setValue(`recurringSchedule.${targetDayIndex}.isSelect`, true);
+            }
+        });
+
+        toast.success('Default link copied successfully');
+        setCopySourceDefaultLink(null);
+        setSelectedDaysToCopyDefaultLink([]);
+        setIsCopyDefaultLinkDialogOpen(false);
+    };
+
+    /**
+     * Applies the link from a specific session to other sessions based on the selected scope.
+     * This only updates the form on the frontend — no API call or navigation.
+     */
+    const applyLinkWithScope = (
+        scope: 'ONLY_THIS' | 'ALL_FUTURE' | 'CURRENT_DAY_ALL_SESSIONS' | 'ALL_FUTURE_ALL_SESSIONS',
+        dayIndex: number,
+        sessionIndex: number
+    ) => {
+        const recurringSchedule = form.getValues('recurringSchedule');
+        if (!recurringSchedule) return;
+
+        const currentLink = recurringSchedule[dayIndex]?.sessions?.[sessionIndex]?.link || '';
+
+        switch (scope) {
+            case 'ONLY_THIS':
+                // Link is already set via field.onChange, nothing else to do
+                break;
+
+            case 'CURRENT_DAY_ALL_SESSIONS': {
+                // Update all sessions on the current day with this link
+                const currentDay = recurringSchedule[dayIndex];
+                if (currentDay?.sessions) {
+                    currentDay.sessions.forEach((_, idx) => {
+                        form.setValue(
+                            `recurringSchedule.${dayIndex}.sessions.${idx}.link`,
+                            currentLink,
+                            { shouldDirty: true }
+                        );
+                    });
+                }
+                break;
+            }
+
+            case 'ALL_FUTURE': {
+                // Update the same session index on the SAME day only (e.g., only Mondays).
+                // The scope means "this session on all upcoming occurrences of this day",
+                // NOT across all days of the week.
+                const currentDay = recurringSchedule[dayIndex];
+                if (currentDay?.sessions?.[sessionIndex]) {
+                    form.setValue(
+                        `recurringSchedule.${dayIndex}.sessions.${sessionIndex}.link`,
+                        currentLink,
+                        { shouldDirty: true }
+                    );
+                }
+                break;
+            }
+
+            case 'ALL_FUTURE_ALL_SESSIONS': {
+                // Update all sessions on the SAME day only (e.g., all sessions on Monday).
+                // The scope means "all sessions on all upcoming occurrences of this day",
+                // NOT all sessions across all days of the week.
+                const sameDaySessions = recurringSchedule[dayIndex];
+                if (sameDaySessions?.isSelect && sameDaySessions?.sessions) {
+                    sameDaySessions.sessions.forEach((_, sIdx) => {
+                        form.setValue(
+                            `recurringSchedule.${dayIndex}.sessions.${sIdx}.link`,
+                            currentLink,
+                            { shouldDirty: true }
+                        );
+                    });
+                }
+                break;
+            }
+        }
+
+        // Store the selected scope so it's included in the payload when Next is clicked
+        setPendingRecurrenceScope(scope);
+        toast.success('Link updated successfully');
+    };
+
+    const onSubmit = (data: z.infer<typeof sessionFormSchema>) => {
+        // Check if there are genuinely new sessions (without IDs) in the form data.
+        // Also check the live form state to catch dynamically added sessions that
+        // the resolver might not have included.
+        const latestSchedule = form.getValues('recurringSchedule');
+        const hasNewSessions =
+            (data.recurringSchedule?.some(
+                (day) => day.isSelect && day.sessions.some((session) => !session.id)
+            ) ??
+                false) ||
+            (latestSchedule?.some(
+                (day) => day.isSelect && day.sessions.some((session) => !session.id)
+            ) ??
+                false);
+
+        // If scope was already chosen via Apply button, use it directly.
+        // Keep the scope even when new sessions are being added so the backend
+        // can create recurring instances for the new sessions.
+        if (isEdit && pendingRecurrenceScope) {
+            executeSubmission(data, pendingRecurrenceScope);
+            setPendingRecurrenceScope(null);
+            return;
+        }
+
+        const changedDay = checkForLinkChanges(data, step1Data);
+        if (isEdit && changedDay) {
+            setPendingSubmitData(data);
+            setChangedDayLabel(changedDay.charAt(0).toUpperCase() + changedDay.slice(1));
+            setIsLinkUpdateDialogOpen(true);
+        } else if (isEdit && hasNewSessions) {
+            // When new sessions are added during editing without any link changes,
+            // send ALL_FUTURE_ALL_SESSIONS scope so the backend generates recurring
+            // instances for the new sessions across all future occurrences.
+            executeSubmission(data, 'ALL_FUTURE_ALL_SESSIONS');
+        } else {
+            executeSubmission(data);
+        }
+    };
+
+    const onError = (errors: FieldErrors<typeof sessionFormSchema>) => {
+        console.error('Validation errors:', errors);
+
+        const extractErrors = (obj: any): string[] => {
+            const messages: string[] = [];
+            if (typeof obj !== 'object' || obj === null) return messages;
+
+            // If the object has a 'message' property that is a string, it's likely a FieldError
+            if (obj.message && typeof obj.message === 'string') {
+                messages.push(obj.message);
+                return messages;
+            }
+
+            // Recursively search in values (for nested objects/arrays)
+            Object.values(obj).forEach((value) => {
+                messages.push(...extractErrors(value));
+            });
+
+            return messages;
+        };
+
+        const allErrors = extractErrors(errors);
+        const uniqueErrors = Array.from(new Set(allErrors));
+
+        if (uniqueErrors.length > 0) {
+            toast.error('Please fix the following errors:', {
+                description: (
+                    <div className="mt-2 flex flex-col gap-1 text-slate-800">
+                        {uniqueErrors.slice(0, 5).map((error, index) => (
+                            <div key={index} className="flex gap-2 text-sm font-medium">
+                                <span className="text-red-500">•</span>
+                                <span>{error}</span>
+                            </div>
+                        ))}
+                        {uniqueErrors.length > 5 && (
+                            <div className="text-sm opacity-80">
+                                ...and {uniqueErrors.length - 5} more
+                            </div>
+                        )}
+                    </div>
+                ),
+                icon: <XCircle size={20} className="text-red-500" />,
+                duration: 5000,
+            });
+        } else {
+            toast.error('Please fill in all required fields.', {
+                icon: <XCircle size={20} className="text-red-500" />,
+            });
+        }
     };
 
     // Recurring Schedule Handlers
@@ -826,12 +1226,17 @@ export default function ScheduleStep1() {
         // Get the countAttendanceDaily value from the first session of this day
         const firstSessionAttendance = daySchedule.sessions[0]?.countAttendanceDaily || false;
 
+        // Get global defaults to use as fallback for new sessions
+        const globalDurationHours = form.getValues('durationHours') || '0';
+        const globalDurationMinutes = form.getValues('durationMinutes') || '30';
+        const globalLink = form.getValues('defaultLink') || '';
+
         // Determine session to copy:
         const defaultSession = {
             startTime: '',
-            durationHours: '',
-            durationMinutes: '',
-            link: '',
+            durationHours: globalDurationHours,
+            durationMinutes: globalDurationMinutes,
+            link: globalLink,
             countAttendanceDaily: firstSessionAttendance, // Use the first session's attendance setting
             thumbnailFileId: '',
         };
@@ -842,12 +1247,12 @@ export default function ScheduleStep1() {
                 : (schedule[0]?.sessions || [])[daySchedule.sessions.length]) ||
             (dayIndex === 0 ? defaultSession : schedule[0]?.sessions[0]) ||
             defaultSession;
-        // Normalize fields to strings
+        // Normalize fields to strings, using global defaults as fallback
         const sessionToCopy = {
             startTime: rawSession.startTime || '',
-            durationHours: rawSession.durationHours || '',
-            durationMinutes: rawSession.durationMinutes || '',
-            link: rawSession.link || '',
+            durationHours: rawSession.durationHours || globalDurationHours,
+            durationMinutes: rawSession.durationMinutes || globalDurationMinutes,
+            link: rawSession.link || globalLink,
             countAttendanceDaily: firstSessionAttendance, // Ensure new session uses same attendance setting
             thumbnailFileId: rawSession.thumbnailFileId || '',
         };
@@ -856,6 +1261,43 @@ export default function ScheduleStep1() {
             shouldDirty: true,
             shouldValidate: true,
         });
+
+        // CRITICAL FIX: Explicitly set individual field paths for the new session.
+        // React Hook Form tracks field registrations separately from _formValues.
+        // When we set the entire sessions array via setValue above, the new session's
+        // individual fields may not be properly registered for handleSubmit.
+        // By setting each field individually, we ensure RHF correctly tracks them.
+        const newSessionIndex = updatedSessions.length - 1;
+        form.setValue(
+            `recurringSchedule.${dayIndex}.sessions.${newSessionIndex}.startTime`,
+            sessionToCopy.startTime,
+            { shouldDirty: true }
+        );
+        form.setValue(
+            `recurringSchedule.${dayIndex}.sessions.${newSessionIndex}.durationHours`,
+            sessionToCopy.durationHours,
+            { shouldDirty: true }
+        );
+        form.setValue(
+            `recurringSchedule.${dayIndex}.sessions.${newSessionIndex}.durationMinutes`,
+            sessionToCopy.durationMinutes,
+            { shouldDirty: true }
+        );
+        form.setValue(
+            `recurringSchedule.${dayIndex}.sessions.${newSessionIndex}.link`,
+            sessionToCopy.link,
+            { shouldDirty: true }
+        );
+        form.setValue(
+            `recurringSchedule.${dayIndex}.sessions.${newSessionIndex}.countAttendanceDaily`,
+            sessionToCopy.countAttendanceDaily,
+            { shouldDirty: true }
+        );
+        form.setValue(
+            `recurringSchedule.${dayIndex}.sessions.${newSessionIndex}.thumbnailFileId`,
+            sessionToCopy.thumbnailFileId,
+            { shouldDirty: true }
+        );
     };
 
     const removeSessionFromDay = (dayIndex: number, sessionIndex: number) => {
@@ -1039,12 +1481,30 @@ export default function ScheduleStep1() {
         if (!schedule) return;
 
         const sourceSession = schedule[sourceDayIndex]?.sessions[sessionIndex];
-        if (!sourceSession) return;
+        const sourceDay = schedule[sourceDayIndex];
+        if (!sourceSession || !sourceDay) return;
 
         // Copy to selected days
         selectedDaysToCopy.forEach((targetDayIndex) => {
             const targetDay = schedule[targetDayIndex];
             if (targetDay && targetDay.isSelect) {
+                // Copy day-level configurations
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.default_class_link`,
+                    sourceDay.default_class_link || null,
+                    { shouldDirty: true }
+                );
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.default_class_name`,
+                    sourceDay.default_class_name || null,
+                    { shouldDirty: true }
+                );
+                form.setValue(
+                    `recurringSchedule.${targetDayIndex}.learner_button_config`,
+                    sourceDay.learner_button_config || null,
+                    { shouldDirty: true }
+                );
+
                 // If target session doesn't exist, create it
                 if (!targetDay.sessions[sessionIndex]) {
                     const currentSessions =
@@ -1180,7 +1640,7 @@ export default function ScheduleStep1() {
             name="meetingType"
             render={({ field }) => (
                 <MyRadioButton
-                    name='meetingType'
+                    name="meetingType"
                     value={field.value ?? ''}
                     onChange={field.onChange}
                     options={[
@@ -1267,99 +1727,121 @@ export default function ScheduleStep1() {
                         </FormItem>
                     )}
                 />
-                <div>
-                    <FormLabel className="text-sm font-medium">
-                        Duration<span className="text-danger-600">*</span>
-                    </FormLabel>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <FormField
-                            control={control}
-                            name="durationHours"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            required
-                                            inputType="text"
-                                            inputPlaceholder="00"
-                                            input={field.value}
-                                            onKeyPress={(e) => {
-                                                if (!/[0-9]/.test(e.key)) {
-                                                    e.preventDefault();
-                                                }
-                                            }}
-                                            onChangeFunction={(e) => {
-                                                let inputValue = e.target.value.replace(
-                                                    /[^0-9]/g,
-                                                    ''
-                                                );
-                                                const numValue = parseInt(inputValue);
-                                                if (numValue > 24) {
-                                                    inputValue = '24';
-                                                }
-                                                field.onChange(inputValue);
-                                            }}
-                                            className="w-11 p-2"
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <div>hrs :</div>
-                        <FormField
-                            control={control}
-                            name="durationMinutes"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            required
-                                            inputType="text"
-                                            inputPlaceholder="00"
-                                            input={field.value}
-                                            onKeyPress={(e) => {
-                                                if (!/[0-9]/.test(e.key)) {
-                                                    e.preventDefault();
-                                                }
-                                            }}
-                                            onChangeFunction={(e) => {
-                                                let inputValue = e.target.value.replace(
-                                                    /[^0-9]/g,
-                                                    ''
-                                                );
-                                                const numValue = parseInt(inputValue);
-                                                if (numValue > 59) {
-                                                    inputValue = '59';
-                                                }
-                                                field.onChange(inputValue);
-                                            }}
-                                            className="w-11 p-2"
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <div>mins</div>
+                {meetingType !== RecurringType.WEEKLY && (
+                    <div>
+                        <FormLabel className="text-sm font-medium">
+                            Duration<span className="text-danger-600">*</span>
+                        </FormLabel>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <FormField
+                                control={control}
+                                name="durationHours"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                required
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onKeyPress={(e) => {
+                                                    if (!/[0-9]/.test(e.key)) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                onChangeFunction={(e) => {
+                                                    let inputValue = e.target.value.replace(
+                                                        /[^0-9]/g,
+                                                        ''
+                                                    );
+                                                    const numValue = parseInt(inputValue);
+                                                    if (numValue > 24) {
+                                                        inputValue = '24';
+                                                    }
+                                                    field.onChange(inputValue);
+                                                }}
+                                                className="w-11 p-2"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <div>hrs</div>
+                            <FormField
+                                control={control}
+                                name="durationMinutes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                required
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onKeyPress={(e) => {
+                                                    if (!/[0-9]/.test(e.key)) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                onChangeFunction={(e) => {
+                                                    let inputValue = e.target.value.replace(
+                                                        /[^0-9]/g,
+                                                        ''
+                                                    );
+                                                    const numValue = parseInt(inputValue);
+                                                    if (numValue > 59) {
+                                                        inputValue = '59';
+                                                    }
+                                                    field.onChange(inputValue);
+                                                }}
+                                                className="w-11 p-2"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <div>mins</div>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
             {meetingType === RecurringType.WEEKLY && (
                 <div className="flex flex-row gap-6">
                     <FormField
                         control={control}
                         name="endDate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-sm font-medium">End Date</FormLabel>
-                                <FormControl>
-                                    <MyInput
-                                        inputType="date"
-                                        input={field.value}
-                                        onChangeFunction={field.onChange}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        render={({ field }) => {
+                            // Compute min date from startTime (end date must be after start date)
+                            const startTimeValue = form.getValues('startTime');
+                            const minEndDate = startTimeValue
+                                ? startTimeValue.split('T')[0]
+                                : undefined;
+                            // Ensure end date is after start date to satisfy validation
+                            const computedMin = minEndDate
+                                ? (() => {
+                                    const d = new Date(minEndDate);
+                                    d.setDate(d.getDate() + 1);
+                                    return format(d, 'yyyy-MM-dd');
+                                })()
+                                : undefined;
+                            return (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium">
+                                        End Date
+                                        <span className="text-danger-600">*</span>
+                                    </FormLabel>
+                                    <FormControl>
+                                        <MyInput
+                                            inputType="date"
+                                            input={field.value}
+                                            onChangeFunction={field.onChange}
+                                            min={computedMin}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            );
+                        }}
                     />
                 </div>
             )}
@@ -1375,17 +1857,18 @@ export default function ScheduleStep1() {
                     <FormItem>
                         <FormLabel className="text-sm font-medium">
                             Live Class Link
-                            <span className="text-danger-600">*</span>
+                            {!isZohoPlatform && !isBbbPlatform && <span className="text-danger-600">*</span>}
                         </FormLabel>
                         <FormControl>
                             <MyInput
                                 inputType="text"
-                                inputPlaceholder="Add Link"
+                                inputPlaceholder={isZohoPlatform ? "Auto-generated by Zoho" : isBbbPlatform ? "Auto-created by Vacademy Meet" : "Add Link"}
                                 input={field.value}
                                 labelStyle="font-thin"
                                 onChangeFunction={field.onChange}
                                 error={form.formState.errors.defaultLink?.message}
-                                required
+                                required={!isZohoPlatform && !isBbbPlatform}
+                                disabled={isZohoPlatform || isBbbPlatform}
                                 size="large"
                                 {...field}
                                 onBlur={(e) => {
@@ -1399,12 +1882,14 @@ export default function ScheduleStep1() {
 
                                     const currentSchedule = form.getValues('recurringSchedule');
                                     const activeDays =
-                                        currentSchedule?.filter((day) => day.isSelect && day.sessions?.length > 0) || [];
+                                        currentSchedule?.filter(
+                                            (day) => day.isSelect && day.sessions?.length > 0
+                                        ) || [];
 
                                     if (activeDays.length === 0) return;
 
-                                    const needsUpdate = activeDays.some(day =>
-                                        day.sessions.some(session => session.link !== newLink)
+                                    const needsUpdate = activeDays.some((day) =>
+                                        day.sessions.some((session) => session.link !== newLink)
                                     );
 
                                     if (needsUpdate) {
@@ -1435,7 +1920,7 @@ export default function ScheduleStep1() {
                     name="sessionType"
                     render={({ field }) => (
                         <MyRadioButton
-                            name='meetingType'
+                            name="meetingType"
                             value={field.value ?? ''}
                             onChange={field.onChange}
                             options={[
@@ -1448,6 +1933,105 @@ export default function ScheduleStep1() {
                     )}
                 />
             </div>
+
+            {/* BBB Meeting Configuration */}
+            {isBbbPlatform && (
+                <div className="mt-4 rounded-lg border border-primary-200 bg-primary-50/30 p-4">
+                    <h4 className="mb-3 text-sm font-semibold">Vacademy Meet Settings</h4>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <FormField
+                            control={control}
+                            name="bbbRecord"
+                            render={({ field }) => (
+                                <FormItem className="flex items-center gap-2 space-y-0">
+                                    <FormControl>
+                                        <input
+                                            type="checkbox"
+                                            checked={field.value ?? true}
+                                            onChange={(e) => field.onChange(e.target.checked)}
+                                            className="size-4 rounded border-gray-300"
+                                        />
+                                    </FormControl>
+                                    <FormLabel className="text-sm font-normal">Record this session</FormLabel>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={control}
+                            name="bbbAutoStartRecording"
+                            render={({ field }) => (
+                                <FormItem className="flex items-center gap-2 space-y-0">
+                                    <FormControl>
+                                        <input
+                                            type="checkbox"
+                                            checked={field.value ?? false}
+                                            onChange={(e) => field.onChange(e.target.checked)}
+                                            className="size-4 rounded border-gray-300"
+                                        />
+                                    </FormControl>
+                                    <FormLabel className="text-sm font-normal">Auto-start recording</FormLabel>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={control}
+                            name="bbbMuteOnStart"
+                            render={({ field }) => (
+                                <FormItem className="flex items-center gap-2 space-y-0">
+                                    <FormControl>
+                                        <input
+                                            type="checkbox"
+                                            checked={field.value ?? true}
+                                            onChange={(e) => field.onChange(e.target.checked)}
+                                            className="size-4 rounded border-gray-300"
+                                        />
+                                    </FormControl>
+                                    <FormLabel className="text-sm font-normal">Mute participants on join</FormLabel>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={control}
+                            name="bbbWebcamsOnlyForModerator"
+                            render={({ field }) => (
+                                <FormItem className="flex items-center gap-2 space-y-0">
+                                    <FormControl>
+                                        <input
+                                            type="checkbox"
+                                            checked={field.value ?? false}
+                                            onChange={(e) => field.onChange(e.target.checked)}
+                                            className="size-4 rounded border-gray-300"
+                                        />
+                                    </FormControl>
+                                    <FormLabel className="text-sm font-normal">Only host can share webcam</FormLabel>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                    <div className="mt-3">
+                        <FormField
+                            control={control}
+                            name="bbbGuestPolicy"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-normal">Guest admission policy</FormLabel>
+                                    <FormControl>
+                                        <select
+                                            value={field.value ?? 'ALWAYS_ACCEPT'}
+                                            onChange={field.onChange}
+                                            className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:w-64"
+                                        >
+                                            <option value="ALWAYS_ACCEPT">Always accept</option>
+                                            <option value="ASK_MODERATOR">Ask moderator to approve</option>
+                                            <option value="ALWAYS_DENY">Always deny guests</option>
+                                        </select>
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 
@@ -1467,7 +2051,7 @@ export default function ScheduleStep1() {
                         name="streamingType"
                         render={({ field }) => (
                             <MyRadioButton
-                                name='streamingType'
+                                name="streamingType"
                                 value={field.value ?? ''}
                                 onChange={field.onChange}
                                 options={[
@@ -1494,44 +2078,45 @@ export default function ScheduleStep1() {
                     />
                 </div>
             </div>
-            {/* Lock video playback settings */}
-            <div className="flex flex-col items-start gap-4">
-                <h4 className="text-sm font-semibold">Lock video playback settings</h4>
-                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                    <Controller
-                        control={control}
-                        name="allowRewind"
-                        render={({ field }) => (
-                            <label className="flex items-center gap-2">
-                                <span className="text-sm">Allow rewind</span>
-                                <Switch
-                                    disabled={
-                                        watch('streamingType') !== SessionPlatform.EMBED_IN_APP
-                                    }
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                />
-                            </label>
-                        )}
-                    />
-                    <Controller
-                        control={control}
-                        name="allowPause"
-                        render={({ field }) => (
-                            <label className="flex items-center gap-2">
-                                <span className="text-sm">Allow play pause</span>
-                                <Switch
-                                    disabled={
-                                        watch('streamingType') !== SessionPlatform.EMBED_IN_APP
-                                    }
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                />
-                            </label>
-                        )}
-                    />
+            {!isZohoPlatform && (
+                <div className="flex flex-col items-start gap-4">
+                    <h4 className="text-sm font-semibold">Lock video playback settings</h4>
+                    <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                        <Controller
+                            control={control}
+                            name="allowRewind"
+                            render={({ field }) => (
+                                <label className="flex items-center gap-2">
+                                    <span className="text-sm">Allow rewind</span>
+                                    <Switch
+                                        disabled={
+                                            watch('streamingType') !== SessionPlatform.EMBED_IN_APP
+                                        }
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </label>
+                            )}
+                        />
+                        <Controller
+                            control={control}
+                            name="allowPause"
+                            render={({ field }) => (
+                                <label className="flex items-center gap-2">
+                                    <span className="text-sm">Allow play pause</span>
+                                    <Switch
+                                        disabled={
+                                            watch('streamingType') !== SessionPlatform.EMBED_IN_APP
+                                        }
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </label>
+                            )}
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
             <div>
                 <div className="flex h-full flex-col items-start gap-4 sm:flex-row">
                     <Controller
@@ -1997,7 +2582,7 @@ export default function ScheduleStep1() {
                                                             </div>
 
                                                             {/* Live Class Link */}
-                                                            <div className="space-y-2 ">
+                                                            <div className="space-y-2">
                                                                 <Label className="text-sm font-medium text-gray-700">
                                                                     Live Class Link
                                                                 </Label>
@@ -2007,47 +2592,37 @@ export default function ScheduleStep1() {
                                                                     render={({ field }) => (
                                                                         <FormItem>
                                                                             <FormControl>
-                                                                                <MyInput
-                                                                                    inputType="text"
-                                                                                    inputPlaceholder="Enter live class URL"
-                                                                                    input={
-                                                                                        field.value
+                                                                                <LiveClassLinkField
+                                                                                    value={
+                                                                                        field.value ||
+                                                                                        ''
                                                                                     }
-                                                                                    onChangeFunction={
+                                                                                    onChange={
                                                                                         field.onChange
                                                                                     }
-                                                                                    {...field}
-                                                                                    onBlur={(e) => {
-                                                                                        const url =
-                                                                                            e.target
-                                                                                                .value;
-                                                                                        field.onBlur();
-                                                                                        try {
-                                                                                            if (url)
-                                                                                                new URL(
-                                                                                                    url
-                                                                                                );
-                                                                                        } catch {
-                                                                                            if (
-                                                                                                url
-                                                                                            ) {
-                                                                                                toast.error(
-                                                                                                    'Invalid URL',
-                                                                                                    {
-                                                                                                        icon: (
-                                                                                                            <XCircle
-                                                                                                                size={
-                                                                                                                    20
-                                                                                                                }
-                                                                                                                className="text-red-500"
-                                                                                                            />
-                                                                                                        ),
-                                                                                                    }
-                                                                                                );
-                                                                                            }
-                                                                                        }
+                                                                                    onApplyWithScope={(
+                                                                                        scope
+                                                                                    ) => {
+                                                                                        applyLinkWithScope(
+                                                                                            scope,
+                                                                                            dayIndex,
+                                                                                            sessionIndex
+                                                                                        );
                                                                                     }}
-                                                                                    className="w-full min-w-fit"
+                                                                                    isEdit={
+                                                                                        isEdit ||
+                                                                                        false
+                                                                                    }
+                                                                                    dayName={
+                                                                                        dayField.day
+                                                                                            .charAt(
+                                                                                                0
+                                                                                            )
+                                                                                            .toUpperCase() +
+                                                                                        dayField.day.slice(
+                                                                                            1
+                                                                                        )
+                                                                                    }
                                                                                 />
                                                                             </FormControl>
                                                                             <FormMessage className="text-sm text-red-500" />
@@ -2056,7 +2631,6 @@ export default function ScheduleStep1() {
                                                                 />
                                                             </div>
                                                         </div>
-
                                                         {/* Session Options */}
                                                         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-4">
                                                             <div className="flex flex-wrap items-center gap-4">
@@ -2149,6 +2723,47 @@ export default function ScheduleStep1() {
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Default Class Link and Custom Button - Day Level */}
+                                    {isSelect && (
+                                        <div className="mx-4 mb-4 space-y-6 rounded-lg border border-gray-200 bg-white p-4">
+                                            <div className="space-y-4">
+                                                <Controller
+                                                    control={control}
+                                                    name={`recurringSchedule.${dayIndex}.default_class_link`}
+                                                    render={({ field }) => (
+                                                        <Controller
+                                                            control={control}
+                                                            name={`recurringSchedule.${dayIndex}.default_class_name`}
+                                                            render={({ field: classNameField }) => (
+                                                                <DefaultClassLinkInput
+                                                                    value={field.value}
+                                                                    onChange={field.onChange}
+                                                                    classNameValue={
+                                                                        classNameField.value
+                                                                    }
+                                                                    onClassNameChange={
+                                                                        classNameField.onChange
+                                                                    }
+                                                                    onCopy={() => {
+                                                                        setCopySourceDefaultLink({
+                                                                            dayIndex,
+                                                                        });
+                                                                        setIsCopyDefaultLinkDialogOpen(
+                                                                            true
+                                                                        );
+                                                                        setSelectedDaysToCopyDefaultLink(
+                                                                            []
+                                                                        );
+                                                                    }}
+                                                                />
+                                                            )}
+                                                        />
+                                                    )}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -2156,6 +2771,22 @@ export default function ScheduleStep1() {
                 </div>
             </>
         );
+
+    const renderCustomButtonConfig = () => (
+        <div className="flex flex-col gap-2">
+            <Controller
+                control={control}
+                name="learner_button_config"
+                render={({ field }) => (
+                    <LearnerButtonConfigInput value={field.value} onChange={field.onChange} />
+                )}
+            />
+            <p className="px-1 text-xs text-gray-500">
+                This button will be visible to learners on the Live Session screen and the Default
+                Session screen.
+            </p>
+        </div>
+    );
 
     return (
         <>
@@ -2169,7 +2800,7 @@ export default function ScheduleStep1() {
                         onSubmit={form.handleSubmit(onSubmit, onError)}
                         className="flex flex-col gap-5"
                     >
-                        <div className="text-lg font-semibold z-[9] m-0 flex items-center justify-between border-b border-neutral-200 bg-white p-0 py-2">
+                        <div className="z-[9] m-0 flex items-center justify-between border-b border-neutral-200 bg-white p-0 py-2 text-lg font-semibold">
                             <h1>Live Session Information</h1>
                             <MyButton
                                 type="submit"
@@ -2193,6 +2824,7 @@ export default function ScheduleStep1() {
                             {renderSessionTiming()}
                             {renderLiveClassLink()}
                             {renderStreamingChoices()}
+                            {renderCustomButtonConfig()}
                             {renderWaitingRoomAndUpload()}
                             {renderRecurringSchedule()}
                             <Separator />
@@ -2204,169 +2836,289 @@ export default function ScheduleStep1() {
             {/* Default Link Copy Dialog */}
             <MyDialog
                 open={isDefaultLinkDialogOpen}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setIsDefaultLinkDialogOpen(false);
-                        setSelectedDaysForLink([]);
-                        setPendingDefaultLink('');
-                    }
-                }}
-                heading="Update Link for Sessions"
+                onOpenChange={setIsDefaultLinkDialogOpen}
+                heading="Apply Link to Other Days"
+                className="w-[400px]"
             >
                 <div className="space-y-4">
-                    <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800">
-                        <p className="font-medium">
-                            Do you want to apply this link to all sessions?
-                        </p>
-                        <p className="mt-1 text-xs">
-                            Link: <span className="break-all font-mono">{pendingDefaultLink}</span>
-                        </p>
+                    <p className="text-sm text-gray-600">
+                        Select the days you want to apply this default link to:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {form.getValues('recurringSchedule')?.map((day, index) => {
+                            if (!day.isSelect) return null;
+                            const currentDayOfWeek = WEEK_DAYS.findIndex(
+                                (d) => d.label === day.day
+                            );
+                            return (
+                                <button
+                                    key={day.day}
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedDaysForLink((prev) =>
+                                            prev.includes(day.day)
+                                                ? prev.filter((d) => d !== day.day)
+                                                : [...prev, day.day]
+                                        );
+                                    }}
+                                    className={`rounded-md border p-2 text-sm transition-colors ${selectedDaysForLink.includes(day.day)
+                                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                        }`}
+                                >
+                                    {day.day}
+                                </button>
+                            );
+                        })}
                     </div>
-
-                    <div className="space-y-3">
-                        <p className="text-sm font-medium text-gray-700">Select days to update:</p>
-                        <div className="max-h-64 space-y-2 overflow-y-auto">
-                            {recurringSchedule
-                                ?.filter((day) => day.isSelect && day.sessions?.length > 0)
-                                .map((day) => {
-                                    const sessionCount = day.sessions?.length || 0;
-                                    return (
-                                        <div
-                                            key={day.day}
-                                            className="flex items-center justify-between rounded-md border border-gray-200 p-3 hover:bg-gray-50"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <Checkbox
-                                                    checked={selectedDaysForLink.includes(day.day)}
-                                                    onCheckedChange={() =>
-                                                        handleToggleDayForLink(day.day)
-                                                    }
-                                                />
-                                                <div>
-                                                    <p className="font-medium text-gray-900">
-                                                        {day.day}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {sessionCount} session
-                                                        {sessionCount !== 1 ? 's' : ''}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end gap-2 border-t pt-4">
+                    <div className="flex justify-end gap-3 pt-4">
                         <MyButton
-                            type="button"
                             buttonType="secondary"
-                            onClick={() => {
-                                setIsDefaultLinkDialogOpen(false);
-                                setSelectedDaysForLink([]);
-                                setPendingDefaultLink('');
-                            }}
+                            onClick={() => setIsDefaultLinkDialogOpen(false)}
                         >
                             Cancel
                         </MyButton>
                         <MyButton
-                            type="button"
                             buttonType="primary"
-                            onClick={applyDefaultLinkToSelectedDays}
+                            onClick={() => {
+                                applyDefaultLinkToSelectedDays();
+                                setIsDefaultLinkDialogOpen(false);
+                            }}
                             disable={selectedDaysForLink.length === 0}
                         >
-                            Update {selectedDaysForLink.length} day
-                            {selectedDaysForLink.length !== 1 ? 's' : ''}
+                            Apply Link
                         </MyButton>
                     </div>
                 </div>
             </MyDialog>
 
-            {/* Copy to Days Dialog */}
+            {/* Copy Session Dialog */}
             <MyDialog
                 open={isCopyDialogOpen}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setIsCopyDialogOpen(false);
-                        setCopySourceSession(null);
-                        setSelectedDaysToCopy([]);
-                    }
-                }}
-                heading="Select Days to Copy To"
+                onOpenChange={setIsCopyDialogOpen}
+                heading="Copy Session to Other Days"
+                className="w-[400px]"
             >
                 <div className="space-y-4">
-                    {copySourceSession && (
-                        <>
-                            <div className="rounded-lg bg-primary-50 p-4">
-                                <p className="text-sm font-medium text-gray-900">
-                                    Copying from:{' '}
-                                    <span className="font-semibold text-primary-600">
-                                        {WEEK_DAYS[copySourceSession.dayIndex]?.value || 'Unknown'}
-                                    </span>
-                                </p>
-                                <p className="mt-1 text-xs text-gray-600">
-                                    Session {copySourceSession.sessionIndex + 1}
-                                </p>
-                            </div>
-
-                            <div className="space-y-3">
-                                <Label className="text-sm font-medium">
-                                    Select days to copy to:
-                                </Label>
-                                <div className="space-y-2">
-                                    {form.getValues('recurringSchedule')?.map((day, idx) => {
-                                        // Don't show the source day or unselected days
-                                        if (idx === copySourceSession.dayIndex || !day.isSelect) {
-                                            return null;
-                                        }
-
-                                        return (
-                                            <div
-                                                key={idx}
-                                                className="flex items-center space-x-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
-                                            >
-                                                <Checkbox
-                                                    id={`day-${idx}`}
-                                                    checked={selectedDaysToCopy.includes(idx)}
-                                                    onCheckedChange={() => toggleDaySelection(idx)}
-                                                />
-                                                <label
-                                                    htmlFor={`day-${idx}`}
-                                                    className="flex-1 cursor-pointer text-sm font-medium text-gray-900"
-                                                >
-                                                    {WEEK_DAYS[idx]?.value || day.day}
-                                                </label>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-4">
-                                <MyButton
+                    <p className="text-sm text-gray-600">
+                        Select the days you want to copy this session to:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {form.getValues('recurringSchedule')?.map((day, index) => {
+                            if (!day.isSelect || day.day === copySourceSession?.dayIndex.toString())
+                                return null;
+                            return (
+                                <button
+                                    key={day.day}
                                     type="button"
-                                    buttonType="secondary"
                                     onClick={() => {
-                                        setIsCopyDialogOpen(false);
-                                        setCopySourceSession(null);
-                                        setSelectedDaysToCopy([]);
+                                        setSelectedDaysToCopy((prev) =>
+                                            prev.includes(index)
+                                                ? prev.filter((i) => i !== index)
+                                                : [...prev, index]
+                                        );
                                     }}
+                                    className={`rounded-md border p-2 text-sm transition-colors ${selectedDaysToCopy.includes(index)
+                                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                        }`}
                                 >
-                                    Cancel
-                                </MyButton>
-                                <MyButton
+                                    {day.day}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <MyButton buttonType="secondary" onClick={() => setIsCopyDialogOpen(false)}>
+                            Cancel
+                        </MyButton>
+                        <MyButton
+                            buttonType="primary"
+                            onClick={() => {
+                                executeCopySession();
+                                setIsCopyDialogOpen(false);
+                            }}
+                            disable={selectedDaysToCopy.length === 0}
+                        >
+                            Copy Session
+                        </MyButton>
+                    </div>
+                </div>
+            </MyDialog>
+
+            {/* Copy Default Link Dialog */}
+            <MyDialog
+                open={isCopyDefaultLinkDialogOpen}
+                onOpenChange={setIsCopyDefaultLinkDialogOpen}
+                heading="Copy Default Link to Other Days"
+                className="w-[400px]"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-600">
+                        Select the days you want to copy this default link to:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {form.getValues('recurringSchedule')?.map((day, index) => {
+                            if (!day.isSelect || index === copySourceDefaultLink?.dayIndex)
+                                return null;
+                            return (
+                                <button
+                                    key={day.day}
                                     type="button"
-                                    buttonType="primary"
-                                    onClick={copySessionToSelectedDays}
-                                    disable={selectedDaysToCopy.length === 0}
+                                    onClick={() => {
+                                        setSelectedDaysToCopyDefaultLink((prev) =>
+                                            prev.includes(index)
+                                                ? prev.filter((i) => i !== index)
+                                                : [...prev, index]
+                                        );
+                                    }}
+                                    className={`rounded-md border p-2 text-sm transition-colors ${selectedDaysToCopyDefaultLink.includes(index)
+                                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                        }`}
                                 >
-                                    Copy to {selectedDaysToCopy.length} day
-                                    {selectedDaysToCopy.length !== 1 ? 's' : ''}
-                                </MyButton>
+                                    {day.day}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => setIsCopyDefaultLinkDialogOpen(false)}
+                        >
+                            Cancel
+                        </MyButton>
+                        <MyButton
+                            buttonType="primary"
+                            onClick={executeCopyDefaultLink}
+                            disable={selectedDaysToCopyDefaultLink.length === 0}
+                        >
+                            Copy Default Link
+                        </MyButton>
+                    </div>
+                </div>
+            </MyDialog>
+
+            {/* Link Update Confirmation Dialog */}
+            <MyDialog
+                open={isLinkUpdateDialogOpen}
+                onOpenChange={setIsLinkUpdateDialogOpen}
+                heading="You've changed the class link. Where do you want to apply this change?"
+                className="w-[500px]"
+            >
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-4">
+                        {/* Option 1: Only this session */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsLinkUpdateDialogOpen(false);
+                                if (pendingSubmitData) {
+                                    executeSubmission(pendingSubmitData, 'ONLY_THIS');
+                                }
+                            }}
+                            className="group flex items-start gap-4 rounded-xl border border-gray-200 p-4 text-left transition-all hover:border-primary-500 hover:bg-primary-50"
+                        >
+                            <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gray-300 group-hover:border-primary-600 group-hover:bg-primary-600">
+                                <div className="h-2 w-2 rounded-full bg-white opacity-0 group-hover:opacity-100" />
                             </div>
-                        </>
-                    )}
+                            <div>
+                                <h3 className="font-semibold text-gray-900 group-hover:text-primary-700">
+                                    Only This Session
+                                </h3>
+                                <p className="text-sm text-gray-500 group-hover:text-primary-600/80">
+                                    Apply the new link to only this one session on {changedDayLabel}.
+                                </p>
+                            </div>
+                        </button>
+
+                        {/* Option 2: Current day all sessions */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsLinkUpdateDialogOpen(false);
+                                if (pendingSubmitData) {
+                                    executeSubmission(pendingSubmitData, 'CURRENT_DAY_ALL_SESSIONS');
+                                }
+                            }}
+                            className="group flex items-start gap-4 rounded-xl border border-gray-200 p-4 text-left transition-all hover:border-primary-500 hover:bg-primary-50"
+                        >
+                            <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gray-300 group-hover:border-primary-600 group-hover:bg-primary-600">
+                                <div className="h-2 w-2 rounded-full bg-white opacity-0 group-hover:opacity-100" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-900 group-hover:text-primary-700">
+                                    All Sessions on This {changedDayLabel}
+                                </h3>
+                                <p className="text-sm text-gray-500 group-hover:text-primary-600/80">
+                                    Apply the new link for all sessions on this {changedDayLabel}.
+                                </p>
+                            </div>
+                        </button>
+
+                        {/* Option 3: This & all upcoming sessions */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsLinkUpdateDialogOpen(false);
+                                if (pendingSubmitData) {
+                                    executeSubmission(pendingSubmitData, 'ALL_FUTURE');
+                                }
+                            }}
+                            className="group flex items-start gap-4 rounded-xl border border-gray-200 p-4 text-left transition-all hover:border-primary-500 hover:bg-primary-50"
+                        >
+                            <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gray-300 group-hover:border-primary-600 group-hover:bg-primary-600">
+                                <div className="h-2 w-2 rounded-full bg-white opacity-0 group-hover:opacity-100" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-900 group-hover:text-primary-700">
+                                    This Session on Upcoming {changedDayLabel}s
+                                </h3>
+                                <p className="text-sm text-gray-500 group-hover:text-primary-600/80">
+                                    Apply the new link to this session on every upcoming {changedDayLabel}.
+                                </p>
+                            </div>
+                        </button>
+
+                        {/* Option 4: All upcoming days – all sessions */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsLinkUpdateDialogOpen(false);
+                                if (pendingSubmitData) {
+                                    executeSubmission(
+                                        pendingSubmitData,
+                                        'ALL_FUTURE_ALL_SESSIONS'
+                                    );
+                                }
+                            }}
+                            className="group flex items-start gap-4 rounded-xl border border-gray-200 p-4 text-left transition-all hover:border-primary-500 hover:bg-primary-50"
+                        >
+                            <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gray-300 group-hover:border-primary-600 group-hover:bg-primary-600">
+                                <div className="h-2 w-2 rounded-full bg-white opacity-0 group-hover:opacity-100" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-900 group-hover:text-primary-700">
+                                    Upcoming {changedDayLabel}s All Sessions
+                                </h3>
+                                <p className="text-sm text-gray-500 group-hover:text-primary-600/80">
+                                    Apply the new link for all sessions on all upcoming occurrences of this day.
+                                    <br />
+                                    <span className="italic">Example: All 6 sessions on every future {changedDayLabel} will have the new link.</span>
+                                </p>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => setIsLinkUpdateDialogOpen(false)}
+                        >
+                            Cancel
+                        </MyButton>
+                    </div>
                 </div>
             </MyDialog>
         </>

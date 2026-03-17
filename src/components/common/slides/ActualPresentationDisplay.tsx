@@ -102,6 +102,18 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
         }
     }, [currentSlideId, setGlobalCurrentSlideId]);
 
+    // Local state to keep track of slideStartTimestamp for timer
+    const [localSlideStart, setLocalSlideStart] = useState<number | null>(
+        liveSessionData?.slide_start_timestamp || null
+    );
+
+    // Update local start time when liveSessionData changes (e.g. initial load)
+    useEffect(() => {
+        if (liveSessionData?.slide_start_timestamp) {
+            setLocalSlideStart(liveSessionData.slide_start_timestamp);
+        }
+    }, [liveSessionData?.slide_start_timestamp]);
+
     // SSE Connection useEffect (adapted from ParticipantsSidePanel)
     useEffect(() => {
         if (!liveSessionData?.session_id) {
@@ -256,6 +268,16 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
         currentSlideData?.type === SlideTypeEnum.Quiz ||
         currentSlideData?.type === SlideTypeEnum.Feedback;
 
+    // Extract the added_question for the current slide from the live session data.
+    // The session API returns options with real DB UUIDs, which we need for matching
+    // participant responses in LeaderboardModal and ResponseDistributionModal.
+    const currentAddedQuestion = React.useMemo(() => {
+        const sessionSlides = (liveSessionData as any)?.slides?.added_slides;
+        if (!sessionSlides) return null;
+        const sessionSlide = sessionSlides.find((s: any) => s.id === currentSlideId);
+        return sessionSlide?.added_question || null;
+    }, [liveSessionData, currentSlideId]);
+
     // Calculate total recommendations count
     const totalRecommendations = recommendationBatches.reduce((sum, batch) => sum + batch.slides.length, 0);
 
@@ -270,10 +292,13 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
             setCurrentSlideId(nextSlide.id);
             if (liveSessionData?.session_id) {
                 try {
-                    await authenticatedAxiosInstance.post(MOVE_SLIDE_API_URL, {
+                    const res = await authenticatedAxiosInstance.post(MOVE_SLIDE_API_URL, {
                         session_id: liveSessionData.session_id,
                         move_to: nextSlide.slide_order,
                     });
+                    if (res.data?.slide_start_timestamp) {
+                        setLocalSlideStart(res.data.slide_start_timestamp);
+                    }
                     // toast.success(`Moved to slide ${nextSlide.slide_order + 1}`);
                 } catch (error) {
                     console.error('Error moving to next slide (API):', error);
@@ -294,10 +319,13 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
             setCurrentSlideId(prevSlide.id);
             if (liveSessionData?.session_id) {
                 try {
-                    await authenticatedAxiosInstance.post(MOVE_SLIDE_API_URL, {
+                    const res = await authenticatedAxiosInstance.post(MOVE_SLIDE_API_URL, {
                         session_id: liveSessionData.session_id,
                         move_to: prevSlide.slide_order,
                     });
+                    if (res.data?.slide_start_timestamp) {
+                        setLocalSlideStart(res.data.slide_start_timestamp);
+                    }
                     // toast.success(`Moved to slide ${prevSlide.slide_order + 1}`);
                 } catch (error) {
                     console.error('Error moving to previous slide (API):', error);
@@ -317,23 +345,51 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
 
     const toggleFullscreen = () => {
         if (!presentationContainerRef.current) return;
-        if (!document.fullscreenElement) {
-            presentationContainerRef.current.requestFullscreen().catch(err => {
-                alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-            });
+        const doc = document as any;
+        const container = presentationContainerRef.current as any;
+
+        if (!isFullscreen) {
+            const requestFS = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
+            if (requestFS) {
+                const promise = requestFS.call(container);
+                if (promise && promise.then) {
+                    promise.catch((err: any) => {
+                        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                    });
+                }
+            }
             setIsFullscreen(true);
         } else {
-            document.exitFullscreen();
+            const exitFS = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+            const isNativeFullscreen = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+
+            if (exitFS && isNativeFullscreen) {
+                exitFS.call(doc);
+            }
             setIsFullscreen(false);
         }
     };
 
     useEffect(() => {
         const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
+            const doc = document as any;
+            const isNativeFullscreen = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+            if (!isNativeFullscreen) {
+                setIsFullscreen(false);
+            } else {
+                setIsFullscreen(true);
+            }
         };
         document.addEventListener('fullscreenchange', handleFullscreenChange);
-        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+        };
     }, []);
 
 
@@ -411,7 +467,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                             <div className="relative h-full w-full p-1">
                  {currentSlideId && (
                                     <div className="h-full w-full transition-opacity duration-300 ease-in-out">
-                    <SlideRenderer currentSlideId={currentSlideId} editModeExcalidraw={true} editModeQuiz={false} />
+                    <SlideRenderer currentSlideId={currentSlideId} editModeExcalidraw={false} editModeQuiz={false} />
                                     </div>
                 )}
                             </div>
@@ -420,8 +476,14 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 </div>
 
                 {isQuestionSlideForResponses && liveSessionData && currentSlideData && (
-                    <div className="absolute inset-0 transition-all duration-300 ease-in-out">
-                    <ResponseOverlay sessionId={liveSessionData.session_id} slideData={currentSlideData} />
+                    <div className="absolute inset-0 transition-all duration-300 ease-in-out z-10 pointer-events-none">
+                        <ResponseOverlay
+                            sessionId={liveSessionData.session_id}
+                            slideData={currentSlideData}
+                            slideStartTimestamp={localSlideStart}
+                            defaultSecondsForQuestion={(liveSessionData as any).default_seconds_for_question || 0}
+                            addedQuestion={currentAddedQuestion}
+                        />
                     </div>
                 )}
             </div>

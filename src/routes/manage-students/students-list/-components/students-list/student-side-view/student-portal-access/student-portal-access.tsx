@@ -1,3 +1,6 @@
+import { getActiveRoleDisplaySettingsKey } from '@/lib/auth/instituteUtils';
+import { getInstituteId } from '@/constants/helper';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
 import { useState, useEffect } from 'react';
 import { Key, Copy, Check, Shield, MonitorPlay, Envelope } from '@phosphor-icons/react';
 import { toast } from 'sonner';
@@ -11,15 +14,17 @@ import {
 } from '@/services/display-settings';
 import {
     ADMIN_DISPLAY_SETTINGS_KEY,
-    TEACHER_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY, CUSTOM_ROLE_DISPLAY_SETTINGS_KEY,
     type LearnerManagementSettings,
 } from '@/types/display-settings';
 import { isUserAdmin } from '@/utils/userDetails';
 import { getLearnerPortalAccess, sendResetPasswordEmail } from '@/services/learner-portal-access';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
     const { openIndividualShareCredentialsDialog } = useDialogStore();
+    const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const [copiedField, setCopiedField] = useState<string>('');
     const [learnerSettings, setLearnerSettings] = useState<LearnerManagementSettings | null>(null);
 
@@ -32,7 +37,8 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
     useEffect(() => {
         const fetchLearnerSettings = async () => {
             const isAdmin = isUserAdmin();
-            const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+            const hasFaculty = hasFacultyAssignedPermission(getInstituteId());
+    const roleKey = getActiveRoleDisplaySettingsKey();
 
             const cachedSettings = getDisplaySettingsFromCache(roleKey);
             const settings =
@@ -64,9 +70,27 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
             return;
         }
 
+        // Get packageId from selectedStudent.package_id or derive it from package_session_id
+        let packageId = selectedStudent.package_id;
+
+        if (!packageId && selectedStudent.package_session_id) {
+            const batchDetails = getDetailsFromPackageSessionId({
+                packageSessionId: selectedStudent.package_session_id,
+            });
+            packageId = batchDetails?.package_dto?.id;
+        }
+
+        if (!packageId) {
+            toast.error('Student package ID not found');
+            return;
+        }
+
         try {
             toast.loading('Accessing learner portal...');
-            const response = await getLearnerPortalAccess(selectedStudent.user_id);
+            const response = await getLearnerPortalAccess(
+                selectedStudent.user_id,
+                packageId
+            );
 
             if (response.redirect_url) {
                 // Open the redirect URL in a new tab
@@ -89,9 +113,24 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
             return;
         }
 
+        // Get packageId from selectedStudent.package_id or derive it from package_session_id
+        let packageId = selectedStudent.package_id;
+
+        if (!packageId && selectedStudent.package_session_id) {
+            const batchDetails = getDetailsFromPackageSessionId({
+                packageSessionId: selectedStudent.package_session_id,
+            });
+            packageId = batchDetails?.package_dto?.id;
+        }
+
+        if (!packageId) {
+            toast.error('Student package ID not found');
+            return;
+        }
+
         try {
             toast.loading('Sending reset password email...');
-            await sendResetPasswordEmail(selectedStudent.user_id);
+            await sendResetPasswordEmail(selectedStudent.user_id, packageId);
             toast.success('Reset password email sent successfully');
         } catch (error) {
             console.error('Error sending reset password email:', error);

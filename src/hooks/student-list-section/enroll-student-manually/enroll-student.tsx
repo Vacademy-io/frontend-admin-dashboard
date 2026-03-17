@@ -9,8 +9,8 @@ import {
     StepFourData,
     StepFiveData,
 } from '@/schemas/student/student-list/schema-enroll-students-manually';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
+import { getSelectedSubOrgId } from '@/lib/auth/facultyAccessUtils';
 import { getCustomFieldSettingsFromCache } from '@/services/custom-field-settings';
 
 interface EnrollStudentParams {
@@ -25,9 +25,7 @@ interface EnrollStudentParams {
 }
 
 export const useEnrollStudent = () => {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+    const INSTITUTE_ID = getCurrentInstituteId();
 
     return useMutation({
         mutationFn: async ({ formData }: EnrollStudentParams) => {
@@ -42,11 +40,11 @@ export const useEnrollStudent = () => {
             // Build custom_field_values array (ONLY custom fields, NOT system fields)
             const customFieldValues = stepTwoData?.custom_fields
                 ? Object.entries(stepTwoData.custom_fields)
-                    .filter(([fieldId]) => customFieldIds.has(fieldId))
-                    .map(([custom_field_id, value]) => ({
-                        custom_field_id,
-                        value,
-                    }))
+                      .filter(([fieldId]) => customFieldIds.has(fieldId))
+                      .map(([custom_field_id, value]) => ({
+                          custom_field_id,
+                          value,
+                      }))
                 : [];
 
             // Build payment_initiation_request
@@ -84,6 +82,7 @@ export const useEnrollStudent = () => {
                     roles: ['STUDENT'],
                 },
                 institute_id: INSTITUTE_ID,
+                sub_org_id: getSelectedSubOrgId() || undefined,
                 learner_package_session_enroll: {
                     package_session_ids: stepThreeData?.invite?.package_session_ids || [],
                     enroll_invite_id: stepThreeData?.invite?.id || '',

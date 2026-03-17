@@ -5,7 +5,7 @@ import { Separator } from '@radix-ui/react-separator';
 import { MyButton } from '@/components/design-system/button';
 import { MyRadioButton } from '@/components/design-system/radio';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { AccessType, InputType } from '../../-constants/enums';
+import { AccessType, InputType, StreamingPlatform } from '../../-constants/enums';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
@@ -13,7 +13,14 @@ import { DropdownValueType } from '@/components/common/students/enroll-manually/
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { MyInput } from '@/components/design-system/input';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
-import { Copy, DotsSixVertical, DownloadSimple, Plus, TrashSimple, XCircle } from '@phosphor-icons/react';
+import {
+    Copy,
+    DotsSixVertical,
+    DownloadSimple,
+    Plus,
+    TrashSimple,
+    XCircle,
+} from '@phosphor-icons/react';
 import QRCode from 'react-qr-code';
 import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -24,7 +31,8 @@ import { MyDialog } from '@/components/design-system/dialog';
 import SelectField from '@/components/design-system/select-field';
 import { FieldErrors } from 'react-hook-form';
 import { transformFormToDTOStep2 } from '../../-constants/helper';
-import { createLiveSessionStep2 } from '../-services/utils';
+import { createLiveSessionStep2, createProviderMeeting } from '../-services/utils';
+import { getSessionBySessionId } from '../../-services/utils';
 import { useLiveSessionStore } from '../-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -36,6 +44,8 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { LiveSessionParticipantsTab } from './LiveSessionParticipantsTab';
 
+import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
+
 const TimeOptions = [
     { label: '5 minutes before', value: '5m' },
     { label: '10 minutes before', value: '10m' },
@@ -43,13 +53,31 @@ const TimeOptions = [
     { label: '1 hour before', value: '1h' },
 ];
 
+const formatZohoStartTime = (dateStr?: string, timeStr?: string) => {
+    if (!dateStr || !timeStr) return '';
+
+    const datePart = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+
+    let timeParts = timeStr;
+    if (timeStr.includes('T')) {
+        const afterT = timeStr.split('T')[1];
+        if (afterT) {
+            timeParts = afterT.split('+')[0] || timeStr;
+        }
+    }
+
+    const timePart = timeParts?.length === 5 ? `${timeParts}:00` : timeParts || '';
+
+    return `${datePart}T${timePart}+05:30`;
+};
+
 export default function ScheduleStep2() {
     const { clearSessionId, clearStep1Data } = useLiveSessionStore();
     const { studyLibraryData } = useStudyLibraryStore();
     const [addCustomFieldDialog, setAddCustomFieldDialog] = useState<boolean>(false);
     const queryClient = useQueryClient();
     const [previewDialog, setPreviewDialog] = useState<boolean>(false);
-    const { sessionId } = useLiveSessionStore();
+    const { sessionId, step1Data } = useLiveSessionStore();
     const isEditState = useLiveSessionStore((state) => state.isEdit);
     const { sessionDetails } = useSessionDetailsStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -335,6 +363,10 @@ export default function ScheduleStep2() {
     });
 
     const accessType = watch('accessType');
+    const rawPortalUrl = instituteDetails?.learner_portal_base_url;
+    const learnerBaseUrl = rawPortalUrl
+        ? (rawPortalUrl.startsWith('http') ? rawPortalUrl : `https://${rawPortalUrl}`)
+        : BASE_URL_LEARNER_DASHBOARD;
     useEffect(() => {
         if (isEditState) {
             if (accessType === AccessType.PUBLIC) {
@@ -351,14 +383,11 @@ export default function ScheduleStep2() {
                 form.setValue('fields', fields);
                 form.setValue(
                     'joinLink',
-                    `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/register/live-class?sessionId=${sessionId}`
+                    `${learnerBaseUrl}/register/live-class?sessionId=${sessionId}`
                 );
             } else {
                 form.setValue('fields', []);
-                form.setValue(
-                    'joinLink',
-                    `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/study-library/live-class`
-                );
+                form.setValue('joinLink', `${learnerBaseUrl}/study-library/live-class`);
             }
             return;
         }
@@ -372,16 +401,13 @@ export default function ScheduleStep2() {
             ]);
             form.setValue(
                 'joinLink',
-                `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/register/live-class?sessionId=${sessionId}`
+                `${learnerBaseUrl}/register/live-class?sessionId=${sessionId}`
             );
         } else {
             form.setValue('fields', []);
-            form.setValue(
-                'joinLink',
-                `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/study-library/live-class`
-            );
+            form.setValue('joinLink', `${learnerBaseUrl}/study-library/live-class`);
         }
-    }, [accessType]);
+    }, [accessType, learnerBaseUrl]);
     const {
         fields: beforeLiveFields,
         append: beforeLiveAppend,
@@ -424,6 +450,40 @@ export default function ScheduleStep2() {
             toast.success(
                 `${getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession)} created successfully!`
             );
+
+            // Handle potential Zoho meeting creation
+            if (step1Data?.sessionPlatform === StreamingPlatform.ZOHO && instituteDetails?.id) {
+                try {
+                    const sessionDetailsPayload = await getSessionBySessionId(sessionId);
+                    const schedules = sessionDetailsPayload?.schedule?.added_schedules || [];
+
+                    for (const schedule of schedules) {
+                        try {
+                            const durationMinutes = Number(schedule.duration) ||
+                                (Number(step1Data.durationHours) * 60 + Number(step1Data.durationMinutes));
+
+                            const sessionStartDate = schedule.meetingDate || schedule.meeting_date || (step1Data as any)?.startDate || new Date().toISOString().split('T')[0];
+                            const formattedStartTime = formatZohoStartTime(sessionStartDate, schedule.startTime || schedule.start_time);
+
+                            await createProviderMeeting({
+                                instituteId: instituteDetails.id,
+                                sessionId: sessionId,
+                                scheduleId: schedule.id,
+                                topic: step1Data.title || sessionDetailsPayload?.schedule?.title || 'Live Class',
+                                agenda: step1Data.description || 'Live Subject Class',
+                                startTime: formattedStartTime,
+                                durationMinutes: durationMinutes > 0 ? durationMinutes : 30,
+                                timezone: step1Data.timeZone || sessionDetailsPayload?.schedule?.timezone || 'Asia/Kolkata',
+                                provider: 'ZOHO_MEETING'
+                            });
+                        } catch (err) {
+                            console.error(`Error creating Zoho meeting for schedule ${schedule.id}:`, err);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error fetching session details to create Zoho meeting:', err);
+                }
+            }
 
             await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
@@ -689,7 +749,7 @@ export default function ScheduleStep2() {
                         className="flex flex-col gap-10 font-bold sm:flex-row sm:items-center sm:gap-20"
                         id="join-link-qr-code"
                     >
-                        <div className="col flex flex-1 flex-col gap-2">
+                        <div className="flex flex-1 flex-col gap-2">
                             <h1>Join Link</h1>
                             <div className="flex w-full items-center gap-8">
                                 <div className="flex w-full items-center gap-4">
@@ -720,7 +780,7 @@ export default function ScheduleStep2() {
                                         type="button"
                                         scale="small"
                                         buttonType="secondary"
-                                        className="h-10 min-w-10 flex-shrink-0"
+                                        className="h-10 min-w-10 shrink-0"
                                         onClick={() => copyToClipboard(getValues('joinLink'))}
                                     >
                                         <Copy size={32} />

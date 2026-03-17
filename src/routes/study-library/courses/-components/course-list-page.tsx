@@ -59,6 +59,8 @@ interface CourseListPageProps {
     handlePageChange: (newPage: number) => void;
     deletingCourseId: string | null;
     showDeleteButton?: boolean;
+    /** When true, hide the filters section (e.g. for faculty users with restricted access) */
+    hideFilters?: boolean;
 }
 
 const CourseListPage = ({
@@ -87,6 +89,7 @@ const CourseListPage = ({
     handlePageChange,
     deletingCourseId,
     showDeleteButton = true,
+    hideFilters = false,
 }: CourseListPageProps) => {
     const navigate = useNavigate();
     const isMobile = useIsMobile();
@@ -147,7 +150,9 @@ const CourseListPage = ({
             {/* Tags Section */}
             {tags.length > 0 && (
                 <>
-                    <div className="mb-1 mt-4 text-sm font-semibold">Popular Tags</div>
+                    <div className="mb-1 mt-4 text-sm font-semibold">
+                        {getTerminology(ContentTerms.PopularTag, SystemTerms.PopularTag)}
+                    </div>
                     <div className="flex flex-col gap-2">
                         {tags.map((tagValue: string) => (
                             <label
@@ -202,36 +207,40 @@ const CourseListPage = ({
     return (
         <>
             <div className="mt-4 flex w-full flex-col gap-4 lg:mt-6 lg:flex-row lg:gap-6">
-                {/* Mobile Filter Button */}
-                <div className="flex items-center gap-2 lg:hidden">
-                    <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                        <SheetTrigger asChild>
-                            <MyButton
-                                buttonType="secondary"
-                                className="flex items-center gap-2"
-                            >
-                                <Funnel size={18} />
-                                Filters
-                                {activeFilterCount > 0 && (
-                                    <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-primary-500 text-xs text-white">
-                                        {activeFilterCount}
-                                    </span>
-                                )}
-                            </MyButton>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="w-[280px] overflow-y-auto p-4">
-                            <SheetHeader className="mb-4">
-                                <SheetTitle>Filter Courses</SheetTitle>
-                            </SheetHeader>
-                            <FilterContent />
-                        </SheetContent>
-                    </Sheet>
-                </div>
+                {/* Mobile Filter Button - hidden for faculty users */}
+                {!hideFilters && (
+                    <div className="flex items-center gap-2 lg:hidden">
+                        <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                            <SheetTrigger asChild>
+                                <MyButton
+                                    buttonType="secondary"
+                                    className="flex items-center gap-2"
+                                >
+                                    <Funnel size={18} />
+                                    Filters
+                                    {activeFilterCount > 0 && (
+                                        <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-primary-500 text-xs text-white">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </MyButton>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-[280px] overflow-y-auto p-4">
+                                <SheetHeader className="mb-4">
+                                    <SheetTitle>Filter Courses</SheetTitle>
+                                </SheetHeader>
+                                <FilterContent />
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+                )}
 
-                {/* Desktop Filter Section */}
-                <div className="animate-fade-in hidden h-fit min-w-[240px] max-w-[260px] flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm lg:flex">
-                    <FilterContent />
-                </div>
+                {/* Desktop Filter Section - hidden for faculty users */}
+                {!hideFilters && (
+                    <div className="animate-fade-in hidden h-fit min-w-[240px] max-w-[260px] flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm lg:flex">
+                        <FilterContent />
+                    </div>
+                )}
 
                 {/* Courses Section */}
                 <div className="animate-fade-in flex flex-1 flex-col gap-4">
@@ -452,7 +461,8 @@ const CourseListPage = ({
                                                     buttonType="primary"
                                                     onClick={() =>
                                                         navigate({
-                                                            to: `/study-library/courses/course-details?courseId=${course.id}`,
+                                                            to: '/study-library/courses/course-details',
+                                                            search: { courseId: course.id },
                                                         })
                                                     }
                                                 >

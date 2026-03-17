@@ -1,11 +1,5 @@
 // AI Model Types for model selection feature
 
-export interface AIModelsResponse {
-    defaultModel: string;
-    availableModels: string[];
-    fallbackModels: string[];
-}
-
 export interface ModelInfo {
     id: string;
     name: string;

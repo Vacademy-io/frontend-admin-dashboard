@@ -16,7 +16,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { GET_SLIDES } from '@/constants/urls';
 import { fetchModulesWithChapters } from '@/routes/study-library/courses/-services/getModulesWithChapters';
-import { fetchStudyLibraryDetails } from '@/routes/study-library/courses/-services/getStudyLibraryDetails';
+import { fetchCourseStudyLibraryDetails } from '@/routes/study-library/courses/-services/getStudyLibraryDetails';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 interface ChangesPreviewModalProps {
@@ -301,11 +301,12 @@ export function ChangesPreviewModal({
 
     const compareWithOriginalCourse = async (currentCourseId: string, originalCourseId: string) => {
         try {
-            // Fetch original course data
-            const originalData = await fetchStudyLibraryDetails();
-            const originalCourse = originalData?.find(
-                (item: any) => item.course.id === originalCourseId
-            );
+            // Fetch original course data using course-specific API
+            const originalData = await fetchCourseStudyLibraryDetails(originalCourseId);
+            // The course-init API returns an array with a single course
+            const originalCourse = Array.isArray(originalData)
+                ? originalData.find((item: any) => item.course.id === originalCourseId)
+                : originalData;
 
             if (!originalCourse) {
                 throw new Error('Original course not found');

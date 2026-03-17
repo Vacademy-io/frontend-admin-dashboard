@@ -148,6 +148,32 @@ export function useNonAdminSlides(chapterId: string) {
                     } else {
                         toast.error('Video slide data is missing');
                     }
+                } else if (slide?.source_type === 'AUDIO') {
+                    if (slide.audio_slide) {
+                        const audioSlidePayload = {
+                            id: slide.id,
+                            title: slide.title,
+                            description: slide.description || null,
+                            image_file_id: slide.image_file_id || null,
+                            status: publishedStatus as 'DRAFT' | 'PUBLISHED',
+                            slide_order: slide.slide_order,
+                            notify: false,
+                            new_slide: isNewSlide,
+                            audio_slide: {
+                                id: slide.audio_slide.id,
+                                audio_file_id: slide.audio_slide.audio_file_id,
+                                thumbnail_file_id: slide.audio_slide.thumbnail_file_id || null,
+                                audio_length_in_millis: slide.audio_slide.audio_length_in_millis,
+                                source_type: slide.audio_slide.source_type,
+                                external_url: slide.audio_slide.external_url || null,
+                                transcript: slide.audio_slide.transcript || null,
+                            },
+                        };
+                        await slidesMutations.addUpdateAudioSlide(audioSlidePayload);
+                        toast.success('Audio slide published successfully');
+                    } else {
+                        toast.error('Audio slide data is missing');
+                    }
                 } else {
                     // Handle DOCUMENT slides (DOC, PDF, PRESENTATION, CODE, JUPYTER, SCRATCH)
                     let currentData: string;

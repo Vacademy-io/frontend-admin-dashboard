@@ -18,6 +18,7 @@ interface EnrollManuallyButtonProps {
     initialValues?: StudentTable;
     forceOpen?: boolean;
     onClose?: () => void;
+    startStep?: number;
 }
 
 export const EnrollManuallyButton = ({
@@ -25,25 +26,32 @@ export const EnrollManuallyButton = ({
     initialValues,
     forceOpen,
     onClose,
+    startStep = 1,
 }: EnrollManuallyButtonProps) => {
     const [openDialog, setOpenDialog] = useState(!!forceOpen);
-    const { resetForm } = useFormStore();
+    const { resetForm, setStep } = useFormStore();
     const currentStep = useFormStore((state) => state.currentStep);
     const [nextButtonDisable, setNextButtonDisable] = useState(true);
 
     const handleNextButtonDisable = (value: boolean) => setNextButtonDisable(value);
 
-    const step1FormSubmitRef = useRef(() => {});
-    const step2FormSubmitRef = useRef(() => {});
-    const step3FormSubmitRef = useRef(() => {});
-    const step4FormSubmitRef = useRef(() => {});
-    const step5FormSubmitRef = useRef(() => {});
+    useEffect(() => {
+        if (openDialog && startStep > 1) {
+            setStep(startStep);
+        }
+    }, [openDialog, startStep, setStep]);
+
+    const step1FormSubmitRef = useRef(() => { });
+    const step2FormSubmitRef = useRef(() => { });
+    const step3FormSubmitRef = useRef(() => { });
+    const step4FormSubmitRef = useRef(() => { });
+    const step5FormSubmitRef = useRef<() => Promise<void>>(async () => { });
 
     const submitFn1 = (fn: () => void) => (step1FormSubmitRef.current = fn);
     const submitFn2 = (fn: () => void) => (step2FormSubmitRef.current = fn);
     const submitFn3 = (fn: () => void) => (step3FormSubmitRef.current = fn);
     const submitFn4 = (fn: () => void) => (step4FormSubmitRef.current = fn);
-    const submitFn5 = (fn: () => void) => (step5FormSubmitRef.current = fn);
+    const submitFn5 = (fn: () => Promise<void>) => (step5FormSubmitRef.current = fn);
 
     const handleOpenDialog = (open: boolean) => {
         setOpenDialog(open);
@@ -59,9 +67,11 @@ export const EnrollManuallyButton = ({
         }
     }, [forceOpen]);
 
-    // Fetch credentials if editing
+    // Fetch credentials only when editing (initialValues exists) AND dialog is open
+    // This prevents unnecessary API calls when the component mounts but dialog is not open
+    const shouldFetchCredentials = openDialog && !!initialValues?.user_id;
     const { data: credentials, isLoading: isLoadingCreds } = useStudentCredentails({
-        userId: initialValues?.user_id || '',
+        userId: shouldFetchCredentials ? initialValues.user_id : '',
     });
 
     const isReEnroll = !!initialValues;
@@ -93,7 +103,8 @@ export const EnrollManuallyButton = ({
                     <FormSubmitButtons
                         stepNumber={5}
                         finishButtonDisable={nextButtonDisable}
-                        onNext={() => step5FormSubmitRef.current()}
+                        onAsyncNext={() => step5FormSubmitRef.current()}
+                        loadingText="Finishing..."
                     />
                 );
             default:

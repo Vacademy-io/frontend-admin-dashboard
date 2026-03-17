@@ -1,11 +1,11 @@
-import { BASE_URL } from '@/constants/urls';
+import { AI_SERVICE_BASE_URL } from '@/constants/urls';
 
 export interface ContentGenerationRequest {
     course_tree: {
         todos: Array<{
             name: string;
             title: string;
-            type: "DOCUMENT" | "ASSESSMENT" | "VIDEO" | "AI_VIDEO";
+            type: "DOCUMENT" | "ASSESSMENT" | "VIDEO" | "AI_VIDEO" | "AI_SLIDES" | "AI_STORYBOOK" | "VIDEO_CODE" | "AI_VIDEO_CODE";
             path: string;
             action_type: "ADD" | "UPDATE";
             prompt: string;
@@ -15,6 +15,7 @@ export interface ContentGenerationRequest {
         }>;
     };
     institute_id?: string;
+    language?: string;
 }
 
 export interface ContentUpdate {
@@ -22,7 +23,7 @@ export interface ContentUpdate {
     path: string;
     status: boolean | string; // Can be boolean or "COMPLETED" | "GENERATING" for AI_VIDEO
     actionType: "ADD" | "UPDATE";
-    slideType: "DOCUMENT" | "ASSESSMENT" | "VIDEO" | "AI_VIDEO";
+    slideType: "DOCUMENT" | "ASSESSMENT" | "VIDEO" | "AI_VIDEO" | "AI_SLIDES" | "AI_STORYBOOK" | "VIDEO_CODE" | "AI_VIDEO_CODE";
     title?: string;
     contentData: any;
     errorMessage?: string;
@@ -42,9 +43,10 @@ export async function generateContent(
     onUpdate: (update: ContentUpdate) => void,
     onError: (error: string) => void,
     onProgress?: (message: string) => void,
-    retryCount = 0
+    retryCount = 0,
+    language = 'English'
 ): Promise<void> {
-    const apiUrl = `${BASE_URL}/ai-service/course/content/v1/generate`;
+    const apiUrl = `${AI_SERVICE_BASE_URL}/course/content/v1/generate`;
     
     console.log('=== Content Generation API Request ===');
     console.log('URL:', apiUrl);
@@ -78,6 +80,7 @@ export async function generateContent(
                 body: JSON.stringify({
                     course_tree: { todos },
                     institute_id: instituteId,
+                    language: language,
                 }),
                 signal: controller.signal,
             });
@@ -105,6 +108,11 @@ export async function generateContent(
             console.error('Status:', response.status);
             console.error('Status Text:', response.statusText);
             console.error('Error Body:', errorText);
+
+            // Special handling for 402 errors (credits exhausted)
+            if (response.status === 402) {
+                throw new Error('Your OpenRouter credits have been exhausted. Please recharge your credits to continue using AI features.');
+            }
 
             // Special handling for 500 errors
             if (response.status === 500) {
@@ -189,6 +197,12 @@ export async function generateContent(
 
                         try {
                             const update = JSON.parse(data);
+
+                            // Check for credits exhausted error
+                            if (update.type === 'ERROR' && update.code === 402) {
+                                throw new Error('Your OpenRouter credits have been exhausted. Please recharge your credits to continue using AI features.');
+                            }
+
                             totalProcessed++;
 
                             if (update.type === 'SLIDE_CONTENT_UPDATE' || update.type === 'SLIDE_CONTENT_ERROR') {

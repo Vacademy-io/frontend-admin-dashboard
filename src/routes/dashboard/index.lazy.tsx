@@ -1,3 +1,6 @@
+import { getActiveRoleDisplaySettingsKey } from '@/lib/auth/instituteUtils';
+import { getInstituteId } from '@/constants/helper';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
@@ -34,8 +37,11 @@ import { motion } from 'framer-motion';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { UnresolvedDoubtsWidget } from './-components/UnresolvedDoubtsWidget';
 import LiveClassesWidget from './-components/LiveClassesWidget';
-import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { RoleTerms, SystemTerms } from '../settings/-components/NamingSettings';
+import {
+    getTerminology,
+    getTerminologyPlural,
+} from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/NamingSettings';
 
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -54,7 +60,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     ADMIN_DISPLAY_SETTINGS_KEY,
-    TEACHER_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY, CUSTOM_ROLE_DISPLAY_SETTINGS_KEY,
     type DisplaySettingsData,
     type DashboardWidgetId,
 } from '@/types/display-settings';
@@ -62,8 +68,8 @@ import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/disp
 import { getCustomFieldSettings } from '@/services/custom-field-settings';
 
 // Analytics Widgets
-import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
-import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
+// import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
+// import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
 import UserActivitySummaryWidget from './-components/analytics-widgets/UserActivitySummaryWidget';
 
 // Dashboard Widgets
@@ -253,12 +259,14 @@ function MyCoursesWidget() {
         const fetchCourseData = async () => {
             try {
                 setCourseCounts((prev) => ({ ...prev, loading: true, error: false }));
-                const courses = await getMyCourses();
+                const response = await getMyCourses();
 
-                if (Array.isArray(courses)) {
-                    const totalAuthored = courses.length;
+                // Handle V2 paginated response - use totalElements for counts
+                if (response && response.content) {
+                    const courses = response.content;
+                    const totalAuthored = response.totalElements || courses.length;
                     const inReview = courses.filter(
-                        (course) => course.courseStatus === 'IN_REVIEW'
+                        (course: any) => course.courseStatus === 'IN_REVIEW'
                     ).length;
 
                     setCourseCounts({
@@ -268,7 +276,7 @@ function MyCoursesWidget() {
                         error: false,
                     });
                 } else {
-                    // Handle case where courses might be null or undefined
+                    // Handle case where response might be null or undefined
                     setCourseCounts({
                         authored: 0,
                         inReview: 0,
@@ -409,7 +417,8 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         const roles = getUserRoles(accessToken);
         const isAdminRole = roles.includes('ADMIN');
-        const roleKey = isAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const hasFaculty = hasFacultyAssignedPermission(getInstituteId());
+    const roleKey = getActiveRoleDisplaySettingsKey();
         const cached = getDisplaySettingsFromCache(roleKey);
         if (cached) {
             setRoleDisplay(cached);
@@ -588,22 +597,22 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                             <RecentNotificationsWidget onSeeAll={onOpenAllAlerts} />
                                         ),
                                     },
-                                    {
-                                        id: 'realTimeActiveUsers' as const,
-                                        node: (
-                                            <RealTimeActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
-                                    {
-                                        id: 'currentlyActiveUsers' as const,
-                                        node: (
-                                            <CurrentlyActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
+                                    // {
+                                    //     id: 'realTimeActiveUsers' as const,
+                                    //     node: (
+                                    //         <RealTimeActiveUsersWidget
+                                    //             instituteId={instituteDetails?.id || ''}
+                                    //         />
+                                    //     ),
+                                    // },
+                                    // {
+                                    //     id: 'currentlyActiveUsers' as const,
+                                    //     node: (
+                                    //         <CurrentlyActiveUsersWidget
+                                    //             instituteId={instituteDetails?.id || ''}
+                                    //         />
+                                    //     ),
+                                    // },
                                     {
                                         id: 'userActivitySummary' as const,
                                         node: (
@@ -650,7 +659,10 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                                     {data?.batch_count || 0}
                                                 </div>
                                                 <div className="text-xs text-neutral-600">
-                                                    Batches
+                                                    {getTerminologyPlural(
+                                                        ContentTerms.Batch,
+                                                        SystemTerms.Batch
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="rounded-lg bg-white p-3 shadow-sm">
@@ -739,8 +751,8 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                         widgetCount === 1
                             ? 'grid-cols-1'
                             : widgetCount === 2
-                                ? 'grid-cols-1 lg:grid-cols-2'
-                                : 'grid-cols-1 lg:grid-cols-3';
+                              ? 'grid-cols-1 lg:grid-cols-2'
+                              : 'grid-cols-1 lg:grid-cols-3';
 
                     return (
                         <div className={`grid gap-6 ${gridClass} items-stretch`}>
@@ -813,8 +825,9 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                     className={`flex flex-col ${subModules.assess ? 'lg:flex-col' : 'lg:flex-row'} gap-4`} // Reduced gap
                 >
                     <div
-                        className={`flex flex-1 flex-col ${subModules.assess ? 'md:flex-row' : 'md:flex-col'
-                            } gap-4`} // Reduced gap
+                        className={`flex flex-1 flex-col ${
+                            subModules.assess ? 'md:flex-row' : 'md:flex-col'
+                        } gap-4`} // Reduced gap
                     >
                         {isWidgetVisible('roleTypeUsers') && (
                             <Card className="flex-1 bg-neutral-50 shadow-none">

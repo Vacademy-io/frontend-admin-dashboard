@@ -117,6 +117,10 @@ export function TipTapEditor({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
+  // Track whether the last change originated from within the editor
+  // This prevents the sync useEffect from resetting content when user is typing/pasting
+  const isInternalChange = useRef(false);
+
   const getAuthContext = useCallback(() => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -627,24 +631,25 @@ export function TipTapEditor({
                     return;
                   }
 
-                  // Initialize mermaid if not already done
-                  if (!(window as any).__mermaidInitialized) {
+                  // Initialize mermaid with suppressErrors if not already done
+                  if (!(window as any).__mermaidSuppressErrorsApplied) {
                     try {
-                      mermaid.initialize({
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (mermaid.initialize as any)({
                         startOnLoad: false,
                         theme: 'default',
                         securityLevel: 'loose',
+                        suppressErrorRendering: true,
                         flowchart: {
                           useMaxWidth: true,
                           htmlLabels: true,
                           curve: 'basis',
                         },
                       });
+                      (window as any).__mermaidSuppressErrorsApplied = true;
                       (window as any).__mermaidInitialized = true;
-                      console.log('✅ [TipTap Mermaid] Mermaid initialized');
                     } catch (initError) {
-                      console.error('❌ [TipTap Mermaid] Failed to initialize mermaid:', initError);
-                      setError('Failed to initialize mermaid');
+                      console.warn('[TipTap Mermaid] Failed to initialize mermaid:', initError);
                       setSvg('');
                       return;
                     }
@@ -652,12 +657,12 @@ export function TipTapEditor({
 
                   const renderId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                   let cleanCode = code.trim();
-                  
+
                   // Remove "mermaid " prefix if present
                   if (cleanCode.toLowerCase().startsWith('mermaid ')) {
                     cleanCode = cleanCode.substring(8).trim();
                   }
-                  
+
                   if (!cleanCode) {
                     setError('Empty mermaid code');
                     setSvg('');
@@ -668,9 +673,9 @@ export function TipTapEditor({
                   cleanCode = sanitizeMermaidCode(cleanCode);
 
                   console.log('🔵 [TipTap Mermaid] Rendering diagram, code length:', cleanCode.length, 'preview:', cleanCode.substring(0, 100));
-                  
+
                   const result = await mermaid.render(renderId, cleanCode);
-                  
+
                   if (result && result.svg) {
                     console.log('✅ [TipTap Mermaid] Diagram rendered successfully, SVG length:', result.svg.length);
                     setSvg(result.svg);
@@ -681,9 +686,7 @@ export function TipTapEditor({
                     setSvg('');
                   }
                 } catch (err) {
-                  console.error('❌ [TipTap Mermaid] Render error:', err);
-                  console.error('❌ [TipTap Mermaid] Failed code:', code);
-                  setError(err instanceof Error ? err.message : 'Failed to render diagram');
+                  console.warn('[TipTap Mermaid] Render error (hidden from UI):', err);
                   setSvg('');
                 }
               };
@@ -693,16 +696,7 @@ export function TipTapEditor({
 
             return (
               <NodeViewWrapper className="mermaid-node" style={{ margin: '20px 0', maxWidth: '100%', overflow: 'auto' }}>
-                {error ? (
-                  <div style={{ padding: '10px', border: '1px solid #ff9800', borderRadius: '4px', background: '#fff3e0', maxWidth: '100%' }}>
-                    <div style={{ fontSize: '12px', color: '#e65100', marginBottom: '8px' }}>
-                      <strong>⚠️ Diagram rendering failed:</strong> {error}
-                    </div>
-                    <pre style={{ margin: 0, fontSize: '11px', overflowX: 'auto', wordBreak: 'break-word', whiteSpace: 'pre-wrap', color: '#333' }}>
-                      {code}
-                    </pre>
-                  </div>
-                ) : svg ? (
+                {svg ? (
                   <>
                     <style>{`
                       .mermaid-node svg {
@@ -716,12 +710,7 @@ export function TipTapEditor({
                       style={{ maxWidth: '100%', width: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center' }}
                     />
                   </>
-                ) : (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                    <div style={{ fontSize: '14px', marginBottom: '8px' }}>Loading diagram...</div>
-                    <div style={{ fontSize: '12px', color: '#999' }}>Code: {code.substring(0, 50)}...</div>
-                  </div>
-                )}
+                ) : null}
               </NodeViewWrapper>
             );
           });
@@ -765,6 +754,8 @@ export function TipTapEditor({
     content: value || '',
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
+      // Mark this as an internal change so the sync effect doesn't reset content
+      isInternalChange.current = true;
       onChange(html);
     },
     editorProps: {
@@ -805,11 +796,51 @@ export function TipTapEditor({
   });
 
   // Sync external value changes into TipTap
+  // We only sync in specific cases to avoid disrupting user input:
+  // 1. Initial content load (when editor just mounted)
+  // 2. External reset (e.g., form reset where content becomes empty or completely new)
+  // We track the last synced value to avoid unnecessary syncs
+  const lastSyncedValue = useRef<string | null>(null);
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
     if (!editor) return;
-    const current = editor.getHTML();
-    if ((value || '') !== current) {
-      editor.commands.setContent(value || '', false);
+
+    // If this change came from within the editor, don't sync back
+    if (isInternalChange.current) {
+      isInternalChange.current = false;
+      lastSyncedValue.current = value || '';
+      return;
+    }
+
+    // Don't sync if the editor is currently focused - user is actively editing
+    if (editor.isFocused) {
+      return;
+    }
+
+    const normalizedValue = value || '';
+    const currentContent = editor.getHTML();
+
+    // Initial sync on first render
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      if (normalizedValue !== currentContent) {
+        editor.commands.setContent(normalizedValue, false);
+        lastSyncedValue.current = normalizedValue;
+      }
+      return;
+    }
+
+    // Only sync if the value is significantly different (external change)
+    // Skip if it's the same value we last synced or if content matches
+    if (lastSyncedValue.current === normalizedValue) {
+      return;
+    }
+
+    // Only sync if content is actually different
+    if (normalizedValue !== currentContent) {
+      editor.commands.setContent(normalizedValue, false);
+      lastSyncedValue.current = normalizedValue;
     }
   }, [value, editor]);
 

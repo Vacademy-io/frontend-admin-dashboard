@@ -60,7 +60,7 @@ function RouteComponent() {
             })}
             sideBarData={{ title: 'Levels', listIconText: 'L', searchParam: 'levelId' }}
         >
-            <InitStudyLibraryProvider>
+            <InitStudyLibraryProvider courseId={courseId}>
                 <SubjectMaterial />
             </InitStudyLibraryProvider>
         </LayoutContainer>

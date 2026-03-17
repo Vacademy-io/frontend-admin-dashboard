@@ -279,6 +279,37 @@ export function YooptaEditorWrapper({
                     console.log('🔄 [MOUNT_DESERIALIZE] HTML to deserialize preview:', htmlToDeserialize.substring(0, 200));
 
                     const editorContent = html.deserialize(editor, htmlToDeserialize);
+
+                    // Fix Embed provider.type & provider.id after deserialization.
+                    // The @yoopta/embed deserializer sets provider.type to hostname
+                    // instead of the short name the renderer expects.
+                    if (editorContent && typeof editorContent === 'object') {
+                        Object.values(editorContent).forEach((block: any) => {
+                            if (block?.type !== 'Embed') return;
+                            const prov = block?.value?.[0]?.props?.provider;
+                            if (!prov?.url) return;
+                            const url = prov.url;
+                            const detect: [string, RegExp][] = [
+                                ['youtube', /(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([^?&#]+)/],
+                                ['vimeo', /vimeo\.com(?:\/video)?\/(\d+)/],
+                                ['dailymotion', /dailymotion\.com\/(?:embed\/)?video\/([^_?&#]+)/],
+                                ['loom', /loom\.com\/(?:share|embed)\/([a-zA-Z0-9]+)/],
+                                ['wistia', /wistia\.(?:com|net)\/(?:embed\/iframe|medias)\/([a-zA-Z0-9]+)/],
+                                ['figma', /figma\.com/],
+                                ['twitter', /(?:twitter\.com|x\.com)\/.*\/status\/(\d+)/],
+                                ['instagram', /instagram\.com\/(?:p|reel|tv)\/([^\/?#&]+)/],
+                            ];
+                            for (const [name, re] of detect) {
+                                const m = url.match(re);
+                                if (m) {
+                                    prov.type = name;
+                                    prov.id = m[1] || url;
+                                    break;
+                                }
+                            }
+                        });
+                    }
+
                     const keysCount = editorContent && typeof editorContent === 'object' && !Array.isArray(editorContent) ? Object.keys(editorContent).length : 0;
                     console.log('✅ [MOUNT_DESERIALIZE] After mount - Result keys:', keysCount);
 
@@ -329,29 +360,34 @@ export function YooptaEditorWrapper({
             return;
         }
         if (editor && typeof editor.children === 'object') {
-            const serializedHtml = html.serialize(editor, editor.children);
+            try {
+                const serializedHtml = html.serialize(editor, editor.children);
 
-            // CRITICAL: Don't save empty clipboard format back to content
-            // If the serialized HTML is just Yoopta clipboard format with empty content, don't save it
-            if (serializedHtml && serializedHtml.includes('id="yoopta-clipboard"')) {
-                // Extract actual content from clipboard format
-                const bodyMatch = serializedHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-                if (bodyMatch && bodyMatch[1]) {
-                    const extractedContent = bodyMatch[1].trim();
-                    // Check if content is effectively empty (only whitespace or empty tags)
-                    const textContent = extractedContent.replace(/<[^>]*>/g, '').trim();
-                    if (!textContent || textContent === '') {
-                        // Don't save empty clipboard format - it would overwrite real content
-                        console.log('⚠️ [HANDLE_CHANGE] Ignoring empty clipboard format to prevent overwriting content');
+                // CRITICAL: Don't save empty clipboard format back to content
+                // If the serializedHtml is just Yoopta clipboard format with empty content, don't save it
+                if (serializedHtml && serializedHtml.includes('id="yoopta-clipboard"')) {
+                    // Extract actual content from clipboard format
+                    const bodyMatch = serializedHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                    if (bodyMatch && bodyMatch[1]) {
+                        const extractedContent = bodyMatch[1].trim();
+                        // Check if content is effectively empty (only whitespace or empty tags)
+                        const textContent = extractedContent.replace(/<[^>]*>/g, '').trim();
+                        if (!textContent || textContent === '') {
+                            // Don't save empty clipboard format - it would overwrite real content
+                            console.log('⚠️ [HANDLE_CHANGE] Ignoring empty clipboard format to prevent overwriting content');
+                            return;
+                        }
+                        // Use extracted content instead of full clipboard format
+                        onChange(extractedContent);
                         return;
                     }
-                    // Use extracted content instead of full clipboard format
-                    onChange(extractedContent);
-                    return;
                 }
-            }
 
-            onChange(serializedHtml);
+                onChange(serializedHtml);
+            } catch (error) {
+                console.error('❌ [HANDLE_CHANGE] Serialization failed:', error);
+                // Prevent crash by not calling onChange with invalid data
+            }
         }
     }, [editor, onChange]);
 

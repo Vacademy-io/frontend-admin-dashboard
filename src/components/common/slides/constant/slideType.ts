@@ -10,4 +10,5 @@ export enum SlideType {
     LMS = 'lms',
     Feedback = 'feedback',
     InteractiveVideo = 'interactive-video',
+    Scorm = 'scorm',
 }

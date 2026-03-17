@@ -55,6 +55,7 @@ export default function DeleteSessionDialog({
             await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['pastSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['sessionSearch'] });
 
             toast.success(
                 selectedOption === 'session'

@@ -116,4 +116,53 @@ export const ActivityStatusData: Record<
             icon: 'text-warning-600',
         },
     },
+    DRAFT: {
+        icon: WarningCircle,
+        color: {
+            bg: 'bg-neutral-100',
+            icon: 'text-neutral-600',
+        },
+    },
+    PUBLISHED: {
+        icon: CheckCircle,
+        color: {
+            bg: 'bg-success-50',
+            icon: 'text-success-600',
+        },
+    },
+    DELETED: {
+        icon: XCircle,
+        color: {
+            bg: 'bg-danger-100',
+            icon: 'text-danger-600',
+        },
+    },
+    ARCHIVED: {
+        icon: XCircle,
+        color: {
+            bg: 'bg-neutral-100',
+            icon: 'text-neutral-600',
+        },
+    },
+    COMPLETED: {
+        icon: CheckCircle,
+        color: {
+            bg: 'bg-success-50',
+            icon: 'text-success-600',
+        },
+    },
+    UNPUBLISHED: {
+        icon: WarningCircle,
+        color: {
+            bg: 'bg-neutral-100',
+            icon: 'text-neutral-600',
+        },
+    },
+    TERMINATED: {
+        icon: XCircle,
+        color: {
+            bg: 'bg-danger-100',
+            icon: 'text-danger-600',
+        },
+    },
 };

@@ -28,7 +28,8 @@ export default function CurrentlyActiveUsersWidget({
     const { data, isLoading, error } = useQuery({
         queryKey: ['analytics-currently-active-users', instituteId],
         queryFn: () => fetchAnalyticsCurrentlyActiveUsers(instituteId),
-        staleTime: 30000, // 30 seconds
+        staleTime: 30000, // 30 seconds - data considered fresh
+        gcTime: 60000, // 1 minute - keep in cache after becoming unused
         refetchInterval: 30000, // Refresh every 30 seconds
     });
 

@@ -6,6 +6,7 @@ import { useAIModels } from '../../-hooks/useAIModels';
 import { ModelInfo } from '../../-types/ai-models';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea as UIScrollArea } from '@/components/ui/scroll-area';
 
 interface ModelSelectorProps {
     value?: string;
@@ -156,12 +157,8 @@ export const ModelSelector = ({
                                     selectedModelId === defaultModelId && 'bg-primary-50'
                                 )}
                             >
-                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary-100 to-primary-200 shadow-sm">
-                                    <Sparkle
-                                        size={18}
-                                        weight="fill"
-                                        className="text-primary-600"
-                                    />
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary-100 to-primary-200 shadow-sm">
+                                    <Sparkle size={18} weight="fill" className="text-primary-600" />
                                 </div>
                                 <div className="flex flex-1 flex-col">
                                     <span className="text-sm font-semibold text-gray-800">
@@ -172,7 +169,7 @@ export const ModelSelector = ({
                                     </span>
                                 </div>
                                 {selectedModelId === defaultModelId && (
-                                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-500">
+                                    <div className="flex size-5 items-center justify-center rounded-full bg-primary-500">
                                         <Check size={12} weight="bold" className="text-white" />
                                     </div>
                                 )}
@@ -180,7 +177,6 @@ export const ModelSelector = ({
                             <div className="my-2 border-t border-gray-100" />
                         </>
                     )}
-
                     {/* Available Models */}
                     {showAdvanced && (
                         <div className="mb-2 px-3 pt-1">
@@ -189,66 +185,70 @@ export const ModelSelector = ({
                             </span>
                         </div>
                     )}
-
-                    <div className="flex max-h-[280px] flex-col gap-1 overflow-y-auto">
-                        {availableModels
-                            .filter((model) => showAdvanced || model.id !== defaultModelId)
-                            .map((model) => (
-                                <button
-                                    key={model.id}
-                                    type="button"
-                                    onClick={() => handleSelect(model)}
-                                    className={cn(
-                                        'group flex w-full items-center gap-3 rounded-lg p-3 text-left transition-all',
-                                        'hover:bg-gray-50',
-                                        selectedModelId === model.id &&
-                                        model.id !== defaultModelId &&
-                                        'bg-amber-50'
-                                    )}
-                                >
-                                    <div
+                    <UIScrollArea className="flex h-[280px] flex-col gap-1">
+                        <div className="flex flex-col gap-1 pr-3">
+                            {availableModels
+                                .filter((model) => showAdvanced || model.id !== defaultModelId)
+                                .map((model) => (
+                                    <button
+                                        key={model.id}
+                                        type="button"
+                                        onClick={() => handleSelect(model)}
                                         className={cn(
-                                            'flex h-9 w-9 items-center justify-center rounded-lg shadow-sm transition-colors',
-                                            model.id === defaultModelId
-                                                ? 'bg-gradient-to-br from-primary-100 to-primary-200'
-                                                : 'bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-amber-100 group-hover:to-orange-200'
+                                            'group flex w-full items-center gap-3 rounded-lg p-3 text-left transition-all',
+                                            'hover:bg-gray-50',
+                                            selectedModelId === model.id &&
+                                                model.id !== defaultModelId &&
+                                                'bg-amber-50'
                                         )}
                                     >
-                                        <Robot
-                                            size={18}
-                                            weight="fill"
-                                            className={cn(
-                                                'transition-colors',
-                                                model.id === defaultModelId
-                                                    ? 'text-primary-600'
-                                                    : 'text-gray-500 group-hover:text-amber-600'
-                                            )}
-                                        />
-                                    </div>
-                                    <div className="flex flex-1 flex-col">
-                                        <span className="text-sm font-medium text-gray-800">
-                                            {model.name}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                            {model.description}
-                                        </span>
-                                    </div>
-                                    {selectedModelId === model.id && (
                                         <div
                                             className={cn(
-                                                'flex h-5 w-5 items-center justify-center rounded-full',
+                                                'flex h-9 w-9 items-center justify-center rounded-lg shadow-sm transition-colors',
                                                 model.id === defaultModelId
-                                                    ? 'bg-primary-500'
-                                                    : 'bg-amber-500'
+                                                    ? 'bg-gradient-to-br from-primary-100 to-primary-200'
+                                                    : 'bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-amber-100 group-hover:to-orange-200'
                                             )}
                                         >
-                                            <Check size={12} weight="bold" className="text-white" />
+                                            <Robot
+                                                size={18}
+                                                weight="fill"
+                                                className={cn(
+                                                    'transition-colors',
+                                                    model.id === defaultModelId
+                                                        ? 'text-primary-600'
+                                                        : 'text-gray-500 group-hover:text-amber-600'
+                                                )}
+                                            />
                                         </div>
-                                    )}
-                                </button>
-                            ))}
-                    </div>
-
+                                        <div className="flex flex-1 flex-col">
+                                            <span className="text-sm font-medium text-gray-800">
+                                                {model.name}
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                                {model.description}
+                                            </span>
+                                        </div>
+                                        {selectedModelId === model.id && (
+                                            <div
+                                                className={cn(
+                                                    'flex h-5 w-5 items-center justify-center rounded-full',
+                                                    model.id === defaultModelId
+                                                        ? 'bg-primary-500'
+                                                        : 'bg-amber-500'
+                                                )}
+                                            >
+                                                <Check
+                                                    size={12}
+                                                    weight="bold"
+                                                    className="text-white"
+                                                />
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                        </div>
+                    </UIScrollArea>
                     {/* Footer Info */}
                     <div className="mt-2 border-t border-gray-100 pt-2">
                         <p className="px-3 text-xs text-gray-400">

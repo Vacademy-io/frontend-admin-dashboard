@@ -7,6 +7,8 @@ export const CONTENT_TERMS = [
     'Chapter',
     'Slide',
     'LiveSession',
+    'Batch',
+    'PopularTag',
 ] as const;
 
 export const ROLE_TERMS = [
@@ -54,6 +56,8 @@ export const defaultNamingSettings: NamingSettingsType[] = [
         systemValue: 'Live Session',
         customValue: 'Live Session',
     },
+    { key: 'Batch', systemValue: 'Batch', customValue: 'Batch' },
+    { key: 'PopularTag', systemValue: 'Popular Tag', customValue: 'Popular Tag' },
 ];
 
 export const systemValueDescription = {
@@ -78,6 +82,8 @@ export const systemValueDescription = {
     Learner:
         'Student is the user role that can has access to the courses of the platform. For eg: Student, Learner',
     LiveSession: 'Live Session of the course. For eg: Live Session 1, Live Session 2',
+    Batch: 'A Batch is a group of learners enrolled in a course session. For eg: Morning Batch, Weekend Batch',
+    PopularTag: 'The label used for the "Popular" tag on courses. This tag is shown in filters and during course creation. For eg: Popular, Trending, Featured',
 };
 
 export const enum SettingsTabs {
@@ -87,13 +93,14 @@ export const enum SettingsTabs {
     Referral = 'referral',
     Course = 'course',
     Notification = 'notification',
-    AdminDisplay = 'adminDisplay',
-    TeacherDisplay = 'teacherDisplay',
+    RoleDisplay = 'roleDisplay',
     StudentDisplay = 'studentDisplay',
     CustomFields = 'customFields',
     Certificates = 'certificates',
     Templates = 'templates',
     AiSettings = 'aiSettings',
+    SchoolSettings = 'schoolSettings',
+    WhiteLabel = 'whiteLabel',
 }
 
 export const DAYS_IN_MONTH = 30;

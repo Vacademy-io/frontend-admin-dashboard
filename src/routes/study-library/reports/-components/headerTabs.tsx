@@ -23,6 +23,7 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { toast } from 'sonner';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { BarChart3, Users, Settings, FileText } from 'lucide-react';
 
 const reportTypes = [
     ReportDurationEnum.DAILY,

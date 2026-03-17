@@ -11,7 +11,9 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import { Route as rootRouteImport } from "./routes/__root"
+import { Route as LockedFeatureRouteImport } from "./routes/locked-feature"
 import { Route as AgentChatRouteImport } from "./routes/agent-chat"
+import { Route as VideoApiStudioIndexRouteImport } from "./routes/video-api-studio/index"
 import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/index"
 import { Route as SignupIndexRouteImport } from "./routes/signup/index"
 import { Route as SettingsIndexRouteImport } from "./routes/settings/index"
@@ -20,8 +22,12 @@ import { Route as MembershipStatsIndexRouteImport } from "./routes/membership-st
 import { Route as MembershipExpiryIndexRouteImport } from "./routes/membership-expiry/index"
 import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
 import { Route as ManagePaymentsIndexRouteImport } from "./routes/manage-payments/index"
+import { Route as ManagePagesIndexRouteImport } from "./routes/manage-pages/index"
+import { Route as ManageInventoryIndexRouteImport } from "./routes/manage-inventory/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
+import { Route as ManageCustomTeamsIndexRouteImport } from "./routes/manage-custom-teams/index"
 import { Route as ManageContactsIndexRouteImport } from "./routes/manage-contacts/index"
+import { Route as ManageBookingsIndexRouteImport } from "./routes/manage-bookings/index"
 import { Route as LoginIndexRouteImport } from "./routes/login/index"
 import { Route as LearnerInsightsIndexRouteImport } from "./routes/learner-insights/index"
 import { Route as InstructorCopilotIndexRouteImport } from "./routes/instructor-copilot/index"
@@ -29,12 +35,19 @@ import { Route as EvaluatorAiIndexRouteImport } from "./routes/evaluator-ai/inde
 import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexRouteImport } from "./routes/community/index"
+import { Route as ChallengeAnalyticsIndexRouteImport } from "./routes/challenge-analytics/index"
 import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
+<<<<<<< HEAD
 import { Route as AssessmentIndexRouteImport } from "./routes/assessment/index"
 import { Route as AiVideoStudioIndexRouteImport } from "./routes/ai-video-studio/index"
+=======
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
+import { Route as AdmissionsIndexRouteImport } from "./routes/admissions/index"
+import { Route as AdminPackageManagementIndexRouteImport } from "./routes/admin-package-management/index"
 import { Route as WorkflowListIndexRouteImport } from "./routes/workflow/list/index"
 import { Route as WorkflowWorkflowIdIndexRouteImport } from "./routes/workflow/$workflowId/index"
+import { Route as VideoApiStudioConsoleIndexRouteImport } from "./routes/video-api-studio/console/index"
 import { Route as UserTagsLinkIndexRouteImport } from "./routes/user-tags/link/index"
 import { Route as UserTagsInstituteIndexRouteImport } from "./routes/user-tags/institute/index"
 import { Route as TemplatesCreateIndexRouteImport } from "./routes/templates/create/index"
@@ -47,6 +60,7 @@ import { Route as StudyLibraryAttendanceTrackerIndexRouteImport } from "./routes
 import { Route as StudyLibraryAiCourseBuilderIndexRouteImport } from "./routes/study-library/ai-course-builder/index"
 import { Route as StudyLibraryAiCopilotIndexRouteImport } from "./routes/study-library/ai-copilot/index"
 import { Route as SignupOnboardingIndexRouteImport } from "./routes/signup/onboarding/index"
+import { Route as SettingsFeeManagementIndexRouteImport } from "./routes/settings/fee-management/index"
 import { Route as PlanningPlanningIndexRouteImport } from "./routes/planning/planning/index"
 import { Route as PlanningActivityLogsIndexRouteImport } from "./routes/planning/activity-logs/index"
 import { Route as ManageStudentsStudentsListIndexRouteImport } from "./routes/manage-students/students-list/index"
@@ -58,11 +72,15 @@ import { Route as ManageInstituteBatchesIndexRouteImport } from "./routes/manage
 import { Route as LoginForgotPasswordIndexRouteImport } from "./routes/login/forgot-password/index"
 import { Route as LoginKeyIndexRouteImport } from "./routes/login/$key/index"
 import { Route as HomeworkCreationAssessmentListIndexRouteImport } from "./routes/homework-creation/assessment-list/index"
+import { Route as FinancialManagementManageFinancesIndexRouteImport } from "./routes/financial-management/manage-finances/index"
+import { Route as FinancialManagementFeePlansIndexRouteImport } from "./routes/financial-management/fee-plans/index"
+import { Route as FinancialManagementCollectionDashboardIndexRouteImport } from "./routes/financial-management/collection-dashboard/index"
 import { Route as EvaluatorAiStudentsIndexRouteImport } from "./routes/evaluator-ai/students/index"
 import { Route as EvaluatorAiEvaluationIndexRouteImport } from "./routes/evaluator-ai/evaluation/index"
 import { Route as EvaluatorAiAssessmentIndexRouteImport } from "./routes/evaluator-ai/assessment/index"
 import { Route as EvaluationEvaluationsIndexRouteImport } from "./routes/evaluation/evaluations/index"
 import { Route as EvaluationEvaluationToolIndexRouteImport } from "./routes/evaluation/evaluation-tool/index"
+import { Route as ContentContentIdIndexRouteImport } from "./routes/content/$contentId/index"
 import { Route as CommunityQuestionPaperIndexRouteImport } from "./routes/community/question-paper/index"
 import { Route as CertificateGenerationStudentDataIndexRouteImport } from "./routes/certificate-generation/student-data/index"
 import { Route as AudienceManagerListIndexRouteImport } from "./routes/audience-manager/list/index"
@@ -76,10 +94,17 @@ import { Route as AnnouncementCreateIndexRouteImport } from "./routes/announceme
 import { Route as AnnouncementApprovalIndexRouteImport } from "./routes/announcement/approval/index"
 import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center/my-resources/index"
 import { Route as AiCenterAiToolsIndexRouteImport } from "./routes/ai-center/ai-tools/index"
+import { Route as AdmissionsNewEnquiryIndexRouteImport } from "./routes/admissions/new-enquiry/index"
+import { Route as AdmissionsEnquiriesIndexRouteImport } from "./routes/admissions/enquiries/index"
+import { Route as AdmissionsDashboardIndexRouteImport } from "./routes/admissions/dashboard/index"
+import { Route as AdmissionsApplicationIndexRouteImport } from "./routes/admissions/application/index"
+import { Route as AdmissionsAdmissionFormIndexRouteImport } from "./routes/admissions/admission-form/index"
+import { Route as AdminPackageManagementBulkCreateIndexRouteImport } from "./routes/admin-package-management/bulk-create/index"
 import { Route as TemplatesEditTemplateIdRouteImport } from "./routes/templates/edit/$templateId"
 import { Route as SignupOauthCallbackRouteImport } from "./routes/signup/oauth/callback"
 import { Route as PlanningPlanningLogIdRouteImport } from "./routes/planning/planning/$logId"
 import { Route as PlanningActivityLogsLogIdRouteImport } from "./routes/planning/activity-logs/$logId"
+import { Route as ManagePagesEditorTagNameRouteImport } from "./routes/manage-pages/editor/$tagName"
 import { Route as LoginOauthRedirectRouteImport } from "./routes/login/oauth/redirect"
 import { Route as StudyLibraryVoltAddIndexRouteImport } from "./routes/study-library/volt/add/index"
 import { Route as StudyLibraryLiveSessionScheduleIndexRouteImport } from "./routes/study-library/live-session/schedule/index"
@@ -101,13 +126,19 @@ import { Route as AiCenterAiToolsVsmartFeedbackIndexRouteImport } from "./routes
 import { Route as AiCenterAiToolsVsmartExtractIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-extract/index"
 import { Route as AiCenterAiToolsVsmartChatIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-chat/index"
 import { Route as AiCenterAiToolsVsmartAudioIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-audio/index"
+import { Route as AdmissionsNewEnquiryAudienceIdIndexRouteImport } from "./routes/admissions/new-enquiry/$audienceId/index"
+import { Route as AdmissionsApplicationNewIndexRouteImport } from "./routes/admissions/application/new/index"
 import { Route as StudyLibraryLiveSessionViewSessionIdRouteImport } from "./routes/study-library/live-session/view/$sessionId"
 import { Route as StudyLibraryLiveSessionScheduleStep2IndexRouteImport } from "./routes/study-library/live-session/schedule/step2/index"
 import { Route as StudyLibraryLiveSessionScheduleStep1IndexRouteImport } from "./routes/study-library/live-session/schedule/step1/index"
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/index"
 import { Route as StudyLibraryAiCopilotCourseOutlineGeneratingIndexRouteImport } from "./routes/study-library/ai-copilot/course-outline/generating/index"
 import { Route as HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index"
+<<<<<<< HEAD
 import { Route as AssessmentEvaluationAiAttemptIdProcessIdIndexRouteImport } from "./routes/assessment/evaluation-ai/$attemptId/$processId/index"
+=======
+import { Route as AudienceManagerListCampaignUsersAddIndexRouteImport } from "./routes/audience-manager/list/campaign-users/add/index"
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
 import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index"
 import { Route as StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRouteImport } from "./routes/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/modules/index"
@@ -123,6 +154,11 @@ import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeA
 const PricingLazyRouteImport = createFileRoute("/pricing")()
 const LearnerInsightsLazyRouteImport = createFileRoute("/learner-insights")()
 const LandingLazyRouteImport = createFileRoute("/landing")()
+<<<<<<< HEAD
+=======
+const ExploreAiLazyRouteImport = createFileRoute("/explore-ai")()
+const AssessmentIndexLazyRouteImport = createFileRoute("/assessment/")()
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
 
 const PricingLazyRoute = PricingLazyRouteImport.update({
   id: "/pricing",
@@ -141,11 +177,38 @@ const LandingLazyRoute = LandingLazyRouteImport.update({
   path: "/landing",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/landing.lazy").then((d) => d.Route))
+const ExploreAiLazyRoute = ExploreAiLazyRouteImport.update({
+  id: "/explore-ai",
+  path: "/explore-ai",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import("./routes/explore-ai.lazy").then((d) => d.Route))
+const LockedFeatureRoute = LockedFeatureRouteImport.update({
+  id: "/locked-feature",
+  path: "/locked-feature",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentChatRoute = AgentChatRouteImport.update({
   id: "/agent-chat",
   path: "/agent-chat",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/agent-chat.lazy").then((d) => d.Route))
+<<<<<<< HEAD
+=======
+const AssessmentIndexLazyRoute = AssessmentIndexLazyRouteImport.update({
+  id: "/assessment/",
+  path: "/assessment/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/assessment/index.lazy").then((d) => d.Route),
+)
+const VideoApiStudioIndexRoute = VideoApiStudioIndexRouteImport.update({
+  id: "/video-api-studio/",
+  path: "/video-api-studio/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/video-api-studio/index.lazy").then((d) => d.Route),
+)
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
 const StudyLibraryIndexRoute = StudyLibraryIndexRouteImport.update({
   id: "/study-library/",
   path: "/study-library/",
@@ -196,6 +259,20 @@ const ManagePaymentsIndexRoute = ManagePaymentsIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/manage-payments/index.lazy").then((d) => d.Route),
 )
+const ManagePagesIndexRoute = ManagePagesIndexRouteImport.update({
+  id: "/manage-pages/",
+  path: "/manage-pages/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/manage-pages/index.lazy").then((d) => d.Route),
+)
+const ManageInventoryIndexRoute = ManageInventoryIndexRouteImport.update({
+  id: "/manage-inventory/",
+  path: "/manage-inventory/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/manage-inventory/index.lazy").then((d) => d.Route),
+)
 const ManageInstituteIndexRoute = ManageInstituteIndexRouteImport.update({
   id: "/manage-institute/",
   path: "/manage-institute/",
@@ -203,12 +280,26 @@ const ManageInstituteIndexRoute = ManageInstituteIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/manage-institute/index.lazy").then((d) => d.Route),
 )
+const ManageCustomTeamsIndexRoute = ManageCustomTeamsIndexRouteImport.update({
+  id: "/manage-custom-teams/",
+  path: "/manage-custom-teams/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/manage-custom-teams/index.lazy").then((d) => d.Route),
+)
 const ManageContactsIndexRoute = ManageContactsIndexRouteImport.update({
   id: "/manage-contacts/",
   path: "/manage-contacts/",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() =>
   import("./routes/manage-contacts/index.lazy").then((d) => d.Route),
+)
+const ManageBookingsIndexRoute = ManageBookingsIndexRouteImport.update({
+  id: "/manage-bookings/",
+  path: "/manage-bookings/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/manage-bookings/index.lazy").then((d) => d.Route),
 )
 const LoginIndexRoute = LoginIndexRouteImport.update({
   id: "/login/",
@@ -257,6 +348,13 @@ const CommunityIndexRoute = CommunityIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/community/index.lazy").then((d) => d.Route),
 )
+const ChallengeAnalyticsIndexRoute = ChallengeAnalyticsIndexRouteImport.update({
+  id: "/challenge-analytics/",
+  path: "/challenge-analytics/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/challenge-analytics/index.lazy").then((d) => d.Route),
+)
 const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
   id: "/auth-transfer/",
   path: "/auth-transfer/",
@@ -264,6 +362,7 @@ const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/auth-transfer/index.lazy").then((d) => d.Route),
 )
+<<<<<<< HEAD
 const AssessmentIndexRoute = AssessmentIndexRouteImport.update({
   id: "/assessment/",
   path: "/assessment/",
@@ -278,6 +377,8 @@ const AiVideoStudioIndexRoute = AiVideoStudioIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/ai-video-studio/index.lazy").then((d) => d.Route),
 )
+=======
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
 const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
   id: "/ai-center/",
   path: "/ai-center/",
@@ -285,6 +386,21 @@ const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/ai-center/index.lazy").then((d) => d.Route),
 )
+const AdmissionsIndexRoute = AdmissionsIndexRouteImport.update({
+  id: "/admissions/",
+  path: "/admissions/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/admissions/index.lazy").then((d) => d.Route),
+)
+const AdminPackageManagementIndexRoute =
+  AdminPackageManagementIndexRouteImport.update({
+    id: "/admin-package-management/",
+    path: "/admin-package-management/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admin-package-management/index.lazy").then((d) => d.Route),
+  )
 const WorkflowListIndexRoute = WorkflowListIndexRouteImport.update({
   id: "/workflow/list/",
   path: "/workflow/list/",
@@ -299,6 +415,14 @@ const WorkflowWorkflowIdIndexRoute = WorkflowWorkflowIdIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/workflow/$workflowId/index.lazy").then((d) => d.Route),
 )
+const VideoApiStudioConsoleIndexRoute =
+  VideoApiStudioConsoleIndexRouteImport.update({
+    id: "/video-api-studio/console/",
+    path: "/video-api-studio/console/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/video-api-studio/console/index.lazy").then((d) => d.Route),
+  )
 const UserTagsLinkIndexRoute = UserTagsLinkIndexRouteImport.update({
   id: "/user-tags/link/",
   path: "/user-tags/link/",
@@ -394,6 +518,14 @@ const SignupOnboardingIndexRoute = SignupOnboardingIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/signup/onboarding/index.lazy").then((d) => d.Route),
 )
+const SettingsFeeManagementIndexRoute =
+  SettingsFeeManagementIndexRouteImport.update({
+    id: "/settings/fee-management/",
+    path: "/settings/fee-management/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/settings/fee-management/index.lazy").then((d) => d.Route),
+  )
 const PlanningPlanningIndexRoute = PlanningPlanningIndexRouteImport.update({
   id: "/planning/planning/",
   path: "/planning/planning/",
@@ -486,6 +618,36 @@ const HomeworkCreationAssessmentListIndexRoute =
       (d) => d.Route,
     ),
   )
+const FinancialManagementManageFinancesIndexRoute =
+  FinancialManagementManageFinancesIndexRouteImport.update({
+    id: "/financial-management/manage-finances/",
+    path: "/financial-management/manage-finances/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/financial-management/manage-finances/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
+const FinancialManagementFeePlansIndexRoute =
+  FinancialManagementFeePlansIndexRouteImport.update({
+    id: "/financial-management/fee-plans/",
+    path: "/financial-management/fee-plans/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/financial-management/fee-plans/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
+const FinancialManagementCollectionDashboardIndexRoute =
+  FinancialManagementCollectionDashboardIndexRouteImport.update({
+    id: "/financial-management/collection-dashboard/",
+    path: "/financial-management/collection-dashboard/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/financial-management/collection-dashboard/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const EvaluatorAiStudentsIndexRoute =
   EvaluatorAiStudentsIndexRouteImport.update({
     id: "/evaluator-ai/students/",
@@ -528,6 +690,13 @@ const EvaluationEvaluationToolIndexRoute =
       (d) => d.Route,
     ),
   )
+const ContentContentIdIndexRoute = ContentContentIdIndexRouteImport.update({
+  id: "/content/$contentId/",
+  path: "/content/$contentId/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/content/$contentId/index.lazy").then((d) => d.Route),
+)
 const CommunityQuestionPaperIndexRoute =
   CommunityQuestionPaperIndexRouteImport.update({
     id: "/community/question-paper/",
@@ -636,6 +805,52 @@ const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexRouteImport.update({
 } as any).lazy(() =>
   import("./routes/ai-center/ai-tools/index.lazy").then((d) => d.Route),
 )
+const AdmissionsNewEnquiryIndexRoute =
+  AdmissionsNewEnquiryIndexRouteImport.update({
+    id: "/admissions/new-enquiry/",
+    path: "/admissions/new-enquiry/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdmissionsEnquiriesIndexRoute =
+  AdmissionsEnquiriesIndexRouteImport.update({
+    id: "/admissions/enquiries/",
+    path: "/admissions/enquiries/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdmissionsDashboardIndexRoute =
+  AdmissionsDashboardIndexRouteImport.update({
+    id: "/admissions/dashboard/",
+    path: "/admissions/dashboard/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admissions/dashboard/index.lazy").then((d) => d.Route),
+  )
+const AdmissionsApplicationIndexRoute =
+  AdmissionsApplicationIndexRouteImport.update({
+    id: "/admissions/application/",
+    path: "/admissions/application/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdmissionsAdmissionFormIndexRoute =
+  AdmissionsAdmissionFormIndexRouteImport.update({
+    id: "/admissions/admission-form/",
+    path: "/admissions/admission-form/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admissions/admission-form/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
+const AdminPackageManagementBulkCreateIndexRoute =
+  AdminPackageManagementBulkCreateIndexRouteImport.update({
+    id: "/admin-package-management/bulk-create/",
+    path: "/admin-package-management/bulk-create/",
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import("./routes/admin-package-management/bulk-create/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const TemplatesEditTemplateIdRoute = TemplatesEditTemplateIdRouteImport.update({
   id: "/templates/edit/$templateId",
   path: "/templates/edit/$templateId",
@@ -663,6 +878,12 @@ const PlanningActivityLogsLogIdRoute =
   } as any).lazy(() =>
     import("./routes/planning/activity-logs/$logId.lazy").then((d) => d.Route),
   )
+const ManagePagesEditorTagNameRoute =
+  ManagePagesEditorTagNameRouteImport.update({
+    id: "/manage-pages/editor/$tagName",
+    path: "/manage-pages/editor/$tagName",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LoginOauthRedirectRoute = LoginOauthRedirectRouteImport.update({
   id: "/login/oauth/redirect",
   path: "/login/oauth/redirect",
@@ -838,6 +1059,18 @@ const AiCenterAiToolsVsmartAudioIndexRoute =
       (d) => d.Route,
     ),
   )
+const AdmissionsNewEnquiryAudienceIdIndexRoute =
+  AdmissionsNewEnquiryAudienceIdIndexRouteImport.update({
+    id: "/admissions/new-enquiry/$audienceId/",
+    path: "/admissions/new-enquiry/$audienceId/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdmissionsApplicationNewIndexRoute =
+  AdmissionsApplicationNewIndexRouteImport.update({
+    id: "/admissions/application/new/",
+    path: "/admissions/application/new/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const StudyLibraryLiveSessionViewSessionIdRoute =
   StudyLibraryLiveSessionViewSessionIdRouteImport.update({
     id: "/study-library/live-session/view/$sessionId",
@@ -862,9 +1095,9 @@ const StudyLibraryCoursesCourseDetailsSubjectsIndexRoute =
     path: "/study-library/courses/course-details/subjects/",
     getParentRoute: () => rootRouteImport,
   } as any).lazy(() =>
-    import(
-      "./routes/study-library/courses/course-details/subjects/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/study-library/courses/course-details/subjects/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute =
   StudyLibraryAiCopilotCourseOutlineGeneratingIndexRouteImport.update({
@@ -872,9 +1105,9 @@ const StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute =
     path: "/study-library/ai-copilot/course-outline/generating/",
     getParentRoute: () => rootRouteImport,
   } as any).lazy(() =>
-    import(
-      "./routes/study-library/ai-copilot/course-outline/generating/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/study-library/ai-copilot/course-outline/generating/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute =
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport.update({
@@ -882,14 +1115,21 @@ const HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute =
     path: "/homework-creation/create-assessment/$assessmentId/$examtype/",
     getParentRoute: () => rootRouteImport,
   } as any).lazy(() =>
-    import(
-      "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/homework-creation/create-assessment/$assessmentId/$examtype/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
+<<<<<<< HEAD
 const AssessmentEvaluationAiAttemptIdProcessIdIndexRoute =
   AssessmentEvaluationAiAttemptIdProcessIdIndexRouteImport.update({
     id: "/assessment/evaluation-ai/$attemptId/$processId/",
     path: "/assessment/evaluation-ai/$attemptId/$processId/",
+=======
+const AudienceManagerListCampaignUsersAddIndexRoute =
+  AudienceManagerListCampaignUsersAddIndexRouteImport.update({
+    id: "/audience-manager/list/campaign-users/add/",
+    path: "/audience-manager/list/campaign-users/add/",
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
     getParentRoute: () => rootRouteImport,
   } as any)
 const AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute =
@@ -898,9 +1138,9 @@ const AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute =
     path: "/assessment/create-assessment/$assessmentId/$examtype/",
     getParentRoute: () => rootRouteImport,
   } as any).lazy(() =>
-    import(
-      "./routes/assessment/create-assessment/$assessmentId/$examtype/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/assessment/create-assessment/$assessmentId/$examtype/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute =
   StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRouteImport.update({
@@ -914,9 +1154,9 @@ const StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute =
     path: "/study-library/courses/course-details/subjects/modules/",
     getParentRoute: () => rootRouteImport,
   } as any).lazy(() =>
-    import(
-      "./routes/study-library/courses/course-details/subjects/modules/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/study-library/courses/course-details/subjects/modules/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute =
   StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRouteImport.update({
@@ -924,9 +1164,9 @@ const StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute =
     path: "/study-library/ai-copilot/course-outline/generating/viewer/",
     getParentRoute: () => rootRouteImport,
   } as any).lazy(() =>
-    import(
-      "./routes/study-library/ai-copilot/course-outline/generating/viewer/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/study-library/ai-copilot/course-outline/generating/viewer/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute =
   StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRouteImport.update(
@@ -942,9 +1182,9 @@ const EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute =
     path: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/",
     getParentRoute: () => rootRouteImport,
   } as any).lazy(() =>
-    import(
-      "./routes/evaluation/evaluate/$assessmentId/$attemptId/$examType/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/evaluation/evaluate/$assessmentId/$attemptId/$examType/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute =
   StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRouteImport.update(
@@ -954,9 +1194,9 @@ const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute =
       getParentRoute: () => rootRouteImport,
     } as any,
   ).lazy(() =>
-    import(
-      "./routes/study-library/courses/course-details/subjects/modules/chapters/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/study-library/courses/course-details/subjects/modules/chapters/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute =
   EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRouteImport.update(
@@ -966,9 +1206,9 @@ const EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeI
       getParentRoute: () => rootRouteImport,
     } as any,
   ).lazy(() =>
-    import(
-      "./routes/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute =
   StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRouteImport.update(
@@ -978,9 +1218,9 @@ const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute =
       getParentRoute: () => rootRouteImport,
     } as any,
   ).lazy(() =>
-    import(
-      "./routes/study-library/courses/course-details/subjects/modules/chapters/slides/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/study-library/courses/course-details/subjects/modules/chapters/slides/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute =
   HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport.update(
@@ -990,9 +1230,9 @@ const HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesss
       getParentRoute: () => rootRouteImport,
     } as any,
   ).lazy(() =>
-    import(
-      "./routes/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute =
   AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport.update(
@@ -1002,16 +1242,19 @@ const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTy
       getParentRoute: () => rootRouteImport,
     } as any,
   ).lazy(() =>
-    import(
-      "./routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index.lazy"
-    ).then((d) => d.Route),
+    import("./routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index.lazy").then(
+      (d) => d.Route,
+    ),
   )
 
 export interface FileRoutesByFullPath {
   "/agent-chat": typeof AgentChatRoute
+  "/locked-feature": typeof LockedFeatureRoute
+  "/explore-ai": typeof ExploreAiLazyRoute
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
+<<<<<<< HEAD
   "/ai-center": typeof AiCenterIndexRoute
   "/ai-video-studio": typeof AiVideoStudioIndexRoute
   "/assessment": typeof AssessmentIndexRoute
@@ -1241,7 +1484,13 @@ export interface FileRoutesById {
   "/ai-center/": typeof AiCenterIndexRoute
   "/ai-video-studio/": typeof AiVideoStudioIndexRoute
   "/assessment/": typeof AssessmentIndexRoute
+=======
+  "/admin-package-management/": typeof AdminPackageManagementIndexRoute
+  "/admissions/": typeof AdmissionsIndexRoute
+  "/ai-center/": typeof AiCenterIndexRoute
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
   "/auth-transfer/": typeof AuthTransferIndexRoute
+  "/challenge-analytics/": typeof ChallengeAnalyticsIndexRoute
   "/community/": typeof CommunityIndexRoute
   "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
@@ -1249,8 +1498,12 @@ export interface FileRoutesById {
   "/instructor-copilot/": typeof InstructorCopilotIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login/": typeof LoginIndexRoute
+  "/manage-bookings/": typeof ManageBookingsIndexRoute
   "/manage-contacts/": typeof ManageContactsIndexRoute
+  "/manage-custom-teams/": typeof ManageCustomTeamsIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
+  "/manage-inventory/": typeof ManageInventoryIndexRoute
+  "/manage-pages/": typeof ManagePagesIndexRoute
   "/manage-payments/": typeof ManagePaymentsIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
   "/membership-expiry/": typeof MembershipExpiryIndexRoute
@@ -1259,11 +1512,23 @@ export interface FileRoutesById {
   "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
+<<<<<<< HEAD
+=======
+  "/video-api-studio/": typeof VideoApiStudioIndexRoute
+  "/assessment/": typeof AssessmentIndexLazyRoute
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
+  "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
+  "/admin-package-management/bulk-create/": typeof AdminPackageManagementBulkCreateIndexRoute
+  "/admissions/admission-form/": typeof AdmissionsAdmissionFormIndexRoute
+  "/admissions/application/": typeof AdmissionsApplicationIndexRoute
+  "/admissions/dashboard/": typeof AdmissionsDashboardIndexRoute
+  "/admissions/enquiries/": typeof AdmissionsEnquiriesIndexRoute
+  "/admissions/new-enquiry/": typeof AdmissionsNewEnquiryIndexRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval/": typeof AnnouncementApprovalIndexRoute
@@ -1277,11 +1542,15 @@ export interface FileRoutesById {
   "/audience-manager/list/": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data/": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper/": typeof CommunityQuestionPaperIndexRoute
+  "/content/$contentId/": typeof ContentContentIdIndexRoute
   "/evaluation/evaluation-tool/": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations/": typeof EvaluationEvaluationsIndexRoute
   "/evaluator-ai/assessment/": typeof EvaluatorAiAssessmentIndexRoute
   "/evaluator-ai/evaluation/": typeof EvaluatorAiEvaluationIndexRoute
   "/evaluator-ai/students/": typeof EvaluatorAiStudentsIndexRoute
+  "/financial-management/collection-dashboard/": typeof FinancialManagementCollectionDashboardIndexRoute
+  "/financial-management/fee-plans/": typeof FinancialManagementFeePlansIndexRoute
+  "/financial-management/manage-finances/": typeof FinancialManagementManageFinancesIndexRoute
   "/homework-creation/assessment-list/": typeof HomeworkCreationAssessmentListIndexRoute
   "/login/$key/": typeof LoginKeyIndexRoute
   "/login/forgot-password/": typeof LoginForgotPasswordIndexRoute
@@ -1293,6 +1562,7 @@ export interface FileRoutesById {
   "/manage-students/students-list/": typeof ManageStudentsStudentsListIndexRoute
   "/planning/activity-logs/": typeof PlanningActivityLogsIndexRoute
   "/planning/planning/": typeof PlanningPlanningIndexRoute
+  "/settings/fee-management/": typeof SettingsFeeManagementIndexRoute
   "/signup/onboarding/": typeof SignupOnboardingIndexRoute
   "/study-library/ai-copilot/": typeof StudyLibraryAiCopilotIndexRoute
   "/study-library/ai-course-builder/": typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -1305,9 +1575,12 @@ export interface FileRoutesById {
   "/templates/create/": typeof TemplatesCreateIndexRoute
   "/user-tags/institute/": typeof UserTagsInstituteIndexRoute
   "/user-tags/link/": typeof UserTagsLinkIndexRoute
+  "/video-api-studio/console/": typeof VideoApiStudioConsoleIndexRoute
   "/workflow/$workflowId/": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list/": typeof WorkflowListIndexRoute
   "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
+  "/admissions/application/new/": typeof AdmissionsApplicationNewIndexRoute
+  "/admissions/new-enquiry/$audienceId/": typeof AdmissionsNewEnquiryAudienceIdIndexRoute
   "/ai-center/ai-tools/vsmart-audio/": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat/": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract/": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1330,7 +1603,283 @@ export interface FileRoutesById {
   "/study-library/volt/add/": typeof StudyLibraryVoltAddIndexRoute
   "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+<<<<<<< HEAD
   "/assessment/evaluation-ai/$attemptId/$processId/": typeof AssessmentEvaluationAiAttemptIdProcessIdIndexRoute
+=======
+  "/audience-manager/list/campaign-users/add/": typeof AudienceManagerListCampaignUsersAddIndexRoute
+  "/homework-creation/create-assessment/$assessmentId/$examtype/": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
+  "/study-library/courses/course-details/subjects/": typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
+  "/study-library/live-session/schedule/step1/": typeof StudyLibraryLiveSessionScheduleStep1IndexRoute
+  "/study-library/live-session/schedule/step2/": typeof StudyLibraryLiveSessionScheduleStep2IndexRoute
+  "/evaluation/evaluate/$assessmentId/$attemptId/$examType/": typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/processing/": typeof StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/viewer/": typeof StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute
+  "/study-library/courses/course-details/subjects/modules/": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute
+  "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/": typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute
+  "/study-library/courses/course-details/subjects/modules/chapters/": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute
+  "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": typeof AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute
+  "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": typeof HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute
+  "/study-library/courses/course-details/subjects/modules/chapters/slides/": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute
+}
+export interface FileRoutesByTo {
+  "/agent-chat": typeof AgentChatRoute
+  "/locked-feature": typeof LockedFeatureRoute
+  "/explore-ai": typeof ExploreAiLazyRoute
+  "/landing": typeof LandingLazyRoute
+  "/pricing": typeof PricingLazyRoute
+  "/admin-package-management": typeof AdminPackageManagementIndexRoute
+  "/admissions": typeof AdmissionsIndexRoute
+  "/ai-center": typeof AiCenterIndexRoute
+  "/auth-transfer": typeof AuthTransferIndexRoute
+  "/challenge-analytics": typeof ChallengeAnalyticsIndexRoute
+  "/community": typeof CommunityIndexRoute
+  "/dashboard": typeof DashboardIndexRoute
+  "/evaluation": typeof EvaluationIndexRoute
+  "/evaluator-ai": typeof EvaluatorAiIndexRoute
+  "/instructor-copilot": typeof InstructorCopilotIndexRoute
+  "/learner-insights": typeof LearnerInsightsIndexRoute
+  "/login": typeof LoginIndexRoute
+  "/manage-bookings": typeof ManageBookingsIndexRoute
+  "/manage-contacts": typeof ManageContactsIndexRoute
+  "/manage-custom-teams": typeof ManageCustomTeamsIndexRoute
+  "/manage-institute": typeof ManageInstituteIndexRoute
+  "/manage-inventory": typeof ManageInventoryIndexRoute
+  "/manage-pages": typeof ManagePagesIndexRoute
+  "/manage-payments": typeof ManagePaymentsIndexRoute
+  "/manage-students": typeof ManageStudentsIndexRoute
+  "/membership-expiry": typeof MembershipExpiryIndexRoute
+  "/membership-stats": typeof MembershipStatsIndexRoute
+  "/planning": typeof PlanningIndexRoute
+  "/settings": typeof SettingsIndexRoute
+  "/signup": typeof SignupIndexRoute
+  "/study-library": typeof StudyLibraryIndexRoute
+  "/video-api-studio": typeof VideoApiStudioIndexRoute
+  "/assessment": typeof AssessmentIndexLazyRoute
+  "/login/oauth/redirect": typeof LoginOauthRedirectRoute
+  "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
+  "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
+  "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
+  "/signup/oauth/callback": typeof SignupOauthCallbackRoute
+  "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
+  "/admin-package-management/bulk-create": typeof AdminPackageManagementBulkCreateIndexRoute
+  "/admissions/admission-form": typeof AdmissionsAdmissionFormIndexRoute
+  "/admissions/application": typeof AdmissionsApplicationIndexRoute
+  "/admissions/dashboard": typeof AdmissionsDashboardIndexRoute
+  "/admissions/enquiries": typeof AdmissionsEnquiriesIndexRoute
+  "/admissions/new-enquiry": typeof AdmissionsNewEnquiryIndexRoute
+  "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
+  "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
+  "/announcement/approval": typeof AnnouncementApprovalIndexRoute
+  "/announcement/create": typeof AnnouncementCreateIndexRoute
+  "/announcement/email-campaigning": typeof AnnouncementEmailCampaigningIndexRoute
+  "/announcement/history": typeof AnnouncementHistoryIndexRoute
+  "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
+  "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
+  "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
+  "/audience-manager/list": typeof AudienceManagerListIndexRoute
+  "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
+  "/community/question-paper": typeof CommunityQuestionPaperIndexRoute
+  "/content/$contentId": typeof ContentContentIdIndexRoute
+  "/evaluation/evaluation-tool": typeof EvaluationEvaluationToolIndexRoute
+  "/evaluation/evaluations": typeof EvaluationEvaluationsIndexRoute
+  "/evaluator-ai/assessment": typeof EvaluatorAiAssessmentIndexRoute
+  "/evaluator-ai/evaluation": typeof EvaluatorAiEvaluationIndexRoute
+  "/evaluator-ai/students": typeof EvaluatorAiStudentsIndexRoute
+  "/financial-management/collection-dashboard": typeof FinancialManagementCollectionDashboardIndexRoute
+  "/financial-management/fee-plans": typeof FinancialManagementFeePlansIndexRoute
+  "/financial-management/manage-finances": typeof FinancialManagementManageFinancesIndexRoute
+  "/homework-creation/assessment-list": typeof HomeworkCreationAssessmentListIndexRoute
+  "/login/$key": typeof LoginKeyIndexRoute
+  "/login/forgot-password": typeof LoginForgotPasswordIndexRoute
+  "/manage-institute/batches": typeof ManageInstituteBatchesIndexRoute
+  "/manage-institute/sessions": typeof ManageInstituteSessionsIndexRoute
+  "/manage-institute/teams": typeof ManageInstituteTeamsIndexRoute
+  "/manage-students/enroll-requests": typeof ManageStudentsEnrollRequestsIndexRoute
+  "/manage-students/invite": typeof ManageStudentsInviteIndexRoute
+  "/manage-students/students-list": typeof ManageStudentsStudentsListIndexRoute
+  "/planning/activity-logs": typeof PlanningActivityLogsIndexRoute
+  "/planning/planning": typeof PlanningPlanningIndexRoute
+  "/settings/fee-management": typeof SettingsFeeManagementIndexRoute
+  "/signup/onboarding": typeof SignupOnboardingIndexRoute
+  "/study-library/ai-copilot": typeof StudyLibraryAiCopilotIndexRoute
+  "/study-library/ai-course-builder": typeof StudyLibraryAiCourseBuilderIndexRoute
+  "/study-library/attendance-tracker": typeof StudyLibraryAttendanceTrackerIndexRoute
+  "/study-library/courses": typeof StudyLibraryCoursesIndexRoute
+  "/study-library/doubt-management": typeof StudyLibraryDoubtManagementIndexRoute
+  "/study-library/live-session": typeof StudyLibraryLiveSessionIndexRoute
+  "/study-library/reports": typeof StudyLibraryReportsIndexRoute
+  "/study-library/volt": typeof StudyLibraryVoltIndexRoute
+  "/templates/create": typeof TemplatesCreateIndexRoute
+  "/user-tags/institute": typeof UserTagsInstituteIndexRoute
+  "/user-tags/link": typeof UserTagsLinkIndexRoute
+  "/video-api-studio/console": typeof VideoApiStudioConsoleIndexRoute
+  "/workflow/$workflowId": typeof WorkflowWorkflowIdIndexRoute
+  "/workflow/list": typeof WorkflowListIndexRoute
+  "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
+  "/admissions/application/new": typeof AdmissionsApplicationNewIndexRoute
+  "/admissions/new-enquiry/$audienceId": typeof AdmissionsNewEnquiryAudienceIdIndexRoute
+  "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
+  "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
+  "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
+  "/ai-center/ai-tools/vsmart-feedback": typeof AiCenterAiToolsVsmartFeedbackIndexRoute
+  "/ai-center/ai-tools/vsmart-image": typeof AiCenterAiToolsVsmartImageIndexRoute
+  "/ai-center/ai-tools/vsmart-lecture": typeof AiCenterAiToolsVsmartLectureIndexRoute
+  "/ai-center/ai-tools/vsmart-organizer": typeof AiCenterAiToolsVsmartOrganizerIndexRoute
+  "/ai-center/ai-tools/vsmart-prompt": typeof AiCenterAiToolsVsmartPromptIndexRoute
+  "/ai-center/ai-tools/vsmart-sorter": typeof AiCenterAiToolsVsmartSorterIndexRoute
+  "/ai-center/ai-tools/vsmart-upload": typeof AiCenterAiToolsVsmartUploadIndexRoute
+  "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute
+  "/audience-manager/list/campaign-users": typeof AudienceManagerListCampaignUsersIndexRoute
+  "/evaluator-ai/assessment/create-assessment": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
+  "/planning/activity-logs/create": typeof PlanningActivityLogsCreateIndexRoute
+  "/planning/planning/create": typeof PlanningPlanningCreateIndexRoute
+  "/study-library/ai-copilot/course-outline": typeof StudyLibraryAiCopilotCourseOutlineIndexRoute
+  "/study-library/courses/course-details": typeof StudyLibraryCoursesCourseDetailsIndexRoute
+  "/study-library/live-session/schedule": typeof StudyLibraryLiveSessionScheduleIndexRoute
+  "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
+  "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
+  "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/audience-manager/list/campaign-users/add": typeof AudienceManagerListCampaignUsersAddIndexRoute
+  "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/study-library/ai-copilot/course-outline/generating": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
+  "/study-library/courses/course-details/subjects": typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
+  "/study-library/live-session/schedule/step1": typeof StudyLibraryLiveSessionScheduleStep1IndexRoute
+  "/study-library/live-session/schedule/step2": typeof StudyLibraryLiveSessionScheduleStep2IndexRoute
+  "/evaluation/evaluate/$assessmentId/$attemptId/$examType": typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/processing": typeof StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/viewer": typeof StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute
+  "/study-library/courses/course-details/subjects/modules": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute
+  "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType": typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute
+  "/study-library/courses/course-details/subjects/modules/chapters": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute
+  "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab": typeof AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute
+  "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab": typeof HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute
+  "/study-library/courses/course-details/subjects/modules/chapters/slides": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute
+}
+export interface FileRoutesById {
+  __root__: typeof rootRouteImport
+  "/agent-chat": typeof AgentChatRoute
+  "/locked-feature": typeof LockedFeatureRoute
+  "/explore-ai": typeof ExploreAiLazyRoute
+  "/landing": typeof LandingLazyRoute
+  "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
+  "/pricing": typeof PricingLazyRoute
+  "/admin-package-management/": typeof AdminPackageManagementIndexRoute
+  "/admissions/": typeof AdmissionsIndexRoute
+  "/ai-center/": typeof AiCenterIndexRoute
+  "/auth-transfer/": typeof AuthTransferIndexRoute
+  "/challenge-analytics/": typeof ChallengeAnalyticsIndexRoute
+  "/community/": typeof CommunityIndexRoute
+  "/dashboard/": typeof DashboardIndexRoute
+  "/evaluation/": typeof EvaluationIndexRoute
+  "/evaluator-ai/": typeof EvaluatorAiIndexRoute
+  "/instructor-copilot/": typeof InstructorCopilotIndexRoute
+  "/learner-insights/": typeof LearnerInsightsIndexRoute
+  "/login/": typeof LoginIndexRoute
+  "/manage-bookings/": typeof ManageBookingsIndexRoute
+  "/manage-contacts/": typeof ManageContactsIndexRoute
+  "/manage-custom-teams/": typeof ManageCustomTeamsIndexRoute
+  "/manage-institute/": typeof ManageInstituteIndexRoute
+  "/manage-inventory/": typeof ManageInventoryIndexRoute
+  "/manage-pages/": typeof ManagePagesIndexRoute
+  "/manage-payments/": typeof ManagePaymentsIndexRoute
+  "/manage-students/": typeof ManageStudentsIndexRoute
+  "/membership-expiry/": typeof MembershipExpiryIndexRoute
+  "/membership-stats/": typeof MembershipStatsIndexRoute
+  "/planning/": typeof PlanningIndexRoute
+  "/settings/": typeof SettingsIndexRoute
+  "/signup/": typeof SignupIndexRoute
+  "/study-library/": typeof StudyLibraryIndexRoute
+  "/video-api-studio/": typeof VideoApiStudioIndexRoute
+  "/assessment/": typeof AssessmentIndexLazyRoute
+  "/login/oauth/redirect": typeof LoginOauthRedirectRoute
+  "/manage-pages/editor/$tagName": typeof ManagePagesEditorTagNameRoute
+  "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
+  "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
+  "/signup/oauth/callback": typeof SignupOauthCallbackRoute
+  "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
+  "/admin-package-management/bulk-create/": typeof AdminPackageManagementBulkCreateIndexRoute
+  "/admissions/admission-form/": typeof AdmissionsAdmissionFormIndexRoute
+  "/admissions/application/": typeof AdmissionsApplicationIndexRoute
+  "/admissions/dashboard/": typeof AdmissionsDashboardIndexRoute
+  "/admissions/enquiries/": typeof AdmissionsEnquiriesIndexRoute
+  "/admissions/new-enquiry/": typeof AdmissionsNewEnquiryIndexRoute
+  "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
+  "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
+  "/announcement/approval/": typeof AnnouncementApprovalIndexRoute
+  "/announcement/create/": typeof AnnouncementCreateIndexRoute
+  "/announcement/email-campaigning/": typeof AnnouncementEmailCampaigningIndexRoute
+  "/announcement/history/": typeof AnnouncementHistoryIndexRoute
+  "/announcement/schedule/": typeof AnnouncementScheduleIndexRoute
+  "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute
+  "/assessment/question-papers/": typeof AssessmentQuestionPapersIndexRoute
+  "/audience-manager/list/": typeof AudienceManagerListIndexRoute
+  "/certificate-generation/student-data/": typeof CertificateGenerationStudentDataIndexRoute
+  "/community/question-paper/": typeof CommunityQuestionPaperIndexRoute
+  "/content/$contentId/": typeof ContentContentIdIndexRoute
+  "/evaluation/evaluation-tool/": typeof EvaluationEvaluationToolIndexRoute
+  "/evaluation/evaluations/": typeof EvaluationEvaluationsIndexRoute
+  "/evaluator-ai/assessment/": typeof EvaluatorAiAssessmentIndexRoute
+  "/evaluator-ai/evaluation/": typeof EvaluatorAiEvaluationIndexRoute
+  "/evaluator-ai/students/": typeof EvaluatorAiStudentsIndexRoute
+  "/financial-management/collection-dashboard/": typeof FinancialManagementCollectionDashboardIndexRoute
+  "/financial-management/fee-plans/": typeof FinancialManagementFeePlansIndexRoute
+  "/financial-management/manage-finances/": typeof FinancialManagementManageFinancesIndexRoute
+  "/homework-creation/assessment-list/": typeof HomeworkCreationAssessmentListIndexRoute
+  "/login/$key/": typeof LoginKeyIndexRoute
+  "/login/forgot-password/": typeof LoginForgotPasswordIndexRoute
+  "/manage-institute/batches/": typeof ManageInstituteBatchesIndexRoute
+  "/manage-institute/sessions/": typeof ManageInstituteSessionsIndexRoute
+  "/manage-institute/teams/": typeof ManageInstituteTeamsIndexRoute
+  "/manage-students/enroll-requests/": typeof ManageStudentsEnrollRequestsIndexRoute
+  "/manage-students/invite/": typeof ManageStudentsInviteIndexRoute
+  "/manage-students/students-list/": typeof ManageStudentsStudentsListIndexRoute
+  "/planning/activity-logs/": typeof PlanningActivityLogsIndexRoute
+  "/planning/planning/": typeof PlanningPlanningIndexRoute
+  "/settings/fee-management/": typeof SettingsFeeManagementIndexRoute
+  "/signup/onboarding/": typeof SignupOnboardingIndexRoute
+  "/study-library/ai-copilot/": typeof StudyLibraryAiCopilotIndexRoute
+  "/study-library/ai-course-builder/": typeof StudyLibraryAiCourseBuilderIndexRoute
+  "/study-library/attendance-tracker/": typeof StudyLibraryAttendanceTrackerIndexRoute
+  "/study-library/courses/": typeof StudyLibraryCoursesIndexRoute
+  "/study-library/doubt-management/": typeof StudyLibraryDoubtManagementIndexRoute
+  "/study-library/live-session/": typeof StudyLibraryLiveSessionIndexRoute
+  "/study-library/reports/": typeof StudyLibraryReportsIndexRoute
+  "/study-library/volt/": typeof StudyLibraryVoltIndexRoute
+  "/templates/create/": typeof TemplatesCreateIndexRoute
+  "/user-tags/institute/": typeof UserTagsInstituteIndexRoute
+  "/user-tags/link/": typeof UserTagsLinkIndexRoute
+  "/video-api-studio/console/": typeof VideoApiStudioConsoleIndexRoute
+  "/workflow/$workflowId/": typeof WorkflowWorkflowIdIndexRoute
+  "/workflow/list/": typeof WorkflowListIndexRoute
+  "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
+  "/admissions/application/new/": typeof AdmissionsApplicationNewIndexRoute
+  "/admissions/new-enquiry/$audienceId/": typeof AdmissionsNewEnquiryAudienceIdIndexRoute
+  "/ai-center/ai-tools/vsmart-audio/": typeof AiCenterAiToolsVsmartAudioIndexRoute
+  "/ai-center/ai-tools/vsmart-chat/": typeof AiCenterAiToolsVsmartChatIndexRoute
+  "/ai-center/ai-tools/vsmart-extract/": typeof AiCenterAiToolsVsmartExtractIndexRoute
+  "/ai-center/ai-tools/vsmart-feedback/": typeof AiCenterAiToolsVsmartFeedbackIndexRoute
+  "/ai-center/ai-tools/vsmart-image/": typeof AiCenterAiToolsVsmartImageIndexRoute
+  "/ai-center/ai-tools/vsmart-lecture/": typeof AiCenterAiToolsVsmartLectureIndexRoute
+  "/ai-center/ai-tools/vsmart-organizer/": typeof AiCenterAiToolsVsmartOrganizerIndexRoute
+  "/ai-center/ai-tools/vsmart-prompt/": typeof AiCenterAiToolsVsmartPromptIndexRoute
+  "/ai-center/ai-tools/vsmart-sorter/": typeof AiCenterAiToolsVsmartSorterIndexRoute
+  "/ai-center/ai-tools/vsmart-upload/": typeof AiCenterAiToolsVsmartUploadIndexRoute
+  "/assessment/export/$assessmentId/": typeof AssessmentExportAssessmentIdIndexRoute
+  "/audience-manager/list/campaign-users/": typeof AudienceManagerListCampaignUsersIndexRoute
+  "/evaluator-ai/assessment/create-assessment/": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  "/evaluator-ai/evaluation/student-summary/": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
+  "/planning/activity-logs/create/": typeof PlanningActivityLogsCreateIndexRoute
+  "/planning/planning/create/": typeof PlanningPlanningCreateIndexRoute
+  "/study-library/ai-copilot/course-outline/": typeof StudyLibraryAiCopilotCourseOutlineIndexRoute
+  "/study-library/courses/course-details/": typeof StudyLibraryCoursesCourseDetailsIndexRoute
+  "/study-library/live-session/schedule/": typeof StudyLibraryLiveSessionScheduleIndexRoute
+  "/study-library/volt/add/": typeof StudyLibraryVoltAddIndexRoute
+  "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
+  "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/audience-manager/list/campaign-users/add/": typeof AudienceManagerListCampaignUsersAddIndexRoute
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
   "/homework-creation/create-assessment/$assessmentId/$examtype/": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating/": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   "/study-library/courses/course-details/subjects/": typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1350,9 +1899,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | "/agent-chat"
+    | "/locked-feature"
+    | "/explore-ai"
     | "/landing"
     | "/learner-insights"
     | "/pricing"
+<<<<<<< HEAD
     | "/ai-center"
     | "/ai-video-studio"
     | "/assessment"
@@ -1581,7 +2133,13 @@ export interface FileRouteTypes {
     | "/ai-center/"
     | "/ai-video-studio/"
     | "/assessment/"
+=======
+    | "/admin-package-management/"
+    | "/admissions/"
+    | "/ai-center/"
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
     | "/auth-transfer/"
+    | "/challenge-analytics/"
     | "/community/"
     | "/dashboard/"
     | "/evaluation/"
@@ -1589,8 +2147,12 @@ export interface FileRouteTypes {
     | "/instructor-copilot/"
     | "/learner-insights/"
     | "/login/"
+    | "/manage-bookings/"
     | "/manage-contacts/"
+    | "/manage-custom-teams/"
     | "/manage-institute/"
+    | "/manage-inventory/"
+    | "/manage-pages/"
     | "/manage-payments/"
     | "/manage-students/"
     | "/membership-expiry/"
@@ -1599,11 +2161,23 @@ export interface FileRouteTypes {
     | "/settings/"
     | "/signup/"
     | "/study-library/"
+<<<<<<< HEAD
+=======
+    | "/video-api-studio/"
+    | "/assessment/"
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
     | "/login/oauth/redirect"
+    | "/manage-pages/editor/$tagName"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
+    | "/admin-package-management/bulk-create/"
+    | "/admissions/admission-form/"
+    | "/admissions/application/"
+    | "/admissions/dashboard/"
+    | "/admissions/enquiries/"
+    | "/admissions/new-enquiry/"
     | "/ai-center/ai-tools/"
     | "/ai-center/my-resources/"
     | "/announcement/approval/"
@@ -1617,11 +2191,15 @@ export interface FileRouteTypes {
     | "/audience-manager/list/"
     | "/certificate-generation/student-data/"
     | "/community/question-paper/"
+    | "/content/$contentId/"
     | "/evaluation/evaluation-tool/"
     | "/evaluation/evaluations/"
     | "/evaluator-ai/assessment/"
     | "/evaluator-ai/evaluation/"
     | "/evaluator-ai/students/"
+    | "/financial-management/collection-dashboard/"
+    | "/financial-management/fee-plans/"
+    | "/financial-management/manage-finances/"
     | "/homework-creation/assessment-list/"
     | "/login/$key/"
     | "/login/forgot-password/"
@@ -1633,6 +2211,7 @@ export interface FileRouteTypes {
     | "/manage-students/students-list/"
     | "/planning/activity-logs/"
     | "/planning/planning/"
+    | "/settings/fee-management/"
     | "/signup/onboarding/"
     | "/study-library/ai-copilot/"
     | "/study-library/ai-course-builder/"
@@ -1645,9 +2224,12 @@ export interface FileRouteTypes {
     | "/templates/create/"
     | "/user-tags/institute/"
     | "/user-tags/link/"
+    | "/video-api-studio/console/"
     | "/workflow/$workflowId/"
     | "/workflow/list/"
     | "/study-library/live-session/view/$sessionId"
+    | "/admissions/application/new/"
+    | "/admissions/new-enquiry/$audienceId/"
     | "/ai-center/ai-tools/vsmart-audio/"
     | "/ai-center/ai-tools/vsmart-chat/"
     | "/ai-center/ai-tools/vsmart-extract/"
@@ -1670,7 +2252,282 @@ export interface FileRouteTypes {
     | "/study-library/volt/add/"
     | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype/"
+<<<<<<< HEAD
     | "/assessment/evaluation-ai/$attemptId/$processId/"
+=======
+    | "/audience-manager/list/campaign-users/add/"
+    | "/homework-creation/create-assessment/$assessmentId/$examtype/"
+    | "/study-library/ai-copilot/course-outline/generating/"
+    | "/study-library/courses/course-details/subjects/"
+    | "/study-library/live-session/schedule/step1/"
+    | "/study-library/live-session/schedule/step2/"
+    | "/evaluation/evaluate/$assessmentId/$attemptId/$examType/"
+    | "/study-library/ai-copilot/course-outline/generating/processing/"
+    | "/study-library/ai-copilot/course-outline/generating/viewer/"
+    | "/study-library/courses/course-details/subjects/modules/"
+    | "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/"
+    | "/study-library/courses/course-details/subjects/modules/chapters/"
+    | "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
+    | "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
+    | "/study-library/courses/course-details/subjects/modules/chapters/slides/"
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | "/agent-chat"
+    | "/locked-feature"
+    | "/explore-ai"
+    | "/landing"
+    | "/pricing"
+    | "/admin-package-management"
+    | "/admissions"
+    | "/ai-center"
+    | "/auth-transfer"
+    | "/challenge-analytics"
+    | "/community"
+    | "/dashboard"
+    | "/evaluation"
+    | "/evaluator-ai"
+    | "/instructor-copilot"
+    | "/learner-insights"
+    | "/login"
+    | "/manage-bookings"
+    | "/manage-contacts"
+    | "/manage-custom-teams"
+    | "/manage-institute"
+    | "/manage-inventory"
+    | "/manage-pages"
+    | "/manage-payments"
+    | "/manage-students"
+    | "/membership-expiry"
+    | "/membership-stats"
+    | "/planning"
+    | "/settings"
+    | "/signup"
+    | "/study-library"
+    | "/video-api-studio"
+    | "/assessment"
+    | "/login/oauth/redirect"
+    | "/manage-pages/editor/$tagName"
+    | "/planning/activity-logs/$logId"
+    | "/planning/planning/$logId"
+    | "/signup/oauth/callback"
+    | "/templates/edit/$templateId"
+    | "/admin-package-management/bulk-create"
+    | "/admissions/admission-form"
+    | "/admissions/application"
+    | "/admissions/dashboard"
+    | "/admissions/enquiries"
+    | "/admissions/new-enquiry"
+    | "/ai-center/ai-tools"
+    | "/ai-center/my-resources"
+    | "/announcement/approval"
+    | "/announcement/create"
+    | "/announcement/email-campaigning"
+    | "/announcement/history"
+    | "/announcement/schedule"
+    | "/assessment/assessment-list"
+    | "/assessment/question-papers"
+    | "/audience-manager/list"
+    | "/certificate-generation/student-data"
+    | "/community/question-paper"
+    | "/content/$contentId"
+    | "/evaluation/evaluation-tool"
+    | "/evaluation/evaluations"
+    | "/evaluator-ai/assessment"
+    | "/evaluator-ai/evaluation"
+    | "/evaluator-ai/students"
+    | "/financial-management/collection-dashboard"
+    | "/financial-management/fee-plans"
+    | "/financial-management/manage-finances"
+    | "/homework-creation/assessment-list"
+    | "/login/$key"
+    | "/login/forgot-password"
+    | "/manage-institute/batches"
+    | "/manage-institute/sessions"
+    | "/manage-institute/teams"
+    | "/manage-students/enroll-requests"
+    | "/manage-students/invite"
+    | "/manage-students/students-list"
+    | "/planning/activity-logs"
+    | "/planning/planning"
+    | "/settings/fee-management"
+    | "/signup/onboarding"
+    | "/study-library/ai-copilot"
+    | "/study-library/ai-course-builder"
+    | "/study-library/attendance-tracker"
+    | "/study-library/courses"
+    | "/study-library/doubt-management"
+    | "/study-library/live-session"
+    | "/study-library/reports"
+    | "/study-library/volt"
+    | "/templates/create"
+    | "/user-tags/institute"
+    | "/user-tags/link"
+    | "/video-api-studio/console"
+    | "/workflow/$workflowId"
+    | "/workflow/list"
+    | "/study-library/live-session/view/$sessionId"
+    | "/admissions/application/new"
+    | "/admissions/new-enquiry/$audienceId"
+    | "/ai-center/ai-tools/vsmart-audio"
+    | "/ai-center/ai-tools/vsmart-chat"
+    | "/ai-center/ai-tools/vsmart-extract"
+    | "/ai-center/ai-tools/vsmart-feedback"
+    | "/ai-center/ai-tools/vsmart-image"
+    | "/ai-center/ai-tools/vsmart-lecture"
+    | "/ai-center/ai-tools/vsmart-organizer"
+    | "/ai-center/ai-tools/vsmart-prompt"
+    | "/ai-center/ai-tools/vsmart-sorter"
+    | "/ai-center/ai-tools/vsmart-upload"
+    | "/assessment/export/$assessmentId"
+    | "/audience-manager/list/campaign-users"
+    | "/evaluator-ai/assessment/create-assessment"
+    | "/evaluator-ai/evaluation/student-summary"
+    | "/planning/activity-logs/create"
+    | "/planning/planning/create"
+    | "/study-library/ai-copilot/course-outline"
+    | "/study-library/courses/course-details"
+    | "/study-library/live-session/schedule"
+    | "/study-library/volt/add"
+    | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
+    | "/assessment/create-assessment/$assessmentId/$examtype"
+    | "/audience-manager/list/campaign-users/add"
+    | "/homework-creation/create-assessment/$assessmentId/$examtype"
+    | "/study-library/ai-copilot/course-outline/generating"
+    | "/study-library/courses/course-details/subjects"
+    | "/study-library/live-session/schedule/step1"
+    | "/study-library/live-session/schedule/step2"
+    | "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
+    | "/study-library/ai-copilot/course-outline/generating/processing"
+    | "/study-library/ai-copilot/course-outline/generating/viewer"
+    | "/study-library/courses/course-details/subjects/modules"
+    | "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType"
+    | "/study-library/courses/course-details/subjects/modules/chapters"
+    | "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
+    | "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
+    | "/study-library/courses/course-details/subjects/modules/chapters/slides"
+  id:
+    | "__root__"
+    | "/agent-chat"
+    | "/locked-feature"
+    | "/explore-ai"
+    | "/landing"
+    | "/learner-insights"
+    | "/pricing"
+    | "/admin-package-management/"
+    | "/admissions/"
+    | "/ai-center/"
+    | "/auth-transfer/"
+    | "/challenge-analytics/"
+    | "/community/"
+    | "/dashboard/"
+    | "/evaluation/"
+    | "/evaluator-ai/"
+    | "/instructor-copilot/"
+    | "/learner-insights/"
+    | "/login/"
+    | "/manage-bookings/"
+    | "/manage-contacts/"
+    | "/manage-custom-teams/"
+    | "/manage-institute/"
+    | "/manage-inventory/"
+    | "/manage-pages/"
+    | "/manage-payments/"
+    | "/manage-students/"
+    | "/membership-expiry/"
+    | "/membership-stats/"
+    | "/planning/"
+    | "/settings/"
+    | "/signup/"
+    | "/study-library/"
+    | "/video-api-studio/"
+    | "/assessment/"
+    | "/login/oauth/redirect"
+    | "/manage-pages/editor/$tagName"
+    | "/planning/activity-logs/$logId"
+    | "/planning/planning/$logId"
+    | "/signup/oauth/callback"
+    | "/templates/edit/$templateId"
+    | "/admin-package-management/bulk-create/"
+    | "/admissions/admission-form/"
+    | "/admissions/application/"
+    | "/admissions/dashboard/"
+    | "/admissions/enquiries/"
+    | "/admissions/new-enquiry/"
+    | "/ai-center/ai-tools/"
+    | "/ai-center/my-resources/"
+    | "/announcement/approval/"
+    | "/announcement/create/"
+    | "/announcement/email-campaigning/"
+    | "/announcement/history/"
+    | "/announcement/schedule/"
+    | "/assessment/assessment-list/"
+    | "/assessment/question-papers/"
+    | "/audience-manager/list/"
+    | "/certificate-generation/student-data/"
+    | "/community/question-paper/"
+    | "/content/$contentId/"
+    | "/evaluation/evaluation-tool/"
+    | "/evaluation/evaluations/"
+    | "/evaluator-ai/assessment/"
+    | "/evaluator-ai/evaluation/"
+    | "/evaluator-ai/students/"
+    | "/financial-management/collection-dashboard/"
+    | "/financial-management/fee-plans/"
+    | "/financial-management/manage-finances/"
+    | "/homework-creation/assessment-list/"
+    | "/login/$key/"
+    | "/login/forgot-password/"
+    | "/manage-institute/batches/"
+    | "/manage-institute/sessions/"
+    | "/manage-institute/teams/"
+    | "/manage-students/enroll-requests/"
+    | "/manage-students/invite/"
+    | "/manage-students/students-list/"
+    | "/planning/activity-logs/"
+    | "/planning/planning/"
+    | "/settings/fee-management/"
+    | "/signup/onboarding/"
+    | "/study-library/ai-copilot/"
+    | "/study-library/ai-course-builder/"
+    | "/study-library/attendance-tracker/"
+    | "/study-library/courses/"
+    | "/study-library/doubt-management/"
+    | "/study-library/live-session/"
+    | "/study-library/reports/"
+    | "/study-library/volt/"
+    | "/templates/create/"
+    | "/user-tags/institute/"
+    | "/user-tags/link/"
+    | "/video-api-studio/console/"
+    | "/workflow/$workflowId/"
+    | "/workflow/list/"
+    | "/study-library/live-session/view/$sessionId"
+    | "/admissions/application/new/"
+    | "/admissions/new-enquiry/$audienceId/"
+    | "/ai-center/ai-tools/vsmart-audio/"
+    | "/ai-center/ai-tools/vsmart-chat/"
+    | "/ai-center/ai-tools/vsmart-extract/"
+    | "/ai-center/ai-tools/vsmart-feedback/"
+    | "/ai-center/ai-tools/vsmart-image/"
+    | "/ai-center/ai-tools/vsmart-lecture/"
+    | "/ai-center/ai-tools/vsmart-organizer/"
+    | "/ai-center/ai-tools/vsmart-prompt/"
+    | "/ai-center/ai-tools/vsmart-sorter/"
+    | "/ai-center/ai-tools/vsmart-upload/"
+    | "/assessment/export/$assessmentId/"
+    | "/audience-manager/list/campaign-users/"
+    | "/evaluator-ai/assessment/create-assessment/"
+    | "/evaluator-ai/evaluation/student-summary/"
+    | "/planning/activity-logs/create/"
+    | "/planning/planning/create/"
+    | "/study-library/ai-copilot/course-outline/"
+    | "/study-library/courses/course-details/"
+    | "/study-library/live-session/schedule/"
+    | "/study-library/volt/add/"
+    | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
+    | "/assessment/create-assessment/$assessmentId/$examtype/"
+    | "/audience-manager/list/campaign-users/add/"
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
     | "/homework-creation/create-assessment/$assessmentId/$examtype/"
     | "/study-library/ai-copilot/course-outline/generating/"
     | "/study-library/courses/course-details/subjects/"
@@ -1689,21 +2546,33 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AgentChatRoute: typeof AgentChatRoute
+  LockedFeatureRoute: typeof LockedFeatureRoute
+  ExploreAiLazyRoute: typeof ExploreAiLazyRoute
   LandingLazyRoute: typeof LandingLazyRoute
   LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
   PricingLazyRoute: typeof PricingLazyRoute
+  AdminPackageManagementIndexRoute: typeof AdminPackageManagementIndexRoute
+  AdmissionsIndexRoute: typeof AdmissionsIndexRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
+<<<<<<< HEAD
   AiVideoStudioIndexRoute: typeof AiVideoStudioIndexRoute
   AssessmentIndexRoute: typeof AssessmentIndexRoute
+=======
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
   AuthTransferIndexRoute: typeof AuthTransferIndexRoute
+  ChallengeAnalyticsIndexRoute: typeof ChallengeAnalyticsIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   EvaluationIndexRoute: typeof EvaluationIndexRoute
   EvaluatorAiIndexRoute: typeof EvaluatorAiIndexRoute
   InstructorCopilotIndexRoute: typeof InstructorCopilotIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
+  ManageBookingsIndexRoute: typeof ManageBookingsIndexRoute
   ManageContactsIndexRoute: typeof ManageContactsIndexRoute
+  ManageCustomTeamsIndexRoute: typeof ManageCustomTeamsIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
+  ManageInventoryIndexRoute: typeof ManageInventoryIndexRoute
+  ManagePagesIndexRoute: typeof ManagePagesIndexRoute
   ManagePaymentsIndexRoute: typeof ManagePaymentsIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
   MembershipExpiryIndexRoute: typeof MembershipExpiryIndexRoute
@@ -1712,11 +2581,23 @@ export interface RootRouteChildren {
   SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
+<<<<<<< HEAD
+=======
+  VideoApiStudioIndexRoute: typeof VideoApiStudioIndexRoute
+  AssessmentIndexLazyRoute: typeof AssessmentIndexLazyRoute
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
+  ManagePagesEditorTagNameRoute: typeof ManagePagesEditorTagNameRoute
   PlanningActivityLogsLogIdRoute: typeof PlanningActivityLogsLogIdRoute
   PlanningPlanningLogIdRoute: typeof PlanningPlanningLogIdRoute
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
   TemplatesEditTemplateIdRoute: typeof TemplatesEditTemplateIdRoute
+  AdminPackageManagementBulkCreateIndexRoute: typeof AdminPackageManagementBulkCreateIndexRoute
+  AdmissionsAdmissionFormIndexRoute: typeof AdmissionsAdmissionFormIndexRoute
+  AdmissionsApplicationIndexRoute: typeof AdmissionsApplicationIndexRoute
+  AdmissionsDashboardIndexRoute: typeof AdmissionsDashboardIndexRoute
+  AdmissionsEnquiriesIndexRoute: typeof AdmissionsEnquiriesIndexRoute
+  AdmissionsNewEnquiryIndexRoute: typeof AdmissionsNewEnquiryIndexRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
   AnnouncementApprovalIndexRoute: typeof AnnouncementApprovalIndexRoute
@@ -1730,11 +2611,15 @@ export interface RootRouteChildren {
   AudienceManagerListIndexRoute: typeof AudienceManagerListIndexRoute
   CertificateGenerationStudentDataIndexRoute: typeof CertificateGenerationStudentDataIndexRoute
   CommunityQuestionPaperIndexRoute: typeof CommunityQuestionPaperIndexRoute
+  ContentContentIdIndexRoute: typeof ContentContentIdIndexRoute
   EvaluationEvaluationToolIndexRoute: typeof EvaluationEvaluationToolIndexRoute
   EvaluationEvaluationsIndexRoute: typeof EvaluationEvaluationsIndexRoute
   EvaluatorAiAssessmentIndexRoute: typeof EvaluatorAiAssessmentIndexRoute
   EvaluatorAiEvaluationIndexRoute: typeof EvaluatorAiEvaluationIndexRoute
   EvaluatorAiStudentsIndexRoute: typeof EvaluatorAiStudentsIndexRoute
+  FinancialManagementCollectionDashboardIndexRoute: typeof FinancialManagementCollectionDashboardIndexRoute
+  FinancialManagementFeePlansIndexRoute: typeof FinancialManagementFeePlansIndexRoute
+  FinancialManagementManageFinancesIndexRoute: typeof FinancialManagementManageFinancesIndexRoute
   HomeworkCreationAssessmentListIndexRoute: typeof HomeworkCreationAssessmentListIndexRoute
   LoginKeyIndexRoute: typeof LoginKeyIndexRoute
   LoginForgotPasswordIndexRoute: typeof LoginForgotPasswordIndexRoute
@@ -1746,6 +2631,7 @@ export interface RootRouteChildren {
   ManageStudentsStudentsListIndexRoute: typeof ManageStudentsStudentsListIndexRoute
   PlanningActivityLogsIndexRoute: typeof PlanningActivityLogsIndexRoute
   PlanningPlanningIndexRoute: typeof PlanningPlanningIndexRoute
+  SettingsFeeManagementIndexRoute: typeof SettingsFeeManagementIndexRoute
   SignupOnboardingIndexRoute: typeof SignupOnboardingIndexRoute
   StudyLibraryAiCopilotIndexRoute: typeof StudyLibraryAiCopilotIndexRoute
   StudyLibraryAiCourseBuilderIndexRoute: typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -1758,9 +2644,12 @@ export interface RootRouteChildren {
   TemplatesCreateIndexRoute: typeof TemplatesCreateIndexRoute
   UserTagsInstituteIndexRoute: typeof UserTagsInstituteIndexRoute
   UserTagsLinkIndexRoute: typeof UserTagsLinkIndexRoute
+  VideoApiStudioConsoleIndexRoute: typeof VideoApiStudioConsoleIndexRoute
   WorkflowWorkflowIdIndexRoute: typeof WorkflowWorkflowIdIndexRoute
   WorkflowListIndexRoute: typeof WorkflowListIndexRoute
   StudyLibraryLiveSessionViewSessionIdRoute: typeof StudyLibraryLiveSessionViewSessionIdRoute
+  AdmissionsApplicationNewIndexRoute: typeof AdmissionsApplicationNewIndexRoute
+  AdmissionsNewEnquiryAudienceIdIndexRoute: typeof AdmissionsNewEnquiryAudienceIdIndexRoute
   AiCenterAiToolsVsmartAudioIndexRoute: typeof AiCenterAiToolsVsmartAudioIndexRoute
   AiCenterAiToolsVsmartChatIndexRoute: typeof AiCenterAiToolsVsmartChatIndexRoute
   AiCenterAiToolsVsmartExtractIndexRoute: typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1783,7 +2672,11 @@ export interface RootRouteChildren {
   StudyLibraryVoltAddIndexRoute: typeof StudyLibraryVoltAddIndexRoute
   StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute: typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+<<<<<<< HEAD
   AssessmentEvaluationAiAttemptIdProcessIdIndexRoute: typeof AssessmentEvaluationAiAttemptIdProcessIdIndexRoute
+=======
+  AudienceManagerListCampaignUsersAddIndexRoute: typeof AudienceManagerListCampaignUsersAddIndexRoute
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   StudyLibraryCoursesCourseDetailsSubjectsIndexRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1823,6 +2716,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LandingLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/explore-ai": {
+      id: "/explore-ai"
+      path: "/explore-ai"
+      fullPath: "/explore-ai"
+      preLoaderRoute: typeof ExploreAiLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/locked-feature": {
+      id: "/locked-feature"
+      path: "/locked-feature"
+      fullPath: "/locked-feature"
+      preLoaderRoute: typeof LockedFeatureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/agent-chat": {
       id: "/agent-chat"
       path: "/agent-chat"
@@ -1830,80 +2737,125 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AgentChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+<<<<<<< HEAD
+=======
+    "/assessment/": {
+      id: "/assessment/"
+      path: "/assessment"
+      fullPath: "/assessment/"
+      preLoaderRoute: typeof AssessmentIndexLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/video-api-studio/": {
+      id: "/video-api-studio/"
+      path: "/video-api-studio"
+      fullPath: "/video-api-studio/"
+      preLoaderRoute: typeof VideoApiStudioIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
     "/study-library/": {
       id: "/study-library/"
       path: "/study-library"
-      fullPath: "/study-library"
+      fullPath: "/study-library/"
       preLoaderRoute: typeof StudyLibraryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/signup/": {
       id: "/signup/"
       path: "/signup"
-      fullPath: "/signup"
+      fullPath: "/signup/"
       preLoaderRoute: typeof SignupIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/settings/": {
       id: "/settings/"
       path: "/settings"
-      fullPath: "/settings"
+      fullPath: "/settings/"
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/planning/": {
       id: "/planning/"
       path: "/planning"
-      fullPath: "/planning"
+      fullPath: "/planning/"
       preLoaderRoute: typeof PlanningIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/membership-stats/": {
       id: "/membership-stats/"
       path: "/membership-stats"
-      fullPath: "/membership-stats"
+      fullPath: "/membership-stats/"
       preLoaderRoute: typeof MembershipStatsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/membership-expiry/": {
       id: "/membership-expiry/"
       path: "/membership-expiry"
-      fullPath: "/membership-expiry"
+      fullPath: "/membership-expiry/"
       preLoaderRoute: typeof MembershipExpiryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/": {
       id: "/manage-students/"
       path: "/manage-students"
-      fullPath: "/manage-students"
+      fullPath: "/manage-students/"
       preLoaderRoute: typeof ManageStudentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-payments/": {
       id: "/manage-payments/"
       path: "/manage-payments"
-      fullPath: "/manage-payments"
+      fullPath: "/manage-payments/"
       preLoaderRoute: typeof ManagePaymentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/manage-pages/": {
+      id: "/manage-pages/"
+      path: "/manage-pages"
+      fullPath: "/manage-pages/"
+      preLoaderRoute: typeof ManagePagesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/manage-inventory/": {
+      id: "/manage-inventory/"
+      path: "/manage-inventory"
+      fullPath: "/manage-inventory/"
+      preLoaderRoute: typeof ManageInventoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-institute/": {
       id: "/manage-institute/"
       path: "/manage-institute"
-      fullPath: "/manage-institute"
+      fullPath: "/manage-institute/"
       preLoaderRoute: typeof ManageInstituteIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/manage-custom-teams/": {
+      id: "/manage-custom-teams/"
+      path: "/manage-custom-teams"
+      fullPath: "/manage-custom-teams/"
+      preLoaderRoute: typeof ManageCustomTeamsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-contacts/": {
       id: "/manage-contacts/"
       path: "/manage-contacts"
-      fullPath: "/manage-contacts"
+      fullPath: "/manage-contacts/"
       preLoaderRoute: typeof ManageContactsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/manage-bookings/": {
+      id: "/manage-bookings/"
+      path: "/manage-bookings"
+      fullPath: "/manage-bookings/"
+      preLoaderRoute: typeof ManageBookingsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/login/": {
       id: "/login/"
       path: "/login"
-      fullPath: "/login"
+      fullPath: "/login/"
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -1917,45 +2869,53 @@ declare module "@tanstack/react-router" {
     "/instructor-copilot/": {
       id: "/instructor-copilot/"
       path: "/instructor-copilot"
-      fullPath: "/instructor-copilot"
+      fullPath: "/instructor-copilot/"
       preLoaderRoute: typeof InstructorCopilotIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluator-ai/": {
       id: "/evaluator-ai/"
       path: "/evaluator-ai"
-      fullPath: "/evaluator-ai"
+      fullPath: "/evaluator-ai/"
       preLoaderRoute: typeof EvaluatorAiIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluation/": {
       id: "/evaluation/"
       path: "/evaluation"
-      fullPath: "/evaluation"
+      fullPath: "/evaluation/"
       preLoaderRoute: typeof EvaluationIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/dashboard/": {
       id: "/dashboard/"
       path: "/dashboard"
-      fullPath: "/dashboard"
+      fullPath: "/dashboard/"
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/community/": {
       id: "/community/"
       path: "/community"
-      fullPath: "/community"
+      fullPath: "/community/"
       preLoaderRoute: typeof CommunityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/challenge-analytics/": {
+      id: "/challenge-analytics/"
+      path: "/challenge-analytics"
+      fullPath: "/challenge-analytics/"
+      preLoaderRoute: typeof ChallengeAnalyticsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/auth-transfer/": {
       id: "/auth-transfer/"
       path: "/auth-transfer"
-      fullPath: "/auth-transfer"
+      fullPath: "/auth-transfer/"
       preLoaderRoute: typeof AuthTransferIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+<<<<<<< HEAD
     "/assessment/": {
       id: "/assessment/"
       path: "/assessment"
@@ -1970,248 +2930,306 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AiVideoStudioIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+=======
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
     "/ai-center/": {
       id: "/ai-center/"
       path: "/ai-center"
-      fullPath: "/ai-center"
+      fullPath: "/ai-center/"
       preLoaderRoute: typeof AiCenterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/": {
+      id: "/admissions/"
+      path: "/admissions"
+      fullPath: "/admissions/"
+      preLoaderRoute: typeof AdmissionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admin-package-management/": {
+      id: "/admin-package-management/"
+      path: "/admin-package-management"
+      fullPath: "/admin-package-management/"
+      preLoaderRoute: typeof AdminPackageManagementIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/workflow/list/": {
       id: "/workflow/list/"
       path: "/workflow/list"
-      fullPath: "/workflow/list"
+      fullPath: "/workflow/list/"
       preLoaderRoute: typeof WorkflowListIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/workflow/$workflowId/": {
       id: "/workflow/$workflowId/"
       path: "/workflow/$workflowId"
-      fullPath: "/workflow/$workflowId"
+      fullPath: "/workflow/$workflowId/"
       preLoaderRoute: typeof WorkflowWorkflowIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/video-api-studio/console/": {
+      id: "/video-api-studio/console/"
+      path: "/video-api-studio/console"
+      fullPath: "/video-api-studio/console/"
+      preLoaderRoute: typeof VideoApiStudioConsoleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/user-tags/link/": {
       id: "/user-tags/link/"
       path: "/user-tags/link"
-      fullPath: "/user-tags/link"
+      fullPath: "/user-tags/link/"
       preLoaderRoute: typeof UserTagsLinkIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/user-tags/institute/": {
       id: "/user-tags/institute/"
       path: "/user-tags/institute"
-      fullPath: "/user-tags/institute"
+      fullPath: "/user-tags/institute/"
       preLoaderRoute: typeof UserTagsInstituteIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/templates/create/": {
       id: "/templates/create/"
       path: "/templates/create"
-      fullPath: "/templates/create"
+      fullPath: "/templates/create/"
       preLoaderRoute: typeof TemplatesCreateIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/volt/": {
       id: "/study-library/volt/"
       path: "/study-library/volt"
-      fullPath: "/study-library/volt"
+      fullPath: "/study-library/volt/"
       preLoaderRoute: typeof StudyLibraryVoltIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/reports/": {
       id: "/study-library/reports/"
       path: "/study-library/reports"
-      fullPath: "/study-library/reports"
+      fullPath: "/study-library/reports/"
       preLoaderRoute: typeof StudyLibraryReportsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/live-session/": {
       id: "/study-library/live-session/"
       path: "/study-library/live-session"
-      fullPath: "/study-library/live-session"
+      fullPath: "/study-library/live-session/"
       preLoaderRoute: typeof StudyLibraryLiveSessionIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/doubt-management/": {
       id: "/study-library/doubt-management/"
       path: "/study-library/doubt-management"
-      fullPath: "/study-library/doubt-management"
+      fullPath: "/study-library/doubt-management/"
       preLoaderRoute: typeof StudyLibraryDoubtManagementIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/courses/": {
       id: "/study-library/courses/"
       path: "/study-library/courses"
-      fullPath: "/study-library/courses"
+      fullPath: "/study-library/courses/"
       preLoaderRoute: typeof StudyLibraryCoursesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/attendance-tracker/": {
       id: "/study-library/attendance-tracker/"
       path: "/study-library/attendance-tracker"
-      fullPath: "/study-library/attendance-tracker"
+      fullPath: "/study-library/attendance-tracker/"
       preLoaderRoute: typeof StudyLibraryAttendanceTrackerIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/ai-course-builder/": {
       id: "/study-library/ai-course-builder/"
       path: "/study-library/ai-course-builder"
-      fullPath: "/study-library/ai-course-builder"
+      fullPath: "/study-library/ai-course-builder/"
       preLoaderRoute: typeof StudyLibraryAiCourseBuilderIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/ai-copilot/": {
       id: "/study-library/ai-copilot/"
       path: "/study-library/ai-copilot"
-      fullPath: "/study-library/ai-copilot"
+      fullPath: "/study-library/ai-copilot/"
       preLoaderRoute: typeof StudyLibraryAiCopilotIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/signup/onboarding/": {
       id: "/signup/onboarding/"
       path: "/signup/onboarding"
-      fullPath: "/signup/onboarding"
+      fullPath: "/signup/onboarding/"
       preLoaderRoute: typeof SignupOnboardingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/settings/fee-management/": {
+      id: "/settings/fee-management/"
+      path: "/settings/fee-management"
+      fullPath: "/settings/fee-management/"
+      preLoaderRoute: typeof SettingsFeeManagementIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/planning/planning/": {
       id: "/planning/planning/"
       path: "/planning/planning"
-      fullPath: "/planning/planning"
+      fullPath: "/planning/planning/"
       preLoaderRoute: typeof PlanningPlanningIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/planning/activity-logs/": {
       id: "/planning/activity-logs/"
       path: "/planning/activity-logs"
-      fullPath: "/planning/activity-logs"
+      fullPath: "/planning/activity-logs/"
       preLoaderRoute: typeof PlanningActivityLogsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/students-list/": {
       id: "/manage-students/students-list/"
       path: "/manage-students/students-list"
-      fullPath: "/manage-students/students-list"
+      fullPath: "/manage-students/students-list/"
       preLoaderRoute: typeof ManageStudentsStudentsListIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/invite/": {
       id: "/manage-students/invite/"
       path: "/manage-students/invite"
-      fullPath: "/manage-students/invite"
+      fullPath: "/manage-students/invite/"
       preLoaderRoute: typeof ManageStudentsInviteIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/enroll-requests/": {
       id: "/manage-students/enroll-requests/"
       path: "/manage-students/enroll-requests"
-      fullPath: "/manage-students/enroll-requests"
+      fullPath: "/manage-students/enroll-requests/"
       preLoaderRoute: typeof ManageStudentsEnrollRequestsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-institute/teams/": {
       id: "/manage-institute/teams/"
       path: "/manage-institute/teams"
-      fullPath: "/manage-institute/teams"
+      fullPath: "/manage-institute/teams/"
       preLoaderRoute: typeof ManageInstituteTeamsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-institute/sessions/": {
       id: "/manage-institute/sessions/"
       path: "/manage-institute/sessions"
-      fullPath: "/manage-institute/sessions"
+      fullPath: "/manage-institute/sessions/"
       preLoaderRoute: typeof ManageInstituteSessionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-institute/batches/": {
       id: "/manage-institute/batches/"
       path: "/manage-institute/batches"
-      fullPath: "/manage-institute/batches"
+      fullPath: "/manage-institute/batches/"
       preLoaderRoute: typeof ManageInstituteBatchesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/login/forgot-password/": {
       id: "/login/forgot-password/"
       path: "/login/forgot-password"
-      fullPath: "/login/forgot-password"
+      fullPath: "/login/forgot-password/"
       preLoaderRoute: typeof LoginForgotPasswordIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/login/$key/": {
       id: "/login/$key/"
       path: "/login/$key"
-      fullPath: "/login/$key"
+      fullPath: "/login/$key/"
       preLoaderRoute: typeof LoginKeyIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/homework-creation/assessment-list/": {
       id: "/homework-creation/assessment-list/"
       path: "/homework-creation/assessment-list"
-      fullPath: "/homework-creation/assessment-list"
+      fullPath: "/homework-creation/assessment-list/"
       preLoaderRoute: typeof HomeworkCreationAssessmentListIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/financial-management/manage-finances/": {
+      id: "/financial-management/manage-finances/"
+      path: "/financial-management/manage-finances"
+      fullPath: "/financial-management/manage-finances/"
+      preLoaderRoute: typeof FinancialManagementManageFinancesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/financial-management/fee-plans/": {
+      id: "/financial-management/fee-plans/"
+      path: "/financial-management/fee-plans"
+      fullPath: "/financial-management/fee-plans/"
+      preLoaderRoute: typeof FinancialManagementFeePlansIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/financial-management/collection-dashboard/": {
+      id: "/financial-management/collection-dashboard/"
+      path: "/financial-management/collection-dashboard"
+      fullPath: "/financial-management/collection-dashboard/"
+      preLoaderRoute: typeof FinancialManagementCollectionDashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluator-ai/students/": {
       id: "/evaluator-ai/students/"
       path: "/evaluator-ai/students"
-      fullPath: "/evaluator-ai/students"
+      fullPath: "/evaluator-ai/students/"
       preLoaderRoute: typeof EvaluatorAiStudentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluator-ai/evaluation/": {
       id: "/evaluator-ai/evaluation/"
       path: "/evaluator-ai/evaluation"
-      fullPath: "/evaluator-ai/evaluation"
+      fullPath: "/evaluator-ai/evaluation/"
       preLoaderRoute: typeof EvaluatorAiEvaluationIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluator-ai/assessment/": {
       id: "/evaluator-ai/assessment/"
       path: "/evaluator-ai/assessment"
-      fullPath: "/evaluator-ai/assessment"
+      fullPath: "/evaluator-ai/assessment/"
       preLoaderRoute: typeof EvaluatorAiAssessmentIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluation/evaluations/": {
       id: "/evaluation/evaluations/"
       path: "/evaluation/evaluations"
-      fullPath: "/evaluation/evaluations"
+      fullPath: "/evaluation/evaluations/"
       preLoaderRoute: typeof EvaluationEvaluationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluation/evaluation-tool/": {
       id: "/evaluation/evaluation-tool/"
       path: "/evaluation/evaluation-tool"
-      fullPath: "/evaluation/evaluation-tool"
+      fullPath: "/evaluation/evaluation-tool/"
       preLoaderRoute: typeof EvaluationEvaluationToolIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/content/$contentId/": {
+      id: "/content/$contentId/"
+      path: "/content/$contentId"
+      fullPath: "/content/$contentId/"
+      preLoaderRoute: typeof ContentContentIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/community/question-paper/": {
       id: "/community/question-paper/"
       path: "/community/question-paper"
-      fullPath: "/community/question-paper"
+      fullPath: "/community/question-paper/"
       preLoaderRoute: typeof CommunityQuestionPaperIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/certificate-generation/student-data/": {
       id: "/certificate-generation/student-data/"
       path: "/certificate-generation/student-data"
-      fullPath: "/certificate-generation/student-data"
+      fullPath: "/certificate-generation/student-data/"
       preLoaderRoute: typeof CertificateGenerationStudentDataIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/audience-manager/list/": {
       id: "/audience-manager/list/"
       path: "/audience-manager/list"
-      fullPath: "/audience-manager/list"
+      fullPath: "/audience-manager/list/"
       preLoaderRoute: typeof AudienceManagerListIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/assessment/question-papers/": {
       id: "/assessment/question-papers/"
       path: "/assessment/question-papers"
-      fullPath: "/assessment/question-papers"
+      fullPath: "/assessment/question-papers/"
       preLoaderRoute: typeof AssessmentQuestionPapersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -2225,57 +3243,99 @@ declare module "@tanstack/react-router" {
     "/assessment/assessment-list/": {
       id: "/assessment/assessment-list/"
       path: "/assessment/assessment-list"
-      fullPath: "/assessment/assessment-list"
+      fullPath: "/assessment/assessment-list/"
       preLoaderRoute: typeof AssessmentAssessmentListIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/announcement/schedule/": {
       id: "/announcement/schedule/"
       path: "/announcement/schedule"
-      fullPath: "/announcement/schedule"
+      fullPath: "/announcement/schedule/"
       preLoaderRoute: typeof AnnouncementScheduleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/announcement/history/": {
       id: "/announcement/history/"
       path: "/announcement/history"
-      fullPath: "/announcement/history"
+      fullPath: "/announcement/history/"
       preLoaderRoute: typeof AnnouncementHistoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/announcement/email-campaigning/": {
       id: "/announcement/email-campaigning/"
       path: "/announcement/email-campaigning"
-      fullPath: "/announcement/email-campaigning"
+      fullPath: "/announcement/email-campaigning/"
       preLoaderRoute: typeof AnnouncementEmailCampaigningIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/announcement/create/": {
       id: "/announcement/create/"
       path: "/announcement/create"
-      fullPath: "/announcement/create"
+      fullPath: "/announcement/create/"
       preLoaderRoute: typeof AnnouncementCreateIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/announcement/approval/": {
       id: "/announcement/approval/"
       path: "/announcement/approval"
-      fullPath: "/announcement/approval"
+      fullPath: "/announcement/approval/"
       preLoaderRoute: typeof AnnouncementApprovalIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/my-resources/": {
       id: "/ai-center/my-resources/"
       path: "/ai-center/my-resources"
-      fullPath: "/ai-center/my-resources"
+      fullPath: "/ai-center/my-resources/"
       preLoaderRoute: typeof AiCenterMyResourcesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/": {
       id: "/ai-center/ai-tools/"
       path: "/ai-center/ai-tools"
-      fullPath: "/ai-center/ai-tools"
+      fullPath: "/ai-center/ai-tools/"
       preLoaderRoute: typeof AiCenterAiToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/new-enquiry/": {
+      id: "/admissions/new-enquiry/"
+      path: "/admissions/new-enquiry"
+      fullPath: "/admissions/new-enquiry/"
+      preLoaderRoute: typeof AdmissionsNewEnquiryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/enquiries/": {
+      id: "/admissions/enquiries/"
+      path: "/admissions/enquiries"
+      fullPath: "/admissions/enquiries/"
+      preLoaderRoute: typeof AdmissionsEnquiriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/dashboard/": {
+      id: "/admissions/dashboard/"
+      path: "/admissions/dashboard"
+      fullPath: "/admissions/dashboard/"
+      preLoaderRoute: typeof AdmissionsDashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/application/": {
+      id: "/admissions/application/"
+      path: "/admissions/application"
+      fullPath: "/admissions/application/"
+      preLoaderRoute: typeof AdmissionsApplicationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/admission-form/": {
+      id: "/admissions/admission-form/"
+      path: "/admissions/admission-form"
+      fullPath: "/admissions/admission-form/"
+      preLoaderRoute: typeof AdmissionsAdmissionFormIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admin-package-management/bulk-create/": {
+      id: "/admin-package-management/bulk-create/"
+      path: "/admin-package-management/bulk-create"
+      fullPath: "/admin-package-management/bulk-create/"
+      preLoaderRoute: typeof AdminPackageManagementBulkCreateIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/templates/edit/$templateId": {
@@ -2306,6 +3366,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PlanningActivityLogsLogIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/manage-pages/editor/$tagName": {
+      id: "/manage-pages/editor/$tagName"
+      path: "/manage-pages/editor/$tagName"
+      fullPath: "/manage-pages/editor/$tagName"
+      preLoaderRoute: typeof ManagePagesEditorTagNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/login/oauth/redirect": {
       id: "/login/oauth/redirect"
       path: "/login/oauth/redirect"
@@ -2316,141 +3383,155 @@ declare module "@tanstack/react-router" {
     "/study-library/volt/add/": {
       id: "/study-library/volt/add/"
       path: "/study-library/volt/add"
-      fullPath: "/study-library/volt/add"
+      fullPath: "/study-library/volt/add/"
       preLoaderRoute: typeof StudyLibraryVoltAddIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/live-session/schedule/": {
       id: "/study-library/live-session/schedule/"
       path: "/study-library/live-session/schedule"
-      fullPath: "/study-library/live-session/schedule"
+      fullPath: "/study-library/live-session/schedule/"
       preLoaderRoute: typeof StudyLibraryLiveSessionScheduleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/courses/course-details/": {
       id: "/study-library/courses/course-details/"
       path: "/study-library/courses/course-details"
-      fullPath: "/study-library/courses/course-details"
+      fullPath: "/study-library/courses/course-details/"
       preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/ai-copilot/course-outline/": {
       id: "/study-library/ai-copilot/course-outline/"
       path: "/study-library/ai-copilot/course-outline"
-      fullPath: "/study-library/ai-copilot/course-outline"
+      fullPath: "/study-library/ai-copilot/course-outline/"
       preLoaderRoute: typeof StudyLibraryAiCopilotCourseOutlineIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/planning/planning/create/": {
       id: "/planning/planning/create/"
       path: "/planning/planning/create"
-      fullPath: "/planning/planning/create"
+      fullPath: "/planning/planning/create/"
       preLoaderRoute: typeof PlanningPlanningCreateIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/planning/activity-logs/create/": {
       id: "/planning/activity-logs/create/"
       path: "/planning/activity-logs/create"
-      fullPath: "/planning/activity-logs/create"
+      fullPath: "/planning/activity-logs/create/"
       preLoaderRoute: typeof PlanningActivityLogsCreateIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluator-ai/evaluation/student-summary/": {
       id: "/evaluator-ai/evaluation/student-summary/"
       path: "/evaluator-ai/evaluation/student-summary"
-      fullPath: "/evaluator-ai/evaluation/student-summary"
+      fullPath: "/evaluator-ai/evaluation/student-summary/"
       preLoaderRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluator-ai/assessment/create-assessment/": {
       id: "/evaluator-ai/assessment/create-assessment/"
       path: "/evaluator-ai/assessment/create-assessment"
-      fullPath: "/evaluator-ai/assessment/create-assessment"
+      fullPath: "/evaluator-ai/assessment/create-assessment/"
       preLoaderRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/audience-manager/list/campaign-users/": {
       id: "/audience-manager/list/campaign-users/"
       path: "/audience-manager/list/campaign-users"
-      fullPath: "/audience-manager/list/campaign-users"
+      fullPath: "/audience-manager/list/campaign-users/"
       preLoaderRoute: typeof AudienceManagerListCampaignUsersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/assessment/export/$assessmentId/": {
       id: "/assessment/export/$assessmentId/"
       path: "/assessment/export/$assessmentId"
-      fullPath: "/assessment/export/$assessmentId"
+      fullPath: "/assessment/export/$assessmentId/"
       preLoaderRoute: typeof AssessmentExportAssessmentIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-upload/": {
       id: "/ai-center/ai-tools/vsmart-upload/"
       path: "/ai-center/ai-tools/vsmart-upload"
-      fullPath: "/ai-center/ai-tools/vsmart-upload"
+      fullPath: "/ai-center/ai-tools/vsmart-upload/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartUploadIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-sorter/": {
       id: "/ai-center/ai-tools/vsmart-sorter/"
       path: "/ai-center/ai-tools/vsmart-sorter"
-      fullPath: "/ai-center/ai-tools/vsmart-sorter"
+      fullPath: "/ai-center/ai-tools/vsmart-sorter/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartSorterIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-prompt/": {
       id: "/ai-center/ai-tools/vsmart-prompt/"
       path: "/ai-center/ai-tools/vsmart-prompt"
-      fullPath: "/ai-center/ai-tools/vsmart-prompt"
+      fullPath: "/ai-center/ai-tools/vsmart-prompt/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartPromptIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-organizer/": {
       id: "/ai-center/ai-tools/vsmart-organizer/"
       path: "/ai-center/ai-tools/vsmart-organizer"
-      fullPath: "/ai-center/ai-tools/vsmart-organizer"
+      fullPath: "/ai-center/ai-tools/vsmart-organizer/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartOrganizerIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-lecture/": {
       id: "/ai-center/ai-tools/vsmart-lecture/"
       path: "/ai-center/ai-tools/vsmart-lecture"
-      fullPath: "/ai-center/ai-tools/vsmart-lecture"
+      fullPath: "/ai-center/ai-tools/vsmart-lecture/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartLectureIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-image/": {
       id: "/ai-center/ai-tools/vsmart-image/"
       path: "/ai-center/ai-tools/vsmart-image"
-      fullPath: "/ai-center/ai-tools/vsmart-image"
+      fullPath: "/ai-center/ai-tools/vsmart-image/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartImageIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-feedback/": {
       id: "/ai-center/ai-tools/vsmart-feedback/"
       path: "/ai-center/ai-tools/vsmart-feedback"
-      fullPath: "/ai-center/ai-tools/vsmart-feedback"
+      fullPath: "/ai-center/ai-tools/vsmart-feedback/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartFeedbackIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-extract/": {
       id: "/ai-center/ai-tools/vsmart-extract/"
       path: "/ai-center/ai-tools/vsmart-extract"
-      fullPath: "/ai-center/ai-tools/vsmart-extract"
+      fullPath: "/ai-center/ai-tools/vsmart-extract/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartExtractIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-chat/": {
       id: "/ai-center/ai-tools/vsmart-chat/"
       path: "/ai-center/ai-tools/vsmart-chat"
-      fullPath: "/ai-center/ai-tools/vsmart-chat"
+      fullPath: "/ai-center/ai-tools/vsmart-chat/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartChatIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/ai-tools/vsmart-audio/": {
       id: "/ai-center/ai-tools/vsmart-audio/"
       path: "/ai-center/ai-tools/vsmart-audio"
-      fullPath: "/ai-center/ai-tools/vsmart-audio"
+      fullPath: "/ai-center/ai-tools/vsmart-audio/"
       preLoaderRoute: typeof AiCenterAiToolsVsmartAudioIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/new-enquiry/$audienceId/": {
+      id: "/admissions/new-enquiry/$audienceId/"
+      path: "/admissions/new-enquiry/$audienceId"
+      fullPath: "/admissions/new-enquiry/$audienceId/"
+      preLoaderRoute: typeof AdmissionsNewEnquiryAudienceIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/admissions/application/new/": {
+      id: "/admissions/application/new/"
+      path: "/admissions/application/new"
+      fullPath: "/admissions/application/new/"
+      preLoaderRoute: typeof AdmissionsApplicationNewIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/live-session/view/$sessionId": {
@@ -2463,49 +3544,57 @@ declare module "@tanstack/react-router" {
     "/study-library/live-session/schedule/step2/": {
       id: "/study-library/live-session/schedule/step2/"
       path: "/study-library/live-session/schedule/step2"
-      fullPath: "/study-library/live-session/schedule/step2"
+      fullPath: "/study-library/live-session/schedule/step2/"
       preLoaderRoute: typeof StudyLibraryLiveSessionScheduleStep2IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/live-session/schedule/step1/": {
       id: "/study-library/live-session/schedule/step1/"
       path: "/study-library/live-session/schedule/step1"
-      fullPath: "/study-library/live-session/schedule/step1"
+      fullPath: "/study-library/live-session/schedule/step1/"
       preLoaderRoute: typeof StudyLibraryLiveSessionScheduleStep1IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/courses/course-details/subjects/": {
       id: "/study-library/courses/course-details/subjects/"
       path: "/study-library/courses/course-details/subjects"
-      fullPath: "/study-library/courses/course-details/subjects"
+      fullPath: "/study-library/courses/course-details/subjects/"
       preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/ai-copilot/course-outline/generating/": {
       id: "/study-library/ai-copilot/course-outline/generating/"
       path: "/study-library/ai-copilot/course-outline/generating"
-      fullPath: "/study-library/ai-copilot/course-outline/generating"
+      fullPath: "/study-library/ai-copilot/course-outline/generating/"
       preLoaderRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/homework-creation/create-assessment/$assessmentId/$examtype/": {
       id: "/homework-creation/create-assessment/$assessmentId/$examtype/"
       path: "/homework-creation/create-assessment/$assessmentId/$examtype"
-      fullPath: "/homework-creation/create-assessment/$assessmentId/$examtype"
+      fullPath: "/homework-creation/create-assessment/$assessmentId/$examtype/"
       preLoaderRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+<<<<<<< HEAD
     "/assessment/evaluation-ai/$attemptId/$processId/": {
       id: "/assessment/evaluation-ai/$attemptId/$processId/"
       path: "/assessment/evaluation-ai/$attemptId/$processId"
       fullPath: "/assessment/evaluation-ai/$attemptId/$processId"
       preLoaderRoute: typeof AssessmentEvaluationAiAttemptIdProcessIdIndexRouteImport
+=======
+    "/audience-manager/list/campaign-users/add/": {
+      id: "/audience-manager/list/campaign-users/add/"
+      path: "/audience-manager/list/campaign-users/add"
+      fullPath: "/audience-manager/list/campaign-users/add/"
+      preLoaderRoute: typeof AudienceManagerListCampaignUsersAddIndexRouteImport
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
       parentRoute: typeof rootRouteImport
     }
     "/assessment/create-assessment/$assessmentId/$examtype/": {
       id: "/assessment/create-assessment/$assessmentId/$examtype/"
       path: "/assessment/create-assessment/$assessmentId/$examtype"
-      fullPath: "/assessment/create-assessment/$assessmentId/$examtype"
+      fullPath: "/assessment/create-assessment/$assessmentId/$examtype/"
       preLoaderRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -2519,63 +3608,63 @@ declare module "@tanstack/react-router" {
     "/study-library/courses/course-details/subjects/modules/": {
       id: "/study-library/courses/course-details/subjects/modules/"
       path: "/study-library/courses/course-details/subjects/modules"
-      fullPath: "/study-library/courses/course-details/subjects/modules"
+      fullPath: "/study-library/courses/course-details/subjects/modules/"
       preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/ai-copilot/course-outline/generating/viewer/": {
       id: "/study-library/ai-copilot/course-outline/generating/viewer/"
       path: "/study-library/ai-copilot/course-outline/generating/viewer"
-      fullPath: "/study-library/ai-copilot/course-outline/generating/viewer"
+      fullPath: "/study-library/ai-copilot/course-outline/generating/viewer/"
       preLoaderRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/ai-copilot/course-outline/generating/processing/": {
       id: "/study-library/ai-copilot/course-outline/generating/processing/"
       path: "/study-library/ai-copilot/course-outline/generating/processing"
-      fullPath: "/study-library/ai-copilot/course-outline/generating/processing"
+      fullPath: "/study-library/ai-copilot/course-outline/generating/processing/"
       preLoaderRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluation/evaluate/$assessmentId/$attemptId/$examType/": {
       id: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/"
       path: "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
-      fullPath: "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
+      fullPath: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/"
       preLoaderRoute: typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/courses/course-details/subjects/modules/chapters/": {
       id: "/study-library/courses/course-details/subjects/modules/chapters/"
       path: "/study-library/courses/course-details/subjects/modules/chapters"
-      fullPath: "/study-library/courses/course-details/subjects/modules/chapters"
+      fullPath: "/study-library/courses/course-details/subjects/modules/chapters/"
       preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/": {
       id: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/"
       path: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType"
-      fullPath: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType"
+      fullPath: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/"
       preLoaderRoute: typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/courses/course-details/subjects/modules/chapters/slides/": {
       id: "/study-library/courses/course-details/subjects/modules/chapters/slides/"
       path: "/study-library/courses/course-details/subjects/modules/chapters/slides"
-      fullPath: "/study-library/courses/course-details/subjects/modules/chapters/slides"
+      fullPath: "/study-library/courses/course-details/subjects/modules/chapters/slides/"
       preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": {
       id: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
       path: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
-      fullPath: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
+      fullPath: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
       preLoaderRoute: typeof HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": {
       id: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
       path: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
-      fullPath: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
+      fullPath: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
       preLoaderRoute: typeof AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -2595,21 +3684,33 @@ const LearnerInsightsLazyRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AgentChatRoute: AgentChatRoute,
+  LockedFeatureRoute: LockedFeatureRoute,
+  ExploreAiLazyRoute: ExploreAiLazyRoute,
   LandingLazyRoute: LandingLazyRoute,
   LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,
   PricingLazyRoute: PricingLazyRoute,
+  AdminPackageManagementIndexRoute: AdminPackageManagementIndexRoute,
+  AdmissionsIndexRoute: AdmissionsIndexRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
+<<<<<<< HEAD
   AiVideoStudioIndexRoute: AiVideoStudioIndexRoute,
   AssessmentIndexRoute: AssessmentIndexRoute,
+=======
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
   AuthTransferIndexRoute: AuthTransferIndexRoute,
+  ChallengeAnalyticsIndexRoute: ChallengeAnalyticsIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   EvaluationIndexRoute: EvaluationIndexRoute,
   EvaluatorAiIndexRoute: EvaluatorAiIndexRoute,
   InstructorCopilotIndexRoute: InstructorCopilotIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
+  ManageBookingsIndexRoute: ManageBookingsIndexRoute,
   ManageContactsIndexRoute: ManageContactsIndexRoute,
+  ManageCustomTeamsIndexRoute: ManageCustomTeamsIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
+  ManageInventoryIndexRoute: ManageInventoryIndexRoute,
+  ManagePagesIndexRoute: ManagePagesIndexRoute,
   ManagePaymentsIndexRoute: ManagePaymentsIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
   MembershipExpiryIndexRoute: MembershipExpiryIndexRoute,
@@ -2618,11 +3719,24 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
+<<<<<<< HEAD
+=======
+  VideoApiStudioIndexRoute: VideoApiStudioIndexRoute,
+  AssessmentIndexLazyRoute: AssessmentIndexLazyRoute,
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
+  ManagePagesEditorTagNameRoute: ManagePagesEditorTagNameRoute,
   PlanningActivityLogsLogIdRoute: PlanningActivityLogsLogIdRoute,
   PlanningPlanningLogIdRoute: PlanningPlanningLogIdRoute,
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
   TemplatesEditTemplateIdRoute: TemplatesEditTemplateIdRoute,
+  AdminPackageManagementBulkCreateIndexRoute:
+    AdminPackageManagementBulkCreateIndexRoute,
+  AdmissionsAdmissionFormIndexRoute: AdmissionsAdmissionFormIndexRoute,
+  AdmissionsApplicationIndexRoute: AdmissionsApplicationIndexRoute,
+  AdmissionsDashboardIndexRoute: AdmissionsDashboardIndexRoute,
+  AdmissionsEnquiriesIndexRoute: AdmissionsEnquiriesIndexRoute,
+  AdmissionsNewEnquiryIndexRoute: AdmissionsNewEnquiryIndexRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
   AnnouncementApprovalIndexRoute: AnnouncementApprovalIndexRoute,
@@ -2638,11 +3752,17 @@ const rootRouteChildren: RootRouteChildren = {
   CertificateGenerationStudentDataIndexRoute:
     CertificateGenerationStudentDataIndexRoute,
   CommunityQuestionPaperIndexRoute: CommunityQuestionPaperIndexRoute,
+  ContentContentIdIndexRoute: ContentContentIdIndexRoute,
   EvaluationEvaluationToolIndexRoute: EvaluationEvaluationToolIndexRoute,
   EvaluationEvaluationsIndexRoute: EvaluationEvaluationsIndexRoute,
   EvaluatorAiAssessmentIndexRoute: EvaluatorAiAssessmentIndexRoute,
   EvaluatorAiEvaluationIndexRoute: EvaluatorAiEvaluationIndexRoute,
   EvaluatorAiStudentsIndexRoute: EvaluatorAiStudentsIndexRoute,
+  FinancialManagementCollectionDashboardIndexRoute:
+    FinancialManagementCollectionDashboardIndexRoute,
+  FinancialManagementFeePlansIndexRoute: FinancialManagementFeePlansIndexRoute,
+  FinancialManagementManageFinancesIndexRoute:
+    FinancialManagementManageFinancesIndexRoute,
   HomeworkCreationAssessmentListIndexRoute:
     HomeworkCreationAssessmentListIndexRoute,
   LoginKeyIndexRoute: LoginKeyIndexRoute,
@@ -2656,6 +3776,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageStudentsStudentsListIndexRoute: ManageStudentsStudentsListIndexRoute,
   PlanningActivityLogsIndexRoute: PlanningActivityLogsIndexRoute,
   PlanningPlanningIndexRoute: PlanningPlanningIndexRoute,
+  SettingsFeeManagementIndexRoute: SettingsFeeManagementIndexRoute,
   SignupOnboardingIndexRoute: SignupOnboardingIndexRoute,
   StudyLibraryAiCopilotIndexRoute: StudyLibraryAiCopilotIndexRoute,
   StudyLibraryAiCourseBuilderIndexRoute: StudyLibraryAiCourseBuilderIndexRoute,
@@ -2669,10 +3790,14 @@ const rootRouteChildren: RootRouteChildren = {
   TemplatesCreateIndexRoute: TemplatesCreateIndexRoute,
   UserTagsInstituteIndexRoute: UserTagsInstituteIndexRoute,
   UserTagsLinkIndexRoute: UserTagsLinkIndexRoute,
+  VideoApiStudioConsoleIndexRoute: VideoApiStudioConsoleIndexRoute,
   WorkflowWorkflowIdIndexRoute: WorkflowWorkflowIdIndexRoute,
   WorkflowListIndexRoute: WorkflowListIndexRoute,
   StudyLibraryLiveSessionViewSessionIdRoute:
     StudyLibraryLiveSessionViewSessionIdRoute,
+  AdmissionsApplicationNewIndexRoute: AdmissionsApplicationNewIndexRoute,
+  AdmissionsNewEnquiryAudienceIdIndexRoute:
+    AdmissionsNewEnquiryAudienceIdIndexRoute,
   AiCenterAiToolsVsmartAudioIndexRoute: AiCenterAiToolsVsmartAudioIndexRoute,
   AiCenterAiToolsVsmartChatIndexRoute: AiCenterAiToolsVsmartChatIndexRoute,
   AiCenterAiToolsVsmartExtractIndexRoute:
@@ -2708,8 +3833,13 @@ const rootRouteChildren: RootRouteChildren = {
     StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute,
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
+<<<<<<< HEAD
   AssessmentEvaluationAiAttemptIdProcessIdIndexRoute:
     AssessmentEvaluationAiAttemptIdProcessIdIndexRoute,
+=======
+  AudienceManagerListCampaignUsersAddIndexRoute:
+    AudienceManagerListCampaignUsersAddIndexRoute,
+>>>>>>> 2e5e94f49cb4d44e0a135e6c0cb23c9058e07b1b
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute:
     HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute,
   StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute:

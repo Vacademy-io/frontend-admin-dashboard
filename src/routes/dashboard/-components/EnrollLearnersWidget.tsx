@@ -3,8 +3,11 @@ import { MyButton } from '@/components/design-system/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Users, UserPlus } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
-import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
-import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import {
+    getTerminology,
+    getTerminologyPlural,
+} from '@/components/common/layout-container/sidebar/utils';
 
 interface EnrollLearnersWidgetProps {
     batchCount?: number;
@@ -54,7 +57,8 @@ export default function EnrollLearnersWidget({
                             {learnerCount} {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s
                         </Badge>
                         <Badge variant="secondary" className="text-xs">
-                            {batchCount} Batches
+                            {batchCount}{' '}
+                            {getTerminologyPlural(ContentTerms.Batch, SystemTerms.Batch)}
                         </Badge>
                     </div>
                 </div>

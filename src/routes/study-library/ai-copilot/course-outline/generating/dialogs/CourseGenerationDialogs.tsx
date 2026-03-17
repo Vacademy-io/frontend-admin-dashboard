@@ -4,14 +4,19 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TagInput } from '@/components/ui/tag-input';
 import {
@@ -27,7 +32,6 @@ import {
     AlertTriangle,
 } from 'lucide-react';
 import { SlideType, SessionProgress } from '../../../shared/types';
-import { extractSlideTitlesFromSlides } from '../../../shared/utils/slides';
 
 interface RegenerateSlideDialogProps {
     open: boolean;
@@ -48,11 +52,11 @@ export function RegenerateSlideDialog({
 }: RegenerateSlideDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col p-0">
-                <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
+            <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-[95vw] flex-col p-0 sm:w-[80vw] sm:max-w-[80vw]">
+                <DialogHeader className="shrink-0 border-b px-6 pb-4 pt-6">
                     <DialogTitle>Regenerate Page</DialogTitle>
                 </DialogHeader>
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div>
                         <Textarea
                             ref={promptRef}
@@ -63,12 +67,8 @@ export function RegenerateSlideDialog({
                         />
                     </div>
                 </div>
-                <div className="px-6 py-4 flex-shrink-0 border-t flex justify-end">
-                    <MyButton
-                        buttonType="primary"
-                        onClick={onConfirm}
-                        disabled={!prompt.trim()}
-                    >
+                <div className="flex shrink-0 justify-end border-t px-6 py-4">
+                    <MyButton buttonType="primary" onClick={onConfirm} disabled={!prompt.trim()}>
                         Regenerate
                     </MyButton>
                 </div>
@@ -142,13 +142,13 @@ export function RegenerateSessionDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col p-0">
-                <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
+            <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-[95vw] flex-col p-0 sm:w-[80vw] sm:max-w-[80vw]">
+                <DialogHeader className="shrink-0 border-b px-6 pb-4 pt-6">
                     <DialogTitle>
                         Regenerate Chapter{session ? `: ${session.sessionTitle}` : ''}
                     </DialogTitle>
                 </DialogHeader>
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div className="flex-1 space-y-6 overflow-y-auto px-6 py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div>
                         <Label className="mb-2 block">Prompt</Label>
                         <Textarea
@@ -191,14 +191,19 @@ export function RegenerateSessionDialog({
 
                     <div>
                         <Label className="mb-2 block">Session Components</Label>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                             <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="regenerateIncludeDiagrams"
                                     checked={includeDiagrams}
-                                    onCheckedChange={(checked) => onIncludeDiagramsChange(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        onIncludeDiagramsChange(checked === true)
+                                    }
                                 />
-                                <Label htmlFor="regenerateIncludeDiagrams" className="cursor-pointer">
+                                <Label
+                                    htmlFor="regenerateIncludeDiagrams"
+                                    className="cursor-pointer"
+                                >
                                     Include diagrams
                                 </Label>
                             </div>
@@ -206,9 +211,14 @@ export function RegenerateSessionDialog({
                                 <Checkbox
                                     id="regenerateIncludeCodeSnippets"
                                     checked={includeCodeSnippets}
-                                    onCheckedChange={(checked) => onIncludeCodeSnippetsChange(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        onIncludeCodeSnippetsChange(checked === true)
+                                    }
                                 />
-                                <Label htmlFor="regenerateIncludeCodeSnippets" className="cursor-pointer">
+                                <Label
+                                    htmlFor="regenerateIncludeCodeSnippets"
+                                    className="cursor-pointer"
+                                >
                                     Include code snippets
                                 </Label>
                             </div>
@@ -216,9 +226,14 @@ export function RegenerateSessionDialog({
                                 <Checkbox
                                     id="regenerateIncludePracticeProblems"
                                     checked={includePracticeProblems}
-                                    onCheckedChange={(checked) => onIncludePracticeProblemsChange(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        onIncludePracticeProblemsChange(checked === true)
+                                    }
                                 />
-                                <Label htmlFor="regenerateIncludePracticeProblems" className="cursor-pointer">
+                                <Label
+                                    htmlFor="regenerateIncludePracticeProblems"
+                                    className="cursor-pointer"
+                                >
                                     Include practice problems
                                 </Label>
                             </div>
@@ -226,9 +241,14 @@ export function RegenerateSessionDialog({
                                 <Checkbox
                                     id="regenerateIncludeQuizzes"
                                     checked={includeQuizzes}
-                                    onCheckedChange={(checked) => onIncludeQuizzesChange(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        onIncludeQuizzesChange(checked === true)
+                                    }
                                 />
-                                <Label htmlFor="regenerateIncludeQuizzes" className="cursor-pointer">
+                                <Label
+                                    htmlFor="regenerateIncludeQuizzes"
+                                    className="cursor-pointer"
+                                >
                                     Include quizzes
                                 </Label>
                             </div>
@@ -236,9 +256,14 @@ export function RegenerateSessionDialog({
                                 <Checkbox
                                     id="regenerateIncludeHomework"
                                     checked={includeHomework}
-                                    onCheckedChange={(checked) => onIncludeHomeworkChange(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        onIncludeHomeworkChange(checked === true)
+                                    }
                                 />
-                                <Label htmlFor="regenerateIncludeHomework" className="cursor-pointer">
+                                <Label
+                                    htmlFor="regenerateIncludeHomework"
+                                    className="cursor-pointer"
+                                >
                                     Include assignments
                                 </Label>
                             </div>
@@ -246,9 +271,14 @@ export function RegenerateSessionDialog({
                                 <Checkbox
                                     id="regenerateIncludeSolutions"
                                     checked={includeSolutions}
-                                    onCheckedChange={(checked) => onIncludeSolutionsChange(checked === true)}
+                                    onCheckedChange={(checked) =>
+                                        onIncludeSolutionsChange(checked === true)
+                                    }
                                 />
-                                <Label htmlFor="regenerateIncludeSolutions" className="cursor-pointer">
+                                <Label
+                                    htmlFor="regenerateIncludeSolutions"
+                                    className="cursor-pointer"
+                                >
                                     Include solutions
                                 </Label>
                             </div>
@@ -279,12 +309,8 @@ export function RegenerateSessionDialog({
                         />
                     </div>
                 </div>
-                <div className="px-6 py-4 flex-shrink-0 border-t flex justify-end">
-                    <MyButton
-                        buttonType="primary"
-                        onClick={onConfirm}
-                        disabled={!prompt.trim()}
-                    >
+                <div className="flex shrink-0 justify-end border-t px-6 py-4">
+                    <MyButton buttonType="primary" onClick={onConfirm} disabled={!prompt.trim()}>
                         Regenerate
                     </MyButton>
                 </div>
@@ -318,8 +344,8 @@ export function AddSlideDialog({
 }: AddSlideDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col p-0">
-                <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
+            <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-[95vw] flex-col p-0 sm:w-[80vw] sm:max-w-[80vw]">
+                <DialogHeader className="shrink-0 border-b px-6 pb-4 pt-6">
                     <DialogTitle>
                         {selectedType ? 'AI Generation Prompt' : 'Select Page Type'}
                     </DialogTitle>
@@ -330,55 +356,55 @@ export function AddSlideDialog({
                     )}
                 </DialogHeader>
                 {!selectedType ? (
-                    <div className="flex-1 overflow-y-auto px-6 py-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                        <div className="grid grid-cols-3 gap-3">
+                    <div className="flex-1 overflow-y-auto p-4 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                             <button
                                 onClick={() => onSelectType('doc')}
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <FileText className="h-6 w-6 text-blue-600" />
+                                <FileText className="size-6 text-blue-600" />
                                 <span className="text-sm font-medium">Document</span>
                             </button>
                             <button
                                 onClick={() => onSelectType('pdf')}
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <File className="h-6 w-6 text-red-600" />
+                                <File className="size-6 text-red-600" />
                                 <span className="text-sm font-medium">PDF</span>
                             </button>
                             <button
                                 onClick={() => onSelectType('video')}
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <Video className="h-6 w-6 text-red-600" />
+                                <Video className="size-6 text-red-600" />
                                 <span className="text-sm font-medium">Video</span>
                             </button>
                             <button
                                 onClick={() => onSelectType('image')}
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <ImageIcon className="h-6 w-6 text-blue-600" />
+                                <ImageIcon className="size-6 text-blue-600" />
                                 <span className="text-sm font-medium">Image</span>
                             </button>
                             <button
                                 onClick={() => onSelectType('jupyter')}
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <Notebook className="h-6 w-6 text-orange-600" />
+                                <Notebook className="size-6 text-orange-600" />
                                 <span className="text-sm font-medium">Jupyter</span>
                             </button>
                             <button
                                 onClick={() => onSelectType('code-editor')}
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <Code className="h-6 w-6 text-green-600" />
+                                <Code className="size-6 text-green-600" />
                                 <span className="text-sm font-medium">Code Editor</span>
                             </button>
                             <button
                                 onClick={() => onSelectType('scratch')}
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <Puzzle className="h-6 w-6 text-purple-600" />
+                                <Puzzle className="size-6 text-purple-600" />
                                 <span className="text-sm font-medium">Scratch</span>
                             </button>
                             <button
@@ -386,8 +412,8 @@ export function AddSlideDialog({
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
                                 <div className="flex items-center gap-1">
-                                    <Video className="h-6 w-6 text-red-600" />
-                                    <Notebook className="h-6 w-6 text-orange-600" />
+                                    <Video className="size-6 text-red-600" />
+                                    <Notebook className="size-6 text-orange-600" />
                                 </div>
                                 <span className="text-sm font-medium">Video + Jupyter</span>
                             </button>
@@ -396,8 +422,8 @@ export function AddSlideDialog({
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
                                 <div className="flex items-center gap-1">
-                                    <Video className="h-6 w-6 text-red-600" />
-                                    <Code className="h-6 w-6 text-green-600" />
+                                    <Video className="size-6 text-red-600" />
+                                    <Code className="size-6 text-green-600" />
                                 </div>
                                 <span className="text-sm font-medium">Video + Code</span>
                             </button>
@@ -406,8 +432,8 @@ export function AddSlideDialog({
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
                                 <div className="flex items-center gap-1">
-                                    <Video className="h-6 w-6 text-red-600" />
-                                    <Puzzle className="h-6 w-6 text-purple-600" />
+                                    <Video className="size-6 text-red-600" />
+                                    <Puzzle className="size-6 text-purple-600" />
                                 </div>
                                 <span className="text-sm font-medium">Video + Scratch</span>
                             </button>
@@ -415,21 +441,21 @@ export function AddSlideDialog({
                                 onClick={() => onSelectType('quiz')}
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <FileQuestion className="h-6 w-6 text-purple-600" />
+                                <FileQuestion className="size-6 text-purple-600" />
                                 <span className="text-sm font-medium">Quiz</span>
                             </button>
                             <button
                                 onClick={() => onSelectType('assignment')}
                                 className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
-                                <ClipboardList className="h-6 w-6 text-orange-600" />
+                                <ClipboardList className="size-6 text-orange-600" />
                                 <span className="text-sm font-medium">Assignment</span>
                             </button>
                         </div>
                     </div>
                 ) : (
                     <>
-                        <div className="flex-1 overflow-y-auto px-6 py-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                        <div className="flex-1 overflow-y-auto px-6 py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             <Textarea
                                 ref={promptRef}
                                 value={prompt}
@@ -438,11 +464,8 @@ export function AddSlideDialog({
                                 className="min-h-[150px] text-sm"
                             />
                         </div>
-                        <div className="px-6 py-4 flex-shrink-0 border-t flex justify-end gap-2">
-                            <MyButton
-                                buttonType="secondary"
-                                onClick={onBack}
-                            >
+                        <div className="flex shrink-0 justify-end gap-2 border-t px-6 py-4">
+                            <MyButton buttonType="secondary" onClick={onBack}>
                                 Back
                             </MyButton>
                             <MyButton
@@ -477,7 +500,7 @@ export function AddSessionDialog({
 }: AddSessionDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="w-[95vw] sm:w-full sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Add New Chapter</DialogTitle>
                 </DialogHeader>
@@ -501,10 +524,7 @@ export function AddSessionDialog({
                     </div>
                 </div>
                 <div className="flex justify-end gap-3">
-                    <MyButton
-                        buttonType="secondary"
-                        onClick={() => onOpenChange(false)}
-                    >
+                    <MyButton buttonType="secondary" onClick={() => onOpenChange(false)}>
                         Cancel
                     </MyButton>
                     <MyButton
@@ -533,30 +553,29 @@ export function GenerateCourseAssetsDialog({
 }: GenerateCourseAssetsDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="w-[95vw] sm:w-full sm:max-w-md">
                 <DialogHeader>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                            <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    <div className="mb-2 flex items-center gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                            <AlertTriangle className="size-5 text-amber-600" />
                         </div>
                         <DialogTitle className="text-xl">Final Confirmation</DialogTitle>
                     </div>
                     <DialogDescription className="pt-2">
                         <div className="space-y-3 text-neutral-700">
                             <p>
-                                Please review the text content for each page carefully before proceeding.
+                                Please review the text content for each page carefully before
+                                proceeding.
                             </p>
                             <p className="font-semibold text-neutral-900">
-                                Once you proceed, AI will start creating the actual course content and there is no coming back.
+                                Once you proceed, AI will start creating the actual course content
+                                and there is no coming back.
                             </p>
                         </div>
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex justify-end gap-3 mt-6">
-                    <MyButton
-                        buttonType="secondary"
-                        onClick={() => onOpenChange(false)}
-                    >
+                <div className="mt-6 flex justify-end gap-3">
+                    <MyButton buttonType="secondary" onClick={() => onOpenChange(false)}>
                         Cancel
                     </MyButton>
                     <MyButton
@@ -589,25 +608,26 @@ export function BackToLibraryDialog({
 }: BackToLibraryDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="w-[95vw] sm:w-full sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Go Back to Course Library?</DialogTitle>
                     <DialogDescription className="text-neutral-600">
-                        Are you sure you want to go back to course library? You can either discard your current course or save it to drafts.
+                        Are you sure you want to go back to course library? You can either discard
+                        your current course or save it to drafts.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-neutral-200">
+                <div className="mt-6 flex flex-col items-center justify-end gap-3 border-t border-neutral-200 pt-4 sm:flex-row">
                     <MyButton
                         buttonType="secondary"
                         onClick={() => onOpenChange(false)}
-                        className="min-w-[100px]"
+                        className="w-full min-w-[100px] sm:w-auto"
                     >
                         Cancel
                     </MyButton>
                     <MyButton
                         buttonType="secondary"
                         onClick={onDiscard}
-                        className="min-w-[120px] border-red-300 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-400"
+                        className="min-w-[120px] border-red-300 text-red-600 hover:border-red-400 hover:bg-red-50 hover:text-red-700"
                     >
                         Discard Course
                     </MyButton>

@@ -56,9 +56,8 @@ export const SendEmailDialog = () => {
     };
 
     const handleCreateNewTemplate = () => {
-        setEditingTemplate(null);
-        setShowTemplateSelection(false);
-        setShowTemplateEditor(true);
+        // This will be handled by TemplateSelectionDialog redirecting to /templates/create
+        // The dialog will close automatically
     };
 
     const handleTemplateSavedAndSent = async (template: MessageTemplate) => {

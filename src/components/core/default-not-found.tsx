@@ -1,4 +1,5 @@
 import { Link, useRouter } from '@tanstack/react-router';
+import { ArrowLeft, FileQuestion, Home } from 'lucide-react';
 import { Helmet } from 'react-helmet';
 import { Button } from '../ui/button';
 import { ErrorFeedbackDialog } from './error-feedback-dialog';
@@ -16,29 +17,52 @@ function RootNotFoundComponent() {
                 />
             </Helmet>
 
-            <div className="flex w-full select-none items-center justify-center px-4 text-gray-700 dark:text-gray-800">
-                <div className="relative flex w-full flex-col items-center justify-center text-center">
-                    <h1 className="absolute top-10 font-mono text-9xl font-light">404</h1>
-                    <img src="/caveman.gif" alt="" />
-                    <p className="absolute bottom-10 mt-8 font-mono text-[40px]">
-                        Look like you&apos;re lost
-                        <br />
-                        <span className="text-xl">the page you are looking for not available!</span>
+            <div className="flex size-full min-h-[80vh] flex-col items-center justify-center bg-background px-4 text-center">
+                <div className="relative flex max-w-md flex-col items-center">
+                    {/* Decorative blurred background */}
+                    <div className="bg-primary/10 absolute -top-16 left-1/2 size-32 -translate-x-1/2 rounded-full blur-[80px]" />
+
+                    <div className="z-10 mb-6 flex size-20 items-center justify-center rounded-2xl bg-muted/50 ring-1 ring-inset ring-foreground/10 backdrop-blur-sm">
+                        <FileQuestion className="size-10 text-muted-foreground" strokeWidth={1.5} />
+                    </div>
+
+                    <h1 className="z-10 mb-2 font-mono text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                        Page not found
+                    </h1>
+
+                    <p className="z-10 mb-8 max-w-xs text-base text-muted-foreground">
+                        Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have
+                        been removed or renamed.
                     </p>
-                    <div className="mt-8 flex justify-center gap-5">
-                        <Button asChild variant={'outline'} className="h-10 min-w-32">
-                            <Link to="/dashboard">Return Home</Link>
+
+                    <div className="z-10 flex flex-col gap-3 sm:flex-row">
+                        <Button asChild variant="default" className="min-w-[140px] gap-2 shadow-sm">
+                            <Link to="/dashboard">
+                                <Home className="size-4" />
+                                Return Home
+                            </Link>
                         </Button>
-                        <Button asChild variant={'outline'} className="h-10 min-w-32">
-                            <button onClick={() => router.history.back()}>Go Back</button>
+                        <Button
+                            variant="outline"
+                            className="min-w-[140px] gap-2 bg-background shadow-sm hover:bg-muted/50"
+                            onClick={() => router.history.back()}
+                        >
+                            <ArrowLeft className="size-4" />
+                            Go Back
                         </Button>
-                        <ErrorFeedbackDialog
-                            trigger={
-                                <Button variant="outline" className="h-10 min-w-32">
-                                    Report Issue
-                                </Button>
-                            }
-                        />
+                    </div>
+
+                    <div className="z-10 mt-12">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>Spot a problem?</span>
+                            <ErrorFeedbackDialog
+                                trigger={
+                                    <button className="hover:text-primary hover:decoration-primary font-medium text-foreground underline decoration-muted-foreground/30 underline-offset-4 transition-colors">
+                                        Report Issue
+                                    </button>
+                                }
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

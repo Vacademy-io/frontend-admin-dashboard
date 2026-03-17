@@ -1,4 +1,4 @@
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import {
     InviteForm,
     LearnerChoiceCourse,
@@ -17,7 +17,6 @@ import {
     PreSelectedPackagesType,
     PreSelectedSessionType,
 } from '../-types/create-invitation-types';
-import { TokenKey } from '@/constants/auth/tokens';
 import { createBatchOptions } from './formFormatToRequest';
 // import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 
@@ -166,9 +165,7 @@ export default function formDataToRequestData(
     }) => string | null,
     id?: string
 ): CreateInvitationRequestType {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+    const INSTITUTE_ID = getCurrentInstituteId();
     const customFields = fetchCustomFields(data);
     const batches =
         data.batches.courseSelectionMode === 'institute'

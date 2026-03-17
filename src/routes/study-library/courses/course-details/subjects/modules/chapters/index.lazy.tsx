@@ -74,7 +74,7 @@ function RouteComponent() {
                 />
             }
         >
-            <InitStudyLibraryProvider>
+            <InitStudyLibraryProvider courseId={courseId}>
                 <ModulesWithChaptersProvider>
                     <ChapterMaterial currentModuleId={currentModuleId} />
                 </ModulesWithChaptersProvider>

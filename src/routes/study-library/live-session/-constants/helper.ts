@@ -41,6 +41,25 @@ export interface LiveSessionStep1RequestDTO {
     session_streaming_service_type?: string;
     cover_file_id?: string | null;
     time_zone?: string;
+    learner_button_config?: LearnerButtonConfig | null;
+    update_recurrence_scope?: 'ONLY_THIS' | 'ALL_FUTURE' | 'CURRENT_DAY_ALL_SESSIONS' | 'ALL_FUTURE_ALL_SESSIONS' | null;
+    bbb_config?: BbbMeetingConfig | null;
+}
+
+export interface BbbMeetingConfig {
+    record?: boolean;
+    auto_start_recording?: boolean;
+    mute_on_start?: boolean;
+    webcams_only_for_moderator?: boolean;
+    guest_policy?: string;
+}
+
+export interface LearnerButtonConfig {
+    text: string;
+    url: string;
+    background_color: string;
+    text_color: string;
+    visible: boolean;
 }
 
 interface ScheduleDTO {
@@ -51,6 +70,9 @@ interface ScheduleDTO {
     link?: string;
     thumbnail_file_id?: string;
     daily_attendance?: boolean;
+    default_class_link?: string | null;
+    default_class_name?: string | null;
+    learner_button_config?: LearnerButtonConfig | null;
 }
 
 //step 2 interface
@@ -107,13 +129,120 @@ export interface FieldOptionDTO {
  * @param originalSchedules - (Optional) Previously saved schedules for update detection.
  */
 
+// Helper to normalize a startTime string to HH:mm:ss format
+function normalizeStartTime(time: string | undefined): string {
+    if (!time) return '';
+    // If already has seconds (HH:mm:ss), return as-is
+    const parts = time.split(':');
+    if (parts.length >= 3) return time;
+    // HH:mm → HH:mm:00
+    if (parts.length === 2) return `${time}:00`;
+    return time;
+}
+
+// Helper to ensure endDate is in YYYY-MM-DD format
+function normalizeEndDate(endDate: string | undefined): string | null {
+    if (!endDate) return null;
+    // Already in YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(endDate)) return endDate;
+    // Has time component (ISO format) - extract date part
+    if (endDate.includes('T')) return endDate.split('T')[0] || endDate;
+    // Try parsing as date
+    try {
+        const parsed = new Date(endDate);
+        if (!isNaN(parsed.getTime())) {
+            const year = parsed.getFullYear();
+            const month = String(parsed.getMonth() + 1).padStart(2, '0');
+            const day = String(parsed.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    } catch {
+        // ignore
+    }
+    return endDate;
+}
+
+type SessionInput = {
+    id?: string;
+    startTime?: string;
+    durationHours?: string;
+    durationMinutes?: string;
+    link?: string;
+    countAttendanceDaily?: boolean;
+    thumbnailFileId?: string;
+};
+
+function buildScheduleBase(
+    session: SessionInput,
+    dayBlock: WeeklyClass,
+    buttonConfig?: LearnerButtonConfig | null
+): Omit<ScheduleDTO, 'id'> {
+    const duration = Number(session.durationHours) * 60 + Number(session.durationMinutes);
+    return {
+        day: dayBlock.day,
+        start_time: normalizeStartTime(session.startTime),
+        duration: String(duration),
+        link: session.link || '',
+        thumbnail_file_id: session.thumbnailFileId || '',
+        daily_attendance: session.countAttendanceDaily || false,
+        default_class_link: dayBlock.default_class_link || null,
+        default_class_name: dayBlock.default_class_name || null,
+        learner_button_config: dayBlock.learner_button_config || buttonConfig || null,
+    };
+}
+
+function processSession(
+    session: SessionInput,
+    dayBlock: WeeklyClass,
+    topLevelButtonConfig: LearnerButtonConfig | null | undefined,
+    originalScheduleMap: Map<string, WeeklyClass>,
+    added_schedules: ScheduleDTO[],
+    updated_schedules: ScheduleDTO[]
+): void {
+    const normalizedTime = normalizeStartTime(session.startTime);
+    const duration = Number(session.durationHours) * 60 + Number(session.durationMinutes);
+
+    // Skip incomplete sessions: must have a valid start time and non-zero duration
+    if (!normalizedTime || isNaN(duration) || duration <= 0) {
+        console.warn(
+            `[processSession] Skipping session on ${dayBlock.day}: ` +
+                `startTime="${session.startTime}", ` +
+                `durationHours="${session.durationHours}", ` +
+                `durationMinutes="${session.durationMinutes}", ` +
+                `duration=${duration}, id=${session.id || '(new)'}. ` +
+                `Reason: ${!normalizedTime ? 'empty startTime' : `invalid duration (${duration})`}`
+        );
+        return;
+    }
+
+    if (session.id) {
+        // Session ID may be comma-separated (one per weekly occurrence)
+        // Pass topLevelButtonConfig so day-level falls back to top-level (same as original)
+        const base = buildScheduleBase(session, dayBlock, topLevelButtonConfig);
+        const sessionIds = session.id.split(',').filter((id) => id.trim());
+        sessionIds.forEach((sessionId) => {
+            updated_schedules.push({ id: sessionId.trim(), ...base });
+            originalScheduleMap.delete(sessionId.trim());
+        });
+        // Template entry without ID so backend generates new sessions for extended date ranges
+        added_schedules.push({ id: undefined, ...base });
+    } else {
+        // New session – fall back to top-level button config when day level is absent
+        added_schedules.push({
+            id: undefined,
+            ...buildScheduleBase(session, dayBlock, topLevelButtonConfig),
+        });
+    }
+}
+
 export function transformFormToDTOStep1(
     form: SessionFormInput,
     instituteId: string,
     originalSchedules: WeeklyClass[] = [],
     musicFileId: string | undefined,
     thumbnailFileId: string | undefined,
-    coverFileId: string | undefined | null
+    coverFileId: string | undefined | null,
+    updateRecurrenceScope?: 'ONLY_THIS' | 'ALL_FUTURE' | 'CURRENT_DAY_ALL_SESSIONS' | 'ALL_FUTURE_ALL_SESSIONS' | null
 ): LiveSessionStep1RequestDTO {
     const {
         id: sessionId,
@@ -134,6 +263,12 @@ export function transformFormToDTOStep1(
         allowRewind,
         allowPause,
         timeZone,
+        learner_button_config,
+        bbbRecord,
+        bbbAutoStartRecording,
+        bbbMuteOnStart,
+        bbbWebcamsOnlyForModerator,
+        bbbGuestPolicy,
     } = form;
 
     // Convert hours and minutes to total duration in hours
@@ -163,69 +298,22 @@ export function transformFormToDTOStep1(
     if (meetingType === RecurringType.WEEKLY) {
         recurringSchedule.forEach((dayBlock: WeeklyClass) => {
             if (!dayBlock.isSelect) return;
-
-            dayBlock.sessions.forEach(
-                (session: {
-                    id?: string;
-                    startTime?: string;
-                    durationHours?: string;
-                    durationMinutes?: string;
-                    link?: string;
-                    countAttendanceDaily?: boolean;
-                    thumbnailFileId?: string;
-                }) => {
-                    const duration =
-                        Number(session.durationHours) * 60 + Number(session.durationMinutes);
-                    // Check if session has an ID - if yes, it's an update; if no, it's new
-                    if (session.id) {
-                        // Session ID might be comma-separated string containing multiple IDs
-                        // (one for each week occurrence of the same time slot)
-                        const sessionIds = session.id.split(',').filter((id) => id.trim());
-
-                        // Create an update entry for EACH ID
-                        sessionIds.forEach((sessionId) => {
-                            const baseSchedule: ScheduleDTO = {
-                                id: sessionId.trim(),
-                                day: dayBlock.day,
-                                start_time: session.startTime ? `${session.startTime}:00` : '',
-                                duration: String(duration),
-                                link: session.link || '',
-                                thumbnail_file_id: session.thumbnailFileId || '',
-                                daily_attendance: session.countAttendanceDaily || false,
-                            };
-
-                            updated_schedules.push(baseSchedule);
-
-                            // Remove from originalScheduleMap to track processed sessions
-                            if (originalScheduleMap.has(sessionId.trim())) {
-                                originalScheduleMap.delete(sessionId.trim());
-                            }
-                        });
-                    } else {
-                        // New session without ID
-                        const baseSchedule: ScheduleDTO = {
-                            id: undefined,
-                            day: dayBlock.day,
-                            start_time: session.startTime ? `${session.startTime}:00` : '',
-                            duration: String(duration),
-                            link: session.link || '',
-                            thumbnail_file_id: session.thumbnailFileId || '',
-                            daily_attendance: session.countAttendanceDaily || false,
-                        };
-                        added_schedules.push(baseSchedule);
-                    }
-                }
+            dayBlock.sessions.forEach((session) =>
+                processSession(
+                    session,
+                    dayBlock,
+                    learner_button_config,
+                    originalScheduleMap,
+                    added_schedules,
+                    updated_schedules
+                )
             );
         });
+    }
 
-        // Anything left in originalScheduleMap is considered deleted
-        for (const id of originalScheduleMap.keys()) {
-            deleted_schedule_ids.push(id);
-        }
-    } else {
-        for (const id of originalScheduleMap.keys()) {
-            deleted_schedule_ids.push(id);
-        }
+    // Anything left in originalScheduleMap is considered deleted
+    for (const id of originalScheduleMap.keys()) {
+        deleted_schedule_ids.push(id);
     }
 
     return {
@@ -236,7 +324,7 @@ export function transformFormToDTOStep1(
         default_meet_link: defaultLink || '',
         start_time: startTimeISO,
         last_entry_time: lastEntryTimeISO,
-        session_end_date: endDate || null,
+        session_end_date: normalizeEndDate(endDate),
         recurrence_type: meetingType,
         added_schedules,
         updated_schedules,
@@ -251,6 +339,15 @@ export function transformFormToDTOStep1(
         session_streaming_service_type: streamingType,
         cover_file_id: coverFileId,
         time_zone: timeZone,
+        learner_button_config: learner_button_config || null,
+        update_recurrence_scope: updateRecurrenceScope || null,
+        bbb_config: sessionPlatform === 'bbb' ? {
+            record: bbbRecord ?? true,
+            auto_start_recording: bbbAutoStartRecording ?? false,
+            mute_on_start: bbbMuteOnStart ?? true,
+            webcams_only_for_moderator: bbbWebcamsOnlyForModerator ?? false,
+            guest_policy: bbbGuestPolicy ?? 'ALWAYS_ACCEPT',
+        } : null,
     };
 }
 

@@ -81,8 +81,8 @@ export interface UserPlanDTO {
 }
 
 export interface MembershipDetail {
-    user_plan: UserPlanDTO;
-    user_details: UserDTO;
+    user_plan: UserPlanDTO | null;
+    user_details: UserDTO | null;
     membership_status: MembershipStatus;
     calculated_end_date: string;
     policy_details?: PolicyDetails[];

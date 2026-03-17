@@ -2,6 +2,8 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { isNullOrEmptyOrUndefined } from '@/lib/utils';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
+import { getSelectedInstitute } from '@/lib/auth/instituteUtils';
 
 export const Route = createFileRoute('/login/')({
     loader: ({ location }) => {
@@ -17,6 +19,10 @@ export const Route = createFileRoute('/login/')({
 
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         if (!isNullOrEmptyOrUndefined(accessToken)) {
+            const instituteId = getSelectedInstitute();
+            if (hasFacultyAssignedPermission(instituteId || '')) {
+                throw redirect({ to: '/study-library/courses' });
+            }
             throw redirect({ to: '/dashboard' });
         }
 

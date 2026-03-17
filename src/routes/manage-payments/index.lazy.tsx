@@ -6,7 +6,7 @@ import { Helmet } from 'react-helmet';
 import { useQuery } from '@tanstack/react-query';
 import { PaymentFilters } from './-components/PaymentFilters';
 import { PaymentLogsTable } from './-components/PaymentLogsTable';
-import { ActiveFiltersDisplay } from './-components/ActiveFiltersDisplay';
+import { ActiveFiltersDisplay } from '@/components/common/filters/ActiveFiltersDisplay';
 import { fetchPaymentLogs, getPaymentLogsQueryKey } from '@/services/payment-logs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import type { SelectOption } from '@/components/design-system/SelectChips';
@@ -85,8 +85,23 @@ function ManagePaymentsLayoutPage() {
             filters.sources = selectedPaymentSources.map((s) => s.value) as ('USER' | 'SUB_ORG')[];
         }
 
-        if (packageSessionFilter.packageSessionId) {
+        if (packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0) {
+            filters.package_session_ids = packageSessionFilter.packageSessionIds;
+        } else if (packageSessionFilter.packageSessionId) {
             filters.package_session_ids = [packageSessionFilter.packageSessionId];
+        } else if (packageSessionFilter.packageId) {
+            // Resolve all matching batches for the selected package and optional level/session
+            const resolvedIds = batchesForSessions
+                .filter((batch) =>
+                    batch.package_dto.id === packageSessionFilter.packageId &&
+                    (!packageSessionFilter.levelId || batch.level.id === packageSessionFilter.levelId) &&
+                    (!packageSessionFilter.sessionId || batch.session.id === packageSessionFilter.sessionId)
+                )
+                .map((batch) => batch.id);
+
+            if (resolvedIds.length > 0) {
+                filters.package_session_ids = resolvedIds;
+            }
         }
 
         return filters;
@@ -179,7 +194,14 @@ function ManagePaymentsLayoutPage() {
                 setCurrentPage(0);
                 break;
             case 'packageSession':
-                setPackageSessionFilter({});
+                if (value) {
+                    setPackageSessionFilter(prev => ({
+                        ...prev,
+                        packageSessionIds: prev.packageSessionIds?.filter(id => id !== value)
+                    }));
+                } else {
+                    setPackageSessionFilter({});
+                }
                 setCurrentPage(0);
                 break;
         }

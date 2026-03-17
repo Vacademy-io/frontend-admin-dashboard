@@ -24,7 +24,8 @@ export default function DailyActivityTrendWidget({ instituteId }: DailyActivityT
     const { data, isLoading, error } = useQuery({
         queryKey: ['analytics-daily-trends', instituteId],
         queryFn: () => fetchAnalyticsEngagementTrends(instituteId),
-        staleTime: 300000, // 5 minutes
+        staleTime: 300000, // 5 minutes - data considered fresh
+        gcTime: 600000, // 10 minutes - keep in cache after becoming unused
     });
 
     console.log('DailyActivityTrendWidget - data:', data);

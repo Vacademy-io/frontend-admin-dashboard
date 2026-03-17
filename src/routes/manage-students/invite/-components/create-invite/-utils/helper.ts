@@ -159,8 +159,8 @@ export function transformApiDataToDummyStructure(data: ApiCourseData[]) {
 }
 
 function transformCustomFields(customFields: CustomField[], instituteId: string) {
-    const toSnakeCase = (str: string) =>
-        str
+    const toSnakeCase = (str: string | null | undefined) =>
+        (str ?? '')
             .trim()
             .replace(/\s+/g, '_') // Replace spaces with underscores
             .replace(/([a-z])([A-Z])/g, '$1_$2') // Add underscore between camelCase transitions
@@ -170,12 +170,15 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
         const options = isDropdown ? field.options?.map((opt) => opt.value).join(',') : '';
 
         return {
+            // Only set id (mapping ID) if _id (custom field ID) is present, indicating an existing field
+            // For new fields, id should be empty so the backend can create a new mapping
+            id: field._id ? (field.id || '') : '',
             institute_id: instituteId,
             type: field.type,
             type_id: '',
             custom_field: {
                 guestId: '',
-                id: field._id || '', // Use _id from localStorage (custom field ID)
+                id: field._id || '', // Use _id for the custom field ID (custom_field.id)
                 fieldKey: toSnakeCase(field.name),
                 fieldName: field.name,
                 fieldType: field.type,
@@ -221,7 +224,7 @@ export function ReTransformCustomFields(inviteDetails: IndividualInviteLinkDetai
             : undefined;
 
         return {
-            id: field.id,
+            id: field.id, // Preserve the mapping ID (InstituteCustomField.id)
             type: field.type,
             name: field.custom_field.fieldName,
             oldKey: false,
@@ -231,6 +234,7 @@ export function ReTransformCustomFields(inviteDetails: IndividualInviteLinkDetai
                 .replace(/[^a-z0-9]+/g, '_')
                 .replace(/^_+|_+$/g, ''),
             order: index,
+            _id: field.custom_field.id, // Preserve the custom field ID (custom_field.id)
             ...(options && { options }),
         };
     });
@@ -252,7 +256,8 @@ export function convertInviteData(
     paymentPlans: PaymentOption[],
     referralProgramDetails: ReferralData[],
     instituteLogoFileId: string,
-    inviteId?: string
+    inviteId?: string,
+    existingInviteDetails?: IndividualInviteLinkDetails | null
 ) {
     const instituteId = getInstituteId();
     const isBundle = selectedBatches.length > 1;
@@ -305,8 +310,8 @@ export function convertInviteData(
         invite_code: '',
         status: 'ACTIVE',
         institute_id: instituteId,
-        vendor: 'STRIPE',
-        vendor_id: 'STRIPE',
+        vendor: existingInviteDetails?.vendor || 'STRIPE',
+        vendor_id: existingInviteDetails?.vendor_id || 'STRIPE',
         currency: '',
         tag: '',
         is_bundled: isBundle,
@@ -331,9 +336,11 @@ export function splitPlansByType(data: PaymentOption[]): {
     const paidPlans: PaidPlan[] = [];
 
     data.forEach((item) => {
-        if (item.type.toLowerCase() === 'free' || item.type.toLowerCase() === 'donation') {
+        const type = (item.type ?? '').toLowerCase();
+        if (!type) return;
+        if (type === 'free' || type === 'donation') {
             const parsedData = JSON.parse(item.payment_option_metadata_json);
-            if (item.type.toLowerCase() === 'donation') {
+            if (type === 'donation') {
                 freePlans.push({
                     id: item.id,
                     name: item.name,
@@ -357,7 +364,7 @@ export function splitPlansByType(data: PaymentOption[]): {
             }
         } else {
             const parsedData = JSON.parse(item.payment_option_metadata_json);
-            if (item.type.toLowerCase() === 'upfront' || item.type.toLowerCase() === 'one_time') {
+            if (type === 'upfront' || type === 'one_time') {
                 paidPlans.push({
                     id: item.id,
                     name: item.name,
@@ -409,7 +416,8 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
             type: '',
         };
     const parsedData = JSON.parse(item.payment_option_metadata_json);
-    if (item.type.toLowerCase() === 'donation') {
+    const type = (item.type ?? '').toLowerCase();
+    if (type === 'donation') {
         return {
             id: item.id,
             name: item.name,
@@ -422,7 +430,7 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
             currency: parsedData?.currency || '',
             type: item.type,
         };
-    } else if (item.type.toLowerCase() === 'free') {
+    } else if (type === 'free') {
         return {
             id: item.id,
             name: item.name,
@@ -430,7 +438,7 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
             days: parsedData?.freeData?.validityDays || 0,
             type: item.type,
         };
-    } else if (item.type.toLowerCase() === 'upfront' || item.type.toLowerCase() === 'one_time') {
+    } else if (type === 'upfront' || type === 'one_time') {
         return {
             id: item.id,
             name: item.name,
@@ -478,7 +486,8 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
             type: '',
         };
     const parsedData = JSON.parse(item.payment_option_metadata_json);
-    if (item.type.toLowerCase() === 'donation') {
+    const type = (item.type ?? '').toLowerCase();
+    if (type === 'donation') {
         return {
             id: item.id,
             name: item.name,
@@ -491,7 +500,7 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
             currency: parsedData?.currency || '',
             type: item.type,
         };
-    } else if (item.type.toLowerCase() === 'free') {
+    } else if (type === 'free') {
         return {
             id: item.id,
             name: item.name,
@@ -499,7 +508,7 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
             days: parsedData?.freeData?.validityDays || 0,
             type: item.type,
         };
-    } else if (item.type.toLowerCase() === 'upfront' || item.type.toLowerCase() === 'one_time') {
+    } else if (type === 'upfront' || type === 'one_time') {
         return {
             id: item.id,
             name: item.name,
@@ -868,7 +877,7 @@ export function convertRegistrationFormData(data: CustomFieldForConversion[]) {
                   ''
                 : '',
         created_at: now,
-        field_key: field.key || field.name.toLowerCase().replace(/\s+/g, '_'),
+        field_key: field.key || (field.name ?? '').toLowerCase().replace(/\s+/g, '_'),
         field_name: field.name,
         field_order: field.order ?? 0,
         field_type: field.type,

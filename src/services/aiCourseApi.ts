@@ -3,8 +3,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { AI_COURSE_API_CONFIG, buildApiUrl } from '@/config/aiCourseApi';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+
+import { SCRAPE_URL } from '@/constants/urls';
 
 export interface ChatApiRequest {
     prompt: string;
@@ -115,8 +118,7 @@ export const sendChatMessage = async (request: ChatApiRequest): Promise<ChatApiR
             throw new Error('No access token found. Please log in again.');
         }
 
-        const tokenData = getTokenDecodedData(accessToken);
-        const instituteId = tokenData && Object.keys(tokenData.authorities)[0];
+        const instituteId = getCurrentInstituteId();
 
         if (!instituteId) {
             throw new Error('Institute ID not found. Please log in again.');
@@ -267,10 +269,8 @@ export const sendChatMessageCustom = async (
     headers?: Record<string, string>
 ): Promise<any> => {
     try {
-        // Get institute ID from user token
-        const accessToken = getTokenFromCookie(TokenKey.accessToken);
-        const tokenData = getTokenDecodedData(accessToken);
-        const instituteId = tokenData && Object.keys(tokenData.authorities)[0];
+        // Get institute ID
+        const instituteId = getCurrentInstituteId();
 
         if (!instituteId) {
             throw new Error('Institute ID not found. Please log in again.');
@@ -312,8 +312,7 @@ export const sendChatMessageStreaming = async (
             return;
         }
 
-        const tokenData = getTokenDecodedData(accessToken);
-        const instituteId = tokenData && Object.keys(tokenData.authorities)[0];
+        const instituteId = getCurrentInstituteId();
 
         if (!instituteId) {
             onError(new Error('Institute ID not found. Please log in again.'));
@@ -444,5 +443,17 @@ export const sendChatMessageStreaming = async (
         }
     } catch (error: any) {
         onError(error);
+    }
+};
+
+export const scrapeUrlContent = async (
+    url: string
+): Promise<{ content: string; title: string }> => {
+    try {
+        const response = await authenticatedAxiosInstance.post(SCRAPE_URL, { url });
+        return response.data;
+    } catch (error) {
+        console.error('Error scraping URL:', error);
+        throw error;
     }
 };

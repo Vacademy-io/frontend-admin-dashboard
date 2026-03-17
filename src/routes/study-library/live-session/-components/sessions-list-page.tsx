@@ -19,6 +19,7 @@ import { CaretDown, VideoCameraSlash, Clock } from '@phosphor-icons/react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
 import { useQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';
@@ -93,47 +94,73 @@ export default function SessionListPage() {
             sort_direction: 'ASC',
         };
 
-        // Set statuses based on tab
-        if (selectedTab === SessionStatus.LIVE) {
-            baseRequest.statuses = ['LIVE'];
-        } else if (selectedTab === SessionStatus.UPCOMING) {
-            baseRequest.statuses = ['LIVE'];
-            // For upcoming, we'll use date filters
-        } else if (selectedTab === SessionStatus.PAST) {
-            baseRequest.statuses = ['LIVE'];
-            // For past, we'll set end_date to yesterday
-        } else if (selectedTab === SessionStatus.DRAFTS) {
-            baseRequest.statuses = ['DRAFT'];
+        // Get current date in user's local timezone
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+        const todayFormatted = format(nowLocal, 'yyyy-MM-dd');
+
+        // Dynamic date limits
+        const farFuture = new Date(nowLocal);
+        farFuture.setFullYear(farFuture.getFullYear() + 50);
+        const farFutureFormatted = format(farFuture, 'yyyy-MM-dd');
+
+        const farPast = new Date(nowLocal);
+        farPast.setFullYear(farPast.getFullYear() - 50);
+        const farPastFormatted = format(farPast, 'yyyy-MM-dd');
+
+        // Configure payload based on Tab (Strict Rules)
+        switch (selectedTab) {
+            case SessionStatus.UPCOMING:
+                baseRequest.statuses = ['LIVE'];
+                baseRequest.time_status = 'UPCOMING';
+                baseRequest.sort_by = 'meetingDate';
+                baseRequest.sort_direction = 'ASC';
+                // CRITICAL: Override default 30-day limit
+                baseRequest.start_date = startDate ? format(startDate, 'yyyy-MM-dd') : todayFormatted;
+                baseRequest.end_date = endDate ? format(endDate, 'yyyy-MM-dd') : farFutureFormatted;
+                break;
+
+            case SessionStatus.PAST:
+                baseRequest.statuses = ['LIVE'];
+                baseRequest.time_status = 'PAST';
+                baseRequest.sort_by = 'meetingDate';
+                baseRequest.sort_direction = 'DESC';
+                // CRITICAL: Override default "From Today" limit
+                baseRequest.start_date = startDate ? format(startDate, 'yyyy-MM-dd') : farPastFormatted;
+                baseRequest.end_date = endDate ? format(endDate, 'yyyy-MM-dd') : todayFormatted;
+                break;
+
+            case SessionStatus.DRAFTS:
+                baseRequest.statuses = ['DRAFT'];
+                baseRequest.time_status = null;
+                baseRequest.sort_by = 'updatedAt';
+                baseRequest.sort_direction = 'DESC';
+                // CRITICAL: Show all drafts history
+                baseRequest.start_date = startDate ? format(startDate, 'yyyy-MM-dd') : farPastFormatted;
+                baseRequest.end_date = endDate ? format(endDate, 'yyyy-MM-dd') : farFutureFormatted;
+                break;
+
+            case SessionStatus.LIVE:
+                baseRequest.statuses = ['LIVE'];
+                // baseRequest.time_status = 'LIVE'; // Removed as per requirement to fix filtering
+                // Live Now uses default sorting or backend logic
+                // Respect user date filters if provided, otherwise let backend handle "Current" logic
+                baseRequest.start_date = startDate ? format(startDate, 'yyyy-MM-dd') : todayFormatted;
+                baseRequest.end_date = endDate ? format(endDate, 'yyyy-MM-dd') : todayFormatted;
+                break;
         }
 
-        // Apply search query
+        // Apply Common Filters
         if (searchQuery) {
             baseRequest.search_query = searchQuery;
+            // Append subject filter search if present
+            if (subjectFilter && subjectFilter !== 'DEFAULT') {
+                baseRequest.search_query = `${searchQuery} ${subjectFilter}`;
+            }
+        } else if (subjectFilter && subjectFilter !== 'DEFAULT') {
+            baseRequest.search_query = subjectFilter;
         }
 
-        // Apply date filters
-        if (startDate) {
-            baseRequest.start_date = format(startDate, 'yyyy-MM-dd');
-        }
-        if (endDate) {
-            baseRequest.end_date = format(endDate, 'yyyy-MM-dd');
-        }
-
-        // For upcoming tab, set start_date to tomorrow if not already set
-        if (selectedTab === SessionStatus.UPCOMING && !startDate) {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            baseRequest.start_date = format(tomorrow, 'yyyy-MM-dd');
-        }
-
-        // For past tab, set end_date to yesterday if not already set
-        if (selectedTab === SessionStatus.PAST && !endDate) {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            baseRequest.end_date = format(yesterday, 'yyyy-MM-dd');
-        }
-
-        // Apply time of day filters
         if (startTimeOfDay) {
             baseRequest.start_time_of_day = startTimeOfDay;
         }
@@ -144,26 +171,15 @@ export default function SessionListPage() {
         // Apply recurrence type filter
         if (meetingTypeFilter) {
             if (meetingTypeFilter === 'custom') {
-                baseRequest.recurrence_types = ['WEEKLY'];
+                baseRequest.recurrence_types = ['weekly'];
             } else {
-                baseRequest.recurrence_types = [meetingTypeFilter.toUpperCase()];
-            }
-        }
-
-        // Apply subject filter
-        if (subjectFilter) {
-            // Note: API doesn't have subject filter directly, we'll filter on client side or use search_query
-            // For now, we can append it to search_query
-            if (baseRequest.search_query) {
-                baseRequest.search_query = `${baseRequest.search_query} ${subjectFilter}`;
-            } else {
-                baseRequest.search_query = subjectFilter;
+                baseRequest.recurrence_types = [meetingTypeFilter];
             }
         }
 
         // Apply access level filter
         if (accessFilter) {
-            baseRequest.access_levels = [accessFilter.toUpperCase()];
+            baseRequest.access_levels = [accessFilter];
         }
 
         // Apply streaming service filter
@@ -608,55 +624,102 @@ export default function SessionListPage() {
             );
         }
 
+
+
+        // Use sessions directly from API response (filtering is server-side mostly, but client-side for LIVE tab specific logic)
+        let filteredSessions = searchResponse.sessions;
+
+        // FRONTEND FILTERING for LIVE, UPCOMING, PAST tabs to handle midnight crossover correctly
+        if (
+            selectedTab === SessionStatus.LIVE ||
+            selectedTab === SessionStatus.UPCOMING ||
+            selectedTab === SessionStatus.PAST
+        ) {
+            const now = new Date();
+            filteredSessions = searchResponse.sessions.filter((session) => {
+                const sessionTimezone = session.timezone || 'Asia/Kolkata';
+
+                // Construct session start and end times
+                const sessionStartString = `${session.meeting_date}T${session.start_time}`;
+                const sessionEndString = `${session.meeting_date}T${session.last_entry_time}`;
+
+                const startTime = fromZonedTime(sessionStartString, sessionTimezone);
+                let endTime = fromZonedTime(sessionEndString, sessionTimezone);
+
+                // Handle midnight crossover (e.g., 23:00 to 00:30)
+                if (endTime < startTime) {
+                    endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
+                }
+
+                if (selectedTab === SessionStatus.LIVE) {
+                    return startTime <= now && now <= endTime;
+                } else if (selectedTab === SessionStatus.UPCOMING) {
+                    return now < startTime;
+                } else if (selectedTab === SessionStatus.PAST) {
+                    return now > endTime;
+                }
+                return true;
+            });
+        }
+
         return (
             <div>
                 <div className="space-y-4">
-                    {searchResponse.sessions.map((session) => {
-                        // Convert API response to component props format
-                        const sessionData = {
-                            session_id: session.session_id,
-                            schedule_id: session.schedule_id,
-                            meeting_date: session.meeting_date,
-                            start_time: session.start_time,
-                            last_entry_time: session.last_entry_time,
-                            recurrence_type: session.recurrence_type,
-                            access_level: session.access_level,
-                            title: session.title,
-                            subject: session.subject || '',
-                            meeting_link: session.meeting_link,
-                            registration_form_link_for_public_sessions:
-                                session.registration_form_link_for_public_sessions || '',
-                            timezone: session.timezone,
-                        };
-
-                        if (selectedTab === SessionStatus.PAST) {
-                            return (
-                                <PreviousSessionCard
-                                    key={`${session.session_id}-${session.schedule_id}`}
-                                    session={sessionData}
-                                />
-                            );
-                        } else if (selectedTab === SessionStatus.DRAFTS) {
-                            const draftSession = {
-                                ...sessionData,
-                                waiting_room_time: session.waiting_room_time,
-                                thumbnail_file_id: session.thumbnail_file_id,
-                                background_score_file_id: session.background_score_file_id,
-                                session_streaming_service_type:
-                                    session.session_streaming_service_type,
+                    {filteredSessions.length > 0 ? (
+                        filteredSessions.map((session) => {
+                            // Convert API response to component props format
+                            const sessionData = {
+                                session_id: session.session_id,
+                                schedule_id: session.schedule_id,
+                                meeting_date: session.meeting_date,
+                                start_time: session.start_time,
+                                last_entry_time: session.last_entry_time,
+                                recurrence_type: session.recurrence_type,
+                                access_level: session.access_level,
+                                title: session.title,
+                                subject: session.subject || '',
+                                meeting_link: session.meeting_link,
+                                registration_form_link_for_public_sessions:
+                                    session.registration_form_link_for_public_sessions || '',
+                                timezone: session.timezone,
+                                default_class_link: session.default_class_link,
+                                defaultClassName: session.default_class_name,
+                                learner_button_config: session.learner_button_config,
                             };
-                            return (
-                                <DraftSessionCard key={session.session_id} session={draftSession} />
-                            );
-                        } else {
-                            return (
-                                <LiveSessionCard
-                                    key={`${session.session_id}-${session.schedule_id}`}
-                                    session={sessionData}
-                                />
-                            );
-                        }
-                    })}
+
+                            if (selectedTab === SessionStatus.PAST) {
+                                return (
+                                    <PreviousSessionCard
+                                        key={`${session.session_id}-${session.schedule_id}`}
+                                        session={sessionData}
+                                    />
+                                );
+                            } else if (selectedTab === SessionStatus.DRAFTS) {
+                                const draftSession = {
+                                    ...sessionData,
+                                    waiting_room_time: session.waiting_room_time,
+                                    thumbnail_file_id: session.thumbnail_file_id,
+                                    background_score_file_id: session.background_score_file_id,
+                                    session_streaming_service_type:
+                                        session.session_streaming_service_type,
+                                };
+                                return (
+                                    <DraftSessionCard key={session.session_id} session={draftSession} />
+                                );
+                            } else {
+                                return (
+                                    <LiveSessionCard
+                                        key={`${session.session_id}-${session.schedule_id}`}
+                                        session={sessionData}
+                                    />
+                                );
+                            }
+                        })
+                    ) : (
+                        <div className="flex h-[200px] items-center justify-center text-neutral-500">
+                            No {selectedTab === SessionStatus.UPCOMING ? 'upcoming' : 'past'} sessions on this page.
+                        </div>
+                    )}
                 </div>
                 {searchResponse.pagination.total_pages > 1 && (
                     <div className="mt-6">
@@ -682,8 +745,8 @@ export default function SessionListPage() {
                                 key={status}
                                 value={status}
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${selectedTab === status
-                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                        : 'border-none bg-transparent'
+                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
                                     }`}
                             >
                                 {sessionStatusLabels[status]}

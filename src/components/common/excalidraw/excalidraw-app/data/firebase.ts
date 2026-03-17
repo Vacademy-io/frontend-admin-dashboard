@@ -14,6 +14,7 @@ import {
   getDoc,
   runTransaction,
   Bytes,
+  Transaction,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 
@@ -203,7 +204,7 @@ export const saveToFirebase = async (
   const firestore = _getFirestore();
   const docRef = doc(firestore, "scenes", roomId);
 
-  const storedScene = await runTransaction(firestore, async (transaction) => {
+  const storedScene = await runTransaction(firestore, async (transaction: Transaction) => {
     const snapshot = await transaction.get(docRef);
 
     if (!snapshot.exists()) {

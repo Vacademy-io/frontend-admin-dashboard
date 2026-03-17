@@ -14,16 +14,18 @@ import { ModuleMaterial } from './-components/module-material';
 
 const routeApi = getRouteApi('/study-library/courses/course-details/subjects/modules/');
 
-export const Route = createLazyFileRoute('/study-library/courses/course-details/subjects/modules/')({
-    component: RouteComponent,
-});
+export const Route = createLazyFileRoute('/study-library/courses/course-details/subjects/modules/')(
+    {
+        component: RouteComponent,
+    }
+);
 
 function RouteComponent() {
     const queryClient = useQueryClient();
 
     const { setNavHeading } = useNavHeadingStore();
 
-    const { levelId, subjectId, sessionId } = routeApi.useSearch();
+    const { courseId, levelId, subjectId, sessionId } = routeApi.useSearch();
     const subjectName = getSubjectName(subjectId);
 
     const invalidateModulesQuery = () => {
@@ -64,7 +66,7 @@ function RouteComponent() {
             })}
             sideBarData={{ title: 'Subjects', listIconText: 'S', searchParam: 'subjectId' }}
         >
-            <InitStudyLibraryProvider>
+            <InitStudyLibraryProvider courseId={courseId}>
                 <ModulesWithChaptersProvider>
                     <ModuleMaterial />
                 </ModulesWithChaptersProvider>

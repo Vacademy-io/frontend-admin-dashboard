@@ -239,10 +239,37 @@ export default defineConfig({
         reportCompressedSize: false, // Skip compressed size reporting to save memory
         // Worker-specific options are configured at the top-level `worker` field if needed
     },
+    define: {
+        __VERSION__: JSON.stringify('0.16.11'),
+    },
     resolve: {
-        alias: {
-            '@': path.resolve(__dirname, './src'),
-        },
+        alias: [
+            { find: '@', replacement: path.resolve(__dirname, './src') },
+            {
+                find: /^@excalidraw\/excalidraw$/,
+                replacement: path.resolve(__dirname, './src/components/common/excalidraw/packages/excalidraw/index.tsx'),
+            },
+            {
+                find: /^@excalidraw\/excalidraw\/(.*)/,
+                replacement: path.resolve(__dirname, './src/components/common/excalidraw/packages/excalidraw/$1'),
+            },
+            {
+                find: /^@excalidraw\/utils$/,
+                replacement: path.resolve(__dirname, './src/components/common/excalidraw/packages/utils/index.ts'),
+            },
+            {
+                find: /^@excalidraw\/utils\/(.*)/,
+                replacement: path.resolve(__dirname, './src/components/common/excalidraw/packages/utils/$1'),
+            },
+            {
+                find: /^@excalidraw\/math$/,
+                replacement: path.resolve(__dirname, './src/components/common/excalidraw/packages/math/index.ts'),
+            },
+            {
+                find: /^@excalidraw\/math\/(.*)/,
+                replacement: path.resolve(__dirname, './src/components/common/excalidraw/packages/math/$1'),
+            },
+        ],
     },
     assetsInclude: ['**/*.wasm'],
     test: {

@@ -8,6 +8,8 @@ import {
     ADD_UPDATE_DOCUMENT_SLIDE,
     ADD_UPDATE_QUIZ_SLIDE,
     ADD_UPDATE_ASSIGNMENT_SLIDE,
+    ADD_UPDATE_AUDIO_SLIDE,
+    SCORM_ADD_OR_UPDATE,
     UPDATE_SLIDE_STATUS,
     UPDATE_SLIDE_ORDER,
     UPDATE_QUESTION_ORDER,
@@ -138,6 +140,31 @@ export interface QuizSlide {
     default_question_time_mins?: number;
     re_attempt_count?: number;
     source_type?: string;
+    time_limit_in_minutes?: number | null;
+    marks_per_question?: number;
+    negative_marking?: number;
+}
+
+// Audio slide interface
+export interface AudioSlide {
+    id: string;
+    audio_file_id: string;
+    thumbnail_file_id?: string;
+    audio_length_in_millis: number;
+    published_audio_file_id?: string;
+    published_audio_length_in_millis?: number;
+    source_type: 'FILE' | 'URL';
+    external_url?: string;
+    transcript?: string;
+}
+
+// SCORM slide interface
+export interface ScormSlide {
+    id: string;
+    original_file_id?: string;
+    launch_path?: string;
+    launch_url?: string; // media file metadata UUID for the launch file
+    scorm_version?: string;
 }
 
 // Main slide interface
@@ -155,6 +182,8 @@ export interface Slide {
     question_slide?: QuestionSlide | null;
     assignment_slide?: AssignmentSlide | null;
     quiz_slide?: QuizSlide | null;
+    audio_slide?: AudioSlide | null;
+    scorm_slide?: ScormSlide | null;
     is_loaded: boolean;
     new_slide: boolean;
     // Split-screen mode properties (frontend only)
@@ -334,6 +363,40 @@ export interface QuizSlidePayload {
     new_slide: boolean;
 }
 
+export interface AudioSlidePayload {
+    id?: string | null;
+    title: string;
+    description?: string | null;
+    image_file_id?: string | null;
+    status: 'DRAFT' | 'PUBLISHED';
+    slide_order?: number | null;
+    notify?: boolean;
+    new_slide: boolean;
+    audio_slide: {
+        id?: string | null;
+        audio_file_id: string;
+        thumbnail_file_id?: string | null;
+        audio_length_in_millis?: number;
+        source_type: 'FILE' | 'URL';
+        external_url?: string | null;
+        transcript?: string | null;
+    };
+}
+
+export interface ScormSlidePayload {
+    id?: string | null;
+    title: string;
+    description?: string | null;
+    image_file_id?: string | null;
+    status: 'DRAFT' | 'PUBLISHED';
+    slide_order?: number | null;
+    new_slide: boolean;
+    notify?: boolean;
+    scorm_slide: {
+        id: string; // The ScormSlide id returned from upload
+    };
+}
+
 interface UpdateStatusParams {
     chapterId: string;
     slideId: string;
@@ -475,7 +538,6 @@ export const useSlidesMutations = (
             // Invalidate and wait for slides query to refetch
             await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
 
@@ -508,7 +570,6 @@ export const useSlidesMutations = (
             // Invalidate and wait for slides query to refetch
             await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
 
@@ -538,7 +599,6 @@ export const useSlidesMutations = (
             // Invalidate and wait for slides query to refetch
             await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
 
@@ -559,7 +619,6 @@ export const useSlidesMutations = (
             // Invalidate and wait for slides query to refetch
             await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
 
@@ -577,6 +636,60 @@ export const useSlidesMutations = (
         },
     });
 
+    const addUpdateAudioSlideMutation = useMutation({
+        mutationFn: async (payload: AudioSlidePayload) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${ADD_UPDATE_AUDIO_SLIDE}?chapterId=${chapterId}&moduleId=${moduleId}&subjectId=${subjectId}&packageSessionId=${packageSessionId}&instituteId=${INSTITUTE_ID}`,
+                payload
+            );
+            return { data: response.data, isNewSlide: payload.new_slide };
+        },
+        onSuccess: async (result) => {
+            // Invalidate and wait for slides query to refetch
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            // If this was a new slide creation, set first slide as active after refetch completes
+            if (result.isNewSlide) {
+                // Wait for the slides query to actually refetch and update the store
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000);
+            }
+        },
+    });
+
+    const addUpdateScormSlideMutation = useMutation({
+        mutationFn: async (payload: ScormSlidePayload) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${SCORM_ADD_OR_UPDATE}?chapterId=${chapterId}&moduleId=${moduleId}&subjectId=${subjectId}&packageSessionId=${packageSessionId}&instituteId=${INSTITUTE_ID}`,
+                payload
+            );
+            return { data: response.data, isNewSlide: payload.new_slide };
+        },
+        onSuccess: async (result) => {
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            if (result.isNewSlide) {
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000);
+            }
+        },
+    });
+
     const updateSlideStatus = useMutation({
         mutationFn: async ({ chapterId, slideId, status, instituteId }: UpdateStatusParams) => {
             return await authenticatedAxiosInstance.put(
@@ -586,7 +699,6 @@ export const useSlidesMutations = (
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
         },
@@ -602,7 +714,6 @@ export const useSlidesMutations = (
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
         },
@@ -620,7 +731,6 @@ export const useSlidesMutations = (
             // Invalidate and wait for slides query to refetch
             await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
 
@@ -650,7 +760,6 @@ export const useSlidesMutations = (
             // Invalidate and wait for slides query to refetch
             await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
 
@@ -677,6 +786,10 @@ export const useSlidesMutations = (
             addUpdateQuizSlideMutation.mutateAsync(payload).then((result) => result.data),
         addUpdateAssignmentSlide: (payload: AssignmentSlidePayload) =>
             addUpdateAssignmentSlideMutation.mutateAsync(payload).then((result) => result.data),
+        addUpdateAudioSlide: (payload: AudioSlidePayload) =>
+            addUpdateAudioSlideMutation.mutateAsync(payload).then((result) => result.data),
+        addUpdateScormSlide: (payload: ScormSlidePayload) =>
+            addUpdateScormSlideMutation.mutateAsync(payload).then((result) => result.data),
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,
         updateQuestionOrder: (payload: SlideQuestionsDataInterface) =>
@@ -689,6 +802,8 @@ export const useSlidesMutations = (
             addUpdateDocumentSlideMutation.isPending ||
             addUpdateQuizSlideMutation.isPending ||
             addUpdateAssignmentSlideMutation.isPending ||
+            addUpdateAudioSlideMutation.isPending ||
+            addUpdateScormSlideMutation.isPending ||
             updateSlideOrderMutation.isPending ||
             updateQuestionSlideMutation.isPending ||
             updateAssignmentSlideMutation.isPending,

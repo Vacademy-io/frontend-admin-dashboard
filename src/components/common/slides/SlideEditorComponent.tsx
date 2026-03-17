@@ -9,6 +9,7 @@ import { filterSlidesByIdType } from './utils/util';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { Button } from '@/components/ui/button';
 import { ListStart, Save, Loader2, PlaySquare, Tv2, PlusCircle, Share2, ChevronDown, Check, Edit2, UploadCloud } from 'lucide-react';
+import { getInstituteId } from '@/constants/helper';
 import SlideList from './SlideList';
 import { QuizSlide } from './slidesTypes/QuizSlides'; // Ensure path is correct
 import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Assumed path
@@ -20,6 +21,7 @@ import { ArrowLeft } from 'lucide-react';
 import { TokenKey } from '@/constants/auth/tokens';
 import { ActualPresentationDisplay } from './ActualPresentationDisplay'; // Import the new component
 import { SessionOptionsModal, type SessionOptions } from './components/SessionOptionModel'; // Assumed path
+import { SessionLeaderboardModal } from './components/SessionLeaderboardModal';
 import { WaitingRoom } from './components/SessionWaitingRoom'; // Assumed path
 import { ADD_PRESENTATION, EDIT_PRESENTATION, CREATE_SESSION_API_URL, FINISH_SESSION_API_URL } from '@/constants/urls';
 import { SlideRenderer } from './SlideRenderer'; // Import the extracted SlideRenderer
@@ -94,6 +96,7 @@ const SlidesEditorComponent = ({
         slides,
         currentSlideId,
         editMode,
+        dirtySlideIds,
         setCurrentSlideId,
         setEditMode,
         addSlide,
@@ -104,6 +107,8 @@ const SlidesEditorComponent = ({
         initializeNewPresentationState,
         updateSlideIds,
         clearRecommendations,
+        markAllDirty,
+        clearDirtySlides,
     } = useSlideStore();
 
     const router = useRouter();
@@ -132,6 +137,7 @@ const SlidesEditorComponent = ({
     }, [isEdit, slides, isLoadingPresentation, isRefetchingPresentation, editMode]);
 
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [isExitDialogOpen, setIsExitDialogOpen] = useState<boolean>(false);
 
     // ... after isParticipantsPanelOpen state
     const [isTranscriptModalOpen, setIsTranscriptModalOpen] = useState<boolean>(false);
@@ -150,6 +156,18 @@ const SlidesEditorComponent = ({
 
     // State to store the IDs of slides initially loaded for an existing presentation
     const [originalSlideIds, setOriginalSlideIds] = useState(new Set<string>());
+
+    // A deletion is pending if any originally-loaded slide ID is no longer in the slides array
+    const hasPendingDeletions = isEdit && [...originalSlideIds].some(id => !slides.find(s => s.id === id));
+    const hasUnsavedChanges = dirtySlideIds.size > 0 || hasPendingDeletions;
+
+    const handleBackNavigation = () => {
+        if (hasUnsavedChanges) {
+            setIsExitDialogOpen(true);
+        } else {
+            router.navigate({ to: '/study-library/volt' });
+        }
+    };
 
     // States for Audio Recording
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -190,6 +208,10 @@ const SlidesEditorComponent = ({
     // State for session finish modal
     const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
     const [isTranscribingOnFinish, setIsTranscribingOnFinish] = useState(false);
+
+    // State for session leaderboard modal
+    const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
+    const [finishedSessionId, setFinishedSessionId] = useState<string | null>(null);
 
     // --- State for AI Slide Recommendations ---
     const recommendationIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -481,7 +503,7 @@ const SlidesEditorComponent = ({
                     toast.success('Audio recording finished. Ready for playback/download.');
                     setIsRecording(false);
                     setIsRecordingPaused(false);
-                    stream.getTracks().forEach(track => track.clone().stop()); // Stop cloned tracks
+                    stream.getTracks().forEach(track => track.stop());
                 };
 
                 // Setup for recommendation interval recording (using a clone of the stream)
@@ -556,8 +578,10 @@ const SlidesEditorComponent = ({
                 mediaRecorderRef.current.start(1000); // Start main recording
 
                 // Start the recommendation recorder and the 5-minute interval
-                recommendationMediaRecorderRef.current.start();
-                startRecommendationInterval();
+                if (recommendationMediaRecorderRef.current && recommendationMediaRecorderRef.current.state === 'inactive') {
+                    recommendationMediaRecorderRef.current.start();
+                    startRecommendationInterval();
+                }
 
                 setIsRecording(true);
                 setIsRecordingPaused(false);
@@ -599,12 +623,11 @@ const SlidesEditorComponent = ({
             }
             console.log('[Rec AI] Transcript received:', transcript.text);
 
-            var promptText = transcript.text;
-            promptText = promptText + " When Generating Slides, Make one or two Excalidraw slides for Key Points Discussed Summary in an engaging way, one question for taking the feedback for learning"
+            const promptText = transcript.text + " When Generating Slides, Make one or two Excalidraw slides for Key Points Discussed Summary in an engaging way, one question for taking the feedback for learning";
             // 2. Generate slides from transcript
             const slideGenResponse = await authenticatedAxiosInstance.post(
                 GENERATE_SLIDES_FROM_TEXT_API_URL,
-                { language: 'English', text: transcript.text },
+                { language: 'English', text: promptText, institute_id: getInstituteId() },
                 { headers: { 'Content-Type': 'application/json' } }
             );
 
@@ -706,10 +729,13 @@ const SlidesEditorComponent = ({
     };
 
     const cleanupAndExitSession = async (callFinishApi: boolean = false) => {
-        if (callFinishApi && sessionDetails?.session_id) {
+        const currentSessionId = sessionDetails?.session_id;
+        const showLeaderboard = sessionDetails?.show_results_at_last_slide === true;
+
+        if (callFinishApi && currentSessionId) {
             try {
                 await authenticatedAxiosInstance.post(FINISH_SESSION_API_URL, {
-                    session_id: sessionDetails.session_id,
+                    session_id: currentSessionId,
                     move_to: null, // move_to can be null for this API
                 });
                 toast.success("Session has been successfully ended on the server.");
@@ -718,6 +744,12 @@ const SlidesEditorComponent = ({
                 toast.error("Failed to notify the server about the session ending. It may still be active.");
             }
         }
+
+        // Save session ID for leaderboard before clearing
+        if (currentSessionId && showLeaderboard) {
+            setFinishedSessionId(currentSessionId);
+        }
+
         // UI state resets
         setJustExitedSession(true);
         setEditMode(true);
@@ -732,6 +764,11 @@ const SlidesEditorComponent = ({
         setShouldRecordAudio(false);
         setAudioBlobUrl(null);
         toast.info('Exited live session flow.');
+
+        // Show leaderboard only if it was a scored session
+        if (currentSessionId && showLeaderboard) {
+            setIsLeaderboardModalOpen(true);
+        }
     };
 
     const processAndFinishSession = async (inBackground: boolean) => {
@@ -850,24 +887,30 @@ const SlidesEditorComponent = ({
             const allProcessedSlidesInCurrentSave = [];
             for (let index = 0; index < slides.length; index++) {
                 const slide = slides[index];
-                let fileId;
+                let fileId: string;
 
-                try {
-                    // TODO: Optimize S3 upload - only upload if content has actually changed.
-                    // For now, it re-uploads every time, generating a new fileId.
-                    fileId = await UploadFileInS3V2(
-                        slide,
-                        () => { }, // Progress callback (noop)
-                        tokenData.sub, // User ID
-                        'SLIDES',      // Category
-                        tokenData.sub, // Institute ID (using sub as placeholder if specific institute ID is different)
-                        true           // isPublic
-                    );
-                } catch (uploadError) {
-                    console.error('Upload failed for slide:', slide.id, uploadError);
-                    toast.error(`Failed to upload content for slide ${index + 1}.`);
-                    setIsSaving(false); // Ensure saving state is reset
-                    return; // Stop the save process if any upload fails
+                const isDirty = dirtySlideIds.has(slide.id);
+                const hasExistingSourceId = !!slide.source_id;
+
+                if (!isDirty && hasExistingSourceId) {
+                    // Content unchanged — reuse the existing S3 file ID to skip the upload
+                    fileId = slide.source_id;
+                } else {
+                    try {
+                        fileId = await UploadFileInS3V2(
+                            slide,
+                            () => { }, // Progress callback (noop)
+                            tokenData.sub,
+                            'SLIDES',
+                            tokenData.sub,
+                            true
+                        );
+                    } catch (uploadError) {
+                        console.error('Upload failed for slide:', slide.id, uploadError);
+                        toast.error(`Failed to upload content for slide ${index + 1}.`);
+                        setIsSaving(false);
+                        return;
+                    }
                 }
 
                 const isQuestionSlide = [SlideTypeEnum.Quiz, SlideTypeEnum.Feedback].includes(
@@ -1092,11 +1135,12 @@ const SlidesEditorComponent = ({
                     if (syncedSlides.length > 0) {
                         // Sort one last time to be certain, then update the global state.
                         syncedSlides.sort((a, b) => a.slide_order - b.slide_order);
-                        console.log("State synchronized. Updating local slides.", syncedSlides);
                         setSlides(syncedSlides);
                         // After successfully syncing, update the originalSlideIds to reflect the new state.
                         // This prevents re-adding slides that were just saved.
                         setOriginalSlideIds(new Set(syncedSlides.map(s => s.id)));
+                        // All saved slides are now clean — future saves will only upload changed ones.
+                        clearDirtySlides();
                     }
                 } else if (!isEdit && response.data.id) {
                     // This is the case for auto-create where the slide array might be empty in the response,
@@ -1111,32 +1155,6 @@ const SlidesEditorComponent = ({
                     });
                     autoCreateNavigated = true;
                 }
-            }
-
-            // Handle auto-create success by updating URL and re-rendering
-            if (isAutoSave && !isEdit && response.data && response.data.id) {
-                const newPresentationId = response.data.id;
-                console.log(`Auto-create successful. New ${PRODUCT_NAME} ID: ${newPresentationId}. Navigating to edit mode.`);
-
-                // Preserve title and description from metaData for the new URL
-                // autoStartLive should be removed if present, as it's a one-time action
-                const newSearchParams = {
-                    id: newPresentationId,
-                    isEdit: 'true',
-                    title: metaData.title,
-                    description: metaData.description,
-                };
-                // router.state.location.search might contain other params; selectively carry them over if needed.
-                // For now, focusing on core params for the editor.
-
-                router.navigate({
-                    to: '/study-library/volt/add', // Target route for the editor
-                    search: newSearchParams,
-                    replace: true, // Replace history to avoid issues with back button
-                });
-                autoCreateNavigated = true; // Set flag
-                // setIsSaving is NOT called here; will be handled by useEffect after navigation
-                return;
             }
 
             if (isAutoSave) {
@@ -1158,8 +1176,109 @@ const SlidesEditorComponent = ({
         }
     };
 
-    const exportPresentationToFile = () => toast.info('Export function coming soon!');
-    const importPresentationFromFile = () => toast.info('Import function coming soon!');
+    const exportPresentationToFile = () => {
+        try {
+            // Serialize slides — convert Map-based collaborators to plain arrays so JSON.stringify works
+            const exportableSlides = slides.map((slide) => {
+                if (slide.type === SlideTypeEnum.Quiz || slide.type === SlideTypeEnum.Feedback) {
+                    return slide;
+                }
+                const excalidrawSlide = slide as ExcalidrawSlideData;
+                const collaborators = excalidrawSlide.appState?.collaborators;
+                return {
+                    ...excalidrawSlide,
+                    appState: {
+                        ...excalidrawSlide.appState,
+                        collaborators: collaborators instanceof Map
+                            ? Array.from(collaborators.entries())
+                            : [],
+                    },
+                };
+            });
+
+            const payload = {
+                version: 1,
+                title: metaData.title || 'Untitled',
+                exported_at: new Date().toISOString(),
+                slides: exportableSlides,
+            };
+
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = `${(metaData.title || 'presentation').replace(/\s+/g, '_')}.volt.json`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            URL.revokeObjectURL(url);
+            toast.success('Presentation exported successfully.');
+        } catch (err) {
+            console.error('Export failed:', err);
+            toast.error('Failed to export presentation.');
+        }
+    };
+
+    const importPresentationFromFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        // Reset the input so the same file can be re-imported if needed
+        event.target.value = '';
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const parsed = JSON.parse(e.target?.result as string);
+
+                // Accept either a .volt.json export or a raw array of slides
+                const rawSlides: AppSlide[] = Array.isArray(parsed)
+                    ? parsed
+                    : Array.isArray(parsed.slides)
+                        ? parsed.slides
+                        : null;
+
+                if (!rawSlides) {
+                    toast.error('Invalid file format. Expected a Volt export or a slides array.');
+                    return;
+                }
+
+                // Re-hydrate collaborators Maps and assign fresh temp IDs so there are no ID collisions
+                const importedSlides: AppSlide[] = rawSlides.map((slide, index) => {
+                    const freshId = `temp-import-${Date.now()}-${index}`;
+                    if (slide.type === SlideTypeEnum.Quiz || slide.type === SlideTypeEnum.Feedback) {
+                        return { ...slide, id: freshId, slide_order: slides.length + index, source_id: undefined };
+                    }
+                    const excalidrawSlide = slide as ExcalidrawSlideData;
+                    const rawCollaborators = excalidrawSlide.appState?.collaborators;
+                    const collaboratorsMap = Array.isArray(rawCollaborators)
+                        ? new Map(rawCollaborators)
+                        : new Map();
+                    return {
+                        ...excalidrawSlide,
+                        id: freshId,
+                        slide_order: slides.length + index,
+                        source_id: undefined, // force re-upload on next save
+                        appState: { ...excalidrawSlide.appState, collaborators: collaboratorsMap },
+                    };
+                });
+
+                const combined = [...slides, ...importedSlides].map((s, i) => ({ ...s, slide_order: i }));
+                setSlides(combined);
+                // Mark all imported slides dirty so they get uploaded on next save
+                importedSlides.forEach(s => {
+                    const newDirty = new Set(useSlideStore.getState().dirtySlideIds);
+                    newDirty.add(s.id);
+                    useSlideStore.setState({ dirtySlideIds: newDirty });
+                });
+                toast.success(`${importedSlides.length} slide(s) imported successfully.`);
+            } catch (err) {
+                console.error('Import failed:', err);
+                toast.error('Failed to parse the file. Make sure it is a valid Volt export.');
+            }
+        };
+        reader.readAsText(file);
+    };
 
     const handleSharePresentation = () => {
         if (presentationId) {
@@ -1258,34 +1377,20 @@ const SlidesEditorComponent = ({
         }
     };
 
-    const autoSaveCallback = useRef<() => void>();
+    // Auto-save has been removed to prevent data loss and duplicate presentations.
+    // Changes are tracked via dirtySlideIds. User must manually save or will be prompted on exit.
 
+    // Warn the user if they try to close/refresh the tab with unsaved changes
     useEffect(() => {
-        // Keep the callback ref up to date with the latest state and props,
-        // so the setInterval callback always has the fresh state.
-        autoSaveCallback.current = () => {
-            if (!isSaving && slides && slides.length > 0) {
-                console.log(`Auto-saving... Current isEdit: ${isEdit}, presentationId: ${presentationId}`);
-                savePresentation(true); // isAutoSave = true
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
             }
         };
-    }); // No dependency array: this runs on every render to keep the ref updated.
-
-    // Auto-save useEffect
-    useEffect(() => {
-        if (!editMode) return; // Only run if editor UI is active
-
-        const performAutoSave = () => {
-            autoSaveCallback.current?.();
-        };
-
-        const intervalId = setInterval(performAutoSave, 60000); // 60000 ms = 1 minute
-
-        return () => {
-            clearInterval(intervalId);
-            console.log("Auto-save interval cleared.");
-        };
-    }, [editMode]); // The interval is only started/stopped based on editMode.
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [hasUnsavedChanges]);
 
     // New useEffect to reset the justExitedSession flag after render.
     useEffect(() => {
@@ -1505,6 +1610,7 @@ const SlidesEditorComponent = ({
                 {
                     language: aiLanguage,
                     text: aiTopic,
+                    institute_id: getInstituteId(),
                 },
                 { headers: { 'Content-Type': 'application/json' } }
             );
@@ -1671,6 +1777,7 @@ const SlidesEditorComponent = ({
             const payload = {
                 language: 'English',
                 text: prompt,
+                institute_id: getInstituteId(),
                 initial_data: JSON.stringify({
                     type: 'excalidraw',
                     version: 2,
@@ -1899,7 +2006,7 @@ const SlidesEditorComponent = ({
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => router.navigate({ to: '/study-library/volt' })}
+                        onClick={handleBackNavigation}
                         className="text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                     >
                         <ArrowLeft size={22} />
@@ -1947,7 +2054,7 @@ const SlidesEditorComponent = ({
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => router.navigate({ to: '/study-library/volt' })}
+                        onClick={handleBackNavigation}
                         className="rounded-full text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                     >
                         <ArrowLeft size={20} />
@@ -1993,6 +2100,13 @@ const SlidesEditorComponent = ({
                     )}
                 </div>
                 <div className="flex items-center gap-2 sm:gap-2.5">
+                    {/* Unsaved changes indicator */}
+                    {hasUnsavedChanges && !isSaving && (
+                        <span className="hidden items-center gap-1 text-xs font-medium text-amber-600 sm:flex">
+                            <span className="size-1.5 rounded-full bg-amber-500" />
+                            Unsaved changes
+                        </span>
+                    )}
                     {isEdit ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -2017,9 +2131,7 @@ const SlidesEditorComponent = ({
                                 <DropdownMenuItem
                                     onClick={async () => {
                                         await savePresentation();
-                                        if (!isSaving) { // Ensure save was successful (or not in progress) before navigating
-                                            router.navigate({ to: '/study-library/volt' });
-                                        }
+                                        router.navigate({ to: '/study-library/volt' });
                                     }}
                                     disabled={isSaving}
                                 >
@@ -2275,6 +2387,53 @@ const SlidesEditorComponent = ({
                             </form>
                         </>
                     )}
+                </DialogContent>
+            </Dialog>
+            {/* Session Leaderboard Modal */}
+            {finishedSessionId && (
+                <SessionLeaderboardModal
+                    isOpen={isLeaderboardModalOpen}
+                    onClose={() => {
+                        setIsLeaderboardModalOpen(false);
+                        setFinishedSessionId(null);
+                    }}
+                    sessionId={finishedSessionId}
+                    slides={slides}
+                />
+            )}
+
+            {/* Unsaved Changes Exit Dialog */}
+            <Dialog open={isExitDialogOpen} onOpenChange={setIsExitDialogOpen}>
+                <DialogContent className="sm:max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle>Unsaved changes</DialogTitle>
+                        <DialogDescription>
+                            You have unsaved changes. Do you want to save before leaving?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex-col gap-2 sm:flex-row">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setIsExitDialogOpen(false);
+                                router.navigate({ to: '/study-library/volt' });
+                            }}
+                        >
+                            Exit without saving
+                        </Button>
+                        <Button
+                            className="bg-orange-500 text-white hover:bg-orange-600"
+                            disabled={isSaving}
+                            onClick={async () => {
+                                await savePresentation();
+                                setIsExitDialogOpen(false);
+                                router.navigate({ to: '/study-library/volt' });
+                            }}
+                        >
+                            {isSaving ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4" />}
+                            Save and exit
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

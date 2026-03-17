@@ -11,6 +11,7 @@ export interface StudentFilterRequest {
     payment_statuses?: string[];
     sources?: string[];
     types?: string[];
+    type?: string; // Single type filter (e.g., 'ABANDONED_CART')
     type_ids?: string[];
     destination_package_session_ids?: string[];
     level_ids?: string[];

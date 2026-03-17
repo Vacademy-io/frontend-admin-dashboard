@@ -1,9 +1,10 @@
 // src/components/design-system/image-cropper-dialog.tsx
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';
 import { Cropper, CropperRef, RectangleStencil } from 'react-advanced-cropper';
 import 'react-advanced-cropper/dist/style.css';
+import { cn } from '@/lib/utils';
 
 export interface ImageCropperDialogProps {
     open: boolean;
@@ -31,6 +32,13 @@ export const ImageCropperDialog = ({
     onCropped,
 }: ImageCropperDialogProps) => {
     const cropperRef = useRef<CropperRef>(null);
+    const [currentAspectRatio, setCurrentAspectRatio] = useState<number | undefined>(aspectRatio);
+
+    useEffect(() => {
+        if (open) {
+            setCurrentAspectRatio(aspectRatio);
+        }
+    }, [open, aspectRatio]);
 
     const handleConfirm = () => {
         const canvas = cropperRef.current?.getCanvas();
@@ -49,6 +57,14 @@ export const ImageCropperDialog = ({
         );
     };
 
+    const presets = [
+        { label: 'Free', value: undefined },
+        { label: '1:1', value: 1 },
+        { label: '16:9', value: 16 / 9 },
+        { label: '4:3', value: 4 / 3 },
+        { label: '2:1', value: 2 },
+    ];
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="z-[10000] flex h-[90vh] max-h-[90vh] w-[90vw] max-w-[90vw] flex-col p-0">
@@ -63,7 +79,7 @@ export const ImageCropperDialog = ({
                             className={'size-full'}
                             stencilComponent={RectangleStencil}
                             stencilProps={{
-                                aspectRatio,
+                                aspectRatio: currentAspectRatio,
                                 previewClassName: 'rounded-md',
                             }}
                             backgroundClassName={'bg-neutral-100'}
@@ -71,25 +87,47 @@ export const ImageCropperDialog = ({
                         />
                     </div>
                 </div>
-                <div className="flex justify-end gap-2 border-t p-4">
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        layoutVariant="default"
-                        scale="medium"
-                        onClick={() => onOpenChange(false)}
-                    >
-                        {cancelLabel}
-                    </MyButton>
-                    <MyButton
-                        type="button"
-                        buttonType="primary"
-                        layoutVariant="default"
-                        scale="medium"
-                        onClick={handleConfirm}
-                    >
-                        {confirmLabel}
-                    </MyButton>
+
+                <div className="flex flex-col gap-4 border-t px-4 py-3">
+                    {/* Aspect Ratio Presets */}
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                        {presets.map((preset) => (
+                            <button
+                                key={preset.label}
+                                type="button"
+                                onClick={() => setCurrentAspectRatio(preset.value)}
+                                className={cn(
+                                    'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+                                    currentAspectRatio === preset.value
+                                        ? 'border-primary-600 bg-primary-600 text-white'
+                                        : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'
+                                )}
+                            >
+                                {preset.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                        <MyButton
+                            type="button"
+                            buttonType="secondary"
+                            layoutVariant="default"
+                            scale="medium"
+                            onClick={() => onOpenChange(false)}
+                        >
+                            {cancelLabel}
+                        </MyButton>
+                        <MyButton
+                            type="button"
+                            buttonType="primary"
+                            layoutVariant="default"
+                            scale="medium"
+                            onClick={handleConfirm}
+                        >
+                            {confirmLabel}
+                        </MyButton>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

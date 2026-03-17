@@ -107,7 +107,7 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                 duration: 2000,
             });
             setOpen(false);
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_BOTH_INSTITUTE_APIS'] });
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {

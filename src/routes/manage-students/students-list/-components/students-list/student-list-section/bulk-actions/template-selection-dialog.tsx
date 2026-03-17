@@ -3,11 +3,14 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
 import { MessageTemplate } from '@/types/message-template-types';
-import { templateCacheService } from '@/services/template-cache-service';
+import { getMessageTemplates, getMessageTemplate } from '@/services/message-template-service';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { getInstituteId } from '@/constants/helper';
 import { Plus, FileText, Eye, CircleNotch, Spinner, MagnifyingGlass } from '@phosphor-icons/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface StudentEmailStatus {
     userId: string;
@@ -36,26 +39,40 @@ export const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = (
     isBulkEmailSending,
     onSendEmail,
 }) => {
+    const navigate = useNavigate();
     const [templates, setTemplates] = useState<MessageTemplate[]>([]);
     const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredTemplates, setFilteredTemplates] = useState<MessageTemplate[]>([]);
+    
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [isLast, setIsLast] = useState(true);
+    const [isFirst, setIsFirst] = useState(true);
 
-    const loadTemplates = async () => {
+    const loadTemplates = async (page: number = currentPage, size: number = pageSize) => {
         setIsLoadingTemplates(true);
         try {
-            const emailTemplates = await templateCacheService.getTemplates('EMAIL');
-            setTemplates(emailTemplates);
-            setFilteredTemplates(emailTemplates);
+            const response = await getMessageTemplates('EMAIL', page, size);
+            setTemplates(response.templates);
+            setFilteredTemplates(response.templates);
+            setTotalElements(response.total);
+            setTotalPages(response.totalPages || 1);
+            setIsLast(response.isLast ?? true);
+            setIsFirst(response.isFirst ?? true);
+            setCurrentPage(response.page);
         } catch (error) {
-            // Error is already handled by toast.error
+            console.error('Error loading templates:', error);
             toast.error('Failed to load email templates');
         } finally {
             setIsLoadingTemplates(false);
         }
     };
 
-    // Filter templates based on search query
+    // Filter templates based on search query (client-side filtering on current page)
     useEffect(() => {
         if (!searchQuery.trim()) {
             setFilteredTemplates(templates);
@@ -63,7 +80,7 @@ export const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = (
             const filtered = templates.filter((template) =>
                 template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 template.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                template.content.toLowerCase().includes(searchQuery.toLowerCase())
+                (template.content && template.content.toLowerCase().includes(searchQuery.toLowerCase()))
             );
             setFilteredTemplates(filtered);
         }
@@ -71,13 +88,41 @@ export const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = (
 
     useEffect(() => {
         if (isOpen) {
-            loadTemplates();
+            loadTemplates(0, pageSize);
         }
     }, [isOpen]);
 
-        const handleSelectTemplate = (template: MessageTemplate) => {
-            onSelectTemplate(template);
-            // Don't close immediately - let parent handle preview dialog
+    // Reload when page or page size changes
+    useEffect(() => {
+        if (isOpen) {
+            loadTemplates(currentPage, pageSize);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, pageSize]);
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 0 && newPage < totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
+
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+        setCurrentPage(0); // Reset to first page when changing page size
+    };
+
+        const handleSelectTemplate = async (template: MessageTemplate) => {
+            try {
+                // Fetch full template content from API
+                const fullTemplate = await getMessageTemplate(template.id);
+                onSelectTemplate(fullTemplate);
+                // Don't close immediately - let parent handle preview dialog
+            } catch (error) {
+                console.error('Error loading template:', error);
+                toast.error('Failed to load template content. Using cached version.');
+                // Fallback to cached template if API fails
+                onSelectTemplate(template);
+            }
         };
 
     const handleSendEmail = async (template: MessageTemplate) => {
@@ -90,8 +135,9 @@ export const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = (
     };
 
     const handleCreateNew = () => {
-        onCreateNew();
-        // Don't close here - let parent handle the dialog flow
+        // Redirect to the create template route
+        navigate({ to: '/templates/create' });
+        onClose();
     };
 
     return (
@@ -150,48 +196,98 @@ export const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = (
                         <p className="text-sm text-neutral-500">Create your first template to get started.</p>
                     </div>
                 ) : (
-                    <div className="border border-neutral-200 rounded-lg overflow-hidden">
-                        <table className="w-full">
-                            <thead className="bg-neutral-50 border-b border-neutral-200">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Template Name</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Subject</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Content Preview</th>
-                                    </tr>
-                            </thead>
-                            <tbody className="divide-y divide-neutral-200">
-                                {filteredTemplates.map((template) => (
-                                    <tr
-                                        key={template.id}
-                                        className="hover:bg-neutral-50 cursor-pointer transition-colors"
-                                        onClick={() => handleSelectTemplate(template)}
-                                    >
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="size-4 text-blue-600" />
-                                                <span className="text-sm font-medium text-neutral-800">
-                                                    {template.name}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <div className="text-sm text-neutral-700 max-w-xs truncate">
-                                                {template.subject || 'No subject'}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <div
-                                                className="text-sm text-neutral-600 max-w-xs truncate"
-                                                dangerouslySetInnerHTML={{
-                                                    __html: template.content?.substring(0, 80) + (template.content?.length > 80 ? '...' : '') || 'No content'
-                                                }}
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    <>
+                        <div className="border border-neutral-200 rounded-lg overflow-hidden">
+                            <table className="w-full">
+                                <thead className="bg-neutral-50 border-b border-neutral-200">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Template Name</th>
+                                            <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Subject</th>
+                                            <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Content Preview</th>
+                                        </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-200">
+                                    {filteredTemplates.map((template) => (
+                                        <tr
+                                            key={template.id}
+                                            className="hover:bg-neutral-50 cursor-pointer transition-colors"
+                                            onClick={() => handleSelectTemplate(template)}
+                                        >
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="size-4 text-blue-600" />
+                                                    <span className="text-sm font-medium text-neutral-800">
+                                                        {template.name}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="text-sm text-neutral-700 max-w-xs truncate">
+                                                    {template.subject || 'No subject'}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div
+                                                    className="text-sm text-neutral-600 max-w-xs truncate"
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: template.content?.substring(0, 80) + (template.content?.length > 80 ? '...' : '') || 'No content'
+                                                    }}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {templates.length > 0 && (
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 border-t border-neutral-200">
+                                <div className="flex items-center gap-2 text-sm text-neutral-600">
+                                    <span>
+                                        Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, totalElements)} of {totalElements} templates
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-neutral-600">Rows per page:</span>
+                                        <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(Number(value))}>
+                                            <SelectTrigger className="w-[70px] h-8">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="10">10</SelectItem>
+                                                <SelectItem value="20">20</SelectItem>
+                                                <SelectItem value="50">50</SelectItem>
+                                                <SelectItem value="100">100</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            disabled={isFirst || currentPage === 0}
+                                            className="h-8 w-8 flex items-center justify-center rounded border border-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
+                                        >
+                                            <ChevronLeft className="size-4" />
+                                        </button>
+                                        <div className="flex items-center gap-1 px-2">
+                                            <span className="text-sm text-neutral-600">
+                                                Page {currentPage + 1} of {totalPages}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={() => handlePageChange(currentPage + 1)}
+                                            disabled={isLast || currentPage >= totalPages - 1}
+                                            className="h-8 w-8 flex items-center justify-center rounded border border-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
+                                        >
+                                            <ChevronRight className="size-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </MyDialog>

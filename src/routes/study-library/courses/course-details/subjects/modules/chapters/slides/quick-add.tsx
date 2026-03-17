@@ -1,3 +1,6 @@
+import { getActiveRoleDisplaySettingsKey } from '@/lib/auth/instituteUtils';
+import { getInstituteId } from '@/constants/helper';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -7,11 +10,13 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { useSlidesMutations } from './-hooks/use-slides';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useGetPackageSessionIdFromCourseInit } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionIdFromCourseInit';
 import { useContentStore } from './-stores/chapter-sidebar-store';
 import { UploadFileInS3, getPublicUrl } from '@/services/upload_file';
 import * as pdfjs from 'pdfjs-dist';
 import { toast } from 'sonner';
 import { convertDocToHtml } from './-components/slides-sidebar/utils/doc-to-html';
+import { convertPptToPdf } from './-components/slides-sidebar/add-ppt-dialog';
 import { useReplaceBase64ImagesWithNetworkUrls } from '@/utils/helpers/study-library-helpers.ts/slides/replaceBase64ToNetworkUrl';
 import { convertHtmlToPdf } from './-helper/helper';
 import { formatHTMLString } from './-components/slide-operations/formatHtmlString';
@@ -36,7 +41,7 @@ import {
 } from '@phosphor-icons/react';
 import {
     ADMIN_DISPLAY_SETTINGS_KEY,
-    TEACHER_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY, CUSTOM_ROLE_DISPLAY_SETTINGS_KEY,
     type DisplaySettingsData,
 } from '@/types/display-settings';
 import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
@@ -46,6 +51,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 type StagedKind =
     | 'PDF'
     | 'DOC'
+    | 'PPT'
     | 'VIDEO_FILE'
     | 'YOUTUBE'
     | 'IMAGE'
@@ -82,17 +88,28 @@ export interface ChapterSearchParamsForQuickAdd {
 export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAdd }) {
     const router = useRouter();
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const packageSessionId =
+
+    // Try to get packageSessionId from course-init API first (new approach)
+    const packageSessionIdFromCourseInit = useGetPackageSessionIdFromCourseInit(
+        search.courseId || '',
+        search.sessionId || '',
+        search.levelId || ''
+    );
+    // Fallback to institute details if course-init doesn't have it
+    const packageSessionIdFromInstitute =
         getPackageSessionId({
             courseId: search.courseId || '',
             levelId: search.levelId || '',
             sessionId: search.sessionId || '',
         }) || '';
+    // Prefer course-init data, fallback to institute details
+    const packageSessionId = packageSessionIdFromCourseInit || packageSessionIdFromInstitute;
 
     const {
         addUpdateDocumentSlide,
         addUpdateVideoSlide,
         addUpdateExcalidrawSlide,
+        addUpdateAudioSlide,
         updateSlideOrder,
     } = useSlidesMutations(
         search.chapterId || '',
@@ -111,7 +128,8 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
         const isAdmin = instituteId
             ? roles.authorities[instituteId]?.roles?.includes('ADMIN')
             : false;
-        const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const hasFaculty = hasFacultyAssignedPermission(getInstituteId());
+    const roleKey = getActiveRoleDisplaySettingsKey();
         const cached = getDisplaySettingsFromCache(roleKey);
         if (cached) {
             setRoleDisplay(cached);
@@ -143,6 +161,19 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                 next.push({
                     id: crypto.randomUUID(),
                     kind: 'PDF',
+                    title: file.name.replace(/\.[^/.]+$/, ''),
+                    file,
+                    mime,
+                });
+            } else if (
+                mime.includes('powerpoint') ||
+                mime.includes('presentationml') ||
+                ext === 'ppt' ||
+                ext === 'pptx'
+            ) {
+                next.push({
+                    id: crypto.randomUUID(),
+                    kind: 'PPT',
                     title: file.name.replace(/\.[^/.]+$/, ''),
                     file,
                     mime,
@@ -384,6 +415,12 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                 icon: <FileDoc className="size-4" />,
                 onClick: () => fileInputRef.current?.click(),
             },
+            allow('pdf') && {
+                key: 'ppt',
+                label: 'PPT',
+                icon: <PresentationChart className="size-4" />,
+                onClick: () => fileInputRef.current?.click(),
+            },
             allow('presentation') && {
                 key: 'presentation',
                 label: 'Presentation',
@@ -450,7 +487,46 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                 // All bulk-add slides are published
                 const status = 'PUBLISHED';
 
-                if (item.kind === 'PDF' && item.file) {
+                if (item.kind === 'PPT' && item.file) {
+                    // Convert PPT to PDF first, then process as PDF
+                    const pdfFile = await convertPptToPdf(item.file);
+                    const fileId = await UploadFileInS3(
+                        pdfFile,
+                        () => {},
+                        'bulk-user',
+                        INSTITUTE_ID,
+                        'PDF_DOCUMENTS',
+                        true
+                    );
+                    const ab = await pdfFile.arrayBuffer();
+                    const pdf = await pdfjs.getDocument({ data: ab }).promise;
+                    const totalPages = pdf.numPages;
+                    const id = crypto.randomUUID();
+                    const resp: string = await addUpdateDocumentSlide({
+                        id,
+                        title: item.title,
+                        image_file_id: '',
+                        description: null,
+                        slide_order: 0,
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: 'PDF',
+                            data: fileId || '',
+                            title: item.title,
+                            cover_file_id: '',
+                            total_pages: totalPages,
+                            published_data: fileId || '',
+                            published_document_total_pages: totalPages,
+                        },
+                        status,
+                        new_slide: true,
+                        notify: false,
+                    });
+                    createdIds.push(resp || id);
+                    setStaged((prev) =>
+                        prev.map((it) => (it.id === item.id ? { ...it, status: 'done' } : it))
+                    );
+                } else if (item.kind === 'PDF' && item.file) {
                     const fileId = await UploadFileInS3(
                         item.file,
                         () => {},
@@ -617,6 +693,7 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                         prev.map((it) => (it.id === item.id ? { ...it, status: 'done' } : it))
                     );
                 } else if (item.kind === 'AUDIO' && item.file) {
+                    // Upload audio file
                     const fileId = await UploadFileInS3(
                         item.file,
                         () => {},
@@ -625,32 +702,43 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                         'AUDIO',
                         true
                     );
-                    const url = await getPublicUrl(fileId as string);
-                    const fileSize = typeof item.file.size === 'number' ? item.file.size : 0;
-                    const downloadName = item.file.name || 'file';
-                    const displayText = `${downloadName}.${item.file.type || 'file'}`;
-                    const html = `<html><head></head><body><div><div style='margin-left: 0px; display: flex; width: 100%; justify-content: flex-start'><a data-meta-align='left' data-meta-depth='0' href='${url}' data-size='${fileSize}' download='${escapeForSingleQuotedAttr(downloadName)}' target='_blank' rel='noopener noreferrer'>${escapeForSingleQuotedAttr(displayText)}</a></div></div></body></html>`;
-                    const normalized = normalizeHtmlQuotes(html);
+
+                    // Get audio duration
+                    let audioDuration = 0;
+                    try {
+                        const audio = new Audio();
+                        audio.src = URL.createObjectURL(item.file);
+                        await new Promise<void>((resolve) => {
+                            audio.onloadedmetadata = () => {
+                                audioDuration = Math.floor(audio.duration * 1000);
+                                URL.revokeObjectURL(audio.src);
+                                resolve();
+                            };
+                            audio.onerror = () => resolve();
+                        });
+                    } catch {
+                        // Fallback to 0 duration if we can't get it
+                    }
+
                     const id = crypto.randomUUID();
-                    const resp: string = await addUpdateDocumentSlide({
+                    const resp = await addUpdateAudioSlide({
                         id,
                         title: item.title,
-                        image_file_id: '',
-                        description: 'Audio',
+                        description: null,
+                        image_file_id: null,
+                        status: status as 'DRAFT' | 'PUBLISHED',
                         slide_order: 0,
-                        document_slide: {
-                            id: crypto.randomUUID(),
-                            type: 'DOC',
-                            data: normalized,
-                            title: item.title,
-                            cover_file_id: '',
-                            total_pages: 1,
-                            published_data: normalized,
-                            published_document_total_pages: 1,
-                        },
-                        status,
-                        new_slide: true,
                         notify: false,
+                        new_slide: true,
+                        audio_slide: {
+                            id: crypto.randomUUID(),
+                            audio_file_id: fileId ?? '',
+                            thumbnail_file_id: null,
+                            audio_length_in_millis: audioDuration,
+                            source_type: 'FILE',
+                            external_url: null,
+                            transcript: null,
+                        },
                     });
                     createdIds.push(resp || id);
                     setStaged((prev) =>
@@ -962,6 +1050,9 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                         'application/pdf',
                         'application/msword',
                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'application/vnd.ms-powerpoint',
+                        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                        '.ppt,.pptx',
                         'video/*',
                         'image/*',
                         'audio/*',
@@ -1067,7 +1158,7 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                                                 {s.url ? ` • ${s.url}` : ''}
                                             </span>
                                             {s.status === 'loading' && (
-                                                <span className="text-primary-600 flex items-center gap-1">
+                                                <span className="flex items-center gap-1 text-primary-600">
                                                     <CircleNotch className="size-3 animate-spin" />
                                                     Adding...
                                                 </span>
@@ -1128,6 +1219,8 @@ function renderKindIcon(kind: StagedKind) {
         case 'PRESENTATION':
             return <PresentationChart className={cls} />;
         case 'JUPYTER':
+            return <PresentationChart className={cls} />;
+        case 'PPT':
             return <PresentationChart className={cls} />;
         default:
             return null;

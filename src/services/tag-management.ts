@@ -140,6 +140,17 @@ export async function getUserCountsByTags(tagIds: string[]): Promise<TagUserCoun
     return data;
 }
 
+export async function getUserIdsByTags(tagIds: string[]): Promise<string[]> {
+    const instituteId = getCurrentInstituteId();
+    const { data } = await authenticatedAxiosInstance<string[]>({
+        method: 'POST',
+        url: `${BASE}/institutes/${instituteId}/tags/users`,
+        data: tagIds,
+        headers: { 'Content-Type': 'application/json' },
+    });
+    return data;
+}
+
 export async function getUserDetailsByTags(tagIds: string[]): Promise<TagUserDetailItem[]> {
     const instituteId = getCurrentInstituteId();
     const { data } = await authenticatedAxiosInstance<TagUserDetailItem[]>({

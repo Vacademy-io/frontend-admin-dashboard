@@ -25,6 +25,7 @@ interface DistributionModalProps {
     onClose: () => void;
     responses: ResponseData[];
     slideData: QuizSlideData;
+    addedQuestion?: any; // added_question from session API — has real DB option UUIDs
 }
 
 export const ResponseDistributionModal: React.FC<DistributionModalProps> = ({
@@ -32,6 +33,7 @@ export const ResponseDistributionModal: React.FC<DistributionModalProps> = ({
     onClose,
     responses,
     slideData,
+    addedQuestion,
 }) => {
     useEffect(() => {
         if (isOpen) {
@@ -47,7 +49,15 @@ export const ResponseDistributionModal: React.FC<DistributionModalProps> = ({
     }, [isOpen, slideData, responses]);
 
     const distributionData = useMemo(() => {
-        if (!responses || !slideData?.elements?.singleChoiceOptions) {
+        const slideOptions: Array<{ id: string; name: string; isSelected?: boolean }> =
+            slideData?.elements?.singleChoiceOptions || [];
+        // Prefer DB options (real UUIDs) from session API; fall back to slide options
+        const dbOptions: Array<{ id: string; text?: { content?: string } }> =
+            addedQuestion?.options || [];
+        // Use whichever source has entries; dbOptions is authoritative for UUIDs
+        const optionCount = dbOptions.length || slideOptions.length;
+
+        if (!responses || optionCount === 0) {
             return { stats: [], totalResponses: 0 };
         }
 
@@ -56,80 +66,37 @@ export const ResponseDistributionModal: React.FC<DistributionModalProps> = ({
             return { stats: [], totalResponses: 0 };
         }
 
-        const slideOptions = slideData.elements.singleChoiceOptions;
-
-        // Collect all selected IDs from responses
-        const allSelectedIds = responses
-            .map((r) => r.response_data?.selected_option_ids?.[0])
-            .filter(Boolean);
-
-        const uniqueSelectedIds = [...new Set(allSelectedIds)];
-
-        console.log('[Distribution] All selected IDs:', allSelectedIds);
-        console.log('[Distribution] Unique selected IDs:', uniqueSelectedIds);
-        console.log(
-            '[Distribution] Slide option IDs:',
-            slideOptions.map((opt: any) => opt.id)
-        );
-
-        // Create a mapping function to match response IDs to slide option IDs
-        const getMatchingSlideOptionId = (responseOptionId: string): string | null => {
-            // First, try exact match
-            const exactMatch = slideOptions.find((opt: any) => opt.id === responseOptionId);
-            if (exactMatch) {
-                return exactMatch.id;
-            }
-
-            // Fallback: Try to match by index if IDs don't match
-            if (responseOptionId.includes('-') && responseOptionId.length > 10) {
-                const responseIndex = uniqueSelectedIds.indexOf(responseOptionId);
-                if (responseIndex >= 0 && responseIndex < slideOptions.length) {
-                    console.log(
-                        `[Distribution] Mapping response ID ${responseOptionId} to slide option at index ${responseIndex}`
-                    );
-                    return slideOptions[responseIndex].id;
-                }
-            }
-
-            console.log(`[Distribution] Could not match response option ID: ${responseOptionId}`);
-            return null;
-        };
-
-        // Count responses for each slide option
-        const optionCounts = new Map<string, number>();
-
+        // Count responses per position index (0-based) using DB option UUIDs
+        const indexCounts = new Array(optionCount).fill(0);
         for (const res of responses) {
             const selectedId = res.response_data?.selected_option_ids?.[0];
-            if (selectedId) {
-                const matchingSlideOptionId = getMatchingSlideOptionId(selectedId);
-                if (matchingSlideOptionId) {
-                    optionCounts.set(
-                        matchingSlideOptionId,
-                        (optionCounts.get(matchingSlideOptionId) || 0) + 1
-                    );
-                }
+            if (!selectedId) continue;
+            // Match against DB UUIDs first
+            const dbIdx = dbOptions.findIndex((opt) => opt.id === selectedId);
+            if (dbIdx >= 0) {
+                indexCounts[dbIdx]++;
+                continue;
+            }
+            // Fall back to slide option IDs
+            const slideIdx = slideOptions.findIndex((opt) => opt.id === selectedId);
+            if (slideIdx >= 0) {
+                indexCounts[slideIdx]++;
             }
         }
 
-        console.log('[Distribution] Final option counts:', Object.fromEntries(optionCounts));
-
-        const stats = slideOptions.map((option: any, index: number) => {
-            const count = optionCounts.get(option.id) || 0;
+        const stats = Array.from({ length: optionCount }, (_, index) => {
+            const count = indexCounts[index];
             const percentage = totalResponses > 0 ? (count / totalResponses) * 100 : 0;
-            return {
-                id: option.id,
-                name: option.name,
-                count,
-                percentage,
-                isCorrect: option.isSelected, // Assuming isSelected marks the correct answer
-                index, // Add index for display
-            };
+            const displayName =
+                slideOptions[index]?.name ||
+                dbOptions[index]?.text?.content ||
+                `Option ${String.fromCharCode(65 + index)}`;
+            const isCorrect = slideOptions[index]?.isSelected ?? false;
+            return { index, name: displayName, count, percentage, isCorrect };
         });
 
-        console.log('[Distribution] Final stats:', stats);
-
         return { stats, totalResponses };
-    }, [responses, slideData]);
+    }, [responses, slideData, addedQuestion]);
 
     const stripHtml = (html: string) => {
         const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -168,9 +135,9 @@ export const ResponseDistributionModal: React.FC<DistributionModalProps> = ({
                 <ScrollArea className="relative z-10 max-h-[60vh]">
                     <div className="space-y-4 p-6">
                         {distributionData.stats.length > 0 ? (
-                            distributionData.stats.map((optionStat: any, index: number) => (
+                            distributionData.stats.map((optionStat: any) => (
                                 <div
-                                    key={optionStat.id}
+                                    key={optionStat.index}
                                     className="group relative space-y-2 rounded-2xl border border-slate-200/50 bg-white/50 p-4 shadow-sm backdrop-blur-sm transition-all duration-300 ease-out hover:scale-[1.01] hover:border-blue-300/50 hover:shadow-lg"
                                 >
                                     {/* Subtle gradient overlay */}
@@ -181,7 +148,7 @@ export const ResponseDistributionModal: React.FC<DistributionModalProps> = ({
                                             <div className="mr-4 flex items-center gap-3">
                                                 {/* Option letter */}
                                                 <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-slate-600 to-slate-700 text-sm font-bold text-white shadow-sm">
-                                                    {String.fromCharCode(65 + index)}
+                                                    {String.fromCharCode(65 + optionStat.index)}
                                                 </div>
                                                 {/* Correct answer indicator */}
                                                 {optionStat.isCorrect && (

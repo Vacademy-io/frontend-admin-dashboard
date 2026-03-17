@@ -28,7 +28,7 @@ export const StepFiveForm = ({
 }: {
     initialValues?: StudentTable;
     handleNextButtonDisable: (value: boolean) => void;
-    submitFn: (fn: () => void) => void;
+    submitFn: (fn: () => Promise<void>) => void;
     handleOpenDialog: (open: boolean) => void;
     credentials?: StudentCredentialsType | null;
     isLoadingCreds?: boolean;
@@ -138,11 +138,16 @@ export const StepFiveForm = ({
     };
 
     const formRef = useRef<HTMLFormElement>(null);
-    const requestFormSubmit = () => formRef.current?.requestSubmit();
+
+    // Async function to submit the form and wait for completion
+    const requestFormSubmit = async (): Promise<void> => {
+        // Use handleSubmit to validate and submit the form
+        await form.handleSubmit(onSubmit)();
+    };
 
     useEffect(() => {
         if (submitFn) submitFn(requestFormSubmit);
-    }, [submitFn]);
+    }, [submitFn, form]);
 
     useEffect(() => {
         if (initialValues?.username || credentials?.username) {

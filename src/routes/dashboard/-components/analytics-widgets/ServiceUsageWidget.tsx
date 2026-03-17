@@ -17,7 +17,8 @@ export default function ServiceUsageWidget({ instituteId }: ServiceUsageWidgetPr
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: ['analytics-service-usage', instituteId],
         queryFn: () => fetchAnalyticsServiceUsage(instituteId),
-        staleTime: 300000, // 5 minutes
+        staleTime: 300000, // 5 minutes - data considered fresh
+        gcTime: 600000, // 10 minutes - keep in cache after becoming unused
     });
 
     // Debug logging

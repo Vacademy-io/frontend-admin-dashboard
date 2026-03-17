@@ -2,7 +2,7 @@ import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import {
     GET_MODULES_WITH_CHAPTERS,
     GET_CHAPTERS_WITH_SLIDES,
-    INIT_STUDY_LIBRARY,
+    INIT_COURSE_STUDY_LIBRARY,
     GET_SLIDES, // Added for direct slides API
 } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
@@ -81,18 +81,19 @@ export const fetchSlidesDirectly = async (chapterId: string): Promise<any[]> => 
 };
 
 // Get all subjects for a course
-export const fetchSubjectsForComparison = async (courseId: string, packageSessionId: string) => {
+export const fetchSubjectsForComparison = async (courseId: string) => {
     // This would typically come from the study library data
-    // For now, we'll use the existing study library service
-    const response = await authenticatedAxiosInstance.get(
-        '/admin-core-service/v1/study-library/init',
-        {
-            params: {
-                courseId,
-                packageSessionId,
-            },
-        }
-    );
+    // Using the course-init API for course-specific data
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+
+    const response = await authenticatedAxiosInstance.get(INIT_COURSE_STUDY_LIBRARY, {
+        params: {
+            courseId,
+            instituteId: INSTITUTE_ID,
+        },
+    });
     return response.data;
 };
 
@@ -578,9 +579,10 @@ export const getPackageSessionsForCourse = async (
 
         console.log('🏢 Using institute ID:', INSTITUTE_ID);
 
-        // Fetch course data from study library init endpoint using the correct URL constant
-        const response = await authenticatedAxiosInstance.get(INIT_STUDY_LIBRARY, {
+        // Fetch course data from study library course-init endpoint using the correct URL constant
+        const response = await authenticatedAxiosInstance.get(INIT_COURSE_STUDY_LIBRARY, {
             params: {
+                courseId,
                 instituteId: INSTITUTE_ID,
             },
         });
@@ -591,7 +593,7 @@ export const getPackageSessionsForCourse = async (
             statusText: response.statusText,
             dataType: typeof studyLibraryData,
             isArray: Array.isArray(studyLibraryData),
-            url: INIT_STUDY_LIBRARY,
+            url: INIT_COURSE_STUDY_LIBRARY,
         });
 
         // Handle string response (likely HTML error page)

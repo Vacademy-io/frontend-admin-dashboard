@@ -14,10 +14,12 @@ export interface SendResetPasswordResponse {
 /**
  * Get learner portal access URL for a specific user
  * @param userId - The user ID of the student
+ * @param packageId - The package ID of the student's course
  * @returns Promise with redirect URL
  */
 export const getLearnerPortalAccess = async (
-    userId: string
+    userId: string,
+    packageId: string
 ): Promise<LearnerPortalAccessResponse> => {
     const instituteId = getCurrentInstituteId();
 
@@ -31,6 +33,7 @@ export const getLearnerPortalAccess = async (
             params: {
                 instituteId,
                 userId,
+                packageId,
             },
             headers: {
                 accept: '*/*',
@@ -44,10 +47,12 @@ export const getLearnerPortalAccess = async (
 /**
  * Send reset password email to a specific user
  * @param userId - The user ID of the student
+ * @param packageId - The package ID of the student's course
  * @returns Promise with success response
  */
 export const sendResetPasswordEmail = async (
-    userId: string
+    userId: string,
+    packageId: string
 ): Promise<SendResetPasswordResponse> => {
     const instituteId = getCurrentInstituteId();
 
@@ -61,6 +66,7 @@ export const sendResetPasswordEmail = async (
             params: {
                 instituteId,
                 userId,
+                packageId,
             },
             headers: {
                 accept: '*/*',

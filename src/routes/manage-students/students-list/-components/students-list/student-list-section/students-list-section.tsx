@@ -32,18 +32,19 @@ import { ShareCredentialsDialog } from './bulk-actions/share-credentials-dialog'
 import { IndividualShareCredentialsDialog } from './bulk-actions/individual-share-credentials-dialog';
 import { SendMessageDialog } from './bulk-actions/send-message-dialog';
 import { SendEmailDialog } from './bulk-actions/send-email-dialog';
+import { AcceptRequestDialog } from '@/routes/manage-students/enroll-requests/-components/bulk-actions/bulk-actions-component/accept-request-dialog';
+import { DeclineRequestDialog } from '@/routes/manage-students/enroll-requests/-components/bulk-actions/bulk-actions-component/decline-request-dialog';
 import { InviteFormProvider } from '@/routes/manage-students/invite/-context/useInviteFormContext';
 import { Users, FileMagnifyingGlass } from '@phosphor-icons/react';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
-import { convertCapitalToTitleCase } from '@/lib/utils';
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } =
+    const { getCourseFromPackage, instituteDetails } =
         useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
 
@@ -166,40 +167,6 @@ export const StudentsListSection = () => {
         0
     );
 
-    useEffect(() => {
-        if (search.batch && search.package_session_id) {
-            const details = getDetailsFromPackageSessionId({
-                packageSessionId: search.package_session_id,
-            });
-            const batchName =
-                convertCapitalToTitleCase(details?.level.level_name || '') +
-                ' ' +
-                convertCapitalToTitleCase(details?.package_dto.package_name || '');
-            setColumnFilters((prev) => [
-                ...prev,
-                {
-                    id: 'batch',
-                    value: [
-                        {
-                            id: search.package_session_id || '',
-                            label: batchName,
-                        },
-                    ],
-                },
-            ]);
-            setAppliedFilters((prev) => ({
-                ...prev,
-                package_session_ids: search.package_session_id
-                    ? [search.package_session_id]
-                    : undefined,
-            }));
-            const session: DropdownItemType = {
-                id: details?.session.id || '',
-                name: details?.session.session_name || '',
-            };
-            handleSessionChange(session);
-        }
-    }, [search, instituteDetails]);
 
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
@@ -237,6 +204,10 @@ export const StudentsListSection = () => {
         </div>
     );
 
+    const handleResetAll = () => {
+        handleClearFilters();
+    };
+
     return (
         <ErrorBoundary>
             <section className="animate-fadeIn flex max-w-full flex-col gap-3 overflow-visible">
@@ -259,7 +230,7 @@ export const StudentsListSection = () => {
                         onClearSearch={handleClearSearch}
                         onFilterChange={handleFilterChange}
                         onFilterClick={handleFilterClick}
-                        onClearFilters={handleClearFilters}
+                        onClearFilters={handleResetAll}
                         appliedFilters={appliedFilters}
                         page={page}
                         pageSize={10}
@@ -306,7 +277,12 @@ export const StudentsListSection = () => {
                                                 total_elements: studentTableData.total_elements,
                                                 last: studentTableData.last,
                                             }}
-                                            columns={getCustomColumns()}
+                                            columns={getCustomColumns(
+                                                // Show approval actions if INVITED or PENDING_FOR_APPROVAL is in statuses
+                                                appliedFilters.statuses?.some(s =>
+                                                    ['INVITED', 'PENDING_FOR_APPROVAL'].includes(s)
+                                                ) || false
+                                            )}
                                             tableState={{
                                                 columnVisibility: getColumnsVisibility(),
                                             }}
@@ -359,6 +335,8 @@ export const StudentsListSection = () => {
                 <IndividualShareCredentialsDialog />
                 <SendMessageDialog />
                 <SendEmailDialog />
+                <AcceptRequestDialog />
+                <DeclineRequestDialog />
             </section>
         </ErrorBoundary>
     );

@@ -142,12 +142,15 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             courseMediaPreview: courseMediaPreview ?? '',
             courseHtmlDescription: apiData.course.course_html_description,
             instructors: [], // This should be populated from your API if available
-            sessions: apiData.sessions.map((session) => ({
-                levelDetails: session.level_with_details.map((level) => {
+            sessions: (Array.isArray(apiData.sessions) ? apiData.sessions : []).map((session) => ({
+                levelDetails: (Array.isArray(session.level_with_details)
+                    ? session.level_with_details
+                    : []
+                ).map((level) => {
                     // For course structure 4, add a default subject if no subjects exist
                     let subjects = level.subjects;
                     if (apiData.course.course_depth === 4) {
-                        if (!subjects || subjects.length === 0) {
+                        if (!subjects || (Array.isArray(subjects) && subjects.length === 0)) {
                             subjects = [createDefaultSubject()];
                         }
                     }
@@ -157,14 +160,17 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                         name: convertCapitalToTitleCase(level.name),
                         duration_in_days: level.duration_in_days,
                         newLevel: level.new_level,
-                        instructors: level.instructors.map((inst) => ({
+                        instructors: (Array.isArray(level.instructors)
+                            ? level.instructors
+                            : []
+                        ).map((inst) => ({
                             id: inst.id,
                             name: inst.full_name,
                             email: inst.email,
                             profilePicId: inst.profile_pic_file_id,
                             roles: inst.roles,
                         })),
-                        subjects: subjects.map((subject) => ({
+                        subjects: (Array.isArray(subjects) ? subjects : []).map((subject) => ({
                             id: subject.id,
                             subject_name: convertCapitalToTitleCase(subject.subject_name),
                             subject_code: subject.subject_code,

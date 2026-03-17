@@ -3,15 +3,13 @@ import { MembershipExpiryTable } from './-components/MembershipExpiryTable';
 import { MembershipExpiryFilters } from './-components/MembershipExpiryFilters';
 import { MembershipExpiryAnalytics } from './-components/MembershipExpiryAnalytics';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { ActiveFiltersDisplay } from '@/components/common/filters/ActiveFiltersDisplay';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMembershipExpiry, getMembershipExpiryQueryKey } from '@/services/membership-expiry';
 import type { BatchForSession, PackageSessionFilter } from '@/types/payment-logs';
-// import { usePaymentLogsFilters } from '@/routes/manage-payments/-hooks/usePaymentLogsFilters'; // Reusing this hook if available for batch/session data, otherwise might need local logic or new hook.
-// Wait, I should double check if usePaymentLogsFilters exists or if I need to fetch batch/sessions locally.
-// MembershipExpiryFilters takes `batchesForSessions`.
-// I'll search for where `batchesForSessions` comes from.
-// Usually it's fetched from a service.
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useMemo } from 'react';
 
 import { keepPreviousData } from '@tanstack/react-query';
 
@@ -33,32 +31,87 @@ function MembershipExpiryPage() {
     packageSessionId: undefined,
   });
 
-  // We need batchesForSessions for the filter.
-  // I'll assume I need to fetch them. Or maybe the previous implementation had a hook.
-  // I'll check 'usePaymentLogsFilters' or similar.
+  // Get institute details from Zustand store
+  const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
 
-  // For now, I'll define empty array and add TODO if I can't find the hook right now.
+  // Extract batches for sessions from institute data
+  const batchesForSessions: BatchForSession[] = useMemo(() => {
+    const batches = instituteDetails?.batches_for_sessions;
+    return batches && Array.isArray(batches) ? (batches as unknown as BatchForSession[]) : [];
+  }, [instituteDetails]);
 
-  const queryKey = getMembershipExpiryQueryKey(pageNo, pageSize, {
-    start_date_in_utc: startDate || undefined,
-    end_date_in_utc: endDate || undefined,
-    package_session_ids: packageSessionFilter.packageSessionId ? [packageSessionFilter.packageSessionId] : undefined,
-  });
+  // Build request filters
+  const requestFilters = useMemo(() => {
+    const filters: any = {
+      start_date_in_utc: startDate || undefined,
+      end_date_in_utc: endDate || undefined,
+    };
+
+    if (packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0) {
+      filters.package_session_ids = packageSessionFilter.packageSessionIds;
+    } else if (packageSessionFilter.packageSessionId) {
+      filters.package_session_ids = [packageSessionFilter.packageSessionId];
+    } else if (packageSessionFilter.packageId) {
+      // Resolve all matching batches for the selected package and optional level/session
+      const resolvedIds = batchesForSessions
+        .filter((batch) =>
+          batch.package_dto.id === packageSessionFilter.packageId &&
+          (!packageSessionFilter.levelId || batch.level.id === packageSessionFilter.levelId) &&
+          (!packageSessionFilter.sessionId || batch.session.id === packageSessionFilter.sessionId)
+        )
+        .map((batch) => batch.id);
+
+      if (resolvedIds.length > 0) {
+        filters.package_session_ids = resolvedIds;
+      }
+    }
+
+    return filters;
+  }, [startDate, endDate, packageSessionFilter, batchesForSessions]);
+
+  const queryKey = getMembershipExpiryQueryKey(pageNo, pageSize, requestFilters);
 
   const { data, isLoading, error } = useQuery({
     queryKey,
-    queryFn: () => fetchMembershipExpiry(pageNo, pageSize, {
-      start_date_in_utc: startDate || undefined,
-      end_date_in_utc: endDate || undefined,
-      package_session_ids: packageSessionFilter.packageSessionId ? [packageSessionFilter.packageSessionId] : undefined,
-      // Note: API expects array of string, filter gives single string.
-    }),
+    queryFn: () => fetchMembershipExpiry(pageNo, pageSize, requestFilters),
     placeholderData: keepPreviousData,
   });
 
   const handlePackageSessionFilterChange = (filter: PackageSessionFilter) => {
     setPackageSessionFilter(filter);
     setPageNo(0);
+  };
+
+  const handleClearFilter = (filterType: string, value?: string) => {
+    switch (filterType) {
+      case 'all':
+        handleClearFilters();
+        break;
+      case 'startDate':
+        setStartDate('');
+        setPageNo(0);
+        break;
+      case 'endDate':
+        setEndDate('');
+        setPageNo(0);
+        break;
+      case 'packageSession':
+        if (value) {
+          setPackageSessionFilter(prev => ({
+            ...prev,
+            packageSessionIds: prev.packageSessionIds?.filter(id => id !== value)
+          }));
+        } else {
+          setPackageSessionFilter({
+            packageId: undefined,
+            sessionId: undefined,
+            levelId: undefined,
+            packageSessionId: undefined,
+          });
+        }
+        setPageNo(0);
+        break;
+    }
   };
 
   const handleQuickFilter = (range: { start: string; end: string }) => {
@@ -90,7 +143,7 @@ function MembershipExpiryPage() {
         </div>
 
         <MembershipExpiryAnalytics
-          packageSessionIds={packageSessionFilter.packageSessionId ? [packageSessionFilter.packageSessionId] : undefined}
+          packageSessionIds={requestFilters.package_session_ids}
           onCardClick={(range) => {
             // handle analytics card click to set filters
             // range has start, end, status. 
@@ -113,9 +166,17 @@ function MembershipExpiryPage() {
             onEndDateChange={setEndDate}
             packageSessionFilter={packageSessionFilter}
             onPackageSessionFilterChange={handlePackageSessionFilterChange}
-            batchesForSessions={[]} // TODO: Fetch batches
+            batchesForSessions={batchesForSessions}
             onQuickFilterSelect={handleQuickFilter}
             onClearFilters={handleClearFilters}
+          />
+
+          <ActiveFiltersDisplay
+            startDate={startDate}
+            endDate={endDate}
+            packageSessionFilter={packageSessionFilter}
+            batchesForSessions={batchesForSessions}
+            onClearFilter={handleClearFilter}
           />
 
           <MembershipExpiryTable

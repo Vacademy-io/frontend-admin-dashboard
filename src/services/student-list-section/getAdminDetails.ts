@@ -1,7 +1,8 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { ADMIN_DETAILS_URL } from '@/constants/urls';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { TokenKey } from '@/constants/auth/tokens';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 
 export interface UserRole {
     id: string;
@@ -32,7 +33,7 @@ export interface UserProfile {
 const getAdminDetails = async (): Promise<UserProfile> => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+    const INSTITUTE_ID = getCurrentInstituteId();
     const response = await authenticatedAxiosInstance({
         method: 'GET',
         url: `${ADMIN_DETAILS_URL}`,

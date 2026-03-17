@@ -40,8 +40,9 @@ export default function UserActivitySummaryWidget({ instituteId }: UserActivityS
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: ['analytics-activity-today', instituteId],
         queryFn: () => fetchAnalyticsActivityToday(instituteId),
-        staleTime: 60000, // 1 minute
-        refetchInterval: 60000,
+        staleTime: 60000, // 1 minute - data considered fresh
+        gcTime: 120000, // 2 minutes - keep in cache after becoming unused
+        refetchInterval: 60000, // Auto-refetch every minute
     });
 
     console.log('UserActivitySummaryWidget - data:', data);
@@ -116,7 +117,7 @@ export default function UserActivitySummaryWidget({ instituteId }: UserActivityS
                         <motion.div
                             animate={{ rotate: [0, 10, -10, 0] }}
                             transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-                            className="to-primary-600 rounded-lg bg-gradient-to-r from-primary-500 p-2 text-white"
+                            className="rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 p-2 text-white"
                         >
                             <Activity size={20} />
                         </motion.div>

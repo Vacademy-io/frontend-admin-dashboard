@@ -9,6 +9,9 @@ interface DialogState {
     isQuestionDialogOpen: boolean;
     isAssignmentDialogOpen: boolean;
     isQuizDialogOpen: boolean;
+    isAudioDialogOpen: boolean;
+    isPptDialogOpen: boolean;
+    isScormDialogOpen: boolean;
 
     // Dialog actions
     openPdfDialog: () => void;
@@ -39,6 +42,18 @@ interface DialogState {
     closeQuizDialog: () => void;
     toggleQuizDialog: () => void;
 
+    openAudioDialog: () => void;
+    closeAudioDialog: () => void;
+    toggleAudioDialog: () => void;
+
+    openPptDialog: () => void;
+    closePptDialog: () => void;
+    togglePptDialog: () => void;
+
+    openScormDialog: () => void;
+    closeScormDialog: () => void;
+    toggleScormDialog: () => void;
+
     resetDialogs: () => void;
 }
 
@@ -50,6 +65,9 @@ export const useDialogStore = create<DialogState>((set) => ({
     isQuestionDialogOpen: false,
     isAssignmentDialogOpen: false,
     isQuizDialogOpen: false,
+    isAudioDialogOpen: false,
+    isPptDialogOpen: false,
+    isScormDialogOpen: false,
 
     // PDF Dialog actions
     openPdfDialog: () => set({ isPdfDialogOpen: true }),
@@ -90,6 +108,21 @@ export const useDialogStore = create<DialogState>((set) => ({
     closeQuizDialog: () => set({ isQuizDialogOpen: false }),
     toggleQuizDialog: () => set((state) => ({ isQuizDialogOpen: !state.isQuizDialogOpen })),
 
+    // Audio Dialog actions
+    openAudioDialog: () => set({ isAudioDialogOpen: true }),
+    closeAudioDialog: () => set({ isAudioDialogOpen: false }),
+    toggleAudioDialog: () => set((state) => ({ isAudioDialogOpen: !state.isAudioDialogOpen })),
+
+    // PPT Dialog actions
+    openPptDialog: () => set({ isPptDialogOpen: true }),
+    closePptDialog: () => set({ isPptDialogOpen: false }),
+    togglePptDialog: () => set((state) => ({ isPptDialogOpen: !state.isPptDialogOpen })),
+
+    // SCORM Dialog actions
+    openScormDialog: () => set({ isScormDialogOpen: true }),
+    closeScormDialog: () => set({ isScormDialogOpen: false }),
+    toggleScormDialog: () => set((state) => ({ isScormDialogOpen: !state.isScormDialogOpen })),
+
     // Reset all dialogs
     resetDialogs: () =>
         set({
@@ -100,5 +133,8 @@ export const useDialogStore = create<DialogState>((set) => ({
             isQuestionDialogOpen: false,
             isAssignmentDialogOpen: false,
             isQuizDialogOpen: false,
+            isAudioDialogOpen: false,
+            isPptDialogOpen: false,
+            isScormDialogOpen: false,
         }),
 }));

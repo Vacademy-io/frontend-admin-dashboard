@@ -19,6 +19,10 @@ export function countAdminRoles(users: UserRolesDataEntry[]) {
         TEACHER: 0,
     };
 
+    if (!Array.isArray(users)) {
+        return roleCounts;
+    }
+
     users.forEach((user) => {
         user.roles.forEach((role) => {
             if (VALID_ROLES.includes(role.role_name as RoleName)) {

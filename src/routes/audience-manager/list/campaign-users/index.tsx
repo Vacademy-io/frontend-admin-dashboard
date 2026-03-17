@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { CampaignUsersTable } from '../-components/campaign-users/campaign-users-table';
 import { z } from 'zod';
-import { MyButton } from '@/components/design-system/button';
+import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -48,16 +48,15 @@ export function CampaignUsersPage() {
                 <meta name="description" content="View users enrolled in the campaign." />
             </Helmet>
             <div className="flex w-full flex-col gap-6">
-                <MyButton
-                    type="button"
-                    buttonType="secondary"
-                    scale="medium"
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={handleBack}
                     className="w-fit"
                 >
-                    <ArrowLeft className="mr-2 size-4" />
+                    <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Campaigns
-                </MyButton>
+                </Button>
                 {search.campaignId ? (
                     <CampaignUsersTable
                         campaignId={search.campaignId}

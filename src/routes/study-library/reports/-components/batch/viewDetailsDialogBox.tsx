@@ -11,12 +11,13 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyTable } from '@/components/design-system/table';
-import { fetchChapterWiseProgress, fetchLearnersChapterWiseProgress } from '../../-services/utils';
+import { fetchChapterWiseProgress, fetchLearnersChapterWiseProgress, exportChapterWiseBatchReport } from '../../-services/utils';
 import { usePacageDetails } from '../../-store/usePacageDetails';
 import dayjs from 'dayjs';
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from '../../-services/helper';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { toast } from 'sonner';
 
 export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
@@ -28,8 +29,57 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
     const LearnersChapterWiseMutation = useMutation({
         mutationFn: fetchLearnersChapterWiseProgress,
     });
+
+    const exportModuleReportMutation = useMutation({
+        mutationFn: (params: { packageSessionId: string; moduleId: string }) => {
+            console.log('Export mutation called with params:', params); // Debug log
+            return exportChapterWiseBatchReport({
+                startDate: '',
+                endDate: '',
+                packageSessionId: params.packageSessionId,
+                moduleId: params.moduleId,
+            });
+        },
+        onSuccess: async (response) => {
+            console.log('Export success, response:', response); // Debug log
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `chapter_wise_progress_report.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success('Chapter-wise Progress Report PDF exported successfully');
+        },
+        onError: (error: unknown) => {
+            console.error('Export error:', error);
+            toast.error('Failed to export report');
+        },
+    });
     const { isPending: isChapterPending, error: chapterError } = ChapterWiseMutation;
     const { isPending: isLearnerPending, error: learnerError } = LearnersChapterWiseMutation;
+    const isExporting = exportModuleReportMutation.isPending;
+
+    const handleExportPDF = () => {
+        console.log('Export button clicked'); // Debug log
+        
+        const moduleId = row.getValue('module_id') as string;
+        console.log('Export data:', { pacageSessionId, moduleId }); // Debug log
+        
+        if (!pacageSessionId || !moduleId) {
+            console.log('Missing required data for export'); // Debug log
+            toast.error('Missing required data for export');
+            return;
+        }
+
+        console.log('Starting export mutation'); // Debug log
+        exportModuleReportMutation.mutate({
+            packageSessionId: pacageSessionId,
+            moduleId: moduleId,
+        });
+    };
+
     const date = new Date().toString();
     const currDate = dayjs(date).format('DD/MM/YYYY');
     useEffect(() => {
@@ -37,6 +87,7 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
             if (row.getValue('user_id')) {
                 LearnersChapterWiseMutation.mutate(
                     {
+                        packageSessionId: pacageSessionId,
                         userId: row.getValue('user_id'),
                         moduleId: row.getValue('module_id'),
                     },
@@ -85,7 +136,24 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-row items-center justify-between">
                         <div>Date: {currDate}</div>
-                        <MyButton buttonType="secondary">Export</MyButton>
+                        <MyButton
+                            type="button"
+                            buttonType="secondary"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleExportPDF();
+                            }}
+                            disabled={isExporting}
+                        >
+                            {isExporting ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-primary-500"></div>
+                                    <span>Exporting...</span>
+                                </div>
+                            ) : (
+                                'Export'
+                            )}
+                        </MyButton>
                     </div>
                     <div className="grid grid-cols-3 items-center justify-between gap-4">
                         <div>

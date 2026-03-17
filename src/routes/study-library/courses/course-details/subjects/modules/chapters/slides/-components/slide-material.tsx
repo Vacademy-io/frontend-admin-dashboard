@@ -1,3 +1,6 @@
+import { getActiveRoleDisplaySettingsKey } from '@/lib/auth/instituteUtils';
+import { getInstituteId } from '@/constants/helper';
+import { hasFacultyAssignedPermission } from '@/lib/auth/facultyAccessUtils';
 /* eslint-disable */
 import { createYooptaEditor } from '@yoopta/editor';
 import React, { useEffect, useMemo, useRef, useCallback, type ChangeEvent, Suspense } from 'react';
@@ -26,12 +29,12 @@ import { AlertCircle } from 'lucide-react';
 import {
     converDataToAssignmentFormat,
     converDataToVideoFormat,
-    convertHtmlToPdf,
     convertToQuestionBackendSlideFormat,
 } from '../-helper/helper';
 import { StudyLibraryQuestionsPreview } from './questions-preview';
 import StudyLibraryAssignmentPreview from './assignment-preview';
 import VideoSlidePreview from './video-slide-preview';
+import AudioSlidePreview from './audio-slide-preview';
 import { handlePublishSlide } from './slide-operations/handlePublishSlide';
 import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
@@ -57,10 +60,48 @@ import { createQuizSlidePayload } from './quiz/utils/api-helpers';
 import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
 import {
     ADMIN_DISPLAY_SETTINGS_KEY,
-    TEACHER_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY, CUSTOM_ROLE_DISPLAY_SETTINGS_KEY,
     type DisplaySettingsData,
 } from '@/types/display-settings';
 import { processHtmlImages, containsBase64Images, getBase64ImagesSize } from '@/utils/image-processing';
+
+/** Check if HTML content is effectively empty (shared across editor components). */
+function checkIsHtmlEmpty(data: string | null): boolean {
+    if (!data) return true;
+    const textContent = data
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    if (textContent === '' || textContent.length === 0) return true;
+    const trimmed = data.trim();
+    return (
+        trimmed === '<html><head></head><body><div></div></body></html>' ||
+        trimmed === '<div></div>' ||
+        trimmed === '<p></p>' ||
+        trimmed === '<br>' ||
+        trimmed === '<br/>' ||
+        /^<p><br><\/p>$/.test(trimmed) ||
+        /^<div><br><\/div>$/.test(trimmed)
+    );
+}
+
+/** Lightweight page count estimation from HTML (replaces expensive jspdf+html2canvas render). */
+function estimatePageCount(htmlString: string): number {
+    try {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = htmlString;
+        tmp.style.cssText = 'position:absolute;top:-9999px;left:-9999px;width:210mm;padding:10mm;visibility:hidden;';
+        document.body.appendChild(tmp);
+        const h = tmp.scrollHeight;
+        document.body.removeChild(tmp);
+        // A4 at ~96dpi ≈ 1123px; use 1050 to account for margins
+        return Math.max(1, Math.ceil(h / 1050));
+    } catch {
+        return 1;
+    }
+}
+import ScormSlidePreview from './scorm-slide-preview';
 
 
 export const SlideMaterial = ({
@@ -82,7 +123,8 @@ export const SlideMaterial = ({
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         const roles = getUserRoles(accessToken);
         const isAdmin = roles.includes('ADMIN');
-        const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const hasFaculty = hasFacultyAssignedPermission(getInstituteId());
+    const roleKey = getActiveRoleDisplaySettingsKey();
         const cached = getDisplaySettingsFromCache(roleKey);
         if (cached) {
             setRoleDisplay(cached);
@@ -133,7 +175,7 @@ export const SlideMaterial = ({
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { setOpen: setSidebarOpen } = useSidebar();
-    const { addUpdateDocumentSlide, addUpdateQuizSlide } = useSlidesMutations(
+    const { addUpdateDocumentSlide, addUpdateQuizSlide, addUpdateAudioSlide, addUpdateScormSlide } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -181,47 +223,36 @@ export const SlideMaterial = ({
     // Component to manage editor with placeholder
     const EditorWithPlaceholder = ({ initialIsEmpty }: { initialIsEmpty: boolean }) => {
         const [showPlaceholder, setShowPlaceholder] = useState(initialIsEmpty);
-        const deferredUpdateTimerRef = useRef<number | null>(null);
-        useEffect(() => {
-            console.log('[YooptaEditor] EditorWithPlaceholder mount', {
-                slideId: activeItem?.id || null,
-                initialIsEmpty,
-            });
-            return () => {
-                console.log('[YooptaEditor] EditorWithPlaceholder unmount', {
-                    slideId: activeItem?.id || null,
-                });
-            };
-        }, [activeItem?.id]);
+        const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
         useEffect(() => {
             setShowPlaceholder(initialIsEmpty);
         }, [initialIsEmpty]);
 
-        // Function to check if content is empty with better detection
-        const checkIsEmpty = (data: string | null) => {
-            if (!data) return true;
-
-            // Remove HTML tags and normalize whitespace
-            const textContent = data
-                .replace(/<[^>]*>/g, '') // Remove all HTML tags
-                .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
-                .replace(/\s+/g, ' ') // Normalize whitespace
-                .trim();
-
-            // Also check for common empty content patterns
-            const isEmpty =
-                textContent === '' ||
-                textContent.length === 0 ||
-                data.trim() === '<html><head></head><body><div></div></body></html>' ||
-                data.trim() === '<div></div>' ||
-                data.trim() === '<p></p>' ||
-                data.trim() === '<br>' ||
-                data.trim() === '<br/>' ||
-                /^<p><br><\/p>$/.test(data.trim()) ||
-                /^<div><br><\/div>$/.test(data.trim());
-
-            return isEmpty;
+        // Check emptiness from Yoopta JSON structure (no serialization needed)
+        const checkIsEmptyFromEditor = (): boolean => {
+            try {
+                const children = editor.children;
+                if (!children || typeof children !== 'object') return true;
+                const blocks = Object.values(children);
+                if (blocks.length === 0) return true;
+                // A single paragraph block with only empty text is "empty"
+                if (blocks.length === 1) {
+                    const block = blocks[0] as any;
+                    const vals = block?.value;
+                    if (Array.isArray(vals) && vals.length === 1) {
+                        const child = vals[0];
+                        const textChildren = child?.children;
+                        if (Array.isArray(textChildren) && textChildren.length === 1) {
+                            const text = textChildren[0]?.text;
+                            return !text || text.trim() === '';
+                        }
+                    }
+                }
+                return false;
+            } catch {
+                return false;
+            }
         };
 
         return (
@@ -250,14 +281,19 @@ export const SlideMaterial = ({
                         selectionBoxRoot={selectionRef}
                         autoFocus={true}
                         onChange={() => {
-                            // Get current editor content and check if it's empty
-                            const currentContent = html.serialize(editor, editor.children);
-                            const currentIsEmpty = checkIsEmpty(currentContent);
+                            // Check emptiness from JSON structure (instant, no serialization)
+                            setShowPlaceholder(checkIsEmptyFromEditor());
 
-                            // Update placeholder state
-                            setShowPlaceholder(currentIsEmpty);
-                            // Track current DOC HTML for unsaved-change detection (no store mutation)
-                            currentDocHtmlRef.current = formatHTMLString(currentContent || '');
+                            // Debounce the expensive html.serialize for unsaved-change tracking
+                            if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+                            debounceTimerRef.current = setTimeout(() => {
+                                try {
+                                    const currentContent = html.serialize(editor, editor.children);
+                                    currentDocHtmlRef.current = formatHTMLString(currentContent || '');
+                                } catch (error) {
+                                    console.error('Error serializing content in onChange:', error);
+                                }
+                            }, 500);
                         }}
                         className="size-full"
                         style={{ width: '100%', height: '100%', minHeight: '200px' }}
@@ -268,64 +304,320 @@ export const SlideMaterial = ({
     };
 
     const setEditorContent = () => {
+        // Ensure plugins and blocks are registered on the editor BEFORE
+        // calling html.deserialize.  On a fresh page load the YooptaEditor
+        // component hasn't mounted yet so editor.plugins / editor.blocks are
+        // still empty — the deserializer would silently drop every block.
+        if (!editor.plugins || Object.keys(editor.plugins).length === 0) {
+            const pluginDefs = plugins.map((p: any) =>
+                typeof p.getPlugin === 'object' ? p.getPlugin : p,
+            );
+
+            // Build plugins map  (type → full plugin config)
+            const pluginsMap: Record<string, any> = {};
+            const inlineElements: Record<string, any> = {};
+            pluginDefs.forEach((p: any) => {
+                if (!p?.type) return;
+                if (p.elements) {
+                    Object.keys(p.elements).forEach((key: string) => {
+                        const el = p.elements[key];
+                        const nt = el?.props?.nodeType;
+                        if (nt === 'inline' || nt === 'inlineVoid') {
+                            inlineElements[key] = { ...el, rootPlugin: p.type };
+                        }
+                    });
+                }
+                pluginsMap[p.type] = p;
+            });
+            // Merge inline elements into every plugin (mirrors YooptaEditor init)
+            pluginDefs.forEach((p: any) => {
+                if (p?.elements) {
+                    pluginsMap[p.type] = {
+                        ...p,
+                        elements: { ...p.elements, ...inlineElements },
+                    };
+                }
+            });
+            (editor as any).plugins = pluginsMap;
+
+            // Build blocks map  (type → { type, elements (sans render), … })
+            const blocksMap: Record<string, any> = {};
+            pluginDefs.forEach((p: any) => {
+                if (!p?.type || !p.elements) return;
+                const rootKey = Object.keys(p.elements)[0];
+                const rootEl = rootKey ? p.elements[rootKey] : undefined;
+                const nodeType = rootEl?.props?.nodeType;
+                if (nodeType === 'inline' || nodeType === 'inlineVoid') return;
+
+                const elements: Record<string, any> = {};
+                Object.keys(p.elements).forEach((key: string) => {
+                    const { render: _render, ...rest } = p.elements[key] || {};
+                    elements[key] = rest;
+                });
+                blocksMap[p.type] = {
+                    type: p.type,
+                    elements,
+                    hasCustomEditor: !!p.customEditor,
+                    options: p.options || {},
+                };
+            });
+            (editor as any).blocks = blocksMap;
+        }
+
         const docData =
             activeItem?.status == 'PUBLISHED'
                 ? activeItem.document_slide?.published_data || null
                 : activeItem?.document_slide?.data || null;
 
         // Sanitize any public S3 URLs that may contain expired signatures
-        const sanitizedDocData = stripAwsQueryParamsFromUrls(docData || '');
+        let sanitizedDocData = stripAwsQueryParamsFromUrls(docData || '');
 
-        const editorContent = html.deserialize(editor, sanitizedDocData || '');
+        // Check if content contains mermaid diagrams - they need preserved newlines
+        const hasMermaid = sanitizedDocData.includes('class="mermaid"') || sanitizedDocData.includes("class='mermaid'");
+
+        // Extract inner content from full HTML documents (removes DOCTYPE, html, head, body wrappers)
+        let contentForDeserialization = sanitizedDocData || '';
+
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(contentForDeserialization, 'text/html');
+
+            // Get body element and its inner HTML
+            if (doc.body) {
+                // Unwrap media/semantic elements from wrapper divs so Yoopta
+                // deserializers can find them by nodeName (IFRAME, VIDEO, IMG, A).
+                // Each plugin serializes as <div style="..."><element/></div>
+                // but the deserializer looks for the bare element.
+                const unwrapFromDiv = (el: Element) => {
+                    const parent = el.parentElement;
+                    if (parent && parent.tagName === 'DIV') {
+                        const fragment = document.createDocumentFragment();
+                        while (parent.firstChild) {
+                            fragment.appendChild(parent.firstChild);
+                        }
+                        if (parent.parentNode) {
+                            parent.parentNode.replaceChild(fragment, parent);
+                        }
+                    }
+                };
+
+                doc.body.querySelectorAll('iframe').forEach(unwrapFromDiv);
+                doc.body.querySelectorAll('video').forEach(unwrapFromDiv);
+                doc.body.querySelectorAll('img').forEach(unwrapFromDiv);
+                doc.body.querySelectorAll('a[download]').forEach(unwrapFromDiv);
+
+                contentForDeserialization = doc.body.innerHTML.trim();
+
+                // Recursively unwrap divs until we get to actual content
+                // Yoopta needs semantic content like p, h1, a etc., not nested divs
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = contentForDeserialization;
+
+                // Keep unwrapping single-child divs (but stop if div has
+                // mermaid class or data-yoopta-type — those are content blocks)
+                let current: Element = wrapper;
+                while (current.children.length === 1) {
+                    const firstChild = current.children[0];
+                    if (
+                        firstChild &&
+                        firstChild.tagName === 'DIV' &&
+                        !firstChild.classList.contains('mermaid') &&
+                        !firstChild.hasAttribute('data-yoopta-type')
+                    ) {
+                        current = firstChild;
+                    } else {
+                        break;
+                    }
+                }
+
+                // Get the final inner content
+                contentForDeserialization = current.innerHTML.trim();
+
+            }
+        } catch (e) {
+            console.error('Error parsing HTML for Yoopta:', e);
+        }
+
+        const rawEditorContent = html.deserialize(editor, contentForDeserialization || '');
+
+        const processNode = (node: any): any => {
+            const newNode = { ...node };
+            // Check if node is Embed, Video, File, or Link type
+            if (['Embed', 'Video', 'File', 'Link', 'embed', 'video', 'file', 'link'].includes(newNode.type)) {
+                if (!newNode.data) {
+                    newNode.data = { url: '', src: '' };
+                }
+                // Ensure url is populated (Yoopta sometimes expects url, sometimes src depending on version/plugin)
+                if (!newNode.data.url && newNode.data.src) {
+                    newNode.data.url = newNode.data.src;
+                }
+                if (!newNode.data.src && newNode.data.url) {
+                    newNode.data.src = newNode.data.url;
+                }
+                // Fallbacks
+                if (newNode.data.url === undefined) newNode.data.url = '';
+                if (newNode.data.src === undefined) newNode.data.src = '';
+
+                // For File blocks, ensure name is present and clean
+                if (['File', 'file'].includes(newNode.type)) {
+                    let name = newNode.data.name;
+
+                    // 1. If name is missing, try to extract from src/url
+                    if (!name) {
+                        const src = newNode.data.src || newNode.data.url;
+                        if (src) {
+                            try {
+                                const urlObj = new URL(src);
+                                const parts = urlObj.pathname.split('/');
+                                name = parts[parts.length - 1];
+                            } catch (e) {
+                                // If not a valid URL, try simple split
+                                const parts = src.split('/');
+                                name = parts[parts.length - 1];
+                            }
+                        }
+                        if (!name) {
+                            name = 'Attachment';
+                        }
+                    }
+
+                    // 2. Clean up the name
+                    if (name && typeof name === 'string') {
+                        // Decode URI components (e.g. %20 -> space)
+                        try {
+                            name = decodeURIComponent(name);
+                        } catch (e) {
+                            // ignore error
+                        }
+
+                        // Remove common MIME type suffixes that might be appended (e.g. .application/pdf)
+                        // This regex matches .type/subtype at the end of the string
+                        name = name.replace(/\.(application|image|text|video|audio|font|model)\/[\w\.\-\+]+$/, '');
+
+                        // Also remove generated timestamp prefixes if customary (optional, based on observation)
+                        // name = name.replace(/^\d+-/, '');
+
+                        newNode.data.name = name;
+                    }
+                }
+            }
+
+            if (newNode.children && Array.isArray(newNode.children)) {
+                newNode.children = newNode.children.map(processNode);
+            }
+            return newNode;
+        };
+
+        // Sanitize nodes to ensure mandatory properties (like url for Embed/Video/File) exist to prevent crashes
+        const sanitizeNodes = (content: any): any => {
+            // Handle Yoopta Map structure (Record<string, Block>)
+            if (content && typeof content === 'object' && !Array.isArray(content)) {
+                const newContent: Record<string, any> = {};
+                Object.keys(content).forEach((key) => {
+                    newContent[key] = processNode(content[key]);
+                });
+                return newContent;
+            }
+            // Fallback for arrays (e.g. if structure changes or for children processing)
+            if (Array.isArray(content)) {
+                return content.map(processNode);
+            }
+            return content;
+        };
+
+        const editorContent = sanitizeNodes(rawEditorContent);
+
+        // Fix Embed/Video provider.type & provider.id after deserialization.
+        // The @yoopta/embed deserializer sets provider.type to the hostname
+        // (e.g. "www.youtube.com") and provider.id to the full URL, but the
+        // render component looks up by short name ("youtube", "vimeo", …).
+        // The @yoopta/video deserializer doesn't reconstruct provider at all,
+        // so we detect provider from the src URL and add it back.
+        if (editorContent && typeof editorContent === 'object') {
+            Object.values(editorContent).forEach((block: any) => {
+                if (block?.type !== 'Embed' && block?.type !== 'Video') return;
+                const el = block?.value?.[0];
+                if (!el?.props) return;
+
+                // For Video blocks, reconstruct provider from src if missing
+                if (block.type === 'Video' && !el.props.provider?.url && el.props.src) {
+                    el.props.provider = { type: null, id: '', url: el.props.src };
+                }
+
+                const prov = el.props.provider;
+                if (!prov?.url) return;
+                const url = prov.url;
+                const detect: [string, RegExp][] = [
+                    ['youtube', /(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([^?&#]+)/],
+                    ['vimeo', /vimeo\.com(?:\/video)?\/(\d+)/],
+                    ['dailymotion', /dailymotion\.com\/(?:embed\/)?video\/([^_?&#]+)/],
+                    ['loom', /loom\.com\/(?:share|embed)\/([a-zA-Z0-9]+)/],
+                    ['wistia', /wistia\.(?:com|net)\/(?:embed\/iframe|medias)\/([a-zA-Z0-9]+)/],
+                    ['figma', /figma\.com/],
+                    ['twitter', /(?:twitter\.com|x\.com)\/.*\/status\/(\d+)/],
+                    ['instagram', /instagram\.com\/(?:p|reel|tv)\/([^\/?#&]+)/],
+                ];
+                for (const [name, re] of detect) {
+                    const m = url.match(re);
+                    if (m) {
+                        prov.type = name;
+                        prov.id = m[1] || url;
+                        break;
+                    }
+                }
+            });
+        }
 
         editor.setEditorValue(editorContent);
 
-        // Function to check if content is empty with better detection
-        const checkIsEmpty = (data: string | null) => {
-            if (!data) return true;
-
-            // Remove HTML tags and normalize whitespace
-            const textContent = data
-                .replace(/<[^>]*>/g, '') // Remove all HTML tags
-                .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
-                .replace(/\s+/g, ' ') // Normalize whitespace
-                .trim();
-
-            // Also check for common empty content patterns
-            const isEmpty =
-                textContent === '' ||
-                textContent.length === 0 ||
-                data.trim() === '<html><head></head><body><div></div></body></html>' ||
-                data.trim() === '<div></div>' ||
-                data.trim() === '<p></p>' ||
-                data.trim() === '<br>' ||
-                data.trim() === '<br/>';
-
-            return isEmpty;
-        };
-
-        // Check if content is empty - handle HTML structure
-        const isEmpty = checkIsEmpty(sanitizedDocData);
+        // Check if content is empty - use shared utility
+        const isEmpty = checkIsHtmlEmpty(sanitizedDocData);
 
         setContent(<EditorWithPlaceholder initialIsEmpty={isEmpty} />);
-        editor.focus();
+        // Delay focus until after React re-renders the DOM with the new editor state.
+        // Calling editor.focus() synchronously after setEditorValue causes
+        // "Cannot resolve a DOM node from Slate node" because the DOM hasn't updated yet.
+        setTimeout(() => {
+            try {
+                editor.focus();
+            } catch (e) {
+                // Suppress focus errors — editor will still be functional
+                console.warn('Editor focus failed (DOM not ready):', e);
+            }
+        }, 100);
 
-        // Capture initial HTML for DOC slides to detect unsaved changes later
+        // Capture initial HTML for DOC slides to detect unsaved changes later.
+        // IMPORTANT: We must capture AFTER Yoopta has loaded the content, because
+        // html.deserialize → html.serialize is NOT a lossless round-trip.
+        // If we compare raw stored HTML against Yoopta's serialized output, they
+        // will always differ even with zero user edits → false positive dialog.
         if (
             activeItem?.source_type === 'DOCUMENT' &&
             activeItem?.document_slide?.type === 'DOC'
         ) {
-            const normalized = formatHTMLString(sanitizedDocData || '');
-            initialDocHtmlRef.current = { slideId: activeItem.id, html: normalized };
-            currentDocHtmlRef.current = normalized;
             prevDocSlideRef.current = activeItem;
+            // Use a short delay so Yoopta finishes rendering before we snapshot
+            setTimeout(() => {
+                const editorHtml = getCurrentEditorHTMLContent();
+                initialDocHtmlRef.current = { slideId: activeItem.id, html: editorHtml };
+                currentDocHtmlRef.current = editorHtml;
+            }, 300);
         }
     };
 
     const getCurrentEditorHTMLContent: () => string = () => {
         const data = editor.getEditorValue();
-        const htmlString = html.serialize(editor, data);
+        let htmlString = '';
+        try {
+            htmlString = html.serialize(editor, data);
+        } catch (error) {
+            console.error('Error serializing content in getCurrentEditorHTMLContent:', error);
+            // Return empty string or perhaps the last known good state?
+            // For now, empty string is safer than crashing
+            return '';
+        }
         const formattedHtmlString = formatHTMLString(htmlString);
+
         return formattedHtmlString;
     };
 
@@ -358,28 +650,22 @@ export const SlideMaterial = ({
         const initialHtml =
             initialDocHtmlRef.current.slideId === previous.id
                 ? initialDocHtmlRef.current.html
-                : formatHTMLString(previous.document_slide?.data || '');
+                : getCurrentEditorHTMLContent();
         // Always read latest editor state at the moment of handling to avoid stale saves
         const currentHtml = getCurrentEditorHTMLContent() || initialHtml;
         const hasEditorChanged = currentHtml !== initialHtml;
-        const dataVsPublishedDifferent =
-            (previous.document_slide?.data || '') !== (previous.document_slide?.published_data || '');
 
-        if (!hasEditorChanged && !dataVsPublishedDifferent) {
+        // Only act if the user actually changed something in the editor
+        if (!hasEditorChanged) {
             return;
         }
 
         // Mark as handled to avoid duplicate calls during add+switch cascades
         lastHandledPrevSlideIdRef.current = previous.id;
 
-        if (!hidePublishButtons && hasEditorChanged) {
-            // Admin: prompt to save draft
-            setUnsavedDocPrompt({ open: true, slide: previous, html: currentHtml });
-        } else if (hidePublishButtons && (hasEditorChanged || dataVsPublishedDifferent)) {
-            // Non-admin: auto publish
-            autoPublishDocSlide(previous, currentHtml);
-        }
-    }, [autoPublishDocSlide, hidePublishButtons]);
+        // Always auto-save draft on slide switch — never show a blocking dialog
+        void autoPublishDocSlide(previous, currentHtml);
+    }, [autoPublishDocSlide]);
 
     // Snapshot-based handler to avoid stale editor reads during transitions
     const handleUnsavedDocWithSnapshot = useCallback(
@@ -409,26 +695,21 @@ export const SlideMaterial = ({
             const initialHtml =
                 initialDocHtmlRef.current.slideId === previous.id
                     ? initialDocHtmlRef.current.html
-                    : formatHTMLString(previous.document_slide?.data || '');
+                    : snapshotHtml; // fallback: treat as unchanged if we have no baseline
 
             const hasEditorChanged = snapshotHtml !== initialHtml;
-            const dataVsPublishedDifferent =
-                (previous.document_slide?.data || '') !==
-                (previous.document_slide?.published_data || '');
 
-            if (!hasEditorChanged && !dataVsPublishedDifferent) {
+            // Only act if the user actually changed something
+            if (!hasEditorChanged) {
                 return;
             }
 
             lastHandledPrevSlideIdRef.current = previous.id;
 
-            if (!hidePublishButtons && hasEditorChanged) {
-                setUnsavedDocPrompt({ open: true, slide: previous, html: snapshotHtml });
-            } else if (hidePublishButtons && (hasEditorChanged || dataVsPublishedDifferent)) {
-                void autoPublishDocSlide(previous, snapshotHtml);
-            }
+            // Always auto-save draft silently — never show a blocking dialog on slide switch
+            void autoPublishDocSlide(previous, snapshotHtml);
         },
-        [hidePublishButtons, items]
+        [autoPublishDocSlide]
     );
 
     // On slide switch, detect unsaved changes for DOC and act based on role
@@ -561,11 +842,7 @@ export const SlideMaterial = ({
     );
 
     // State for Admin unsaved DOC modal
-    const [unsavedDocPrompt, setUnsavedDocPrompt] = useState<{
-        open: boolean;
-        slide: Slide | null;
-        html: string;
-    }>({ open: false, slide: null, html: '' });
+
 
     // Helper: Auto publish DOC for non-admins on slide switch/state change (hoisted function)
     async function autoPublishDocSlide(slide: Slide, htmlString: string) {
@@ -598,7 +875,27 @@ export const SlideMaterial = ({
                 }
             }
 
-            const { totalPages } = await convertHtmlToPdf(processedHtmlString);
+            const totalPages = estimatePageCount(processedHtmlString);
+
+            // Determine status and published_data based on role
+            let newStatus = slide.status;
+            let publishedData = slide.document_slide?.published_data || '';
+
+            if (hidePublishButtons) {
+                // Non-admin (Teacher): Auto-publish
+                newStatus = 'PUBLISHED';
+                publishedData = processedHtmlString;
+            } else {
+                // Admin: Auto-save draft
+                // If currently published, it becomes UNSYNC because draft has changed
+                if (slide.status === 'PUBLISHED') {
+                    newStatus = 'UNSYNC';
+                } else {
+                    newStatus = slide.status || 'DRAFT';
+                }
+                // Do NOT update publishedData for admins — keep live version safe
+            }
+
             await addUpdateDocumentSlide({
                 id: slide?.id || '',
                 title: slide?.title || '',
@@ -612,14 +909,18 @@ export const SlideMaterial = ({
                     title: slide?.document_slide?.title || '',
                     cover_file_id: '',
                     total_pages: totalPages,
-                    published_data: processedHtmlString,
+                    published_data: publishedData,
                     published_document_total_pages: 1,
                 },
-                status: 'PUBLISHED',
+                status: newStatus,
                 new_slide: false,
                 notify: false,
             });
-            toast.success('Changes saved and published');
+            if (!hidePublishButtons) {
+                toast.success('Draft auto-saved');
+            } else {
+                toast.success('Changes saved and published');
+            }
         } catch (error) {
             console.error('Error auto-publishing DOC slide:', error);
             toast.error('Failed to auto-save changes');
@@ -663,6 +964,12 @@ export const SlideMaterial = ({
                     </div>
                 </div>
             );
+            return;
+        }
+
+        // Handle HTML_VIDEO slides (AI-generated videos)
+        if (activeItem.source_type === 'HTML_VIDEO') {
+            setContent(<VideoSlidePreview activeItem={activeItem} />);
             return;
         }
 
@@ -943,69 +1250,9 @@ export const SlideMaterial = ({
                                         toast.success('Slide auto-published for review');
                                     }
 
-                                    // Re-render with updated data
-                                    setContent(
-                                        <JupyterNotebookSlide
-                                            notebookData={updatedNotebookData}
-                                            // Allow editing even in PUBLISHED for non-learner
-                                            isEditable={!isLearnerView}
-                                            onDataChange={(newNotebookData) => {
-                                                // Handle further updates recursively
-                                                const recursiveUpdate = async () => {
-                                                    const nestedNextStatus = 'PUBLISHED';
-                                                    await addUpdateDocumentSlide({
-                                                        id: activeItem.id,
-                                                        title:
-                                                            newNotebookData.projectName ||
-                                                            activeItem.title ||
-                                                            '',
-                                                        image_file_id: '',
-                                                        description: activeItem.description || '',
-                                                        slide_order: null,
-                                                        document_slide: {
-                                                            id: activeItem.document_slide?.id || '',
-                                                            type: 'JUPYTER',
-                                                            data: JSON.stringify(newNotebookData),
-                                                            title:
-                                                                newNotebookData.projectName ||
-                                                                activeItem.document_slide?.title ||
-                                                                '',
-                                                            cover_file_id: '',
-                                                            total_pages: 1,
-                                                            published_data:
-                                                                JSON.stringify(newNotebookData),
-                                                            published_document_total_pages: 1,
-                                                        },
-                                                        status: nestedNextStatus,
-                                                        new_slide: false,
-                                                        notify: false,
-                                                    });
-
-                                                    // Update activeItem again
-                                                    setActiveItem({
-                                                        ...activeItem,
-                                                        status: nestedNextStatus,
-                                                        title:
-                                                            newNotebookData.projectName ||
-                                                            activeItem.title,
-                                                        document_slide: activeItem.document_slide
-                                                            ? {
-                                                                ...activeItem.document_slide,
-                                                                title:
-                                                                    newNotebookData.projectName ||
-                                                                    activeItem.document_slide
-                                                                        .title,
-                                                                data: JSON.stringify(
-                                                                    newNotebookData
-                                                                ),
-                                                            }
-                                                            : undefined,
-                                                    });
-                                                };
-                                                recursiveUpdate();
-                                            }}
-                                        />
-                                    );
+                                    // Re-render by reloading content with fresh store data
+                                    // (avoids recursive callback nesting that closes over stale activeItem)
+                                    loadContent();
                                 } catch (error) {
                                     console.error('Error saving Jupyter notebook data:', error);
                                     toast.error('Failed to save notebook changes');
@@ -1096,70 +1343,9 @@ export const SlideMaterial = ({
                                         toast.success('Slide auto-published for review');
                                     }
 
-                                    // Re-render with updated data
-                                    setContent(
-                                        <ScratchProjectSlide
-                                            scratchData={updatedScratchData}
-                                            slideId={activeItem.id}
-                                            // Allow editing even in PUBLISHED for non-learner
-                                            isEditable={!isLearnerView}
-                                            onDataChange={(newScratchData) => {
-                                                // Handle further updates recursively
-                                                const recursiveUpdate = async () => {
-                                                    const nestedNextStatus = 'PUBLISHED';
-                                                    await addUpdateDocumentSlide({
-                                                        id: activeItem.id,
-                                                        title:
-                                                            newScratchData.projectName ||
-                                                            activeItem.title ||
-                                                            '',
-                                                        image_file_id: '',
-                                                        description: activeItem.description || '',
-                                                        slide_order: null,
-                                                        document_slide: {
-                                                            id: activeItem.document_slide?.id || '',
-                                                            type: 'SCRATCH',
-                                                            data: JSON.stringify(newScratchData),
-                                                            title:
-                                                                newScratchData.projectName ||
-                                                                activeItem.document_slide?.title ||
-                                                                '',
-                                                            cover_file_id: '',
-                                                            total_pages: 1,
-                                                            published_data:
-                                                                JSON.stringify(newScratchData),
-                                                            published_document_total_pages: 1,
-                                                        },
-                                                        status: nestedNextStatus,
-                                                        new_slide: false,
-                                                        notify: false,
-                                                    });
-
-                                                    // Update activeItem again
-                                                    setActiveItem({
-                                                        ...activeItem,
-                                                        status: nestedNextStatus,
-                                                        title:
-                                                            newScratchData.projectName ||
-                                                            activeItem.title,
-                                                        document_slide: activeItem.document_slide
-                                                            ? {
-                                                                ...activeItem.document_slide,
-                                                                title:
-                                                                    newScratchData.projectName ||
-                                                                    activeItem.document_slide
-                                                                        .title,
-                                                                data: JSON.stringify(
-                                                                    newScratchData
-                                                                ),
-                                                            }
-                                                            : undefined,
-                                                    });
-                                                };
-                                                recursiveUpdate();
-                                            }}
-                                        />
-                                    );
+                                    // Re-render by reloading content with fresh store data
+                                    // (avoids recursive callback nesting that closes over stale activeItem)
+                                    loadContent();
                                 } catch (error) {
                                     console.error('Error saving Scratch project data:', error);
                                     toast.error('Failed to save Scratch project changes');
@@ -1357,9 +1543,7 @@ export const SlideMaterial = ({
             // 🔁 Then handle DOC
             if (documentType === 'DOC') {
                 try {
-                    setTimeout(() => {
-                        setEditorContent();
-                    }, 300);
+                    // Single call — the focus() inside is already deferred via setTimeout
                     setEditorContent();
                 } catch (error) {
                     console.error('Error preparing document content:', error);
@@ -1397,6 +1581,18 @@ export const SlideMaterial = ({
 
         if (activeItem.source_type?.toUpperCase() === 'QUESTION') {
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
+            return;
+        }
+
+        // Handle AUDIO slides
+        if (activeItem.source_type?.toUpperCase() === 'AUDIO') {
+            setContent(<AudioSlidePreview activeItem={activeItem} isLearnerView={isLearnerView} />);
+            return;
+        }
+
+        // Handle SCORM slides
+        if (activeItem.source_type?.toUpperCase() === 'SCORM') {
+            setContent(<ScormSlidePreview activeItem={activeItem} isLearnerView={isLearnerView} />);
             return;
         }
 
@@ -1554,6 +1750,65 @@ export const SlideMaterial = ({
                 } catch (error) {
                     console.error('Error saving quiz slide:', error);
                     toast.error('Error saving quiz slide');
+                }
+                return;
+            }
+
+            if (activeItem?.source_type === 'AUDIO') {
+                if (!activeItem.audio_slide) {
+                    toast.error('Audio slide data is missing');
+                    return;
+                }
+                try {
+                    await addUpdateAudioSlide({
+                        id: activeItem.id,
+                        title: activeItem.title,
+                        description: activeItem.description || null,
+                        image_file_id: activeItem.image_file_id || null,
+                        status: status as 'DRAFT' | 'PUBLISHED',
+                        slide_order: activeItem.slide_order,
+                        notify: false,
+                        new_slide: false,
+                        audio_slide: {
+                            id: activeItem.audio_slide.id,
+                            audio_file_id: activeItem.audio_slide.audio_file_id,
+                            thumbnail_file_id: activeItem.audio_slide.thumbnail_file_id || null,
+                            audio_length_in_millis: activeItem.audio_slide.audio_length_in_millis,
+                            source_type: activeItem.audio_slide.source_type,
+                            external_url: activeItem.audio_slide.external_url || null,
+                            transcript: activeItem.audio_slide.transcript || null,
+                        },
+                    });
+                    toast.success('Audio slide saved successfully!');
+                } catch (error) {
+                    console.error('Error saving audio slide:', error);
+                    toast.error('Error saving audio slide');
+                }
+                return;
+            }
+
+            // Handle SCORM slides
+            if (activeItem?.source_type === 'SCORM') {
+                if (!activeItem.scorm_slide) {
+                    toast.error('SCORM slide data is missing');
+                    return;
+                }
+                try {
+                    await addUpdateScormSlide({
+                        id: activeItem.id,
+                        title: activeItem.title,
+                        description: activeItem.description || null,
+                        status: status as 'DRAFT' | 'PUBLISHED',
+                        slide_order: activeItem.slide_order,
+                        new_slide: false,
+                        scorm_slide: {
+                            id: activeItem.scorm_slide.id,
+                        },
+                    });
+                    toast.success('SCORM slide saved successfully!');
+                } catch (error) {
+                    console.error('Error saving SCORM slide:', error);
+                    toast.error('Error saving SCORM slide');
                 }
                 return;
             }
@@ -1718,7 +1973,7 @@ export const SlideMaterial = ({
                 }
             }
 
-            const { totalPages } = await convertHtmlToPdf(processedHtmlString);
+            const totalPages = estimatePageCount(processedHtmlString);
 
             try {
                 await addUpdateDocumentSlide({
@@ -1938,26 +2193,28 @@ export const SlideMaterial = ({
         }
 
         if (items && items.length > 0) {
-            // Check if current active slide still exists in items
+            // Priority 1: Use slideId from URL if available (ALWAYS respect URL)
+            if (slideId) {
+                const targetSlide = items.find((slide) => slide.id === slideId);
+                if (targetSlide) {
+                    // Only update if it's different from current activeItem
+                    if (!activeItem || activeItem.id !== slideId) {
+                        setActiveItem(targetSlide);
+                    }
+                    return;
+                }
+            }
+
+            // Priority 2: Check if current active slide still exists in items
             const activeSlideStillExists =
                 activeItem && items.find((slide) => slide.id === activeItem.id);
 
             if (activeSlideStillExists) {
                 // Active slide still exists, keep it selected
-
                 return;
             }
 
-            // Priority 1: Use slideId from URL if available
-            if (slideId) {
-                const targetSlide = items.find((slide) => slide.id === slideId);
-                if (targetSlide) {
-                    setActiveItem(targetSlide);
-                    return;
-                }
-            }
-
-            // Priority 2: Always set first available slide as active
+            // Priority 3: Always set first available slide as active
             // This handles both new slide creation and slide deletion scenarios
             const firstSlide = items[0];
 
@@ -1967,16 +2224,18 @@ export const SlideMaterial = ({
 
     useEffect(() => {
         setHeading(activeItem?.title || '');
-        // Only reload content if the slide ID, source type, or document type changes
-        // Ignore changes to data field to prevent infinite loops from auto-save
+        // Only reload content if the slide identity or shape changes.
+        // IMPORTANT: `items` was intentionally removed from deps because
+        // query refetches (triggered by auto-save) would re-run loadContent,
+        // which reads from the stale `activeItem` object and overwrites
+        // in-memory editor changes (e.g. newly-inserted YouTube embeds).
         loadContent();
     }, [
         activeItem?.id,
         activeItem?.source_type,
         activeItem?.document_slide?.type,
         activeItem?.status,
-        items,
-    ]); // Prevent reload on auto-save data changes
+    ]);
 
     // Update the refs whenever these functions change
     useEffect(() => {
@@ -1990,85 +2249,10 @@ export const SlideMaterial = ({
             className="flex w-full flex-1 flex-col transition-all duration-300 ease-in-out"
             ref={selectionRef}
         >
-            {/* Admin unsaved DOC changes prompt */}
-            {unsavedDocPrompt.open && !hidePublishButtons && unsavedDocPrompt.slide && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30">
-                    <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-                        <h4 className="mb-2 text-lg font-semibold text-neutral-800">Unsaved changes</h4>
-                        <p className="mb-4 text-sm text-neutral-600">
-                            You have unsaved changes on "{unsavedDocPrompt.slide.title}". Save them as draft?
-                        </p>
-                        <div className="flex justify-end gap-3">
-                            <MyButton
-                                buttonType="secondary"
-                                scale="medium"
-                                onClick={() => setUnsavedDocPrompt({ open: false, slide: null, html: '' })}
-                            >
-                                Discard
-                            </MyButton>
-                            <MyButton
-                                buttonType="primary"
-                                scale="medium"
-                                onClick={async () => {
-                                    try {
-                                        const slide = unsavedDocPrompt.slide!;
-                                        const htmlString = unsavedDocPrompt.html;
 
-                                        // Process images in HTML content before saving
-                                        let processedHtmlString = htmlString;
-                                        if (containsBase64Images(htmlString)) {
-                                            console.log('Processing base64 images in unsaved DOC content...');
-                                            const { processedHtml, uploadedImages, failedUploads } = await processHtmlImages(htmlString);
-                                            processedHtmlString = processedHtml;
-
-                                            if (failedUploads > 0) {
-                                                toast.error(`Warning: ${failedUploads} images failed to upload`);
-                                            }
-                                            if (uploadedImages > 0) {
-                                                console.log(`Successfully processed ${uploadedImages} images in unsaved draft`);
-                                            }
-                                        }
-
-                                        const { totalPages } = await convertHtmlToPdf(processedHtmlString);
-                                        const nextStatus = slide.status === 'PUBLISHED' ? 'UNSYNC' : 'DRAFT';
-                                        await addUpdateDocumentSlide({
-                                            id: slide.id,
-                                            title: slide.title || '',
-                                            image_file_id: '',
-                                            description: slide.description || '',
-                                            slide_order: null,
-                                            document_slide: {
-                                                id: slide.document_slide?.id || '',
-                                                type: 'DOC',
-                                                data: processedHtmlString,
-                                                title: slide.document_slide?.title || '',
-                                                cover_file_id: '',
-                                                total_pages: totalPages,
-                                                published_data: slide.document_slide?.published_data || null,
-                                                published_document_total_pages: 1,
-                                            },
-                                            status: nextStatus,
-                                            new_slide: false,
-                                            notify: false,
-                                        });
-                                        toast.success('Draft saved');
-                                    } catch (error) {
-                                        console.error('Error saving draft:', error);
-                                        toast.error('Failed to save draft');
-                                    } finally {
-                                        setUnsavedDocPrompt({ open: false, slide: null, html: '' });
-                                    }
-                                }}
-                            >
-                                Save as Draft
-                            </MyButton>
-                        </div>
-                    </div>
-                </div>
-            )}
             {activeItem && (
-                <div className="sticky top-0 z-50 -m-8 flex items-center justify-between gap-4 border-b border-neutral-200 bg-white/80 px-6 py-3 shadow-sm backdrop-blur-sm">
-                    <div className="flex items-center gap-3">
+                <div className="sticky top-0 z-50 -mx-2 -mt-2 flex flex-wrap items-center justify-between gap-1 border-b border-neutral-200 bg-white/80 px-2 py-1 shadow-sm backdrop-blur-sm sm:-mx-3 sm:-mt-3 sm:px-3 sm:py-1.5 md:-mx-4 md:-mt-4 md:flex-nowrap md:gap-3 md:px-4 md:py-2.5 lg:-mx-7 lg:-mt-7 lg:gap-4 lg:px-7 lg:py-3">
+                    <div className="w-full min-w-0 md:w-auto md:flex-1">
                         {isEditing ? (
                             <div className="flex items-center justify-center gap-2 duration-200 animate-in fade-in">
                                 <input
@@ -2096,13 +2280,13 @@ export const SlideMaterial = ({
                                 />
                             </div>
                         ) : (
-                            <div className="flex items-center justify-center gap-2">
-                                <h3 className="text-h3 font-semibold text-neutral-600">
+                            <div className="flex min-w-0 items-center gap-1.5">
+                                <h3 className="truncate text-xs font-semibold text-neutral-600 sm:text-sm md:text-base lg:text-h3">
                                     {heading || 'No content selected'}
                                 </h3>
                                 {!isLearnerView && (
                                     <PencilSimpleLine
-                                        className="cursor-pointer hover:text-primary-500"
+                                        className="shrink-0 cursor-pointer hover:text-primary-500"
                                         onClick={() => setIsEditing(true)}
                                     />
                                 )}
@@ -2111,8 +2295,8 @@ export const SlideMaterial = ({
                     </div>
 
                     {!isLearnerView && (
-                        <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-6">
+                        <div className="flex shrink-0 items-center gap-1 sm:gap-2 md:gap-3">
+                            <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
                                 {activeItem.source_type === 'DOCUMENT' &&
                                     activeItem?.document_slide?.type === 'DOC' && (
                                         <MyButton
@@ -2149,7 +2333,8 @@ export const SlideMaterial = ({
                                             activeItem?.source_type === 'ASSIGNMENT' ||
                                             activeItem?.source_type === 'QUIZ' ||
                                             activeItem?.source_type === 'DOCUMENT' ||
-                                            activeItem?.source_type === 'VIDEO')) || // Include ALL video slides for non-admin
+                                            activeItem?.source_type === 'VIDEO' ||
+                                            activeItem?.source_type === 'HTML_VIDEO')) || // Include ALL video slides for non-admin
                                     (!hidePublishButtons &&
                                         activeItem?.source_type === 'VIDEO' &&
                                         activeItem?.splitScreenMode)) && ( // Keep split-screen condition for admin
@@ -2169,7 +2354,10 @@ export const SlideMaterial = ({
                                             ) : hidePublishButtons ? (
                                                 <FloppyDisk size={18} />
                                             ) : (
-                                                'Save Draft'
+                                                <>
+                                                    <FloppyDisk size={18} className="md:hidden" />
+                                                    <span className="hidden md:inline">Save Draft</span>
+                                                </>
                                             )}
                                         </MyButton>
                                     )}
@@ -2183,7 +2371,8 @@ export const SlideMaterial = ({
                                             layoutVariant="default"
                                             onClick={() => setIsUnpublishDialogOpen(true)}
                                         >
-                                            Unpublish
+                                            <span className="hidden sm:inline">Unpublish</span>
+                                            <span className="sm:hidden text-xs">Unpub</span>
                                         </MyButton>
                                     ) : (
                                         <MyButton
@@ -2192,7 +2381,8 @@ export const SlideMaterial = ({
                                             layoutVariant="default"
                                             onClick={() => setIsPublishDialogOpen(true)}
                                         >
-                                            Publish
+                                            <span className="hidden sm:inline">Publish</span>
+                                            <span className="sm:hidden text-xs">Pub</span>
                                         </MyButton>
                                     ))}
 
@@ -2211,6 +2401,8 @@ export const SlideMaterial = ({
                                                 updateQuestionOrder,
                                                 updateAssignmentOrder,
                                                 addUpdateQuizSlide,
+                                                addUpdateAudioSlide,
+                                                addUpdateScormSlide,
                                                 SaveDraft,
                                                 playerRef
                                             )
@@ -2238,10 +2430,11 @@ export const SlideMaterial = ({
                                                     updateQuestionOrder,
                                                     updateAssignmentOrder,
                                                     addUpdateQuizSlide,
+                                                    addUpdateAudioSlide,
+                                                    addUpdateScormSlide,
                                                     SaveDraft,
                                                     playerRef
-                                                );
-                                            }
+                                                );                                            }
                                         }}
                                     />
                                 )}
@@ -2280,3 +2473,4 @@ export const SlideMaterial = ({
         </div>
     );
 };
+
