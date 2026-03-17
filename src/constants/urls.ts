@@ -448,7 +448,7 @@ export const AGENT_SESSION_STATUS = (sessionId: string) =>
     `${BASE_URL}/admin-core-service/v1/agent/session/${sessionId}/status`;
 
 // AI Evaluation
-export const TRIGGER_EVALUATION_URL = `${'http://localhost:8074'}/assessment-service/assessment/evaluation-ai/trigger-evaluation`;
-export const STOP_EVALUATION_URL = `${'http://localhost:8074'}/assessment-service/assessment/evaluation-ai/stop`;
-export const GET_EVALUATION_PROGRESS_URL = `${'http://localhost:8074'}/assessment-service/assessment/evaluation-ai/progress`;
-export const GET_COMPLETED_QUESTIONS_URL = `${'http://localhost:8074'}/assessment-service/assessment/evaluation-ai/completed-questions`;
+export const TRIGGER_EVALUATION_URL = `${BASE_URL}/assessment-service/assessment/evaluation-ai/trigger-evaluation`;
+export const STOP_EVALUATION_URL = `${BASE_URL}/assessment-service/assessment/evaluation-ai/stop`;
+export const GET_EVALUATION_PROGRESS_URL = `${BASE_URL}/assessment-service/assessment/evaluation-ai/progress`;
+export const GET_COMPLETED_QUESTIONS_URL = `${BASE_URL}/assessment-service/assessment/evaluation-ai/completed-questions`;
