@@ -210,7 +210,6 @@ function RegistrationListPageInner({
 
             // Navigate to registration form with enquiry data
             const encodedData = encodeURIComponent(JSON.stringify(enquiryData));
-            console.log('Encoded data:', encodedData);
             if (selectedSessionId) {
                 navigate({ to: `/admissions/application/new?sessionId=${selectedSessionId}&enquiryData=${encodedData}` });
             } else {
