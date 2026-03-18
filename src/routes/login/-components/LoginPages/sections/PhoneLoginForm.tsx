@@ -25,7 +25,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
 import { trackEvent } from '@/lib/amplitude';
 import { getCachedInstituteBranding } from '@/services/domain-routing';
-import { REQUEST_WHATSAPP_OTP, VERIFY_WHATSAPP_OTP } from "@/constants/urls";
+import { REQUEST_WHATSAPP_OTP, VERIFY_WHATSAPP_OTP_LOGIN } from "@/constants/urls";
 
 const phoneSchema = z.object({
     phone: z.string().min(10, { message: "Invalid phone number" }),
@@ -150,7 +150,7 @@ export function PhoneLoginForm({
 
     const verifyOtpMutation = useMutation({
         mutationFn: (data: { phone: string; otp: string }) =>
-            axios.post(VERIFY_WHATSAPP_OTP, { phone_number: data.phone, otp: data.otp, institute_id: domainRouting.instituteId }),
+            axios.post(VERIFY_WHATSAPP_OTP_LOGIN, { phone_number: data.phone, otp: data.otp, institute_id: domainRouting.instituteId }),
         onSuccess: async (response) => {
             try {
                 if (!response.data || !response.data.accessToken) {
