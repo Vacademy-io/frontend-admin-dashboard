@@ -20,6 +20,7 @@ export type DomainResolveResponse = {
     allowGoogleAuth?: boolean;
     allowGithubAuth?: boolean;
     allowEmailOtpAuth?: boolean;
+    allowPhoneAuth?: boolean;
     allowUsernamePasswordAuth?: boolean;
     learnerPortalUrl?: string | null;
     instructorPortalUrl?: string | null;
