@@ -11,9 +11,12 @@ import {
     getStudentDuesQueryKey,
     allocateSelectedPayment,
     generateInvoiceForInstallments,
+    sendInvoiceEmail,
 } from '@/services/manage-finances';
 import { getInstituteId } from '@/constants/helper';
+import { useTheme } from '@/providers/theme/theme-provider';
 import { ConfirmPaymentDialog } from './ConfirmPaymentDialog';
+import { InvoiceActionDialog } from './InvoiceActionDialog';
 import { cn } from '@/lib/utils';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -63,6 +66,7 @@ export function InstallmentSelectionStep({
     onSuccess,
 }: InstallmentSelectionStepProps) {
     const queryClient = useQueryClient();
+    const { getPrimaryColorCode } = useTheme();
 
     const { data: dues, isLoading, error } = useQuery({
         queryKey: getStudentDuesQueryKey(student.student_id),
@@ -74,6 +78,7 @@ export function InstallmentSelectionStep({
     const [amount, setAmount] = useState('');
     const [remarks, setRemarks] = useState('');
     const [showConfirm, setShowConfirm] = useState(false);
+    const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
 
     // Filters
     const [statusFilter, setStatusFilter] = useState('ALL');
@@ -204,7 +209,8 @@ export function InstallmentSelectionStep({
         onSuccess: (data) => {
             if (data.download_url) {
                 window.open(data.download_url, '_blank');
-                toast.success('Invoice generated successfully');
+                toast.success('Invoice downloaded successfully');
+                setShowInvoiceDialog(false);
             } else {
                 toast.error('Invoice generated but download URL not available');
             }
@@ -212,6 +218,26 @@ export function InstallmentSelectionStep({
         onError: (err: any) => {
             toast.error(
                 err?.response?.data?.error || err?.message || 'Failed to generate invoice'
+            );
+        },
+    });
+
+    const emailInvoiceMutation = useMutation({
+        mutationFn: async (email: string) => {
+            const data = await generateInvoiceForInstallments(
+                student.student_id,
+                Array.from(selectedIds)
+            );
+            if (!data.download_url) throw new Error('Download URL not available');
+            await sendInvoiceEmail(email, student.student_name, data.download_url, getPrimaryColorCode());
+        },
+        onSuccess: () => {
+            toast.success('Invoice sent to email successfully');
+            setShowInvoiceDialog(false);
+        },
+        onError: (err: any) => {
+            toast.error(
+                err?.response?.data?.error || err?.message || 'Failed to send invoice email'
             );
         },
     });
@@ -578,15 +604,11 @@ export function InstallmentSelectionStep({
                                     className="w-48"
                                 />
                                 <button
-                                    onClick={() => invoiceMutation.mutate()}
-                                    disabled={
-                                        selectedIds.size === 0 || invoiceMutation.isPending
-                                    }
+                                    onClick={() => setShowInvoiceDialog(true)}
+                                    disabled={selectedIds.size === 0}
                                     className="px-5 py-2 bg-white text-gray-700 text-sm font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
                                 >
-                                    {invoiceMutation.isPending
-                                        ? 'Generating...'
-                                        : 'Generate Invoice'}
+                                    Generate Invoice
                                 </button>
                                 <button
                                     onClick={handleSubmit}
@@ -613,6 +635,17 @@ export function InstallmentSelectionStep({
                 installmentCount={selectedIds.size}
                 isSubmitting={mutation.isPending}
                 onConfirm={handleConfirm}
+            />
+
+            <InvoiceActionDialog
+                open={showInvoiceDialog}
+                onOpenChange={setShowInvoiceDialog}
+                studentName={student.student_name}
+                studentEmail={student.email}
+                isGenerating={invoiceMutation.isPending}
+                isSendingEmail={emailInvoiceMutation.isPending}
+                onDownload={() => invoiceMutation.mutate()}
+                onSendEmail={(email) => emailInvoiceMutation.mutate(email)}
             />
         </div>
     );
