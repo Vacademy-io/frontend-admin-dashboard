@@ -10,6 +10,7 @@ import { InventoryFilters as InventoryFiltersComponent } from './inventory-filte
 import { InventoryStatsCards } from './inventory-stats-cards';
 import { useMultipleInventoryAvailability } from '../-hooks/use-inventory-data';
 import { InventoryFilters, ViewMode, PackageSessionInventory } from '../-types/inventory-types';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 
 const ManageInventoryPage = () => {
     const [viewMode, setViewMode] = useState<ViewMode>('table');
@@ -121,6 +122,7 @@ const ManageInventoryPage = () => {
     }, [batchesForSessions]);
 
     return (
+        <LayoutContainer>
         <div className="container mx-auto space-y-6 py-6">
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -211,6 +213,7 @@ const ManageInventoryPage = () => {
                 <InventoryCardView items={inventoryItems} isLoading={isLoadingInventory} />
             )}
         </div>
+        </LayoutContainer>
     );
 };
 
